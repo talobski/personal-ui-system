@@ -133,7 +133,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** Node/TypeScript test runner and dependency-boundary inspection.
 - **threshold:** Core test suite passes; an automated dependency check finds no import from `apps/workbench` into a core package.
-- **result + evidencePath:** unevaluated; `.loop/runs/<verification-run>/evidence/ac-01.json`
+- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-01.json`
 
 ### AC-02 — shadcn foundation
 
@@ -141,7 +141,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** shadcn registry loader/schema validator plus source inspection script.
 - **threshold:** Registry validation passes for all pilot items; each declares its shadcn/primitive dependency and contains no bespoke implementation of focus trapping, roving focus, or dialog dismissal.
-- **result + evidencePath:** unevaluated; `.loop/runs/<verification-run>/evidence/ac-02.json`
+- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-02.json`
 
 ### AC-03 — Structured themes
 
@@ -149,7 +149,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** Schema tests, fixtures, and snapshot/hash comparison.
 - **threshold:** Valid fixture round-trips without semantic loss; invalid fixtures are rejected; identical input produces byte-identical CSS; both color modes and all six categories are present.
-- **result + evidencePath:** unevaluated; `.loop/runs/<verification-run>/evidence/ac-03.json`
+- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-03.json`
 
 ### AC-04 — Compact agent contracts
 
@@ -157,7 +157,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** Contract validator and lookup test.
 - **threshold:** All required fields validate for three pilots; single-item lookup returns only that item's contract and is at most 8 KiB serialized for each pilot.
-- **result + evidencePath:** unevaluated; `.loop/runs/<verification-run>/evidence/ac-04.json`
+- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-04.json`
 
 ### AC-05 — Deterministic constraints and safe mutations
 
@@ -165,7 +165,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** Unit/property tests against declared mutation operations and constraint fixtures.
 - **threshold:** Every predeclared invalid fixture is rejected with a stable rule ID and path; valid fixtures apply; unknown operation/path is rejected; no operation accepts raw CSS or filesystem paths.
-- **result + evidencePath:** unevaluated; `.loop/runs/<verification-run>/evidence/ac-05.json`
+- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-05.json`
 
 ### AC-06 — Local visual workbench
 
@@ -189,7 +189,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** State-machine tests and fixture audit.
 - **threshold:** Direct candidate-to-active mutation without approval receipt is rejected; approved fixture preserves provenance, owner response, and timestamp.
-- **result + evidencePath:** unevaluated; `.loop/runs/<verification-run>/evidence/ac-08.json`
+- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-08.json`
 
 ### AC-09 — Documentation and agent handoff
 
