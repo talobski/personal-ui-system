@@ -2,8 +2,9 @@
 
 Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed; the
 post-V1 shadcn workbench alignment is also DONE(verified)
-and owner-accepted. The owner-approved `theme-mutation-coverage-001` phase is
-now RUNNING; see the Phase 2 section below, and
+and owner-accepted. `theme-mutation-coverage-001` is DONE(verified) at main
+`2d913c0`, pending owner acceptance; the project is PAUSED(owner) with no active
+implementation unit. See the Phase 2 sections below, and
 `docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state and deferred decisions.
 
 Last updated: 2026-09-21
@@ -341,3 +342,81 @@ calls, at most two changed attempts within that run, 120 minutes wall clock, a
 project lifetime agent-run ceiling from 10 to 11 to admit exactly this run. If
 the run cannot complete the phase, the project pauses rather than raising the
 ceiling again.
+
+## Phase 2 result — 2026-09-21
+
+`theme-mutation-coverage-001` is `DONE(verified)` at main commit `2d913c0`
+(artifact `e8481f5`, core work `f6f3ed6`), pending owner acceptance.
+
+All six theme categories now have a typed mutation operation, and the workbench
+can edit them. Each new operation edits one fixed target and carries no token,
+mode, or path field, matching the owner's scope clarification:
+
+| Operation | Fixed target | Value check |
+|---|---|---|
+| `setRadius` | `radius.md` | non-negative dimension |
+| `setDensity` | `space.density` | number from 0.5 to 2 |
+| `setSansFamily` | first family of `typography.sans`, fallbacks kept | one font name |
+| `setShadowBlur` | blur of the first layer of `shadow.md` | non-negative dimension |
+| `setMotionDuration` | `motion.durationBase` | duration |
+
+One new rule ID, `mutation.missing-target`, covers a schema-valid `shadow.md`
+with no layer to edit. The change to `schema.ts` is a pure extract-and-reuse
+refactor: `densitySchema` and `fontNameSchema` were exported and substituted for
+identical inline definitions, so the set of accepted themes is unchanged.
+
+The workbench gained an "Edit theme settings" panel built on the same shadcn
+`Field` / `FieldLabel` / `FieldError` / `NativeSelect` shell, plus
+`apps/workbench/src/settings.ts` and an `editTheme` function in `lifecycle.ts`.
+
+### Lead-run acceptance evidence
+
+Every command was rerun by the Lead against `e8481f5`.
+
+| Command | Result |
+|---|---|
+| `corepack pnpm test` | 13 files, 245 tests passed (191 before, +54) |
+| `corepack pnpm typecheck` | passed |
+| `corepack pnpm registry:build` | passed |
+| `corepack pnpm build:workbench` | passed |
+| `corepack pnpm build:storybook` | passed |
+| `WORKBENCH_PORT=5199 corepack pnpm test:browser` | Storybook 4/4, workbench 8/8 |
+
+The Lead decoded all 40 axe attachment bodies directly: every one is an empty
+array, across 20 distinct checkpoints including the three new settings states.
+
+The Lead also wrote and ran an independent probe of the closed boundary rather
+than trusting the worker's own fixtures. Sixteen escape-hatch attacks — a raw
+`setCss` operation, extra `css` / `path` / `file` / `$ref` fields, a JSON pointer
+patch, a bulk `setMany`, inherited property names including `__proto__`,
+negative lengths, out-of-range density, and injection-shaped strings — were all
+rejected with stable rule IDs and canonical paths, and the theme was left
+untouched on rejection. The probe is retained at
+`.loop/runs/theme-mutation-coverage-001/evidence/lead-probe.test.ts` rather than
+added to the product suite, to keep the delivered artifact inside the worker's
+contracted scope. One probe assertion initially failed on the Lead's own bug —
+an empty operations array is rejected by pre-existing request rules — which was
+corrected; the product code was not at fault.
+
+`registry.json` is byte-identical to `main` (sha256 `9361b823…`) and the
+three-pilot contract data is unchanged. After the merge, `main` at `2d913c0`
+re-ran 245 tests and typecheck clean.
+
+Budget at completion: phase agent runs 1/1, worker calls 1/12, attempts 1/2,
+lifetime agent runs 11/11, project calls 17/80, paid spend 0.
+
+### Known limitations
+
+- **Live preview is partial.** `previewVariablesCss` sends only the `:root` and
+  `.dark` blocks, and Tailwind `@theme inline` values compile into the preview at
+  build time. Radius, density, and motion reach the preview through `--radius`,
+  `--density`, and `--motion-duration-base`; font and shadow edits do not reach
+  the preview at all. Fixing that means changing the preview and iframe
+  plumbing, which this phase excluded, so it was left alone. Font and shadow are
+  instead proven through theme state, rendered CSS, diff, persistence, and
+  export. This is the most likely candidate for a future phase.
+- **Diff granularity is per token.** Font and shadow appear as
+  `typography.sans` and `shadow.md` with the whole array as the value.
+- New operations carry no `token` field, so an unknown `token` on them is
+  rejected as `mutation.unknown-field` rather than `mutation.unknown-token`.
+  Both are stable rule IDs with canonical paths.
