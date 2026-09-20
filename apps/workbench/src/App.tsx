@@ -9,11 +9,13 @@ import { NativeSelect, NativeSelectOption } from "@personal-ui/ui/components/nat
 import { Panel } from "@personal-ui/ui/components/panel"
 import { SingleToggleGroup } from "@personal-ui/ui/components/single-toggle-group"
 
-import { diffThemes, editColor, exportThemeJson, forkTheme, loadCanonicalTheme, previewVariablesCss } from "./lifecycle"
+import { diffThemes, editColor, editTheme, exportThemeJson, forkTheme, loadCanonicalTheme, previewVariablesCss } from "./lifecycle"
 import type { Mode, WorkbenchIssue } from "./lifecycle"
 import type { PreviewState } from "./messages"
 import { loadSaved, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
+import { SETTING_IDS, SETTINGS } from "./settings"
+import type { SettingId } from "./settings"
 
 const WIDTHS = { mobile: 390, desktop: 1024 } as const
 type Width = keyof typeof WIDTHS
@@ -41,6 +43,7 @@ function Notice({ children }: { children: React.ReactNode }) {
 
 export function App() {
   const editId = React.useId()
+  const settingValueId = React.useId()
   const forkIdId = React.useId()
   const forkNameId = React.useId()
   const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage))
@@ -51,6 +54,9 @@ export function App() {
   const [token, setToken] = React.useState<ColorToken>("primary")
   const [draft, setDraft] = React.useState("")
   const [editIssues, setEditIssues] = React.useState<WorkbenchIssue[]>([])
+  const [setting, setSetting] = React.useState<SettingId>("radius")
+  const [settingDraft, setSettingDraft] = React.useState("")
+  const [settingIssues, setSettingIssues] = React.useState<WorkbenchIssue[]>([])
   const [forkId, setForkId] = React.useState("")
   const [forkName, setForkName] = React.useState("")
   const [forkIssues, setForkIssues] = React.useState<WorkbenchIssue[]>([])
@@ -62,6 +68,12 @@ export function App() {
     setDraft(currentValue)
     setEditIssues([])
   }, [currentValue, token, mode, current.id])
+
+  const settingValue = SETTINGS[setting].read(current)
+  React.useEffect(() => {
+    setSettingDraft(settingValue)
+    setSettingIssues([])
+  }, [settingValue, setting, current.id])
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", mode === "dark")
@@ -101,6 +113,14 @@ export function App() {
     const result = editColor(current, mode, token, draft.trim())
     if (!result.ok) return setEditIssues(result.issues)
     setEditIssues([])
+    setCurrent(result.theme)
+    setNotice("")
+  }
+
+  const applySetting = () => {
+    const result = editTheme(current, SETTINGS[setting].build(settingDraft.trim()))
+    if (!result.ok) return setSettingIssues(result.issues)
+    setSettingIssues([])
     setCurrent(result.theme)
     setNotice("")
   }
@@ -187,6 +207,37 @@ export function App() {
             )}
           </Field>
           <Button onClick={applyEdit}>Apply edit</Button>
+        </Panel>
+
+        <Panel title="Edit theme settings">
+          <p className="text-sm text-muted-foreground">Edits one representative value per remaining category through the structured mutation API.</p>
+          <Field>
+            <FieldLabel htmlFor="setting-select">Setting</FieldLabel>
+            <NativeSelect id="setting-select" value={setting} onChange={(e) => setSetting(e.target.value as SettingId)}>
+              {SETTING_IDS.map((id) => (
+                <NativeSelectOption key={id} value={id}>
+                  {SETTINGS[id].label}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </Field>
+          <Field data-invalid={settingIssues.length > 0}>
+            <FieldLabel htmlFor={settingValueId}>Setting value</FieldLabel>
+            <Input
+              id={settingValueId}
+              value={settingDraft}
+              onChange={(e) => setSettingDraft(e.target.value)}
+              aria-invalid={settingIssues.length > 0}
+              aria-describedby={settingIssues.length > 0 ? `${settingValueId}-error` : undefined}
+              spellCheck={false}
+            />
+            {settingIssues.length > 0 && (
+              <FieldError id={`${settingValueId}-error`} data-testid="setting-error">
+                Rejected, not applied: {describeIssues(settingIssues)}. {SETTINGS[setting].hint}
+              </FieldError>
+            )}
+          </Field>
+          <Button onClick={applySetting}>Apply setting</Button>
         </Panel>
 
         <Panel title="Themes">

@@ -161,3 +161,76 @@ test.describe("workbench theme lifecycle", () => {
     })
   }
 })
+
+/** One representative edit per non-color category, as the Edit theme settings panel exposes them. */
+const SETTING_EDITS = [
+  { option: "Radius (md)", value: "1rem", invalid: "1rem; } body { display: none", diffPath: "radius.md", previewVar: "--radius" },
+  { option: "Spacing density", value: "1.25", invalid: "9", diffPath: "space.density", previewVar: "--density" },
+  { option: "Sans font family", value: "Source Serif", invalid: 'x"; } a{', diffPath: "typography.sans" },
+  { option: "Shadow blur (md)", value: "12px", invalid: "-3px", diffPath: "shadow.md" },
+  { option: "Base motion duration", value: "320ms", invalid: "fast", diffPath: "motion.durationBase", previewVar: "--motion-duration-base" },
+] as const
+
+test.describe("workbench non-color settings", () => {
+  for (const mode of ["light", "dark"] as const) {
+    test(`edit one token per new category, block invalid values, survive reload — ${mode}`, async ({ page }, testInfo) => {
+      await openWorkbench(page)
+      await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
+      await expect(page.getByTestId("diff-empty")).toBeVisible()
+
+      const apply = page.getByRole("button", { name: "Apply setting" })
+      let revision = 1
+      for (const [index, edit] of SETTING_EDITS.entries()) {
+        await page.getByLabel("Setting", { exact: true }).selectOption({ label: edit.option })
+
+        // Invalid value: blocked with a visible, stable-rule error; nothing activates.
+        await page.getByLabel("Setting value").fill(edit.invalid)
+        await apply.click()
+        await expect(page.getByTestId("setting-error")).toBeVisible()
+        await expect(page.getByTestId("setting-error")).toContainText("mutation.invalid-value at operations[0].value")
+        await expect(page.getByLabel("Setting value")).toHaveAttribute("aria-invalid", "true")
+        await expect(page.getByTestId("theme-revision")).toHaveText(String(revision))
+        await expect(page.getByTestId("diff-count")).toHaveText(String(index))
+        if (index === 0) await expectNoSeriousViolations(page, `${mode}-setting-error`, testInfo)
+
+        // Valid value: applied through the mutation boundary, revision bumped, path listed in the diff.
+        // The last edit uses the keyboard alone (focus, type, Tab to the button, Enter).
+        await page.getByLabel("Setting value").fill(edit.value)
+        if (index === SETTING_EDITS.length - 1) {
+          await page.getByLabel("Setting value").focus()
+          await page.keyboard.press("Tab")
+          await expect(apply).toBeFocused()
+          await page.keyboard.press("Enter")
+        } else {
+          await apply.click()
+        }
+        revision += 1
+        await expect(page.getByTestId("theme-revision")).toHaveText(String(revision))
+        await expect(page.getByTestId("setting-error")).toHaveCount(0)
+        await expect(page.getByTestId("diff-count")).toHaveText(String(index + 1))
+        await expect(page.getByTestId("diff-list").locator(`[data-path="${edit.diffPath}"]`)).toBeVisible()
+        if ("previewVar" in edit) await expect.poll(() => previewVar(page, edit.previewVar)).toBe(edit.value)
+      }
+      await expectNoSeriousViolations(page, `${mode}-settings-edited`, testInfo)
+
+      // Fork, save, and survive a browser refresh with every edit intact.
+      await page.getByLabel("Fork id").fill("settings-fork")
+      await page.getByLabel("Fork name").fill("Settings Fork")
+      await page.getByRole("button", { name: "Fork theme" }).click()
+      await page.getByRole("button", { name: "Save theme" }).click()
+      await expect(page.getByTestId("theme-status")).toHaveText("saved")
+      await page.reload()
+      await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
+      await expect(page.getByTestId("theme-id")).toHaveText("settings-fork")
+      await expect(page.getByTestId("theme-status")).toHaveText("saved")
+      await expect(page.getByTestId("diff-count")).toHaveText(String(SETTING_EDITS.length))
+      for (const edit of SETTING_EDITS) {
+        await expect(page.getByTestId("diff-list").locator(`[data-path="${edit.diffPath}"]`)).toBeVisible()
+        await page.getByLabel("Setting", { exact: true }).selectOption({ label: edit.option })
+        await expect(page.getByLabel("Setting value")).toHaveValue(edit.value)
+      }
+      await expect.poll(() => previewVar(page, "--motion-duration-base")).toBe("320ms")
+      await expectNoSeriousViolations(page, `${mode}-settings-after-reload`, testInfo)
+    })
+  }
+})
