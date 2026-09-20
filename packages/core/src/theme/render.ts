@@ -17,7 +17,9 @@ const motionVar = (name: (typeof MOTION_DURATION_TOKENS)[number]) =>
   `--motion-${name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`
 
 /**
- * The sole theme -> shadcn/Tailwind v4 mapping. Output order comes from the
+ * The sole theme -> shadcn/Tailwind v4 mapping. `@theme inline` values are substituted literally into utilities at
+ * build time, so every category that must change at runtime keeps its value in a plain `:root` custom property and the
+ * inline entry only references it, as colour does. Output order comes from the
  * closed token tables above, never from input key order, and the input is
  * re-validated so only schema-conforming values reach the CSS text.
  */
@@ -28,7 +30,10 @@ export function renderShadcnTailwindCss(input: Theme): string {
 
   const root = [
     ...COLOR_TOKENS.map((name) => decl(`--${name}`, light[name].$value)),
+    ...TYPOGRAPHY_TOKENS.map((name) => decl(`--font-family-${name}`, cssFamily(theme.typography[name].$value))),
+    ...SHADOW_TOKENS.map((name) => decl(`--shadow-layers-${name}`, cssShadow(theme.shadow[name].$value))),
     decl("--radius", theme.radius.md.$value),
+    ...RADIUS_TOKENS.map((name) => decl(`--radius-scale-${name}`, theme.radius[name].$value)),
     decl("--space-base", theme.space.base.$value),
     decl("--density", String(theme.space.density.$value)),
     ...MOTION_DURATION_TOKENS.map((name) => decl(motionVar(name), theme.motion[name].$value)),
@@ -36,9 +41,9 @@ export function renderShadcnTailwindCss(input: Theme): string {
 
   const inline = [
     ...COLOR_TOKENS.map((name) => decl(`--color-${name}`, `var(--${name})`)),
-    ...TYPOGRAPHY_TOKENS.map((name) => decl(`--font-${name}`, cssFamily(theme.typography[name].$value))),
-    ...RADIUS_TOKENS.map((name) => decl(`--radius-${name}`, theme.radius[name].$value)),
-    ...SHADOW_TOKENS.map((name) => decl(`--shadow-${name}`, cssShadow(theme.shadow[name].$value))),
+    ...TYPOGRAPHY_TOKENS.map((name) => decl(`--font-${name}`, `var(--font-family-${name})`)),
+    ...RADIUS_TOKENS.map((name) => decl(`--radius-${name}`, `var(--radius-scale-${name})`)),
+    ...SHADOW_TOKENS.map((name) => decl(`--shadow-${name}`, `var(--shadow-layers-${name})`)),
     decl("--spacing", "calc(var(--space-base) * var(--density))"),
     decl("--default-transition-duration", "var(--motion-duration-base)"),
   ]

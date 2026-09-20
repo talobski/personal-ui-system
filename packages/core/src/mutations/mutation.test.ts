@@ -31,19 +31,19 @@ describe("setColor mutation", () => {
 
 /** One operation per non-color category, with the rendered declaration and diff-visible path it must produce. */
 const categoryOperations = [
-  { category: "radius", operation: { op: "setRadius", value: "1rem" }, css: "--radius: 1rem;", path: ["radius", "md"], expected: "1rem" },
+  { category: "radius", operation: { op: "setRadius", value: "1rem" }, css: "--radius-scale-md: 1rem;", path: ["radius", "md"], expected: "1rem" },
   { category: "spacing/density", operation: { op: "setDensity", value: 1.25 }, css: "--density: 1.25;", path: ["space", "density"], expected: 1.25 },
   {
     category: "typography",
     operation: { op: "setSansFamily", value: "Source Serif" },
-    css: '--font-sans: "Source Serif", system-ui, sans-serif;',
+    css: '--font-family-sans: "Source Serif", system-ui, sans-serif;',
     path: ["typography", "sans"],
     expected: ["Source Serif", "system-ui", "sans-serif"],
   },
   {
     category: "shadow",
     operation: { op: "setShadowBlur", value: "12px" },
-    css: "--shadow-md: 0px 4px 12px -2px oklch(0 0 0 / 10%);",
+    css: "--shadow-layers-md: 0px 4px 12px -2px oklch(0 0 0 / 10%);",
     path: ["shadow", "md"],
     expected: [{ offsetX: "0px", offsetY: "4px", blur: "12px", spread: "-2px", color: "oklch(0 0 0 / 10%)" }],
   },

@@ -89,6 +89,15 @@ export function PreviewFrame() {
         </label>
       </section>
 
+      <section aria-labelledby="pv-elevation" className="grid gap-2">
+        <h2 id="pv-elevation" className="text-sm font-semibold">
+          Elevation
+        </h2>
+        <div data-testid="elevation-sample" className="rounded-md bg-card p-3 text-sm text-card-foreground shadow-md">
+          Raised surface
+        </div>
+      </section>
+
       <section aria-labelledby="pv-dialog" className="grid gap-2">
         <h2 id="pv-dialog" className="text-sm font-semibold">
           Responsive dialog

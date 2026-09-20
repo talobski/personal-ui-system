@@ -71,6 +71,26 @@ describe("renderShadcnTailwindCss", () => {
     expect(renderShadcnTailwindCss(theme)).toBe(readFileSync(goldenPath, "utf8"))
   })
 
+  it("keeps radius, typography, and shadow live: @theme inline only references :root custom properties", () => {
+    const css = renderShadcnTailwindCss(theme)
+    const [rootAndDark, inline] = css.split("@theme inline")
+    for (const [utility, source] of [
+      ["--font-sans", "--font-family-sans"],
+      ["--font-mono", "--font-family-mono"],
+      ["--radius-sm", "--radius-scale-sm"],
+      ["--radius-md", "--radius-scale-md"],
+      ["--radius-lg", "--radius-scale-lg"],
+      ["--shadow-sm", "--shadow-layers-sm"],
+      ["--shadow-md", "--shadow-layers-md"],
+      ["--shadow-lg", "--shadow-layers-lg"],
+    ] as const) {
+      expect(inline).toContain(`  ${utility}: var(${source});`)
+      expect(rootAndDark).toMatch(new RegExp(`^  ${source}: [^v].*;$`, "m"))
+    }
+    // No literal font, radius, or shadow value remains inside the compiled-in block.
+    expect(inline).not.toMatch(/--(?:font|radius|shadow)-(?:sans|mono|sm|md|lg): (?!var\()/)
+  })
+
   it("emits shadcn variables, Tailwind v4 aliases, dark mode, and the reduced-motion override", () => {
     const css = renderShadcnTailwindCss(theme)
     expect(css).toContain(":root {")
