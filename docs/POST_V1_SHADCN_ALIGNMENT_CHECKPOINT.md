@@ -1,6 +1,6 @@
 # Post-V1 shadcn alignment checkpoint
 
-Status: `RUNNING`; implementation route admitted, dispatch pending.
+Status: `PAUSED(owner/provider-capacity)` at a clean resume checkpoint.
 
 ## Preserved V1 record
 
@@ -76,3 +76,46 @@ capacity without a task-specific expected benefit.
 
 With exactly one admitted route, canonical routing is deterministic and Jev was
 not invoked. Selected route: `claude/claude-sonnet-5`, `auto`, medium.
+
+## Pause checkpoint — 2026-09-21
+
+The single Claude worker stopped without edits or a commit because the four
+required shadcn registry sources were not cached locally and worker network use
+was prohibited. The worktree remains clean at `9bb7a28`.
+
+The Lead then ran only an official shadcn CLI dry-run for `card`, `field`,
+`native-select`, and `toggle-group`. It fetched registry metadata but wrote
+nothing. The dry-run identified seven source files to create: Card, Field,
+Label, Separator, Native Select, Toggle, and Toggle Group. It reported only the
+already-present `cn` and `radix-ui` dependency families.
+
+Before that dry-run, the worker had accidentally started and cancelled a broad
+filesystem search. macOS TCC later attributed protected access to the spawned
+Claude Code process under Paseo and recorded Calendar, Photos, and generic
+protected app-data services. No exact container path was exposed. This access is
+not needed for the repository or provider route; no permission bypass or grant
+was attempted.
+
+Verification state at pause:
+
+- implementation changes: none;
+- unit tests: not rerun;
+- typecheck: not rerun;
+- registry/workbench/Storybook builds: not rerun;
+- Playwright, light/dark, and axe matrix: not rerun;
+- prior V1 evidence remains historical but will be stale once implementation
+  changes begin.
+
+Resume action:
+
+1. Confirm the macOS privacy prompt is denied/closed and the desktop-managed
+   Paseo daemon reconnects.
+2. Apply the exact official registry command already dry-run for the four scoped
+   components, then inspect the generated diff.
+3. Resume existing agent `eb9542c3-978b-4a9f-bcf4-b8a9fa2fb613` in workspace
+   `wks_d90751195a2e657e`; do not create a new worker.
+4. Complete the bounded refactor and all required fresh verification.
+
+The worktree and agent identity are intentionally preserved. No routing change,
+new unit, paid capacity, deployment, publication, or authority expansion is
+authorized by this pause checkpoint.
