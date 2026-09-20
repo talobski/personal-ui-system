@@ -2,9 +2,9 @@
 
 Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed; the
 post-V1 shadcn workbench alignment is also DONE(verified)
-and owner-accepted. The project is PAUSED(owner) with no active implementation
-unit; see `docs/PROJECT_HANDOFF_CHECKPOINT.md` for the authoritative handoff
-state, deferred decisions, and next possible actions.
+and owner-accepted. The owner-approved `theme-mutation-coverage-001` phase is
+now RUNNING; see the Phase 2 section below, and
+`docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state and deferred decisions.
 
 Last updated: 2026-09-21
 
@@ -293,3 +293,51 @@ worker, at most 12 worker calls/turns, at most two changed attempts within that
 run, 90 minutes wall clock, and paid budget 0. The owner-approved global ceiling
 of 10 provides exactly one cleanup slot after accounting for V1's 8 runs and the
 post-V1 audit run; the phase-local one-run limit remains controlling.
+
+## Phase 2: theme mutation coverage
+
+Owner-approved on 2026-09-21. This phase does not change V1 scope, results, or
+its 8/8 agent-run record, and does not reopen the completed post-V1
+shadcn-alignment phase.
+
+The theme schema declares six token categories and renders all of them, but the
+mutation boundary admits exactly one operation, `setColor`. This phase closes
+that gap.
+
+Included work:
+
+- one typed, narrowly scoped operation per remaining category — `radius`,
+  `spacing/density`, `typography` family, `shadow`, and `motion` — each with
+  strict validation, a stable rule ID, and a canonical path;
+- a mutation union that stays closed: no raw CSS, filesystem path, arbitrary
+  pointer, bulk operation, or generic set-any-path operation;
+- deterministic rendering preserved across all six categories;
+- workbench editing for the newly mutable categories through the same structured
+  mutation boundary and the existing shadcn form shell;
+- round-trip integrity: revalidation, revision increment, and diff paths.
+
+Coverage means at least one typed operation per category, not every field in
+every category. The mutation API must not grow beyond this contract.
+
+Excluded: natural-language input, model-provider configuration, MCP, theme
+extraction, broad component catalog, any `registry.json` or three-pilot catalog
+change, new pilot components, rule promotion, publishing, deployment, pixel
+comparison, branching history, and the protected `ResponsiveDialog`, iframe,
+JSON download, and preview-scroller surfaces.
+
+Acceptance is PH2-01 through PH2-06 in
+`.loop/runs/theme-mutation-coverage-001/task.md`: category coverage, closed
+boundary, deterministic round-trip, workbench editing across both viewports and
+both colour modes, unchanged accessibility, and no regression.
+
+These changes touch code verified under AC-03 and AC-05, so that evidence
+becomes stale for the current artifact. The owner accepted this. The new phase
+evidence re-establishes the affected invariants; the historical V1 record stands
+unchanged.
+
+The phase budget is one worker run, one concurrent worker, at most 12 worker
+calls, at most two changed attempts within that run, 120 minutes wall clock, a
+50k soft token target, spawn depth 1, and paid budget 0. The owner raised the
+project lifetime agent-run ceiling from 10 to 11 to admit exactly this run. If
+the run cannot complete the phase, the project pauses rather than raising the
+ceiling again.
