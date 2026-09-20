@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test"
 
-const PORT = 5173
+const PORT = Number(process.env.WORKBENCH_PORT ?? 5173)
 
 // Runs against the production workbench build (`pnpm build:workbench` first).
 export default defineConfig({
