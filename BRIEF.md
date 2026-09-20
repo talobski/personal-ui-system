@@ -261,3 +261,30 @@ Safe defaults applied for scoping:
 - No public release optimization or deployment work occurs in V1.
 
 Owner confirmation received on 2026-09-20 for this narrow V1. Deferred capabilities remain potential later phases, not architectural exclusions.
+
+## Post-V1 phase: shadcn workbench alignment
+
+This bounded cleanup begins only after the completed V1 checkpoint and does not
+change V1 scope, results, evidence, or its 8/8 agent-run record.
+
+Included work:
+
+- Build workbench panel surfaces on shadcn `Card`.
+- Build workbench form structure and validation on shadcn `Field`, `FieldLabel`,
+  and `FieldError`.
+- Replace the two raw selects with the simpler appropriate shadcn select
+  foundation; prefer `NativeSelect` unless implementation evidence requires the
+  composed `Select`.
+- Replace the light/dark and mobile/desktop button pairs with shadcn
+  `ToggleGroup type="single"`.
+- Keep `ResponsiveDialog`, iframe preview plumbing, native semantic elements,
+  JSON download behavior, and the native preview scroller unchanged.
+- Keep the public component-contract catalog at the existing three V1 pilots
+  unless a concrete implementation blocker is documented.
+
+Acceptance requires fresh passing unit tests, typecheck, registry build,
+workbench build, Storybook build, Playwright browser matrix, light/dark coverage,
+and axe/accessibility checks. The phase budget is one worker run, one concurrent
+worker, at most 12 worker calls/turns, at most two changed attempts within that
+run, 90 minutes wall clock, and paid budget 0. Dispatch remains paused until the
+unchanged global per-project agent-run ceiling admits the additional run.
