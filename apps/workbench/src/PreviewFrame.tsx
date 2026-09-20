@@ -20,6 +20,7 @@ const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "li
 /** Runs inside the preview iframe: applies the workbench's theme variables and renders the pilot component states. */
 export function PreviewFrame() {
   const [state, setState] = React.useState<PreviewState | null>(null)
+  const [buttonActivations, setButtonActivations] = React.useState(0)
 
   React.useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -51,11 +52,14 @@ export function PreviewFrame() {
         </h2>
         <div className="flex flex-wrap gap-2">
           {VARIANTS.map((variant) => (
-            <Button key={variant} variant={variant}>
+            <Button key={variant} variant={variant} onClick={variant === "default" ? () => setButtonActivations((count) => count + 1) : undefined}>
               {variant}
             </Button>
           ))}
         </div>
+        <output className="text-xs text-muted-foreground" data-testid="button-activations" aria-live="polite">
+          Default button activations: {buttonActivations}
+        </output>
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm">Small</Button>
           <Button size="lg">Large</Button>

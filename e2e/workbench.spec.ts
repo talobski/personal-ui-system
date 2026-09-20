@@ -70,6 +70,19 @@ test.describe("workbench theme lifecycle", () => {
       const baselinePrimary = await previewVar(page, "--primary")
       expect(baselinePrimary).toMatch(/^oklch\(/)
 
+      // Keyboard: native Button activates with Enter and Space; Input accepts typed text.
+      const defaultButton = frame.getByRole("button", { name: "default", exact: true })
+      await defaultButton.focus()
+      await expect(defaultButton).toBeFocused()
+      await page.keyboard.press("Enter")
+      await page.keyboard.press("Space")
+      await expect(frame.getByTestId("button-activations")).toHaveText("Default button activations: 2")
+      const defaultInput = frame.getByLabel("Default")
+      await defaultInput.focus()
+      await expect(defaultInput).toBeFocused()
+      await page.keyboard.type("Keyboard input")
+      await expect(defaultInput).toHaveValue("Keyboard input")
+
       // Preview widths: Drawer at the mobile width, Dialog at the desktop width.
       for (const [label, width, slot] of [
         ["Mobile 390", 390, "drawer-content"],
@@ -78,11 +91,16 @@ test.describe("workbench theme lifecycle", () => {
         await page.getByRole("button", { name: label }).click()
         await expect(page.getByTestId("preview-frame")).toHaveAttribute("style", new RegExp(`width: ${width}px`))
         await expectNoSeriousViolations(page, `${mode}-${width}-closed`, testInfo)
-        await frame.getByRole("button", { name: OPEN_BUTTON }).click()
+        const trigger = frame.getByRole("button", { name: OPEN_BUTTON })
+        await trigger.focus()
+        await page.keyboard.press("Enter")
         await settled(frame, `[data-slot="${slot}"]`)
+        await page.keyboard.press("Tab")
+        await expect(frame.locator(`[data-slot="${slot}"]:focus, [data-slot="${slot}"] :focus`)).toHaveCount(1)
         await expectNoSeriousViolations(page, `${mode}-${width}-dialog-open`, testInfo)
         await page.keyboard.press("Escape")
         await expect(frame.locator(`[data-slot="${slot}"]`)).toHaveCount(0)
+        await expect(trigger).toBeFocused()
       }
 
       // Valid edit: applied, previewed, revision bumped, shown in the baseline diff.
