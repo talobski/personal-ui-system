@@ -1,6 +1,7 @@
 # Personal UI System — Project Brief
 
-Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed
+Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed; the
+post-V1 shadcn workbench alignment is also DONE(verified)
 
 Last updated: 2026-09-21
 

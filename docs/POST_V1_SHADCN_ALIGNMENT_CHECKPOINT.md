@@ -1,6 +1,6 @@
 # Post-V1 shadcn alignment checkpoint
 
-Status: `PAUSED(owner/provider-capacity)` at a clean resume checkpoint.
+Status: `DONE(verified)` — merged to `main` at `5d95fd4`.
 
 ## Preserved V1 record
 
@@ -119,3 +119,69 @@ Resume action:
 The worktree and agent identity are intentionally preserved. No routing change,
 new unit, paid capacity, deployment, publication, or authority expansion is
 authorized by this pause checkpoint.
+
+## Completion — 2026-09-21
+
+The phase is `DONE(verified)`. The Lead role moved from Codex to Claude Opus 5
+while the run was paused; no counter, budget, retry record, provider state,
+authority boundary, or verification result was reset by that change.
+
+The source blocker was resolved by the Lead running the already-dry-run official
+registry command in the preserved worktree. It created the seven expected files
+and changed no `package.json` or lockfile entry, because `cn`, `radix-ui`,
+`class-variance-authority`, and `lucide-react` were already installed. The same
+preserved worker `eb9542c3-978b-4a9f-bcf4-b8a9fa2fb613` was then resumed — no
+replacement agent, no new workspace, no route change, no Jev call.
+
+Delivered, at worker commit `36ab730` and main commit `5d95fd4`:
+
+- a `Panel` wrapper composing shadcn `Card`, keeping `<section aria-labelledby>`
+  and a real `<h2>`;
+- `Field`, `FieldLabel htmlFor`, and `FieldError` for every form row, with
+  `aria-describedby` added and existing `data-testid` values and message text
+  preserved;
+- `NativeSelect` for both previously raw selects; the composed `Select` was not
+  needed;
+- a `SingleToggleGroup` wrapper over `ToggleGroup type="single"` for the colour
+  mode and preview width controls, ignoring the empty deselect value so one
+  option stays selected.
+
+`ResponsiveDialog`, iframe and postMessage plumbing, JSON download, the native
+preview scroller, `registry.json`, and the three-pilot public contract catalog
+are unchanged.
+
+### Lead-run acceptance evidence
+
+Every command was rerun by the Lead against `36ab730`; the worker's own report
+was not accepted as evidence.
+
+| Command | Result |
+|---|---|
+| `corepack pnpm test` | 13 files, 191 tests passed |
+| `corepack pnpm typecheck` | passed |
+| `corepack pnpm registry:build` | passed |
+| `corepack pnpm build:workbench` | passed |
+| `corepack pnpm build:storybook` | passed |
+| `WORKBENCH_PORT=5199 corepack pnpm test:browser` | Storybook 4/4, workbench 4/4 |
+
+Playwright keeps attachments only for failing runs, so the Lead reran the
+workbench project with the JSON reporter and decoded all 28 axe attachment
+bodies directly: every one is an empty array. Coverage spans 390x844 and
+1440x900, light and dark, preview widths 390 and 1024, the dialog/drawer
+replacement, keyboard flows, and the two new invalid-state checkpoints. After
+the merge, `main` at `5d95fd4` re-ran 191 tests and typecheck clean.
+
+Budget at completion: phase agent runs 1/1, worker calls 2/12, attempts 1/2,
+lifetime agent runs 10/10, project calls 15/80, paid spend 0. V1 remains
+`DONE(verified)` at `86d5a64` with its 9/9 criteria and immutable 8/8 record.
+
+### Carried forward
+
+- `registry.json` still publishes only the three V1 pilots. The added shadcn
+  items and the two wrappers are internal workbench-shell composition, which
+  matches the phase non-goal against broadening the public catalog. Publishing
+  them is a separate owner decision.
+- Port 5173 is held by an unrelated owner process (PID 27245). It was not
+  stopped; verification used the supported `WORKBENCH_PORT` override.
+- Lifetime agent runs are now exhausted at 10/10. Any further delegated work
+  requires an explicit owner ceiling decision.
