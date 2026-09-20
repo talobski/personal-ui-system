@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./theme/fixtures/*.css": "./src/theme/fixtures/*.css"
+    "./theme/fixtures/*.css": "./src/theme/fixtures/*.css",
+    "./theme/fixtures/*.json": "./src/theme/fixtures/*.json"
   },
   "scripts": {
     "test": "vitest run",

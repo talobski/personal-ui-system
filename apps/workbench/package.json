@@ -3,8 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "@personal-ui/core": "workspace:*",
-    "@personal-ui/ui": "workspace:*"
+    "@personal-ui/ui": "workspace:*",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   }
 }
