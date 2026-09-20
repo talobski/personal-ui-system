@@ -181,7 +181,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** browser
 - **capability:** Playwright, axe, keyboard interaction, viewport inspection.
 - **threshold:** Zero critical/serious axe violations across the declared matrix; documented keyboard flows pass; at ≤640 px the dialog fixture renders the declared drawer behavior and at ≥1024 px the dialog behavior.
-- **result + evidencePath:** unevaluated; `.loop/runs/<verification-run>/evidence/ac-07.json`
+- **result + evidencePath:** verified 2026-09-21; `.loop/runs/accessibility-browser-001/evidence/ac-07.json`
 
 ### AC-08 — Reusable-rule promotion remains human-controlled
 
