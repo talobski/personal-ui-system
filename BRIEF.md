@@ -1,8 +1,8 @@
 # Personal UI System — Project Brief
 
-Status: RUNNING — narrow V1 confirmed; Jev adapter and included-capacity live route verified
+Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed
 
-Last updated: 2026-09-20
+Last updated: 2026-09-21
 
 ## Goal
 
@@ -197,7 +197,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** rubric
 - **capability:** Fresh-context verifier with filesystem and command execution.
 - **threshold:** 5/5 rubric items pass with cited files and command output: discovery, targeted retrieval, valid mutation, invalid-mutation rejection, verification execution.
-- **result + evidencePath:** unevaluated; `.loop/runs/<verification-run>/evidence/ac-09.json`
+- **result + evidencePath:** verified 2026-09-21; `.loop/runs/fresh-agent-handoff-001/evidence/ac-09.json`
 
 ## Verification matrix and freshness
 
