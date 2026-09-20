@@ -60,7 +60,7 @@ test.describe("workbench theme lifecycle", () => {
     test(`preview, edit, fork, save, reload, diff, export — ${mode}`, async ({ page }, testInfo) => {
       const frame = previewFrame(page)
       await openWorkbench(page)
-      await page.getByRole("button", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
+      await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
       await expect(frame.getByTestId("preview")).toHaveAttribute("data-mode", mode)
       await expect(page.locator("html")).toHaveClass(mode === "dark" ? /dark/ : /^(?!.*dark).*$/)
 
@@ -88,7 +88,7 @@ test.describe("workbench theme lifecycle", () => {
         ["Mobile 390", 390, "drawer-content"],
         ["Desktop 1024", 1024, "dialog-content"],
       ] as const) {
-        await page.getByRole("button", { name: label }).click()
+        await page.getByRole("radio", { name: label }).click()
         await expect(page.getByTestId("preview-frame")).toHaveAttribute("style", new RegExp(`width: ${width}px`))
         await expectNoSeriousViolations(page, `${mode}-${width}-closed`, testInfo)
         const trigger = frame.getByRole("button", { name: OPEN_BUTTON })
@@ -120,6 +120,8 @@ test.describe("workbench theme lifecycle", () => {
       await expect(page.getByTestId("theme-revision")).toHaveText("2")
       expect(await previewVar(page, "--primary")).toBe(EDIT[mode])
       await expect(page.getByTestId("diff-count")).toHaveText("1")
+      await expect(page.getByLabel("Value (oklch)")).toHaveAttribute("aria-invalid", "true")
+      await expectNoSeriousViolations(page, `${mode}-edit-error`, testInfo)
 
       // Fork: invalid id rejected, valid id/name accepted.
       await page.getByLabel("Fork id").fill("Bad Id")
@@ -127,6 +129,8 @@ test.describe("workbench theme lifecycle", () => {
       await page.getByRole("button", { name: "Fork theme" }).click()
       await expect(page.getByTestId("fork-error")).toContainText("workbench.fork.invalid at id")
       await expect(page.getByTestId("theme-id")).toHaveText("quiet-editorial")
+      await expect(page.getByLabel("Fork id")).toHaveAttribute("aria-invalid", "true")
+      await expectNoSeriousViolations(page, `${mode}-fork-error`, testInfo)
       await page.getByLabel("Fork id").fill("my-fork")
       await page.getByRole("button", { name: "Fork theme" }).click()
       await expect(page.getByTestId("theme-id")).toHaveText("my-fork")
@@ -141,7 +145,7 @@ test.describe("workbench theme lifecycle", () => {
       await expect(page.getByTestId("theme-id")).toHaveText("my-fork")
       await expect(page.getByTestId("theme-status")).toHaveText("saved")
       await expect(page.getByTestId("diff-list").locator(`[data-path="modes.${mode}.color.primary"]`)).toContainText(EDIT[mode])
-      await page.getByRole("button", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
+      await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
       await expect.poll(() => previewVar(page, "--primary")).toBe(EDIT[mode])
 
       // Portable export.

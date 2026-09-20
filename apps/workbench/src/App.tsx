@@ -3,7 +3,11 @@ import * as React from "react"
 import { COLOR_TOKENS } from "@personal-ui/core"
 import type { ColorToken, Theme } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
+import { Field, FieldError, FieldGroup, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
+import { NativeSelect, NativeSelectOption } from "@personal-ui/ui/components/native-select"
+import { Panel } from "@personal-ui/ui/components/panel"
+import { SingleToggleGroup } from "@personal-ui/ui/components/single-toggle-group"
 
 import { diffThemes, editColor, exportThemeJson, forkTheme, loadCanonicalTheme, previewVariablesCss } from "./lifecycle"
 import type { Mode, WorkbenchIssue } from "./lifecycle"
@@ -27,39 +31,18 @@ function download({ filename, json }: { filename: string; json: string }) {
   URL.revokeObjectURL(url)
 }
 
-const selectClass =
-  "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Notice({ children }: { children: React.ReactNode }) {
   return (
-    <label className="grid gap-1 text-sm font-medium">
-      {label}
-      {children}
-    </label>
-  )
-}
-
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  const id = React.useId()
-  return (
-    <section aria-labelledby={id} className="grid gap-3 rounded-lg border p-4">
-      <h2 id={id} className="text-base font-semibold">
-        {title}
-      </h2>
-      {children}
-    </section>
-  )
-}
-
-function Message({ testId, tone, children }: { testId: string; tone: "error" | "ok"; children: React.ReactNode }) {
-  return (
-    <p data-testid={testId} role={tone === "error" ? "alert" : "status"} className={tone === "error" ? "text-sm text-destructive" : "text-sm text-muted-foreground"}>
+    <p data-testid="notice" role="status" className="text-sm text-muted-foreground">
       {children}
     </p>
   )
 }
 
 export function App() {
+  const editId = React.useId()
+  const forkIdId = React.useId()
+  const forkNameId = React.useId()
   const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage))
   const [current, setCurrent] = React.useState<Theme>(() => (saved.activeId ? saved.themes[saved.activeId]! : canonical))
   const [mode, setMode] = React.useState<Mode>("light")
@@ -158,82 +141,106 @@ export function App() {
 
       <div className="grid content-start gap-4">
         <Panel title="View">
-          <div role="group" aria-label="Color mode" className="flex gap-2">
-            {(["light", "dark"] as const).map((m) => (
-              <Button key={m} variant={mode === m ? "default" : "outline"} aria-pressed={mode === m} onClick={() => setMode(m)}>
-                {m === "light" ? "Light" : "Dark"}
-              </Button>
-            ))}
-          </div>
-          <div role="group" aria-label="Preview width" className="flex gap-2">
-            {(Object.keys(WIDTHS) as Width[]).map((w) => (
-              <Button key={w} variant={width === w ? "default" : "outline"} aria-pressed={width === w} onClick={() => setWidth(w)}>
-                {w === "mobile" ? "Mobile" : "Desktop"} {WIDTHS[w]}
-              </Button>
-            ))}
-          </div>
+          <SingleToggleGroup
+            label="Color mode"
+            value={mode}
+            onValueChange={setMode}
+            options={[
+              { value: "light", label: "Light" },
+              { value: "dark", label: "Dark" },
+            ]}
+          />
+          <SingleToggleGroup
+            label="Preview width"
+            value={width}
+            onValueChange={setWidth}
+            options={(Object.keys(WIDTHS) as Width[]).map((w) => ({ value: w, label: `${w === "mobile" ? "Mobile" : "Desktop"} ${WIDTHS[w]}` }))}
+          />
         </Panel>
 
         <Panel title="Edit color">
           <p className="text-sm text-muted-foreground">Edits the {mode} mode value through the structured setColor mutation.</p>
-          <Field label="Token">
-            <select className={selectClass} value={token} onChange={(e) => setToken(e.target.value as ColorToken)}>
+          <Field>
+            <FieldLabel htmlFor="token-select">Token</FieldLabel>
+            <NativeSelect id="token-select" value={token} onChange={(e) => setToken(e.target.value as ColorToken)}>
               {COLOR_TOKENS.map((name) => (
-                <option key={name} value={name}>
+                <NativeSelectOption key={name} value={name}>
                   {name}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
           </Field>
-          <Field label="Value (oklch)">
-            <Input value={draft} onChange={(e) => setDraft(e.target.value)} aria-invalid={editIssues.length > 0} spellCheck={false} />
+          <Field data-invalid={editIssues.length > 0}>
+            <FieldLabel htmlFor={editId}>Value (oklch)</FieldLabel>
+            <Input
+              id={editId}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              aria-invalid={editIssues.length > 0}
+              aria-describedby={editIssues.length > 0 ? `${editId}-error` : undefined}
+              spellCheck={false}
+            />
+            {editIssues.length > 0 && (
+              <FieldError id={`${editId}-error`} data-testid="edit-error">
+                Rejected, not applied: {describeIssues(editIssues)}. Expected oklch(L C H [/ A]).
+              </FieldError>
+            )}
           </Field>
           <Button onClick={applyEdit}>Apply edit</Button>
-          {editIssues.length > 0 && (
-            <Message testId="edit-error" tone="error">
-              Rejected, not applied: {describeIssues(editIssues)}. Expected oklch(L C H [/ A]).
-            </Message>
-          )}
         </Panel>
 
         <Panel title="Themes">
-          <Field label="Active theme">
-            <select className={selectClass} value={knownIds.includes(current.id) ? current.id : ""} onChange={(e) => load(e.target.value)}>
-              {!knownIds.includes(current.id) && <option value="">{current.name} (unsaved fork)</option>}
+          <Field>
+            <FieldLabel htmlFor="theme-select">Active theme</FieldLabel>
+            <NativeSelect id="theme-select" value={knownIds.includes(current.id) ? current.id : ""} onChange={(e) => load(e.target.value)}>
+              {!knownIds.includes(current.id) && <NativeSelectOption value="">{current.name} (unsaved fork)</NativeSelectOption>}
               {knownIds.map((id) => (
-                <option key={id} value={id}>
+                <NativeSelectOption key={id} value={id}>
                   {id === canonical.id ? `${canonical.name} (baseline)` : (saved.themes[id]?.name ?? id)}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
           </Field>
-          <div className="grid gap-2">
-            <Field label="Fork id">
-              <Input value={forkId} onChange={(e) => setForkId(e.target.value)} placeholder="my-theme" aria-invalid={forkIssues.length > 0} spellCheck={false} />
+          <FieldGroup className="gap-3">
+            <Field data-invalid={forkIssues.length > 0}>
+              <FieldLabel htmlFor={forkIdId}>Fork id</FieldLabel>
+              <Input
+                id={forkIdId}
+                value={forkId}
+                onChange={(e) => setForkId(e.target.value)}
+                placeholder="my-theme"
+                aria-invalid={forkIssues.length > 0}
+                aria-describedby={forkIssues.length > 0 ? `${forkIdId}-error` : undefined}
+                spellCheck={false}
+              />
             </Field>
-            <Field label="Fork name">
-              <Input value={forkName} onChange={(e) => setForkName(e.target.value)} placeholder="My Theme" aria-invalid={forkIssues.length > 0} />
+            <Field data-invalid={forkIssues.length > 0}>
+              <FieldLabel htmlFor={forkNameId}>Fork name</FieldLabel>
+              <Input
+                id={forkNameId}
+                value={forkName}
+                onChange={(e) => setForkName(e.target.value)}
+                placeholder="My Theme"
+                aria-invalid={forkIssues.length > 0}
+                aria-describedby={forkIssues.length > 0 ? `${forkIdId}-error` : undefined}
+              />
             </Field>
             <Button variant="secondary" onClick={fork}>
               Fork theme
             </Button>
             {forkIssues.length > 0 && (
-              <Message testId="fork-error" tone="error">
+              <FieldError id={`${forkIdId}-error`} data-testid="fork-error">
                 Fork rejected: {describeIssues(forkIssues)}. Ids are lowercase-hyphenated and unused; names are letters, digits, and spaces.
-              </Message>
+              </FieldError>
             )}
-          </div>
+          </FieldGroup>
           <div className="flex flex-wrap gap-2">
             <Button onClick={save}>Save theme</Button>
             <Button variant="outline" onClick={() => download(exportThemeJson(current))}>
               Export JSON
             </Button>
           </div>
-          {notice && (
-            <Message testId="notice" tone="ok">
-              {notice}
-            </Message>
-          )}
+          {notice && <Notice>{notice}</Notice>}
         </Panel>
       </div>
 
