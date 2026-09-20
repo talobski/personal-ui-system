@@ -234,3 +234,70 @@ test.describe("workbench non-color settings", () => {
     })
   }
 })
+
+/** Computed style of a preview element, as the iframe document resolves it (never a variable's mere presence). */
+const previewStyle = (page: Page, testId: string | null, prop: keyof CSSStyleDeclaration) =>
+  (testId === null ? previewFrame(page).locator("body") : previewFrame(page).getByTestId(testId)).evaluate(
+    (el, p) => String(getComputedStyle(el)[p]),
+    prop,
+  )
+
+test.describe("preview feedback: all six categories change computed styles live", () => {
+  for (const mode of ["light", "dark"] as const) {
+    test(`edits change resolved styles in the iframe without a reload — ${mode}`, async ({ page }) => {
+      await openWorkbench(page)
+      await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
+      await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-mode", mode)
+
+      // A marker on the iframe window proves the document is never reloaded or replaced.
+      await previewFrame(page).locator("html").evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true))
+      const button = previewFrame(page).getByRole("button", { name: "default", exact: true })
+
+      const before = {
+        color: await button.evaluate((el) => getComputedStyle(el).backgroundColor),
+        radius: await previewStyle(page, "elevation-sample", "borderRadius"),
+        density: await previewStyle(page, "elevation-sample", "paddingLeft"),
+        font: await previewStyle(page, null, "fontFamily"),
+        shadow: await previewStyle(page, "elevation-sample", "boxShadow"),
+        motion: await button.evaluate((el) => getComputedStyle(el).transitionDuration),
+      }
+      expect(before.radius).toBe("8px")
+      expect(before.density).toBe("12px")
+      expect(before.motion).toBe("0.2s")
+
+      // Colour, through the token editor.
+      await page.getByLabel("Token").selectOption("primary")
+      await page.getByLabel("Value (oklch)").fill(EDIT[mode])
+      await page.getByRole("button", { name: "Apply edit" }).click()
+      await expect(page.getByTestId("theme-revision")).toHaveText("2")
+      await expect.poll(() => button.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(before.color)
+
+      // The other five, through the settings panel.
+      const setting = async (option: string, value: string) => {
+        await page.getByLabel("Setting", { exact: true }).selectOption({ label: option })
+        await page.getByLabel("Setting value").fill(value)
+        await page.getByRole("button", { name: "Apply setting" }).click()
+        await expect(page.getByTestId("setting-error")).toHaveCount(0)
+      }
+      await setting("Radius (md)", "1rem")
+      await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("16px")
+      await expect.poll(() => button.evaluate((el) => getComputedStyle(el).borderRadius)).toBe("16px")
+
+      await setting("Spacing density", "1.25")
+      await expect.poll(() => previewStyle(page, "elevation-sample", "paddingLeft")).toBe("15px")
+
+      await setting("Sans font family", "Source Serif")
+      await expect.poll(() => previewStyle(page, null, "fontFamily")).toContain("Source Serif")
+      expect(await previewStyle(page, null, "fontFamily")).not.toBe(before.font)
+
+      await setting("Shadow blur (md)", "12px")
+      await expect.poll(() => previewStyle(page, "elevation-sample", "boxShadow")).not.toBe(before.shadow)
+      expect(await previewStyle(page, "elevation-sample", "boxShadow")).toContain("12px")
+
+      await setting("Base motion duration", "320ms")
+      await expect.poll(() => button.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0.32s")
+
+      expect(await previewFrame(page).locator("html").evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true)
+    })
+  }
+})

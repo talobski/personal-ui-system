@@ -23,7 +23,15 @@
   --chart-3: oklch(0.4 0.07 230);
   --chart-4: oklch(0.8 0.15 90);
   --chart-5: oklch(0.7 0.15 60);
+  --font-family-sans: "Inter", system-ui, sans-serif;
+  --font-family-mono: "JetBrains Mono", ui-monospace, monospace;
+  --shadow-layers-sm: 0px 1px 2px 0px oklch(0 0 0 / 5%);
+  --shadow-layers-md: 0px 4px 8px -2px oklch(0 0 0 / 10%);
+  --shadow-layers-lg: 0px 10px 20px -4px oklch(0 0 0 / 15%);
   --radius: 0.5rem;
+  --radius-scale-sm: 0.25rem;
+  --radius-scale-md: 0.5rem;
+  --radius-scale-lg: 0.75rem;
   --space-base: 0.25rem;
   --density: 1;
   --motion-duration-fast: 150ms;
@@ -80,14 +88,14 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --shadow-sm: 0px 1px 2px 0px oklch(0 0 0 / 5%);
-  --shadow-md: 0px 4px 8px -2px oklch(0 0 0 / 10%);
-  --shadow-lg: 0px 10px 20px -4px oklch(0 0 0 / 15%);
+  --font-sans: var(--font-family-sans);
+  --font-mono: var(--font-family-mono);
+  --radius-sm: var(--radius-scale-sm);
+  --radius-md: var(--radius-scale-md);
+  --radius-lg: var(--radius-scale-lg);
+  --shadow-sm: var(--shadow-layers-sm);
+  --shadow-md: var(--shadow-layers-md);
+  --shadow-lg: var(--shadow-layers-lg);
   --spacing: calc(var(--space-base) * var(--density));
   --default-transition-duration: var(--motion-duration-base);
 }

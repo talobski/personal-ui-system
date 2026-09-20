@@ -36,10 +36,10 @@ describe("editColor", () => {
 
 describe("editTheme settings (one representative target per remaining category)", () => {
   const cases = [
-    { id: "radius", raw: "1rem", diffPath: "radius.md", css: "--radius: 1rem;" },
+    { id: "radius", raw: "1rem", diffPath: "radius.md", css: "--radius-scale-md: 1rem;" },
     { id: "density", raw: "1.25", diffPath: "space.density", css: "--density: 1.25;" },
-    { id: "font", raw: "Source Serif", diffPath: "typography.sans", css: '--font-sans: "Source Serif", system-ui, sans-serif;' },
-    { id: "shadow", raw: "12px", diffPath: "shadow.md", css: "--shadow-md: 0px 4px 12px -2px oklch(0 0 0 / 10%);" },
+    { id: "font", raw: "Source Serif", diffPath: "typography.sans", css: '--font-family-sans: "Source Serif", system-ui, sans-serif;' },
+    { id: "shadow", raw: "12px", diffPath: "shadow.md", css: "--shadow-layers-md: 0px 4px 12px -2px oklch(0 0 0 / 10%);" },
     { id: "motion", raw: "320ms", diffPath: "motion.durationBase", css: "--motion-duration-base: 320ms;" },
   ] as const
 
