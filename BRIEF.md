@@ -2,6 +2,9 @@
 
 Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed; the
 post-V1 shadcn workbench alignment is also DONE(verified)
+and owner-accepted. The project is PAUSED(owner) with no active implementation
+unit; see `docs/PROJECT_HANDOFF_CHECKPOINT.md` for the authoritative handoff
+state, deferred decisions, and next possible actions.
 
 Last updated: 2026-09-21
 
