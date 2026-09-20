@@ -1,6 +1,6 @@
 # Personal UI System — Project Brief
 
-Status: SCOPING (proposed V1 contract; owner confirmation pending)
+Status: PAUSED(capability) — narrow V1 confirmed; Jev adapter mock-verified, live route still UNKNOWN
 
 Last updated: 2026-09-20
 
