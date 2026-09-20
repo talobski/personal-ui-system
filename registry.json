@@ -1,0 +1,31 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "personal-ui",
+  "homepage": "https://personal-ui.local",
+  "items": [
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "Shadcn Button, preserved as generated.",
+      "dependencies": ["class-variance-authority", "cn", "radix-ui"],
+      "files": [{ "path": "packages/ui/src/components/button.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "title": "Input",
+      "description": "Shadcn Input, preserved as generated.",
+      "dependencies": ["cn"],
+      "files": [{ "path": "packages/ui/src/components/input.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "responsive-dialog",
+      "type": "registry:ui",
+      "title": "Responsive Dialog/Drawer",
+      "description": "One public pattern that renders the shadcn Dialog above 640px and the shadcn Drawer at 640px and below.",
+      "registryDependencies": ["button", "dialog", "drawer"],
+      "files": [{ "path": "packages/ui/src/components/responsive-dialog.tsx", "type": "registry:ui" }]
+    }
+  ]
+}

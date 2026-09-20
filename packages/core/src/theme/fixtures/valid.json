@@ -1,0 +1,97 @@
+{
+  "$schema": "https://personal-ui.local/schema/theme-1.json",
+  "schemaVersion": "1.0",
+  "kind": "personal-ui-theme",
+  "id": "quiet-editorial",
+  "name": "Quiet Editorial",
+  "revision": 1,
+  "modes": {
+    "light": {
+      "color": {
+        "background": { "$type": "color", "$value": "oklch(0.99 0.002 250)" },
+        "foreground": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
+        "card": { "$type": "color", "$value": "oklch(1 0 0)" },
+        "card-foreground": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
+        "popover": { "$type": "color", "$value": "oklch(1 0 0)" },
+        "popover-foreground": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
+        "primary": { "$type": "color", "$value": "oklch(0.35 0.05 260)" },
+        "primary-foreground": { "$type": "color", "$value": "oklch(0.98 0.005 250)" },
+        "secondary": { "$type": "color", "$value": "oklch(0.95 0.01 250)" },
+        "secondary-foreground": { "$type": "color", "$value": "oklch(0.25 0.02 250)" },
+        "muted": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
+        "muted-foreground": { "$type": "color", "$value": "oklch(0.45 0.02 250)" },
+        "accent": { "$type": "color", "$value": "oklch(0.94 0.02 250)" },
+        "accent-foreground": { "$type": "color", "$value": "oklch(0.25 0.02 250)" },
+        "destructive": { "$type": "color", "$value": "oklch(0.5 0.2 27)" },
+        "border": { "$type": "color", "$value": "oklch(0.9 0.005 250)" },
+        "input": { "$type": "color", "$value": "oklch(0.75 0.01 250)" },
+        "ring": { "$type": "color", "$value": "oklch(0.55 0.08 260)" },
+        "chart-1": { "$type": "color", "$value": "oklch(0.6 0.12 40)" },
+        "chart-2": { "$type": "color", "$value": "oklch(0.6 0.1 200)" },
+        "chart-3": { "$type": "color", "$value": "oklch(0.4 0.07 230)" },
+        "chart-4": { "$type": "color", "$value": "oklch(0.8 0.15 90)" },
+        "chart-5": { "$type": "color", "$value": "oklch(0.7 0.15 60)" }
+      }
+    },
+    "dark": {
+      "color": {
+        "background": { "$type": "color", "$value": "oklch(0.16 0.01 250)" },
+        "foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
+        "card": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
+        "card-foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
+        "popover": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
+        "popover-foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
+        "primary": { "$type": "color", "$value": "oklch(0.9 0.03 250)" },
+        "primary-foreground": { "$type": "color", "$value": "oklch(0.2 0.02 250)" },
+        "secondary": { "$type": "color", "$value": "oklch(0.27 0.015 250)" },
+        "secondary-foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
+        "muted": { "$type": "color", "$value": "oklch(0.27 0.015 250)" },
+        "muted-foreground": { "$type": "color", "$value": "oklch(0.75 0.02 250)" },
+        "accent": { "$type": "color", "$value": "oklch(0.3 0.02 250)" },
+        "accent-foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
+        "destructive": { "$type": "color", "$value": "oklch(0.7 0.19 22)" },
+        "border": { "$type": "color", "$value": "oklch(1 0 0 / 10%)" },
+        "input": { "$type": "color", "$value": "oklch(1 0 0 / 15%)" },
+        "ring": { "$type": "color", "$value": "oklch(0.6 0.08 260)" },
+        "chart-1": { "$type": "color", "$value": "oklch(0.65 0.18 270)" },
+        "chart-2": { "$type": "color", "$value": "oklch(0.7 0.12 170)" },
+        "chart-3": { "$type": "color", "$value": "oklch(0.75 0.15 70)" },
+        "chart-4": { "$type": "color", "$value": "oklch(0.65 0.2 310)" },
+        "chart-5": { "$type": "color", "$value": "oklch(0.65 0.2 20)" }
+      }
+    }
+  },
+  "typography": {
+    "sans": { "$type": "fontFamily", "$value": ["Inter", "system-ui", "sans-serif"] },
+    "mono": { "$type": "fontFamily", "$value": ["JetBrains Mono", "ui-monospace", "monospace"] }
+  },
+  "radius": {
+    "sm": { "$type": "dimension", "$value": "0.25rem" },
+    "md": { "$type": "dimension", "$value": "0.5rem" },
+    "lg": { "$type": "dimension", "$value": "0.75rem" }
+  },
+  "space": {
+    "base": { "$type": "dimension", "$value": "0.25rem" },
+    "density": { "$type": "number", "$value": 1 }
+  },
+  "shadow": {
+    "sm": {
+      "$type": "shadow",
+      "$value": [{ "offsetX": "0px", "offsetY": "1px", "blur": "2px", "spread": "0px", "color": "oklch(0 0 0 / 5%)" }]
+    },
+    "md": {
+      "$type": "shadow",
+      "$value": [{ "offsetX": "0px", "offsetY": "4px", "blur": "8px", "spread": "-2px", "color": "oklch(0 0 0 / 10%)" }]
+    },
+    "lg": {
+      "$type": "shadow",
+      "$value": [{ "offsetX": "0px", "offsetY": "10px", "blur": "20px", "spread": "-4px", "color": "oklch(0 0 0 / 15%)" }]
+    }
+  },
+  "motion": {
+    "durationFast": { "$type": "duration", "$value": "150ms" },
+    "durationBase": { "$type": "duration", "$value": "200ms" },
+    "reducedMotion": { "$type": "string", "$value": "reduce" }
+  },
+  "$extensions": { "personal-ui-system": { "displayName": "Quiet Editorial" } }
+}

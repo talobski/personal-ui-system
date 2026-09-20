@@ -3,8 +3,11 @@ node_modules/
 .turbo/
 dist/
 storybook-static/
+public/r/
+playwright-report/
+test-results/
 coverage/
+*.tsbuildinfo
 .env*
 !.env.example
 .DS_Store
-
