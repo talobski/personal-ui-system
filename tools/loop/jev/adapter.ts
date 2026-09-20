@@ -3,7 +3,7 @@ import { join } from "node:path"
 import { acceptBatch } from "./accept.ts"
 import type { Acceptance } from "./accept.ts"
 import { buildComposerRegistry } from "./compose.ts"
-import { toWireQuestions, validatePacket } from "./packet.ts"
+import { auditQuestions, normalizeClass, toWireQuestions, validatePacket } from "./packet.ts"
 import type { PacketPolicyView } from "./packet.ts"
 import { redactString, sanitize } from "./sanitize.ts"
 import { appendEvent, LockError, nodeFs, projectPaths, readJson, realClock, withLock, writeJsonAtomic } from "./store.ts"
@@ -57,10 +57,21 @@ type Answers = Record<string, unknown>
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
-const normalizeClass = (name: string): string => name.toLowerCase().replace(/[^a-z0-9]/g, "")
-
 const message = (error: unknown, secrets: readonly string[]): string =>
   redactString(error instanceof Error ? error.message : String(error), secrets)
+
+const PAUSE_CAPABILITY = { state: "PAUSED(capability)", unblock: ["wait for Jev", "ask human"] } as const
+
+/** Complete, bounded, sanitized description of an admitted request (packet state/questions are validated and sanitized). */
+const auditRequest = (packet: AdmissionPacket): Json => ({
+  projectId: packet.projectId,
+  contract: packet.contract,
+  outputContract: { contract: packet.contract, composition: packet.composition },
+  admission: packet.admission,
+  questions: auditQuestions(packet.questions),
+  state: packet.state,
+  declaredFallback: packet.fallback ?? null,
+}) as unknown as Json
 
 const emptyOutcome = (): Outcome => ({
   accepted: false,
@@ -113,39 +124,70 @@ export async function runDecision(rawPacket: unknown, options: AdapterOptions): 
   const lockOptions = { retries: options.lockRetries, retryMs: options.lockRetryMs }
   const outcome = emptyOutcome()
 
-  const audit = async (event: Record<string, unknown>): Promise<void> => {
+  let admitted: AdmissionPacket | null = null
+
+  /** Appends one event. Lock denials cannot take the lock, so they append unlocked (single small write) and say so. */
+  const audit = async (event: Record<string, unknown>, locked = true): Promise<void> => {
+    const line = { schemaVersion: EVENT_SCHEMA_VERSION, at: clock.now().toISOString(), ...event }
     try {
-      await withLock(fs, clock, paths.lockPath, lockOptions, () =>
-        appendEvent(fs, paths.eventsPath, { schemaVersion: EVENT_SCHEMA_VERSION, at: clock.now().toISOString(), ...event }),
-      )
+      if (locked) await withLock(fs, clock, paths.lockPath, lockOptions, () => appendEvent(fs, paths.eventsPath, line))
+      else await appendEvent(fs, paths.eventsPath, { ...line, lockBypassed: true })
     } catch (error) {
       outcome.auditErrors.push(`events.jsonl: ${message(error, secrets)}`)
     }
   }
 
+  /**
+   * Refuses without (further) transport. A valid admitted packet is always logged in full (bounded and
+   * sanitized by validation) so the denied request is auditable even though no decision record is created.
+   */
   const stop = async (status: Outcome["status"], code: ReasonCode, text: string): Promise<Outcome> => {
     outcome.status = status
     outcome.reason = { code, message: text }
-    await audit({
-      type: status === "rejected" ? "jev.packet.rejected" : "jev.call.denied",
-      runId: outcome.runId,
-      decisionId: outcome.decisionId,
-      contract: outcome.contract,
-      accepted: false,
-      reason: outcome.reason,
-    })
+    // Jev being unavailable (no key) is a capability failure: only a fallback declared before the call may apply.
+    if (code === "denied.missing-api-key" && admitted) {
+      outcome.fallback = admitted.fallback ? { ...admitted.fallback } : null
+      outcome.pause = outcome.fallback ? null : PAUSE_CAPABILITY
+    }
+    await audit(
+      {
+        type: status === "rejected" ? "jev.packet.rejected" : "jev.call.denied",
+        runId: outcome.runId,
+        decisionId: outcome.decisionId,
+        contract: outcome.contract,
+        accepted: false,
+        charged: status === "failed" ? "unknown" : false,
+        reason: outcome.reason,
+        fallback: outcome.fallback ? { ...outcome.fallback, applied: true } : null,
+        pause: outcome.pause,
+        ...(admitted ? { request: auditRequest(admitted) } : {}),
+      },
+      code !== "denied.lock",
+    )
     return outcome
   }
 
-  const policy = await loadPolicy(fs, options.policyPath ?? defaultPolicyPath())
-  if (isReason(policy)) return stop("denied", policy.code, policy.message)
-
   const registry = buildComposerRegistry(options.composers)
+  const policy = await loadPolicy(fs, options.policyPath ?? defaultPolicyPath())
+  if (isReason(policy)) {
+    // Denied regardless; validate structurally (billing classes unchecked, nothing is transmitted) only so the audit is complete.
+    const structural = validatePacket(rawPacket, { allowsBillingClass: () => true }, registry, secrets)
+    if (structural.ok) {
+      admitted = structural.packet
+      outcome.runId = admitted.runId
+      outcome.decisionId = admitted.decisionId
+      outcome.contract = admitted.contract
+      outcome.composition = admitted.composition
+    }
+    return stop("denied", policy.code, policy.message)
+  }
+
   const checked = validatePacket(rawPacket, policy.view, registry, secrets)
   outcome.runId = checked.ok ? checked.packet.runId : checked.runId
   outcome.decisionId = checked.ok ? checked.packet.decisionId : checked.decisionId
   if (!checked.ok) return stop("rejected", checked.reason.code, checked.reason.message)
   const { packet, composer } = checked
+  admitted = packet
   outcome.contract = packet.contract
   outcome.composition = packet.composition
 
@@ -253,7 +295,7 @@ export async function runDecision(rawPacket: unknown, options: AdapterOptions): 
   const usable = reason === null
   const answers = usable ? accepted : null
   const fallback = !usable && packet.fallback ? { ...packet.fallback } : null
-  const pause = !usable && fallback === null ? ({ state: "PAUSED(capability)", unblock: ["wait for Jev", "ask human"] } as const) : null
+  const pause = !usable && fallback === null ? PAUSE_CAPABILITY : null
 
   const record = {
     schemaVersion: DECISION_SCHEMA_VERSION,
@@ -275,7 +317,7 @@ export async function runDecision(rawPacket: unknown, options: AdapterOptions): 
       model: JEV_MODEL,
     },
     admission: packet.admission,
-    questions: packet.questions,
+    questions: auditQuestions(packet.questions),
     state: packet.state,
     answers: verdicts
       ? Object.fromEntries(
@@ -335,7 +377,7 @@ export async function runDecision(rawPacket: unknown, options: AdapterOptions): 
     outcome.output = null
     outcome.answers = null
     outcome.fallback = packet.fallback ? { ...packet.fallback } : null
-    outcome.pause = outcome.fallback ? null : { state: "PAUSED(capability)", unblock: ["wait for Jev", "ask human"] }
+    outcome.pause = outcome.fallback ? null : PAUSE_CAPABILITY
   }
   return outcome
 }
@@ -407,7 +449,7 @@ async function openAttempt(
       accepted: false,
       attempt: { number: attempt, requestedAt: requestedAt.toISOString(), endpoint: JEV_ENDPOINT, model: JEV_MODEL },
       admission: packet.admission,
-      questions: packet.questions,
+      questions: auditQuestions(packet.questions),
       state: packet.state,
       answers: null,
       composition: null,

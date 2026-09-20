@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
-import { rm, writeFile } from "node:fs/promises"
+import { readFile, rm, writeFile } from "node:fs/promises"
 import { dirname, join, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
@@ -306,7 +306,7 @@ describe("budget and authority before transport", () => {
     const cases: [string, unknown][] = [
       ["packet.empty", makePacket({ questions: [] })],
       ["packet.inconsistent", (() => { const p = makePacket(); p.questions[0].options.pop(); return p })()],
-      ["packet.duplicate-option", makePacket({}, [choiceQuestion({ options: [{ id: "A1", description: "a" }, { id: "A1", description: "b" }] } as any)], "PROVIDER_FALLBACK")],
+      ["packet.duplicate-option", makePacket({}, [choiceQuestion({ options: [{ id: "WAIT", description: "a" }, { id: "WAIT", description: "b" }] } as any)], "PROVIDER_FALLBACK")],
       ["packet.duplicate-question", makePacket({}, [scoreQuestion("a"), scoreQuestion("a")], "MODEL_CLASS", { id: "accepted-batch", version: "1" })],
       ["packet.unauthorized", makePacket({ contract: "SUDO" })],
       ["packet.paid-capacity", auth({ paidCapacity: true })],
@@ -603,3 +603,155 @@ function walk(root: string): string[] {
     return statSync(path).isDirectory() ? walk(path) : [path]
   })
 }
+
+describe("denied requests are fully auditable without a live attempt", () => {
+  const richState = { round: 3, apiKey: "sk-should-not-appear", nested: { password: "hunter2", ok: true } }
+  const packetFor = (over: Record<string, unknown> = {}) =>
+    makePacket({ state: richState, ...over }, [choiceQuestion(), scoreQuestion(), noulQuestion()].slice(0, 1))
+  const batchPacket = (over: Record<string, unknown> = {}) =>
+    makePacket({ state: richState, ...over }, [
+      choiceQuestion({ id: "outcome", options: [{ id: "CONTINUE", description: "Go." }, { id: "SYNTHESIZE", description: "Consolidate." }] } as any),
+      scoreQuestion(),
+      noulQuestion(),
+    ], "CONVERGENCE", { id: "accepted-batch", version: "1" })
+
+  const expectComplete = async (fx: Fixture, code: string, packet: Record<string, any>, before: unknown) => {
+    const events = await readEvents(fx)
+    const event = events.at(-1)!
+    expect(events).toHaveLength(1)
+    expect(event).toMatchObject({
+      schemaVersion: "loop-jev-event/1",
+      runId: "run-1",
+      decisionId: "dec-1",
+      contract: packet.contract,
+      accepted: false,
+      charged: false,
+      reason: { code },
+    })
+    const request = event.request
+    expect(request).toMatchObject({
+      projectId: "proj",
+      contract: packet.contract,
+      outputContract: { contract: packet.contract, composition: packet.composition },
+      admission: { gate: "deterministic-gate/1", questionsDigest: packet.admission.questionsDigest, authority: { paidCapacity: false } },
+      state: { round: 3, apiKey: "[REDACTED]", nested: { password: "[REDACTED]", ok: true } },
+      declaredFallback: null,
+    })
+    expect(request.questions.map((q: any) => [q.id, q.primitive, q.type])).toEqual(packet.questions.map((q: any) => [q.id, q.type, q.type]))
+    for (const [index, question] of packet.questions.entries()) {
+      const logged = request.questions[index]
+      if (question.type === "choice") expect(logged.options).toEqual(question.options)
+      if (question.type === "score") expect(logged.scale).toEqual(question.scale)
+      if (question.type === "noul") expect(logged.criteria).toEqual(question.criteria)
+      expect(logged.instructions).toBe(question.instructions)
+    }
+    const raw = await readFile(fx.eventsPath, "utf8")
+    expect(raw).not.toContain("sk-should-not-appear")
+    expect(raw).not.toContain("hunter2")
+    // No charge and no live-attempt record.
+    expect(await readState(fx)).toEqual(before)
+    expect(existsSync(join(fx.loopDir, "runs"))).toBe(false)
+    return event
+  }
+
+  it("logs the complete packet when the API key is missing", async () => {
+    const fx = await makeProject()
+    const packet = batchPacket()
+    const before = await readState(fx)
+    const transport = mockFetch(okChoice)
+    const outcome = await runDecision(packet, { projectDir: fx.dir, policyPath: fx.policyPath, apiKey: undefined, fetch: transport.fetch, clock: fakeClock(), lockRetries: 1, lockRetryMs: 1 })
+    expect(transport.calls).toHaveLength(0)
+    expect(outcome).toMatchObject({ accepted: false, status: "denied", reason: { code: "denied.missing-api-key" }, auditErrors: [], attempt: null, decisionPath: null })
+    const event = await expectComplete(fx, "denied.missing-api-key", packet, before)
+    expect(event.type).toBe("jev.call.denied")
+    expect(event.pause).toEqual({ state: "PAUSED(capability)", unblock: ["wait for Jev", "ask human"] })
+    expect(event.fallback).toBeNull()
+    expect(event.request.questions.map((q: any) => q.primitive)).toEqual(["choice", "score", "noul"])
+  })
+
+  it("applies only a declared fallback on a missing key, and records it", async () => {
+    const fx = await makeProject()
+    const packet = packetFor({ fallback: { id: "safe-wait", output: "WAIT" } })
+    const outcome = await runDecision(packet, { projectDir: fx.dir, policyPath: fx.policyPath, apiKey: undefined, fetch: mockFetch(okChoice).fetch, clock: fakeClock() })
+    expect(outcome).toMatchObject({ accepted: false, fallback: { id: "safe-wait", output: "WAIT" }, pause: null, output: null })
+    const event = (await readEvents(fx)).at(-1)!
+    expect(event).toMatchObject({ accepted: false, fallback: { id: "safe-wait", output: "WAIT", applied: true }, pause: null })
+    expect(event.request.declaredFallback).toEqual({ id: "safe-wait", output: "WAIT" })
+  })
+
+  it("logs the complete packet when the call budget is exhausted", async () => {
+    const fx = await makeProject({ state: { ...STATE, counters: { ...STATE.counters, calls: 80 } } })
+    const packet = packetFor()
+    const { outcome, calls } = await run(fx, packet, okChoice)
+    expect(calls).toHaveLength(0)
+    expect(outcome).toMatchObject({ accepted: false, status: "denied", reason: { code: "denied.call-budget" }, auditErrors: [] })
+    const event = await readEvents(fx).then((events) => events.at(-1)!)
+    expect(event).toMatchObject({ type: "jev.call.denied", accepted: false, reason: { code: "denied.call-budget" }, request: { contract: "NEXT_ACTION" } })
+    expect(event.request.state).toMatchObject({ apiKey: "[REDACTED]" })
+    expect(event.request.questions[0]).toMatchObject({ id: "next_action", primitive: "choice", options: [{ id: "RESEARCH" }, { id: "VERIFY" }, { id: "WAIT" }] })
+    expect((await readState(fx)).counters.calls).toBe(80)
+    expect(existsSync(join(fx.loopDir, "runs"))).toBe(false)
+  })
+
+  it("logs complete batches for project-budget, paidBudget, state and policy denials", async () => {
+    const cases: [string, Parameters<typeof makeProject>[0]][] = [
+      ["denied.call-budget", { state: { ...STATE, counters: { ...STATE.counters, calls: 2 }, budgets: { maxCalls: 2 } } }],
+      ["denied.paid-budget", { state: { ...STATE, budgets: { paidBudget: 1 } } }],
+      ["denied.state-unavailable", { state: { ...STATE, counters: {} } }],
+      ["denied.policy-unavailable", { policy: { ownerCeilings: { paidBudget: 0 } } }],
+      ["denied.paid-budget", { policy: { ...POLICY, ownerCeilings: { ...POLICY.ownerCeilings, paidBudget: 4 } } }],
+    ]
+    for (const [code, overrides] of cases) {
+      const fx = await makeProject(overrides)
+      const packet = batchPacket()
+      const before = await readState(fx)
+      const { outcome, calls } = await run(fx, packet, okChoice)
+      expect(calls, code).toHaveLength(0)
+      expect(outcome.reason?.code).toBe(code)
+      await expectComplete(fx, code, packet, before)
+    }
+  })
+
+  it("logs the complete packet for a project mismatch and a duplicate decision", async () => {
+    const fx = await makeProject()
+    const mismatched = packetFor({ projectId: "other" })
+    await run(fx, mismatched, okChoice)
+    const event = (await readEvents(fx)).at(-1)!
+    expect(event).toMatchObject({ type: "jev.packet.rejected", reason: { code: "packet.unauthorized" }, request: { projectId: "other", contract: "NEXT_ACTION" } })
+  })
+
+  it("logs a lock denial without taking the lock and marks the append as unlocked", async () => {
+    const fx = await makeProject()
+    await writeFile(join(fx.loopDir, "jev.lock"), "someone-else")
+    const packet = packetFor()
+    const { outcome, calls } = await run(fx, packet, okChoice)
+    expect(calls).toHaveLength(0)
+    expect(outcome).toMatchObject({ accepted: false, reason: { code: "denied.lock" }, auditErrors: [] })
+    const event = (await readEvents(fx)).at(-1)!
+    expect(event).toMatchObject({ reason: { code: "denied.lock" }, lockBypassed: true, request: { contract: "NEXT_ACTION" } })
+    expect(readFileSync(join(fx.loopDir, "jev.lock"), "utf8")).toBe("someone-else")
+  })
+
+  it("does not log a request for an invalid packet", async () => {
+    const fx = await makeProject()
+    await run(fx, packetFor({ contract: "SUDO" }), okChoice)
+    const event = (await readEvents(fx)).at(-1)!
+    expect(event).toMatchObject({ type: "jev.packet.rejected", reason: { code: "packet.unauthorized" } })
+    expect(event.request).toBeUndefined()
+  })
+
+  it("stays fail-closed and surfaces auditErrors when the denial cannot be logged", async () => {
+    for (const apiKey of [undefined, API_KEY]) {
+      const fx = await makeProject(apiKey ? { state: { ...STATE, counters: { ...STATE.counters, calls: 80 } } } : {})
+      const { fs } = spyFs({ appendFile: "events.jsonl" })
+      const transport = mockFetch(okChoice)
+      const outcome = await runDecision(packetFor(), { projectDir: fx.dir, policyPath: fx.policyPath, apiKey, fetch: transport.fetch, clock: fakeClock(), fs, lockRetries: 1, lockRetryMs: 1 })
+      expect(transport.calls).toHaveLength(0)
+      expect(outcome.accepted).toBe(false)
+      expect(outcome.status).toBe("denied")
+      expect(outcome.auditErrors).toHaveLength(1)
+      expect(outcome.auditErrors[0]).toContain("events.jsonl")
+      expect(await readEvents(fx)).toEqual([])
+    }
+  })
+})

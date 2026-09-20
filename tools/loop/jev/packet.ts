@@ -12,7 +12,16 @@ export const MAX_OPTIONS = 32
 export const MAX_SCALE_LEVELS = 11
 export const MAX_TEXT = 4000
 
-type ContractSpec = { primitives: readonly Primitive[]; choices?: readonly string[] }
+/** Billing classes compare ignoring case and punctuation: `temporary-credit` == `temporaryCredit`. */
+export const normalizeClass = (name: string): string => name.toLowerCase().replace(/[^a-z0-9]/g, "")
+
+type ContractSpec = {
+  primitives: readonly Primitive[]
+  /** Fixed Choice result IDs. Omitted only for contracts whose results are gate-admitted route IDs. */
+  choices?: readonly string[]
+  /** Extra, non-fixed Choice IDs allowed only when explicitly marked with this billing class (and the policy allows it). */
+  dynamicChoiceClass?: string
+}
 
 /** Static shape of each versioned Loop contract. Dynamic route IDs are left open (`choices` omitted). */
 export const CONTRACTS: Readonly<Record<string, ContractSpec>> = {
@@ -22,7 +31,11 @@ export const CONTRACTS: Readonly<Record<string, ContractSpec>> = {
   },
   ROUTE_PROFILE: { primitives: ["choice", "score"] },
   MODEL_CLASS: { primitives: ["score"] },
-  PROVIDER_FALLBACK: { primitives: ["choice"] },
+  PROVIDER_FALLBACK: {
+    primitives: ["choice"],
+    choices: ["ALTERNATE_SUBSCRIPTION", "WAIT", "PAUSE_ASK"],
+    dynamicChoiceClass: "temporaryCredit",
+  },
   RETRY_STRATEGY: {
     primitives: ["choice", "score"],
     choices: [
@@ -76,6 +89,10 @@ const canonical = (value: unknown): string => {
 /** Digest the gate computes over exactly what Jev will be shown. */
 export const digestQuestions = (contract: string, questions: readonly Question[]): string =>
   createHash("sha256").update(canonical({ contract, questions })).digest("hex")
+
+/** Audit view of admitted questions: the admitted options/scale/criteria plus an explicit `primitive`. */
+export const auditQuestions = (questions: readonly Question[]): (Question & { primitive: Primitive })[] =>
+  questions.map((question) => ({ ...question, primitive: question.type }))
 
 /** The wire `questions` object for the fixed endpoint. */
 export function toWireQuestions(questions: readonly Question[]): Record<string, unknown> {
@@ -203,8 +220,13 @@ export function validatePacket(input: unknown, policy: PacketPolicyView, compose
         if (option.billingClass !== undefined && (typeof option.billingClass !== "string" || !policy.allowsBillingClass(option.billingClass))) {
           return reject("packet.paid-capacity", `option "${option.id}" uses a billing class the policy does not allow`)
         }
-        if (spec.choices !== undefined && !spec.choices.includes(option.id)) {
-          return reject("packet.unauthorized", `option "${option.id}" is not a ${contractName} result`)
+        if (spec.choices !== undefined) {
+          const marked = option.billingClass !== undefined && spec.dynamicChoiceClass !== undefined && normalizeClass(option.billingClass) === normalizeClass(spec.dynamicChoiceClass)
+          if (spec.choices.includes(option.id)) {
+            if (marked) return reject("packet.unauthorized", `fixed ${contractName} result "${option.id}" cannot carry the ${spec.dynamicChoiceClass} billing class`)
+          } else if (!marked) {
+            return reject("packet.unauthorized", `option "${option.id}" is not a ${contractName} result and is not an explicitly marked ${spec.dynamicChoiceClass ?? "dynamic"} route`)
+          }
         }
         if (option.id === "COMPLETE" && authority.completionPreconditionsPassed !== true) {
           return reject("packet.completion-waived", "COMPLETE is offered while completion preconditions have not passed")

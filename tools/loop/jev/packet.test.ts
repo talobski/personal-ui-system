@@ -153,3 +153,47 @@ describe("state and content bounds", () => {
     expect(literal.ok).toBe(false)
   })
 })
+
+describe("PROVIDER_FALLBACK contract enforcement", () => {
+  const optionsOf = (options: any[]) => makePacket({}, [choiceQuestion({ id: "fallback", options } as any)], "PROVIDER_FALLBACK")
+  const fixed = [
+    { id: "ALTERNATE_SUBSCRIPTION", description: "Use another included subscription.", billingClass: "included-subscription" },
+    { id: "WAIT", description: "Wait for reset." },
+    { id: "PAUSE_ASK", description: "Pause and ask the owner." },
+  ]
+  const creditPolicy = { allowsBillingClass: (name: string) => ["included-subscription", "temporary-credit"].includes(name) }
+  const creditRoute = { id: "codex-credit-route", description: "Approved temporary credit route.", billingClass: "temporary-credit" }
+
+  it("accepts exactly the fixed result IDs", () => {
+    expect(codeOf(optionsOf(fixed))).toBe("ok")
+    expect(codeOf(optionsOf(fixed.slice(1)))).toBe("ok")
+  })
+  it("rejects arbitrary option IDs, with or without an included billing class", () => {
+    expect(codeOf(optionsOf([...fixed, { id: "SUDO_ROUTE", description: "x" }]))).toBe("packet.unauthorized")
+    expect(codeOf(optionsOf([...fixed, { id: "codex-credit-route", description: "x", billingClass: "included-subscription" }]))).toBe("packet.unauthorized")
+    expect(codeOf(optionsOf([{ id: "route-a", description: "a" }, { id: "route-b", description: "b" }]))).toBe("packet.unauthorized")
+  })
+  it("rejects a temporary-credit route while policy disables temporary credits (V1)", () => {
+    expect(codeOf(optionsOf([...fixed, creditRoute]))).toBe("packet.paid-capacity")
+  })
+  it("rejects other paid or overage classes even if a policy allowed them", () => {
+    const all = { allowsBillingClass: () => true }
+    for (const billingClass of ["purchased-credits", "automatic-overage", "separately-billed"]) {
+      const result = validatePacket(optionsOf([...fixed, { ...creditRoute, billingClass }]), all, registry, [])
+      expect(result.ok === false && result.reason.code).toBe("packet.unauthorized")
+    }
+  })
+  it("allows an explicitly marked temporary-credit route only when policy enables that class", () => {
+    const accepted = validatePacket(optionsOf([...fixed, creditRoute]), creditPolicy, registry, [])
+    expect(accepted.ok).toBe(true)
+    const smuggled = validatePacket(optionsOf([...fixed, { ...creditRoute, billingClass: "included-subscription" }]), creditPolicy, registry, [])
+    expect(smuggled.ok === false && smuggled.reason.code).toBe("packet.unauthorized")
+    const unmarked = validatePacket(optionsOf([...fixed, { id: "codex-credit-route", description: "x" }]), creditPolicy, registry, [])
+    expect(unmarked.ok === false && unmarked.reason.code).toBe("packet.unauthorized")
+  })
+  it("does not let a fixed result ID carry the temporary-credit class", () => {
+    const disguised = optionsOf([{ id: "WAIT", description: "w", billingClass: "temporary-credit" }, fixed[2]])
+    const result = validatePacket(disguised, creditPolicy, registry, [])
+    expect(result.ok === false && result.reason.code).toBe("packet.unauthorized")
+  })
+})

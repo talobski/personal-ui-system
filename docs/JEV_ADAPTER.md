@@ -9,15 +9,25 @@ canonical Loop Engineering Jev rules, makes at most one live call to the fixed
 TypeSafe endpoint, and records the result. It contains no probabilistic logic:
 it validates, charges, transports, accepts or rejects, and restates.
 
-## Billing requirement
+## Billing requirement and live-call status
 
-A live call needs a `TYPESAFE_API_KEY` whose usage is covered by an included
-subscription. The adapter cannot verify this; it can only refuse work that
-claims otherwise. `paidBudget` must be exactly `0` in the global policy (and in
-project state, if declared), and the packet must declare an allowed included
-billing class. Any packet that asks for paid capacity, credits, or overage is
-rejected before transport. The owner is responsible for confirming that the key
-does not bill separately.
+**This project cannot currently make a live Jev call.** Official TypeSafe
+material describes metered pricing, and project policy forbids paid, credit, and
+overage capacity (`paidBudget` 0; temporary credit, separately billed, automatic
+overage, and purchased credits all disabled). Nothing in this adapter or its
+tests establishes that a `TYPESAFE_API_KEY` is covered by a zero-cost allocation,
+and the adapter cannot verify billing. It can only refuse work that declares paid
+capacity.
+
+A live fixture therefore requires either a verified zero-cost allocation that is
+compatible with the policy, or a future owner policy change; both are outside
+this task. Until then the CLI must not be run with a real key, and all
+verification uses mocked transport.
+
+Enforcement that does exist: `paidBudget` must be exactly `0` in the global
+policy (and in project state, if declared); the packet must declare `paidCapacity:
+false` and an allowed billing class; and any option marked with a billing class
+the policy does not allow is rejected before transport.
 
 ## Files and audit paths
 
@@ -76,10 +86,20 @@ else from the packet is transmitted.
 
 **Contracts.** `NEXT_ACTION`, `ROUTE_PROFILE`, `MODEL_CLASS`, `PROVIDER_FALLBACK`,
 `RETRY_STRATEGY`, `HUMAN_INTERRUPT`, `CONVERGENCE`, `VERIFICATION_DIAGNOSIS`,
-`WORKER_FAN_OUT`. Each restricts the allowed primitives, and where the result set
-is static (`NEXT_ACTION`, `RETRY_STRATEGY`, `CONVERGENCE`,
-`VERIFICATION_DIAGNOSIS`) it restricts Choice option IDs too. `ROUTE_PROFILE` and
-`PROVIDER_FALLBACK` take dynamic route IDs, so their option IDs are not restricted here.
+`WORKER_FAN_OUT`. Each restricts the allowed primitives. Choice option IDs are
+restricted to a fixed result set for every contract except `ROUTE_PROFILE`, whose
+result is a gate-admitted route ID (its options must still use a billing class the
+policy allows).
+
+`PROVIDER_FALLBACK` accepts only `ALTERNATE_SUBSCRIPTION`, `WAIT`, and `PAUSE_ASK`,
+plus, in general, an active approved temporary-credit route. That route is
+accepted only if the option carries the `temporaryCredit` billing class
+(`temporary-credit` and similar spellings match) **and** the global policy enables
+that class. Arbitrary IDs, unmarked IDs, IDs marked `included-subscription`, other
+paid classes, and fixed IDs that carry the temporary-credit class are all rejected
+(`packet.unauthorized`). In this project's V1 policy temporary credits are
+disabled, so a temporary-credit route is rejected as `packet.paid-capacity`. The
+adapter cannot check that a route is "active" or "approved"; that is a gate fact.
 
 **Gate digest.** `questionsDigest` is the SHA-256 of the canonical JSON
 (sorted keys) of `{ contract, questions }` as exported by `digestQuestions`. It
@@ -102,6 +122,39 @@ detects any change between gate admission and transport.
 
 The call budget is `min(policy.ownerCeilings.maxCallsPerProject, state.budgets.maxCalls)`.
 A live call needs `counters.calls + 1 <= budget`.
+
+### Denial audit (no charge, no decision record)
+
+A valid admitted packet that is refused without a live call is still recorded.
+This covers a missing key, exhausted call or `paidBudget`, unreadable or invalid
+policy or state, a project mismatch, a reused decision ID, and a held lock. One
+`jev.call.denied` event (`jev.packet.rejected` for a project mismatch or reused
+decision ID) is appended to `.loop/events.jsonl` with `accepted: false`,
+`charged: false`, the `reason`, `fallback`, `pause`, and a `request` object:
+
+```jsonc
+"request": {
+  "projectId": "...", "contract": "NEXT_ACTION",
+  "outputContract": { "contract": "NEXT_ACTION", "composition": { "id": "direct-choice", "version": "1" } },
+  "admission": { "gate": "...", "questionsDigest": "...", "authority": { "...": "..." } },
+  "questions": [{ "id": "...", "type": "choice", "primitive": "choice", "instructions": "...", "options": [ "..." ] }],
+  "state": { "...": "sanitized" },
+  "declaredFallback": null
+}
+```
+
+`questions` carries each question's admitted options, scale, or Noul criteria.
+Packet size is already bounded and sanitized by validation, so the event is
+bounded too. Nothing is charged and no `decisions/<id>.json` is created. A missing
+key is a Jev capability failure, so it reports a declared `fallback` or
+`PAUSED(capability)`. Budget, policy, state, and lock denials are deterministic gate facts;
+they record `fallback: null` and `pause: null`, with any declared fallback shown only in
+`request.declaredFallback`.
+
+- **Policy unavailable:** the packet is validated structurally with billing classes unchecked, nothing is transmitted, and only to make the audit complete.
+- **Lock held:** the event is appended without the lock and marked `lockBypassed: true`.
+- **Audit write fails:** the outcome stays denied and `outcome.auditErrors` lists the failure.
+- **Invalid packet:** only the rejection code and IDs are logged, with no `request`, because its content cannot be trusted.
 
 ## Fixed acceptance
 
@@ -210,12 +263,14 @@ canonical `.loop/`.
 
 ## Limitations
 
-- Live behavior against the real endpoint is unverified. The wire format
+- Live behavior against the real endpoint is unverified and currently not
+  permitted (see "Billing requirement and live-call status"). The wire format
   (`{ model, state, questions }` in, `{ answers }` out) was taken from the existing
-  research harness and needs a first supervised live call by the owner.
+  research harness and needs a live fixture once a policy-compatible zero-cost
+  allocation is verified.
 - The `state.json` fields `budgets` and `counters.jevCalls` are additions; the
   canonical minimal template only defines `counters.calls`.
 - Stale locks are not broken automatically.
 - Writes use write-then-rename without `fsync`, so a machine crash can lose the
   most recent write but not produce a partial file.
-- Static option sets cover the nine contracts listed above only.
+- `ROUTE_PROFILE` route IDs are not enumerated here; they rely on the gate having admitted them.
