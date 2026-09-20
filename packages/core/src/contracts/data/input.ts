@@ -32,6 +32,7 @@ export const input = {
   mobileReplacement: null,
   constraints: [
     { id: "input.label", rule: "Every Input must have an associated visible or programmatic label." },
+    { id: "input.error-association", rule: "An invalid Input must reference its error message with aria-describedby." },
     { id: "input.mobile-text-size", rule: "Input text is at least 16px below the md breakpoint." },
   ],
 }

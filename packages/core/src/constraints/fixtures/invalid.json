@@ -1,0 +1,108 @@
+[
+  {
+    "name": "two primary actions",
+    "state": {
+      "kind": "button-group",
+      "buttons": [
+        { "id": "save", "variant": "default", "iconOnly": false, "accessibleName": "Save" },
+        { "id": "publish", "variant": "default", "iconOnly": false, "accessibleName": "Publish" }
+      ]
+    },
+    "expected": { "ruleId": "button.one-primary", "path": "buttons" }
+  },
+  {
+    "name": "unnamed icon button",
+    "state": {
+      "kind": "button-group",
+      "buttons": [{ "id": "close", "variant": "ghost", "iconOnly": true, "accessibleName": null }]
+    },
+    "expected": { "ruleId": "button.icon-name", "path": "buttons[0].accessibleName" }
+  },
+  {
+    "name": "unlabelled input",
+    "state": {
+      "kind": "input-field",
+      "id": "email",
+      "label": null,
+      "invalid": false,
+      "error": null,
+      "ariaDescribedBy": [],
+      "mobileTextPx": 16
+    },
+    "expected": { "ruleId": "input.label", "path": "label" }
+  },
+  {
+    "name": "unassociated input error",
+    "state": {
+      "kind": "input-field",
+      "id": "email",
+      "label": { "kind": "visible", "text": "Email" },
+      "invalid": true,
+      "error": { "id": "email-error", "message": "Invalid" },
+      "ariaDescribedBy": [],
+      "mobileTextPx": 16
+    },
+    "expected": { "ruleId": "input.error-association", "path": "ariaDescribedBy" }
+  },
+  {
+    "name": "small mobile input text",
+    "state": {
+      "kind": "input-field",
+      "id": "email",
+      "label": { "kind": "visible", "text": "Email" },
+      "invalid": false,
+      "error": null,
+      "ariaDescribedBy": [],
+      "mobileTextPx": 14
+    },
+    "expected": { "ruleId": "input.mobile-text-size", "path": "mobileTextPx" }
+  },
+  {
+    "name": "dialog at mobile breakpoint",
+    "state": {
+      "kind": "responsive-dialog",
+      "viewportWidth": 640,
+      "rendered": "dialog",
+      "hasTitle": true,
+      "hasDescription": true,
+      "focusManagement": "primitive"
+    },
+    "expected": { "ruleId": "responsive-dialog.breakpoint", "path": "rendered" }
+  },
+  {
+    "name": "drawer at desktop breakpoint",
+    "state": {
+      "kind": "responsive-dialog",
+      "viewportWidth": 1024,
+      "rendered": "drawer",
+      "hasTitle": true,
+      "hasDescription": true,
+      "focusManagement": "primitive"
+    },
+    "expected": { "ruleId": "responsive-dialog.breakpoint", "path": "rendered" }
+  },
+  {
+    "name": "custom focus management",
+    "state": {
+      "kind": "responsive-dialog",
+      "viewportWidth": 1024,
+      "rendered": "dialog",
+      "hasTitle": true,
+      "hasDescription": true,
+      "focusManagement": "custom"
+    },
+    "expected": { "ruleId": "responsive-dialog.no-custom-focus", "path": "focusManagement" }
+  },
+  {
+    "name": "untitled dialog",
+    "state": {
+      "kind": "responsive-dialog",
+      "viewportWidth": 1024,
+      "rendered": "dialog",
+      "hasTitle": false,
+      "hasDescription": true,
+      "focusManagement": "primitive"
+    },
+    "expected": { "ruleId": "responsive-dialog.titled", "path": "hasTitle" }
+  }
+]

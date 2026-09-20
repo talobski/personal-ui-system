@@ -1,0 +1,34 @@
+[
+  {
+    "kind": "button-group",
+    "buttons": [
+      { "id": "save", "variant": "default", "iconOnly": false, "accessibleName": "Save changes" },
+      { "id": "cancel", "variant": "outline", "iconOnly": false, "accessibleName": "Cancel" }
+    ]
+  },
+  {
+    "kind": "input-field",
+    "id": "email",
+    "label": { "kind": "visible", "text": "Email" },
+    "invalid": true,
+    "error": { "id": "email-error", "message": "Enter a valid email address." },
+    "ariaDescribedBy": ["email-error"],
+    "mobileTextPx": 16
+  },
+  {
+    "kind": "responsive-dialog",
+    "viewportWidth": 640,
+    "rendered": "drawer",
+    "hasTitle": true,
+    "hasDescription": true,
+    "focusManagement": "primitive"
+  },
+  {
+    "kind": "responsive-dialog",
+    "viewportWidth": 1024,
+    "rendered": "dialog",
+    "hasTitle": true,
+    "hasDescription": true,
+    "focusManagement": "primitive"
+  }
+]
