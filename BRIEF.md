@@ -286,5 +286,6 @@ Acceptance requires fresh passing unit tests, typecheck, registry build,
 workbench build, Storybook build, Playwright browser matrix, light/dark coverage,
 and axe/accessibility checks. The phase budget is one worker run, one concurrent
 worker, at most 12 worker calls/turns, at most two changed attempts within that
-run, 90 minutes wall clock, and paid budget 0. Dispatch remains paused until the
-unchanged global per-project agent-run ceiling admits the additional run.
+run, 90 minutes wall clock, and paid budget 0. The owner-approved global ceiling
+of 10 provides exactly one cleanup slot after accounting for V1's 8 runs and the
+post-V1 audit run; the phase-local one-run limit remains controlling.

@@ -1,6 +1,6 @@
 # Post-V1 shadcn alignment checkpoint
 
-Status: `PAUSED(budget)` before implementation dispatch.
+Status: `RUNNING`; implementation route admitted, dispatch pending.
 
 ## Preserved V1 record
 
@@ -44,19 +44,17 @@ mistake, not added to or used to rewrite V1's historical counter.
 Corrective rule: every future worker dispatch must check both the active phase
 budget and the global owner ceiling before workspace or agent creation.
 
-## Admission blocker
+## Budget admission resolution
 
-The global policy at `~/.loop-engineering/policy.json` still sets
-`maxAgentRunsPerProject` to 8. The repository contains no existing project- or
-phase-override mechanism, and inventing one ad hoc would violate the canonical
-budget gate. Therefore the cleanup worker is not yet deterministically
-admissible.
+The owner explicitly approved increasing global `maxAgentRunsPerProject` from 8
+to 10. The updated policy retains paid budget 0, disabled temporary/separate/
+overage/purchased capacity, and all authority boundaries. Its SHA-256 is
+`b648efdc6aff412db9ddeb2aa434caaafb591c4e5dcdedd8dd4a480642460db8` and its
+permissions remain `0600`.
 
-The smallest existing-schema remediation is an explicit owner-approved increase
-of the global per-project ceiling from 8 to 10: one slot accounts for the
-already-observed post-V1 audit mistake and one slot admits the single cleanup
-worker. The phase-local one-run ceiling would remain the tighter limit for this
-work. No global policy change has been made at this checkpoint.
+The current lifetime reconciliation is 9/10 before cleanup: V1's immutable 8/8
+snapshot plus the recorded audit mistake. The cleanup phase remains 0/1, so one
+and only one worker is now budget-admissible.
 
 ## Claude route selection after unblock
 
@@ -69,6 +67,12 @@ remaining Claude capacity, latency, prior reliability/failures, and included
 capacity efficiency. The request and accepted or rejected typed result will be
 logged in project-local `.loop/` state.
 
-No Claude route is currently admitted because the global agent-run budget fails
-before provider/model selection. Jev has therefore not been invoked for this
-phase yet.
+Fresh Paseo discovery reports Claude AVAILABLE. The only route surviving all
+filters is `claude/claude-sonnet-5`, mode `auto`, medium thinking: it has this
+project's verified worker-admission evidence and a prior successful workbench
+run. Other discovered Claude models or modes lack route-specific admission
+evidence, cannot edit, use prohibited bypass posture, or add strong/max/1M
+capacity without a task-specific expected benefit.
+
+With exactly one admitted route, canonical routing is deterministic and Jev was
+not invoked. Selected route: `claude/claude-sonnet-5`, `auto`, medium.
