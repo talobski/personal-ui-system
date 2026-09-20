@@ -3,9 +3,10 @@
 Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed; the
 post-V1 shadcn workbench alignment is also DONE(verified)
 and owner-accepted. `theme-mutation-coverage-001` is DONE(verified) and
-owner-accepted at main `2d913c0`. The owner-approved
-`preview-feedback-completion-001` phase is now RUNNING; see the Phase 3 section
-below. See the Phase 2 sections below, and
+owner-accepted at main `2d913c0`. `preview-feedback-completion-001` is
+DONE(verified) at main `719ef63`, pending owner acceptance; the project is
+PAUSED(owner) with no active implementation unit. See the Phase 3 sections
+below, and `docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state. See the Phase 2 sections below, and
 `docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state and deferred decisions.
 
 Last updated: 2026-09-21
@@ -477,3 +478,71 @@ calls, at most two changed attempts, 120 minutes wall clock, a 50k soft token
 target, spawn depth 1, and paid budget 0. The owner raised the project lifetime
 agent-run ceiling from 11 to 12 to admit exactly this run. If the run cannot
 complete the phase, the project pauses rather than raising the ceiling again.
+
+## Phase 3 result — 2026-09-21
+
+`preview-feedback-completion-001` is `DONE(verified)` at main commit `719ef63`
+(artifact `3466767`, baseline capture `5012ddd`), pending owner acceptance.
+
+All six theme categories now change computed styles live in the preview iframe
+with no reload. The renderer emits font family, shadow layers, and the radius
+scale as plain `:root` custom properties — `--font-family-{sans,mono}`,
+`--shadow-layers-{sm,md,lg}`, `--radius-scale-{sm,md,lg}` — and the `@theme
+inline` entries only reference them. Token tables, output ordering, and
+`--radius` are unchanged. A new test asserts `@theme inline` holds no literal
+font, radius, or shadow value.
+
+The preview gained one Elevation sample using `shadow-md` and `rounded-md`,
+because no pilot consumed the only mutable shadow token. The iframe and
+`postMessage` plumbing were not touched, so there was no scope escalation.
+
+### Lead-run acceptance evidence
+
+| Command | Result |
+|---|---|
+| `corepack pnpm test` | 13 files, 246 tests passed |
+| `corepack pnpm typecheck` | passed |
+| `corepack pnpm registry:build` | passed |
+| `corepack pnpm build:workbench` | passed |
+| `corepack pnpm build:storybook` | passed |
+| `WORKBENCH_PORT=5199 corepack pnpm test:browser` | Storybook 4/4, workbench 14/14 |
+
+The Lead decoded all 40 axe attachment bodies — every one empty across 20
+checkpoints — and reran its own phase-2 mutation-boundary probe unchanged, 20/20,
+confirming the operation union did not widen.
+
+Two checks the Lead added because the worker could not supply them:
+
+- **Independent PH3-07 derivation.** Rather than trusting the captured fixture,
+  the Lead hand-derived every expected value from the pre-change golden CSS:
+  `shadow-md oklch(0 0 0 / 10%)` resolves to `oklch(0 0 0 / 0.1) 0px 4px 8px
+  -2px`, `radius.md 0.5rem` to `8px`, `radius.lg 0.75rem` to `12px`, and the
+  input's `shadow-xs` to Tailwind's untouched default. All matched. Git confirms
+  the baseline commit touched neither `render.ts` nor the golden, so the fixture
+  is a genuine pre-indirection capture.
+- **Negative control.** The worker did not run the new live test against the old
+  renderer, so it produced no failing-before evidence. The Lead compared compiled
+  stylesheets instead: `border-radius:.5rem` became
+  `border-radius:var(--radius-scale-md)`, `font-family:"Inter", system-ui,
+  sans-serif` became `font-family:var(--font-family-sans)`, and literal shadow
+  layers became `var(--shadow-layers-*)`. The three dead categories are live at
+  the CSS level, independent of any test assertion.
+
+`registry.json` is byte-identical and the three-pilot catalog is unchanged.
+After the merge, `main` at `719ef63` re-ran 246 tests and typecheck clean.
+
+Budget at completion: phase agent runs 1/1, worker calls 1/12, attempts 1/2,
+lifetime agent runs 12/12, project calls 19/80, paid spend 0.
+
+### Notes carried forward
+
+- The equivalence fixture's `button-default` shadow entry is uninformative
+  (shadow is `none`), and the `input-default` entry samples Tailwind's own
+  default `shadow-xs`. The informative shadow samples are the elevation sample
+  and the dialog.
+- `font-mono` and the `sm` radius and shadow tokens are not sampled, because no
+  preview element consumes them.
+- The worker reported roughly 20 internal tool calls against a budget written as
+  "at most 12 worker calls/turns". The controlled unit is Lead-to-worker turns,
+  of which one was used. Recorded as a definitional gap to fix in future phase
+  budgets, not a breach.
