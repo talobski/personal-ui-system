@@ -42,6 +42,8 @@ const FONT_NAME = /^[A-Za-z0-9][A-Za-z0-9 -]*$/
 export const oklchSchema = z.string().regex(OKLCH, "expected oklch(L C H [/ A])")
 export const dimensionSchema = z.string().regex(DIMENSION, "expected rem/px/em dimension")
 export const durationSchema = z.string().regex(DURATION, "expected ms/s duration")
+export const densitySchema = z.number().min(0.5).max(2)
+export const fontNameSchema = z.string().regex(FONT_NAME)
 
 const token = <T extends string, V extends z.ZodType>(type: T, value: V) =>
   z.strictObject({ $type: z.literal(type), $value: value })
@@ -60,7 +62,7 @@ const colorSet = z.strictObject(
   }
 )
 
-const fontFamily = token("fontFamily", z.array(z.string().regex(FONT_NAME)).min(1))
+const fontFamily = token("fontFamily", z.array(fontNameSchema).min(1))
 
 export const themeSchema = z.strictObject({
   $schema: z.literal("https://personal-ui.local/schema/theme-1.json"),
@@ -78,7 +80,7 @@ export const themeSchema = z.strictObject({
   }),
   space: z.strictObject({
     base: token("dimension", dimensionSchema),
-    density: token("number", z.number().min(0.5).max(2)),
+    density: token("number", densitySchema),
   }),
   shadow: z.strictObject({
     sm: token("shadow", z.array(shadowLayer)),
