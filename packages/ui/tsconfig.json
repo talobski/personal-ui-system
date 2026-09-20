@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@personal-ui/ui/*": ["./src/*"],
+      "@personal-ui/core": ["../core/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", ".storybook/**/*.ts"]
+}

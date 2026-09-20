@@ -1,0 +1,10 @@
+{
+  "name": "@personal-ui/workbench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@personal-ui/core": "workspace:*",
+    "@personal-ui/ui": "workspace:*"
+  }
+}
