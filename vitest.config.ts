@@ -1,5 +1,5 @@
 import { defineConfig } from "vitest/config"
 
 export default defineConfig({
-  test: { include: ["packages/core/src/**/*.test.ts"] },
+  test: { include: ["packages/core/src/**/*.test.ts", "tools/loop/jev/**/*.test.ts"] },
 })

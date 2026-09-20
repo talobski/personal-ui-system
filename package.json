@@ -5,10 +5,13 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "pnpm -r --if-present typecheck && tsc -p e2e",
+    "typecheck": "pnpm -r --if-present typecheck && tsc -p e2e && tsc -p tools/loop/jev",
     "registry:build": "shadcn build",
     "build:storybook": "storybook build -c packages/ui/.storybook -o storybook-static",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "typecheck:jev": "tsc -p tools/loop/jev",
+    "test:jev": "vitest run tools/loop/jev",
+    "jev": "node --experimental-strip-types tools/loop/jev/cli.ts"
   },
   "engines": {
     "node": ">=22"
