@@ -2,9 +2,10 @@
 
 Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed; the
 post-V1 shadcn workbench alignment is also DONE(verified)
-and owner-accepted. `theme-mutation-coverage-001` is DONE(verified) at main
-`2d913c0`, pending owner acceptance; the project is PAUSED(owner) with no active
-implementation unit. See the Phase 2 sections below, and
+and owner-accepted. `theme-mutation-coverage-001` is DONE(verified) and
+owner-accepted at main `2d913c0`. The owner-approved
+`preview-feedback-completion-001` phase is now RUNNING; see the Phase 3 section
+below. See the Phase 2 sections below, and
 `docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state and deferred decisions.
 
 Last updated: 2026-09-21
@@ -420,3 +421,59 @@ lifetime agent runs 11/11, project calls 17/80, paid spend 0.
 - New operations carry no `token` field, so an unknown `token` on them is
   rejected as `mutation.unknown-field` rather than `mutation.unknown-token`.
   Both are stable rule IDs with canonical paths.
+
+## Phase 3: preview feedback completion
+
+Owner-approved on 2026-09-21. This phase does not change V1 scope or its 8/8
+agent-run record, and does not reopen either completed post-V1 phase.
+
+`@theme inline` makes Tailwind substitute values literally at build time, so
+only the tokens whose inline entries carry `var()` indirection can change at
+runtime. Colour, density, and motion do; radius, typography, and shadow do not.
+Radius was previously described as reaching the preview — it arrives as a
+variable that nothing consumes, which a variable-level test assertion did not
+catch.
+
+Included work:
+
+- emit font-family, shadow, and radius-scale values as plain custom properties
+  in `:root`, with the `@theme inline` entries referencing them, following the
+  existing colour pattern;
+- regenerate the committed golden CSS and its golden-file assertion;
+- add one small `shadow-md` / `rounded-md` sample element to the preview as an
+  observation target, since no pilot uses the only mutable shadow token;
+- prove all six categories update live in the iframe without a reload.
+
+The existing iframe and `postMessage` plumbing is expected to need no change.
+Touching it requires documented browser evidence and is reported as a scope
+escalation; iframe isolation, origin behavior, JSON download, and the native
+preview scroller stay off-limits regardless.
+
+Owner guardrail: at the canonical default theme, the new indirection must
+preserve the existing resolved computed values for font family, shadow, and
+radius, proven through a committed before/after fixture. This is not pixel
+diffing or visual-regression infrastructure.
+
+Excluded: new mutation operations or any widening of the mutation API,
+natural-language commands, workbench provider integration, MCP, `registry.json`
+or catalog changes, new pilots beyond the single observation sample, cross-origin
+or sandbox redesign, hot reload, visual-regression snapshots, rule promotion,
+publishing, and deployment.
+
+Acceptance is PH3-01 through PH3-07 in
+`.loop/runs/preview-feedback-completion-001/task.md`: live updates for all six
+categories, deterministic render with a consistent golden, an unchanged mutation
+boundary, no pilot regression, unchanged accessibility, a scope guard, and
+default visual equivalence.
+
+The golden CSS is the build-time default for the whole system, so AC-03, AC-06,
+AC-07, PH2-03, PH2-04, and PH2-05 become stale for the current artifact and are
+re-established by PH3-02, PH3-04, PH3-05, and PH3-07. AC-01, AC-02, AC-04,
+AC-08, PH2-01, PH2-02, and PH2-06 are unaffected. Historical V1 records stand
+unchanged.
+
+The phase budget is one worker run, one concurrent worker, at most 12 worker
+calls, at most two changed attempts, 120 minutes wall clock, a 50k soft token
+target, spawn depth 1, and paid budget 0. The owner raised the project lifetime
+agent-run ceiling from 11 to 12 to admit exactly this run. If the run cannot
+complete the phase, the project pauses rather than raising the ceiling again.
