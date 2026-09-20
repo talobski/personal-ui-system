@@ -1,0 +1,10 @@
+.loop/
+node_modules/
+.turbo/
+dist/
+storybook-static/
+coverage/
+.env*
+!.env.example
+.DS_Store
+
