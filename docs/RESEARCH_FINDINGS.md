@@ -91,7 +91,7 @@ Sources:
 ## Assumptions challenged
 
 1. **“A custom visual workbench is the first product.”** Existing tools already cover much of it. The source-of-truth model is first; the V1 workbench should stay thin.
-2. **“Agent chat is necessary to prove agent-first.”** Structured retrieval and safe mutation are the prerequisite. Chat before those exist encourages arbitrary CSS rewriting.
+2. **“A full agent chat is necessary to prove agent-first.”** The intended later interface is a focused natural-language design-command interpreter. Structured retrieval, typed mutation candidates, deterministic filtering, and a Jev selection seam are the prerequisite; free-form CSS rewriting is not the interaction model.
 3. **“A custom MCP server is required.”** shadcn and Storybook already have MCP paths. A custom adapter is justified only after project-specific resources/tools stabilize.
 4. **“All design knowledge belongs in theme tokens.”** Interaction, responsive replacement, accessibility, and composition rules need separate contracts and deterministic constraints.
 5. **“Importing themes from old projects is mostly parsing CSS.”** Extraction needs provenance, semantic mapping, conflict handling, and owner review; it is a separate product slice.
@@ -103,4 +103,3 @@ Sources:
 - What is the smallest theme schema that maps losslessly to shadcn semantic CSS while representing density/typography/shadow/motion?
 - Should saved theme files use a DTCG-shaped token tree plus personal metadata, or a smaller project schema with an export adapter?
 - Can a responsive Dialog/Drawer pattern remain one agent-facing contract while composing supported shadcn primitives?
-

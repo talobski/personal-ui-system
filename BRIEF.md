@@ -26,7 +26,7 @@ The design-system packages MUST be importable and testable without starting the 
 
 ## Deliberately deferred
 
-- Built-in agent chat or model-provider configuration.
+- A natural-language design-command input or model-provider configuration.
 - A custom design-system MCP server.
 - Automatic extraction from arbitrary prior projects.
 - Automatic promotion of observed corrections into reusable rules.
@@ -98,6 +98,26 @@ When more than one admissible design choice remains, a future Jev integration ma
 - `Noul`: a single yes/no probability such as whether owner preference would materially affect the choice or another exploration is worthwhile.
 
 Jev chooses within declared taste and admissible options. It cannot create, relax, or promote system rules.
+
+## Future natural-language design-command pipeline
+
+The deferred agent-facing interface is not intended to be a general conversational assistant. It is a focused natural-language command input for requests such as “make it feel more editorial,” “reduce the SaaS feel,” “make it denser,” or “make it softer.”
+
+The intended pipeline is:
+
+```text
+natural-language design intent
+→ LLM proposes one or more typed structured mutations
+→ deterministic schema/capability/constraint filter rejects invalid candidates
+→ if multiple admissible candidates remain and the choice is genuinely probabilistic,
+  Jev ranks/selects through focused gate-bounded Choice/Score/Noul packets
+→ selected structured mutation is applied
+→ provenance, result, and any owner correction are recorded
+```
+
+The LLM never receives authority to rewrite arbitrary CSS, files, constraints, or design rules through this interface. It interprets intent into the same versioned mutation operations V1 uses. Deterministic validation runs before application, and Jev only chooses among candidates the gate has already admitted. A single admissible candidate needs no probabilistic selection. Repeated corrections remain observations or rule candidates until the owner explicitly promotes them.
+
+This pipeline is a later phase, not an architectural exclusion. V1 must preserve the necessary seams: typed mutation operations, candidate/result provenance, deterministic validation, compact retrieval of relevant theme/contracts, and the ability to preview a mutation without committing it.
 
 ## Reusable-learning policy
 
@@ -196,6 +216,7 @@ These are conservative project ceilings pending a global owner policy:
 
 - Paid spend: 0. No metered API, purchased credit, overage, or new subscription.
 - Agent runs: maximum 8 for V1.
+- Total delegated provider calls/turns: maximum 80 for V1; retries, replacement, and resume do not reset this ceiling.
 - Worker concurrency: maximum 2; start with 1. A second worker requires proven independence and recorded benefit.
 - Spawn depth: 1.
 - Attempts per task: maximum 3; unchanged retries are forbidden.
@@ -233,11 +254,10 @@ Within the local repository, the Lead may create and edit project files, install
 
 Safe defaults applied for scoping:
 
-- V1 defers live agent chat and custom MCP implementation.
+- V1 defers the natural-language design-command input and custom MCP implementation while preserving typed mutation and decision seams for it.
 - V1 uses three pilot components/patterns rather than broad catalog coverage.
 - Data is local filesystem data committed with the system; ephemeral workbench UI state may use browser storage, but saved themes must be ordinary portable files or exports.
 - Storybook is supporting infrastructure, not the canonical contract store.
 - No public release optimization or deployment work occurs in V1.
 
-Consequential choice awaiting owner confirmation: accept this narrow V1, or require live agent chat/theme extraction in the first acceptance boundary. Adding either now materially expands provider security, mutation review, import parsing, and verification scope.
-
+Owner confirmation received on 2026-09-20 for this narrow V1. Deferred capabilities remain potential later phases, not architectural exclusions.
