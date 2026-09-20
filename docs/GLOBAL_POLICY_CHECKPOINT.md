@@ -4,7 +4,7 @@ Created: 2026-09-20
 
 Global path: `/Users/emmantalob/.loop-engineering/policy.json`
 
-Current SHA-256 after the Jev live fixture: `701b31e53b0941ed15645d5f5858ff06c7ccd51336515a0662e5bc9f4a08e586`
+Current SHA-256 after the accepted Jev live fixture: `016b32f7c641dde9d3f5fd5a3eda88ec41d21d402b8f8915c65227f4c4f1fd7d`
 
 Initial creation SHA-256: `175da611249b333aa535245394ac625de1074259ed30e848c0661e8c2ce825bf`
 
@@ -46,10 +46,12 @@ network, native subagents, or canonical `.loop/` access. Project-local preflight
 later established the constrained Claude route as `AVAILABLE`; the global file
 retains its earlier Claude observation until a dedicated global update.
 
-The Jev route is `LIMITED`. One owner-authorized live fixture returned HTTP 200
-and a typed Choice, proving authentication and wire compatibility, but confidence
-was `0.11`, below the canonical `0.5` acceptance threshold. The call was not
-retried. Grok remains `UNKNOWN`.
+The Jev route is `AVAILABLE`. Two owner-authorized live fixtures returned HTTP
+200 with valid typed Choices. The first decision had confidence `0.11` and was
+correctly rejected under the canonical `0.5` rule; this was an individual
+decision outcome, not provider degradation. The second unambiguous diagnostic
+fixture returned confidence `1.0` and was accepted with a complete local audit
+record. Grok remains `UNKNOWN`.
 
 ## Change control
 

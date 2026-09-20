@@ -4,7 +4,7 @@ Date: 2026-09-20
 
 Initial result: **adapter mock-verified; Jev route remained `UNKNOWN`**.
 
-Live update: **Jev route is `LIMITED` after one supervised fixture**.
+Final result: **Jev route is `AVAILABLE` using the owner-authorized monthly included allocation**.
 
 The project now has a V1 runtime adapter at `tools/loop/jev/`. It is separate
 from the pre-existing Loop Engineering research harness and writes only to this
@@ -60,7 +60,7 @@ authorized that included allocation for Loop Engineering decisions. This
 resolved the billing classification without enabling paid or replenished
 capacity.
 
-Exactly one supervised request was then made. The fixed endpoint returned HTTP
+The first supervised request reached the fixed endpoint and returned HTTP
 200 with a typed Choice in 772 ms, selecting `WAIT` with probabilities
 `VERIFY: 0.44` and `WAIT: 0.56`, but confidence was `0.11`. Because this is below
 the canonical `0.5` threshold, the adapter rejected the answer, produced no
@@ -71,18 +71,45 @@ record is:
 .loop/runs/jev-live-fixture-001/decisions/availability-choice-001.json
 ```
 
-This proves endpoint reachability, authentication, wire compatibility, and
-project-local auditing, but the fixture did not satisfy the acceptance contract.
-Accordingly Jev is `LIMITED`, not `AVAILABLE`.
+This proved endpoint reachability, authentication, wire compatibility, and
+project-local auditing. Review against the canonical specification established
+that provider/capability state and individual-decision acceptance are separate:
+a healthy probabilistic service may return low confidence for an ambiguous
+question. The first decision was rejected for low confidence, but that fact
+alone did not establish provider degradation.
 
-## Unblock condition
+The owner then authorized one second diagnostic fixture. Its deliberately
+unambiguous Choice required selecting the option whose ID exactly matched
+`requiredLabel: VERIFY`. The endpoint returned HTTP 200 in 769 ms with a valid
+typed Choice, `VERIFY: 1.0`, `WAIT: 0.0`, and confidence `1.0`. The adapter
+accepted it, produced the versioned deterministic composition, and recorded no
+fallback, pause, or audit error:
 
-The single authorized fixture has been consumed and may not be silently retried.
-The next safest remediation is owner direction on whether to authorize a second,
-better-calibrated live fixture. Any later fixture must still use only the existing
-included monthly allocation, and Jev becomes `AVAILABLE` only after an accepted
-typed result and complete audit record. Low, exhausted, or uncertain allocation
-must update provider state and pause rather than adding funds.
+```text
+.loop/runs/jev-live-fixture-002/decisions/unambiguous-choice-001.json
+```
+
+The second fixture is diagnostic only. Its deterministic question would not be
+a valid reason to invoke Jev during ordinary orchestration, and it does not amend
+the canonical rule requiring genuinely probabilistic choices. No canonical file
+was modified.
+
+## Runtime classification
+
+- Transport/provider health: healthy; two HTTP 200 responses, 772 ms and 769 ms.
+- Schema/type validity: valid typed Choice responses on both calls.
+- First decision: confidence `0.11`; rejected under the canonical threshold.
+- Second decision: confidence `1.0`; accepted with deterministic composition.
+- Provider state: `AVAILABLE`.
+- Capacity class: owner-authorized monthly included allocation.
+
+Future genuinely probabilistic decisions may use Jev after deterministic
+filtering. Low confidence fails that individual decision closed but does not by
+itself change provider availability. Transport, authentication, schema failures,
+quota evidence, or allocation uncertainty are classified separately. Low,
+exhausted, or uncertain allocation must update provider state and pause rather
+than adding funds, enabling recharge, buying credits, or using separately billed
+capacity.
 
 Pricing evidence checked on 2026-09-20:
 
@@ -90,5 +117,5 @@ Pricing evidence checked on 2026-09-20:
 - <https://typesafe.ai/blog/introducing-system-one-models-and-jev>
 
 No genuinely probabilistic project decision may be made directly by the Lead
-while Jev is required but unavailable. Deterministic work does not become
+when Jev is required but unavailable. Deterministic work does not become
 probabilistic merely to exercise this adapter.

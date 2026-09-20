@@ -1,6 +1,6 @@
 # Personal UI System — Project Brief
 
-Status: PAUSED(capability) — narrow V1 confirmed; Jev live route LIMITED after low-confidence fixture
+Status: RUNNING — narrow V1 confirmed; Jev adapter and included-capacity live route verified
 
 Last updated: 2026-09-20
 
