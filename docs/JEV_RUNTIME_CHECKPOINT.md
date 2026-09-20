@@ -2,7 +2,9 @@
 
 Date: 2026-09-20
 
-Result: **adapter mock-verified; Jev route remains `UNKNOWN`**.
+Initial result: **adapter mock-verified; Jev route remained `UNKNOWN`**.
+
+Live update: **Jev route is `LIMITED` after one supervised fixture**.
 
 The project now has a V1 runtime adapter at `tools/loop/jev/`. It is separate
 from the pre-existing Loop Engineering research harness and writes only to this
@@ -52,19 +54,35 @@ The owner policy has `paidBudget: 0` and disables temporary credit, separately
 billed use, automatic overage, and purchased credits. An API key exists, but a
 credential is not evidence of a zero-cost allocation.
 
-Therefore no live request was made. A mocked fixture verifies adapter behavior,
-but cannot prove current endpoint availability, account acceptance, billing
-classification, or live response compatibility. Jev must remain `UNKNOWN`, not
-`AVAILABLE`.
+The owner subsequently verified a `$5.00` monthly included credit expiring
+2026-10-19, with auto-recharge off and no purchased-credit history, and
+authorized that included allocation for Loop Engineering decisions. This
+resolved the billing classification without enabling paid or replenished
+capacity.
+
+Exactly one supervised request was then made. The fixed endpoint returned HTTP
+200 with a typed Choice in 772 ms, selecting `WAIT` with probabilities
+`VERIFY: 0.44` and `WAIT: 0.56`, but confidence was `0.11`. Because this is below
+the canonical `0.5` threshold, the adapter rejected the answer, produced no
+composition, recorded `PAUSED(capability)`, and did not retry. The complete
+record is:
+
+```text
+.loop/runs/jev-live-fixture-001/decisions/availability-choice-001.json
+```
+
+This proves endpoint reachability, authentication, wire compatibility, and
+project-local auditing, but the fixture did not satisfy the acceptance contract.
+Accordingly Jev is `LIMITED`, not `AVAILABLE`.
 
 ## Unblock condition
 
-Provide evidence that this TypeSafe account has a zero-cost allocation compatible
-with the existing policy. The Lead can then run one smallest supervised live
-fixture, inspect the complete project-local decision record, and mark Jev
-`AVAILABLE` only if the endpoint, typed response, acceptance contract, and audit
-record all pass. A paid-capacity policy change is outside this checkpoint and
-requires explicit owner authority.
+The single authorized fixture has been consumed and may not be silently retried.
+The next safest remediation is owner direction on whether to authorize a second,
+better-calibrated live fixture. Any later fixture must still use only the existing
+included monthly allocation, and Jev becomes `AVAILABLE` only after an accepted
+typed result and complete audit record. Low, exhausted, or uncertain allocation
+must update provider state and pause rather than adding funds.
 
 Pricing evidence checked on 2026-09-20:
 
