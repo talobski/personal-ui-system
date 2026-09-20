@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest"
 import { renderShadcnTailwindCss, validateTheme } from "@personal-ui/core"
 
-import { diffThemes, editColor, exportThemeJson, forkTheme, loadCanonicalTheme, previewVariablesCss } from "./lifecycle"
+import { diffThemes, editColor, editTheme, exportThemeJson, forkTheme, loadCanonicalTheme, previewVariablesCss } from "./lifecycle"
 import { emptySaved, loadSaved, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
+import { SETTING_IDS, SETTINGS } from "./settings"
 
 const canonical = loadCanonicalTheme()
 const VALID = "oklch(0.4 0.1 150)"
@@ -31,6 +32,54 @@ describe("editColor", () => {
       expect(result).toEqual({ ok: false, issues: [{ ruleId: "mutation.invalid-value", path: "operations[0].value" }] })
     }
   )
+})
+
+describe("editTheme settings (one representative target per remaining category)", () => {
+  const cases = [
+    { id: "radius", raw: "1rem", diffPath: "radius.md", css: "--radius: 1rem;" },
+    { id: "density", raw: "1.25", diffPath: "space.density", css: "--density: 1.25;" },
+    { id: "font", raw: "Source Serif", diffPath: "typography.sans", css: '--font-sans: "Source Serif", system-ui, sans-serif;' },
+    { id: "shadow", raw: "12px", diffPath: "shadow.md", css: "--shadow-md: 0px 4px 12px -2px oklch(0 0 0 / 10%);" },
+    { id: "motion", raw: "320ms", diffPath: "motion.durationBase", css: "--motion-duration-base: 320ms;" },
+  ] as const
+
+  it("covers every setting", () => {
+    expect([...SETTING_IDS].sort()).toEqual(cases.map((c) => c.id).sort())
+  })
+
+  it.each(cases)("$id: applies through the mutation API, bumps the revision, revalidates, and appears in the diff", ({ id, raw, diffPath, css }) => {
+    const result = editTheme(canonical, SETTINGS[id].build(raw))
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.theme.revision).toBe(canonical.revision + 1)
+    expect(validateTheme(result.theme).ok).toBe(true)
+    expect(SETTINGS[id].read(result.theme)).toBe(raw)
+    expect(diffThemes(canonical, result.theme).map((entry) => entry.path)).toEqual([diffPath])
+    expect(renderShadcnTailwindCss(result.theme)).toContain(css)
+  })
+
+  it.each([
+    { id: "radius", raw: "red; } body { display: none", rule: "mutation.invalid-value" },
+    { id: "density", raw: "abc", rule: "mutation.invalid-value" },
+    { id: "density", raw: "9", rule: "mutation.invalid-value" },
+    { id: "density", raw: "", rule: "mutation.invalid-value" },
+    { id: "font", raw: 'x"; } a{', rule: "mutation.invalid-value" },
+    { id: "shadow", raw: "-3px", rule: "mutation.invalid-value" },
+    { id: "motion", raw: "200", rule: "mutation.invalid-value" },
+  ] as const)("$id: blocks %j with a stable rule and path, yielding no theme", ({ id, raw, rule }) => {
+    expect(editTheme(canonical, SETTINGS[id].build(raw))).toEqual({ ok: false, issues: [{ ruleId: rule, path: "operations[0].value" }] })
+  })
+
+  it("round-trips an edited non-color theme through export and saved state", () => {
+    const edited = editTheme(canonical, SETTINGS.shadow.build("12px"))
+    if (!edited.ok) throw new Error("edit failed")
+    const fork = forkTheme(edited.theme, "my-fork", "My Fork", [])
+    if (!fork.ok) throw new Error("fork failed")
+    const storage = memoryStorage()
+    expect(saveTheme(storage, emptySaved(), fork.theme, [canonical.id]).ok).toBe(true)
+    expect(loadSaved(storage).themes["my-fork"]).toEqual(fork.theme)
+    expect(validateTheme(JSON.parse(exportThemeJson(fork.theme).json))).toEqual({ ok: true, theme: fork.theme })
+  })
 })
 
 describe("forkTheme", () => {

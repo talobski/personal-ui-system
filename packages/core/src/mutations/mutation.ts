@@ -1,4 +1,4 @@
-import { COLOR_TOKENS, oklchSchema, themeSchema } from "../theme/schema"
+import { COLOR_TOKENS, densitySchema, dimensionSchema, durationSchema, fontNameSchema, oklchSchema, themeSchema } from "../theme/schema"
 import type { ColorToken, Theme } from "../theme/schema"
 import { renderShadcnTailwindCss } from "../theme/render"
 
@@ -7,9 +7,29 @@ export const MUTATION_SCHEMA_VERSION = "1.0"
 const MODES = ["light", "dark"] as const
 type Mode = (typeof MODES)[number]
 
-/** Closed operation union. V1 admits exactly one operation; there is no raw-CSS, path, or file operation. */
+/**
+ * Closed operation union: one typed operation per token category. There is no raw-CSS, path, file, bulk, or
+ * set-any-path operation. Apart from `setColor`, each operation edits exactly one fixed, representative target
+ * (documented per operation), so it carries no token or path field to select anything else.
+ */
 export type SetColorOperation = { op: "setColor"; mode: Mode; token: ColorToken; value: string }
-export type ThemeOperation = SetColorOperation
+/** Sets `radius.md`, the token behind the rendered `--radius`. Non-negative dimension. */
+export type SetRadiusOperation = { op: "setRadius"; value: string }
+/** Sets `space.density`, the spacing multiplier. Number within the schema range. */
+export type SetDensityOperation = { op: "setDensity"; value: number }
+/** Replaces the primary (first) family of the `typography.sans` stack; the fallbacks are kept. */
+export type SetSansFamilyOperation = { op: "setSansFamily"; value: string }
+/** Sets the blur of the first layer of `shadow.md`. Non-negative dimension. */
+export type SetShadowBlurOperation = { op: "setShadowBlur"; value: string }
+/** Sets `motion.durationBase`, the default transition duration. */
+export type SetMotionDurationOperation = { op: "setMotionDuration"; value: string }
+export type ThemeOperation =
+  | SetColorOperation
+  | SetRadiusOperation
+  | SetDensityOperation
+  | SetSansFamilyOperation
+  | SetShadowBlurOperation
+  | SetMotionDurationOperation
 
 export type MutationRequest = {
   schemaVersion: typeof MUTATION_SCHEMA_VERSION
@@ -28,6 +48,7 @@ export type MutationRuleId =
   | "mutation.invalid-mode"
   | "mutation.unknown-token"
   | "mutation.invalid-value"
+  | "mutation.missing-target"
   | "mutation.base-mismatch"
   | "mutation.stale-revision"
 
@@ -41,8 +62,29 @@ export type MutationResult =
   | { ok: true; theme: Theme; css: string }
   | { ok: false; errors: MutationError[] }
 
-const SET_COLOR_KEYS = new Set(["op", "mode", "token", "value"])
+/** Allowlisted keys per operation; also the closed set of operation names. */
+const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
+  ["setColor", new Set(["op", "mode", "token", "value"])],
+  ["setRadius", new Set(["op", "value"])],
+  ["setDensity", new Set(["op", "value"])],
+  ["setSansFamily", new Set(["op", "value"])],
+  ["setShadowBlur", new Set(["op", "value"])],
+  ["setMotionDuration", new Set(["op", "value"])],
+])
 const REQUEST_KEYS = new Set(["schemaVersion", "requestId", "base", "operations"])
+
+/** Radius and blur render straight into CSS, where a negative length is invalid. */
+const nonNegativeDimension = (value: unknown) =>
+  dimensionSchema.safeParse(value).success && !(value as string).startsWith("-")
+
+/** Value validators for the single-value operations. */
+const VALUE_CHECKS: Record<string, (value: unknown) => boolean> = {
+  setRadius: nonNegativeDimension,
+  setDensity: (value) => densitySchema.safeParse(value).success,
+  setSansFamily: (value) => fontNameSchema.safeParse(value).success,
+  setShadowBlur: nonNegativeDimension,
+  setMotionDuration: (value) => durationSchema.safeParse(value).success,
+}
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
@@ -74,11 +116,16 @@ export function validateMutation(input: unknown, base: Pick<Theme, "id" | "revis
     input.operations.forEach((operation: unknown, index) => {
       const at = `operations[${index}]`
       if (!isRecord(operation)) return fail("mutation.invalid-operation", at)
-      if (operation.op !== "setColor") return fail("mutation.unknown-operation", `${at}.op`)
-      for (const key of Object.keys(operation)) if (!SET_COLOR_KEYS.has(key)) fail("mutation.unknown-field", `${at}.${key}`)
-      if (!MODES.includes(operation.mode as Mode)) fail("mutation.invalid-mode", `${at}.mode`)
-      if (!COLOR_TOKENS.includes(operation.token as ColorToken)) fail("mutation.unknown-token", `${at}.token`)
-      if (!oklchSchema.safeParse(operation.value).success) fail("mutation.invalid-value", `${at}.value`)
+      const keys = typeof operation.op === "string" ? OPERATION_KEYS.get(operation.op) : undefined
+      if (!keys) return fail("mutation.unknown-operation", `${at}.op`)
+      for (const key of Object.keys(operation)) if (!keys.has(key)) fail("mutation.unknown-field", `${at}.${key}`)
+      if (operation.op === "setColor") {
+        if (!MODES.includes(operation.mode as Mode)) fail("mutation.invalid-mode", `${at}.mode`)
+        if (!COLOR_TOKENS.includes(operation.token as ColorToken)) fail("mutation.unknown-token", `${at}.token`)
+        if (!oklchSchema.safeParse(operation.value).success) fail("mutation.invalid-value", `${at}.value`)
+      } else if (!VALUE_CHECKS[operation.op as string]!(operation.value)) {
+        fail("mutation.invalid-value", `${at}.value`)
+      }
     })
   }
 
@@ -91,9 +138,34 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
   if (!validation.ok) return validation
 
   const next: Theme = structuredClone(theme)
-  for (const operation of validation.request.operations) {
-    next.modes[operation.mode].color[operation.token].$value = operation.value
-  }
+  const missing: MutationError[] = []
+  validation.request.operations.forEach((operation, index) => {
+    switch (operation.op) {
+      case "setColor":
+        next.modes[operation.mode].color[operation.token].$value = operation.value
+        break
+      case "setRadius":
+        next.radius.md.$value = operation.value
+        break
+      case "setDensity":
+        next.space.density.$value = operation.value
+        break
+      case "setSansFamily":
+        next.typography.sans.$value[0] = operation.value
+        break
+      case "setShadowBlur": {
+        // The schema admits an empty layer list; there is then nothing to edit.
+        const layer = next.shadow.md.$value[0]
+        if (layer) layer.blur = operation.value
+        else missing.push({ ruleId: "mutation.missing-target", path: `operations[${index}]` })
+        break
+      }
+      case "setMotionDuration":
+        next.motion.durationBase.$value = operation.value
+        break
+    }
+  })
+  if (missing.length > 0) return { ok: false, errors: missing }
   next.revision = theme.revision + 1
 
   // Defense in depth: the candidate must still be a schema-valid theme.

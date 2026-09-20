@@ -1,5 +1,5 @@
 import { applyMutation, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, themeSchema, validateTheme } from "@personal-ui/core"
-import type { ColorToken, MutationError, Theme } from "@personal-ui/core"
+import type { ColorToken, MutationError, Theme, ThemeOperation } from "@personal-ui/core"
 import canonicalFixture from "@personal-ui/core/theme/fixtures/valid.json"
 
 export type Mode = "light" | "dark"
@@ -17,16 +17,19 @@ export function loadCanonicalTheme(): Theme {
 
 const fromMutation = (errors: MutationError[]): WorkbenchIssue[] => errors.map(({ ruleId, path }) => ({ ruleId, path }))
 
-/** Color edits go only through core's structured mutation API; a rejected edit returns the issues and no theme. */
-export function editColor(theme: Theme, mode: Mode, token: ColorToken, value: string): Outcome<{ theme: Theme }> {
+/** Every edit goes only through core's structured mutation API; a rejected edit returns the issues and no theme. */
+export function editTheme(theme: Theme, operation: ThemeOperation): Outcome<{ theme: Theme }> {
   const result = applyMutation(theme, {
     schemaVersion: MUTATION_SCHEMA_VERSION,
     requestId: `workbench-${theme.id}-r${theme.revision}`,
     base: { themeId: theme.id, revision: theme.revision },
-    operations: [{ op: "setColor", mode, token, value }],
+    operations: [operation],
   })
   return result.ok ? { ok: true, theme: result.theme } : { ok: false, issues: fromMutation(result.errors) }
 }
+
+export const editColor = (theme: Theme, mode: Mode, token: ColorToken, value: string) =>
+  editTheme(theme, { op: "setColor", mode, token, value })
 
 /** Fork validation reuses the theme schema for id/name and adds a collision rule against known ids. */
 export function forkTheme(theme: Theme, id: string, name: string, takenIds: readonly string[]): Outcome<{ theme: Theme }> {
