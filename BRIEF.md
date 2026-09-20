@@ -173,7 +173,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** browser
 - **capability:** Real Chromium via Playwright with screenshot and interaction evidence.
 - **threshold:** One automated path completes every listed action at 390×844 and 1440×900; saved state survives reload; validation errors prevent invalid activation; no external network is required after install.
-- **result + evidencePath:** unevaluated; `.loop/runs/<verification-run>/evidence/ac-06.json`
+- **result + evidencePath:** verified 2026-09-20; `.loop/runs/workbench-lifecycle-001/evidence/ac-06.json`
 
 ### AC-07 — Accessibility and responsive behavior
 
