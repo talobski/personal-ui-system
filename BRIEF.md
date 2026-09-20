@@ -4,8 +4,9 @@ Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed; the
 post-V1 shadcn workbench alignment is also DONE(verified)
 and owner-accepted. `theme-mutation-coverage-001` is DONE(verified) and
 owner-accepted at main `2d913c0`. `preview-feedback-completion-001` is
-DONE(verified) at main `719ef63`, pending owner acceptance; the project is
-PAUSED(owner) with no active implementation unit. See the Phase 3 sections
+DONE(verified) and owner-accepted at main `719ef63`. All phases to date are
+owner-accepted and the project is PAUSED(owner) with no active implementation
+unit. See the Phase 3 sections
 below, and `docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state. See the Phase 2 sections below, and
 `docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state and deferred decisions.
 
