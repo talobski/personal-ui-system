@@ -580,8 +580,17 @@ rendered CSS without making the candidate active.
 
 Acceptance is PP-01 through PP-10 in
 `.loop/runs/mutation-proposal-preview-001/task.md`. The phase budget is one
-worker run, concurrency one, at most two Lead-to-worker turns, at most two
+worker run, concurrency one, at most three Lead-to-worker turns, at most three
 changed attempts, 120 minutes, a 50,000 soft worker-token target, spawn depth
 one, and paid budget zero. The owner raised the lifetime agent-run ceiling from
-12 to 13 for exactly this run. Failure pauses the project; it does not authorize
-another run.
+12 to 13 for exactly this run, then authorized the third turn/attempt only for
+staged-state control isolation. No additional worker run or attempt is
+authorized.
+
+The implementation is preserved at main `096efc5`, but the phase is paused and
+not accepted. Lead verification passed 296 unit tests, typecheck, all builds,
+38 browser tests, and 52 decoded axe attachments with zero serious or critical
+violations. The acceptance audit found that PP-03 still lacks proposal-preview
+computed-style evidence for all six mutation categories, and PP-10 lacks an
+explicit keyboard-use check for the proposal flow. Per the final-attempt rule,
+these gaps were checkpointed without further product changes.
