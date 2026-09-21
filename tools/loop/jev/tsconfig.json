@@ -6,5 +6,5 @@
     "types": ["node"],
     "typeRoots": ["../../../node_modules/@types"]
   },
-  "include": ["*.ts"]
+  "include": ["*.ts", "fixtures/*.ts"]
 }

@@ -37,6 +37,7 @@
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
     "vite": "8.3.0",
-    "vitest": "5.0.1"
+    "vitest": "5.0.1",
+    "@loop-engineering/jev-core": "file:vendor/loop-engineering-jev-core-0.1.0.tgz"
   }
 }

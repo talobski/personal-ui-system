@@ -2,12 +2,11 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { parseArgs } from "node:util"
-import { runDecision } from "./adapter.ts"
-import { DEFAULT_TIMEOUT_MS } from "./types.ts"
+import { DEFAULT_TIMEOUT_MS, runDecision } from "@loop-engineering/jev-core/src/index.ts"
 
 const USAGE = `usage: jev --packet <file|-> [--project-dir <dir>] [--policy <file>] [--timeout-ms <n>]
 
-Runs one gate-admission packet against the fixed Jev endpoint using TYPESAFE_API_KEY.
+Runs one gate-admission packet against the fixed Jev endpoint using TYPESAFE_LOOP_ENGINEERING_API_KEY.
 Exit codes: 0 accepted, 1 not accepted (fail closed), 2 usage error.
 The full outcome is printed as JSON on stdout. The API key is never printed.`
 
@@ -50,7 +49,7 @@ async function main(): Promise<number> {
   const outcome = await runDecision(packet, {
     projectDir: resolve(values["project-dir"] ?? process.cwd()),
     policyPath: values.policy === undefined ? undefined : resolve(values.policy),
-    apiKey: process.env.TYPESAFE_API_KEY,
+    apiKey: process.env.TYPESAFE_LOOP_ENGINEERING_API_KEY,
     fetch: (url, init) => fetch(url, init),
     timeoutMs,
   })

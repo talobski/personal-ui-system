@@ -169,6 +169,9 @@ importers:
       '@axe-core/playwright':
         specifier: 4.13.0
         version: 4.13.0(playwright-core@1.63.0)
+      '@loop-engineering/jev-core':
+        specifier: file:vendor/loop-engineering-jev-core-0.1.0.tgz
+        version: file:vendor/loop-engineering-jev-core-0.1.0.tgz
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -648,6 +651,12 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@loop-engineering/jev-core@file:vendor/loop-engineering-jev-core-0.1.0.tgz':
+    resolution: {integrity: sha512-LQeYXfSBRGqP/czsgeF7fQFnfIpzKLjUfMo1MUeuWrCy6rGKR3jEW0Q2m7hekubmADMdewqXDLE7A7VHfQyiTg==, tarball: file:vendor/loop-engineering-jev-core-0.1.0.tgz}
+    version: 0.1.0
+    engines: {node: '>=22'}
+    hasBin: true
 
   '@modelcontextprotocol/sdk@1.30.0':
     resolution: {integrity: sha512-xKd8OIzlqNzcqcNumGAa6g+PW2kjD5vrpcKOnfldAUPP3j7lnqMPwlTXQm8gF+UwH72z0lqaRbjr9hqGz0eITA==}
@@ -4404,6 +4413,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
+
+  '@loop-engineering/jev-core@file:vendor/loop-engineering-jev-core-0.1.0.tgz': {}
 
   '@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@3.25.76)':
     dependencies:

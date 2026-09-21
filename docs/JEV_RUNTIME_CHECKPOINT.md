@@ -6,10 +6,10 @@ Initial result: **adapter mock-verified; Jev route remained `UNKNOWN`**.
 
 Final result: **Jev route is `AVAILABLE` using the owner-authorized monthly included allocation**.
 
-The project now has a V1 runtime adapter at `tools/loop/jev/`. It is separate
-from the pre-existing Loop Engineering research harness and writes only to this
-project's `.loop/` state. The research harness and its log were not modified or
-admitted as production infrastructure.
+Historical note: the former project-local adapter lived at `tools/loop/jev/`.
+Phase B replaces its implementation with the pinned shared runtime; the current
+compatibility entry point is not an authoritative local runtime. The Lead alone
+owns any atomic live `.loop` migration transaction.
 
 ## Verified adapter contract
 

@@ -1,8 +1,27 @@
-# Jev runtime adapter (V1, smallest)
+# Jev runtime adapter — shared runtime migration
 
-Project-local runtime infrastructure under `tools/loop/jev/`. It is not part of
-`packages/core` or `packages/ui`, adds no dependencies, and never touches the
-research harness or its `research/jev-log.jsonl`.
+`tools/loop/jev/` is now a compatibility entry point over the immutable,
+vendored `@loop-engineering/jev-core@0.1.0` archive. It contains no local Jev
+decision, threshold, sanitization, persistence, locking, budget, provider-state,
+or policy implementation. The only project-specific code is a data-only legacy
+state translator; it neither discovers nor opens `.loop` paths.
+
+The repository copy is `vendor/loop-engineering-jev-core-0.1.0.tgz`, with
+SHA-256 `fb3db3792fede89b2a977c120dfe3e4566fe6c303dd4fc2b769c2049304af923`.
+It binds package identity `@loop-engineering/jev-core`, version `0.1.0`, and the
+pnpm lock integrity. The verified runtime commit is
+`40eb9cab16ad2ac3974d98e851ff3abf415b2fb8`; packaged source commit is
+`d1226c2c92f5682cc1d932b2401b2b628555c7ac`.
+
+`translatePersonalLegacyState` is a one-time, pure compatibility path for the
+personal legacy state shape. It delegates V2 validation and stable serialization
+to the shared runtime. A typed Lead-supplied context provides full commits,
+Phase B allocation/counters, timestamp, evidence, task/attempt snapshots, and
+approved authority. The translator retains the historical baseline of 14 runs
+while allowing the current monotonic value through 18; it preserves 23 model/
+provider requests, 2 Jev calls, zero paid spend, the accepted product, and its
+distinct control checkpoint. Fixtures are synthetic; this worktree never reads
+the canonical `.loop/state.json`.
 
 The adapter takes one deterministic **gate-admission packet**, enforces the
 canonical Loop Engineering Jev rules, makes at most one live call to the fixed
@@ -15,7 +34,7 @@ it validates, charges, transports, accepts or rejects, and restates.
 material describes metered pricing, and project policy forbids paid, credit, and
 overage capacity (`paidBudget` 0; temporary credit, separately billed, automatic
 overage, and purchased credits all disabled). Nothing in this adapter or its
-tests establishes that a `TYPESAFE_API_KEY` is covered by a zero-cost allocation,
+tests establishes that a `TYPESAFE_LOOP_ENGINEERING_API_KEY` is covered by a zero-cost allocation,
 and the adapter cannot verify billing. It can only refuse work that declares paid
 capacity.
 
@@ -234,7 +253,7 @@ import { runDecision } from "./tools/loop/jev/index.ts"
 const outcome = await runDecision(packet, {
   projectDir,                          // contains .loop/
   policyPath,                          // optional
-  apiKey: process.env.TYPESAFE_API_KEY,
+  apiKey: process.env.TYPESAFE_LOOP_ENGINEERING_API_KEY,
   fetch, clock, fs,                    // optional test seams; timeoutMs default 60000
 })
 if (!outcome.accepted) { /* outcome.reason, outcome.fallback, outcome.pause */ }
@@ -243,7 +262,7 @@ if (!outcome.accepted) { /* outcome.reason, outcome.fallback, outcome.pause */ }
 CLI (fixed endpoint `https://api.typesafe.ai/v1/systemone`, model `jev-latest`):
 
 ```sh
-export TYPESAFE_API_KEY=...          # never passed as an argument
+export TYPESAFE_LOOP_ENGINEERING_API_KEY=...          # never passed as an argument
 pnpm jev --packet packet.json [--project-dir <dir>] [--policy <file>] [--timeout-ms 60000]
 pnpm jev --packet - < packet.json
 ```
