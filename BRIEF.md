@@ -587,10 +587,11 @@ one, and paid budget zero. The owner raised the lifetime agent-run ceiling from
 staged-state control isolation. No additional worker run or attempt is
 authorized.
 
-The implementation is preserved at main `096efc5`, but the phase is paused and
-not accepted. Lead verification passed 296 unit tests, typecheck, all builds,
-38 browser tests, and 52 decoded axe attachments with zero serious or critical
-violations. The acceptance audit found that PP-03 still lacks proposal-preview
-computed-style evidence for all six mutation categories, and PP-10 lacks an
-explicit keyboard-use check for the proposal flow. Per the final-attempt rule,
-these gaps were checkpointed without further product changes.
+The implementation was preserved at main `096efc5` while two evidence gaps
+were remediated in a separate, owner-authorized test-only run. The completion
+gate passed in the isolated worktree before integration. Main `a41caf5` now has
+computed-style proposal-preview evidence for all six mutation categories and
+explicit keyboard activation evidence for Stage, Discard, second Stage, and
+Apply. No product file changed during remediation. The targeted matrix passed
+28/28 at both viewports in light and dark, with 16 decoded axe attachments and
+zero serious or critical violations.

@@ -1,6 +1,6 @@
 # Mutation proposal preview checkpoint
 
-Status: `PAUSED(verification-contract-gap)`; implementation preserved, not accepted.
+Status: `DONE(verified)`; awaiting owner acceptance.
 
 ## Preserved implementation
 
@@ -35,17 +35,22 @@ controls are disabled.
 Raw browser evidence is in
 `.loop/runs/mutation-proposal-preview-001/evidence/workbench-results.json`.
 
-## Remaining acceptance gaps
+## Evidence remediation
 
-1. PP-03 requires proposal-preview evidence that every existing mutation
-   category changes the computed iframe style without a reload or active-state
-   mutation. The current proposal browser fixture proves color, radius, and
-   motion. Density is applied without a computed-style preview assertion;
-   typography and shadow are absent from the proposal-preview scenarios.
-2. PP-10 requires keyboard-complete proposal-flow evidence. Existing browser
-   tests exercise keyboard behavior elsewhere in the workbench, but the
-   proposal Stage/Apply/Discard flow has no explicit keyboard-use assertion.
+The owner authorized one test-only run with a 14/14 lifetime ceiling. Commit
+`7e9c84e` changes only `e2e/proposal-preview.spec.ts`; merge commit `a41caf5`
+integrates it after the isolated completion gate passed.
 
-The final authorized corrective attempt is exhausted. No further worker,
-attempt, ceiling increase, or product change is authorized. Resume requires an
-owner budget/attempt decision; do not duplicate the completed implementation.
+- PP-03: one seven-operation proposal proves computed color, radius, density,
+  typography, shadow, and motion changes without reload or active mutation,
+  then proves Discard restores all six values.
+- PP-10: keyboard activation proves Stage, Discard, second Stage, and Apply,
+  including lifecycle outcomes, single revision movement, and unchanged
+  persistence.
+- Targeted Playwright matrix: 28/28 passed at 390x844 and 1440x900, light and
+  dark, both before and after merge.
+- Axe: 16 attachments decoded directly; zero serious or critical findings.
+- E2E typecheck and workbench production build passed.
+- Product files remain byte-identical to `195a79c`; no defect surfaced.
+
+No additional worker, attempt, or product change is authorized by this result.
