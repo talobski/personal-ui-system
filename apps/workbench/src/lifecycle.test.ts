@@ -1,7 +1,18 @@
 import { describe, expect, it } from "vitest"
-import { renderShadcnTailwindCss, validateTheme } from "@personal-ui/core"
+import { applyProposal, createProposalSession, discardProposal, renderShadcnTailwindCss, stageProposal, validateTheme } from "@personal-ui/core"
 
-import { diffThemes, editColor, editTheme, exportThemeJson, forkTheme, loadCanonicalTheme, previewVariablesCss } from "./lifecycle"
+import {
+  diffProposal,
+  diffThemes,
+  editColor,
+  editTheme,
+  exampleProposalJson,
+  exportThemeJson,
+  forkTheme,
+  loadCanonicalTheme,
+  parseProposalJson,
+  previewVariablesCss,
+} from "./lifecycle"
 import { emptySaved, loadSaved, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
 import { SETTING_IDS, SETTINGS } from "./settings"
@@ -187,5 +198,92 @@ describe("export and preview css", () => {
     expect(css).toContain(".dark {")
     expect(css).not.toContain("@theme")
     expect(renderShadcnTailwindCss(canonical)).toContain("@theme inline")
+  })
+})
+
+describe("mutation proposal preview (non-committing)", () => {
+  const envelope = (overrides: Record<string, unknown> = {}) => ({
+    version: "1.0",
+    proposalId: "p-1",
+    base: { themeId: canonical.id, revision: canonical.revision },
+    provenance: { source: "test-agent", sourceId: "run-1", createdAt: "2026-09-21T10:00:00Z" },
+    operations: [
+      { op: "setMotionDuration", value: "320ms" },
+      { op: "setColor", mode: "dark", token: "primary", value: "oklch(0.8 0.1 150)" },
+      { op: "setRadius", value: "1rem" },
+    ],
+    ...overrides,
+  })
+
+  it("diffs active to candidate as sorted {path,before,after}", () => {
+    const result = stageProposal(createProposalSession(), canonical, envelope())
+    if (!result.ok) throw new Error("stage failed")
+    const diff = diffProposal(canonical, result.staged.candidate)
+    expect(diff).toEqual([
+      { path: "modes.dark.color.primary", before: canonical.modes.dark.color.primary.$value, after: "oklch(0.8 0.1 150)" },
+      { path: "motion.durationBase", before: canonical.motion.durationBase.$value, after: "320ms" },
+      { path: "radius.md", before: canonical.radius.md.$value, after: "1rem" },
+    ])
+    expect(diff.map((entry) => entry.path)).toEqual([...diff.map((entry) => entry.path)].sort())
+    for (const entry of diff) expect(Object.keys(entry).sort()).toEqual(["after", "before", "path"])
+  })
+
+  it("previews candidate CSS through the existing preview path without changing the active theme", () => {
+    const before = JSON.stringify(canonical)
+    const result = stageProposal(createProposalSession(), canonical, envelope())
+    if (!result.ok) throw new Error("stage failed")
+    const candidateCss = previewVariablesCss(result.staged.candidate)
+    expect(candidateCss).toContain("--motion-duration-base: 320ms;")
+    expect(previewVariablesCss(canonical)).not.toContain("--motion-duration-base: 320ms;")
+    expect(JSON.stringify(canonical)).toBe(before)
+  })
+
+  it("stage, discard, and stale leave active state and persistence byte-identical; only Apply then Save persists", () => {
+    const fork = forkTheme(canonical, "my-fork", "My Fork", [])
+    if (!fork.ok) throw new Error("fork failed")
+    const storage = memoryStorage()
+    const saved = saveTheme(storage, emptySaved(), fork.theme, [canonical.id])
+    if (!saved.ok) throw new Error("save failed")
+    const active = fork.theme
+    const request = (id: string) => envelope({ proposalId: id, base: { themeId: active.id, revision: active.revision } })
+    const snapshot = () => ({ active: JSON.stringify(active), storage: JSON.stringify(storage.data) })
+    const before = snapshot()
+
+    // Staged then discarded.
+    let session = stageProposal(createProposalSession(), active, request("a")).session
+    expect(snapshot()).toEqual(before)
+    session = discardProposal(session, "a").session
+    expect(snapshot()).toEqual(before)
+
+    // Staged, then the active revision moves: Apply is stale and applies nothing.
+    session = stageProposal(session, active, request("b")).session
+    const moved = editColor(active, "light", "primary", VALID)
+    if (!moved.ok) throw new Error("edit failed")
+    const stale = applyProposal(session, moved.theme, "b")
+    expect(stale.ok).toBe(false)
+    expect(stale.session.outcomes.get("b")).toBe("stale")
+    expect(moved.theme.revision).toBe(active.revision + 1)
+    expect(moved.theme.radius.md.$value).toBe(active.radius.md.$value)
+    expect(snapshot()).toEqual(before)
+
+    // Applied: one revision step in memory, storage still untouched until Save.
+    session = stageProposal(stale.session, active, request("c")).session
+    const applied = applyProposal(session, active, "c")
+    if (!applied.ok) throw new Error("apply failed")
+    expect(applied.theme!.revision).toBe(active.revision + 1)
+    expect(snapshot()).toEqual(before)
+    expect(saveTheme(storage, saved.saved, applied.theme!, [canonical.id]).ok).toBe(true)
+    expect(JSON.stringify(storage.data)).not.toBe(before.storage)
+  })
+
+  it("parses proposal JSON and reports unparsable text without reaching core", () => {
+    expect(parseProposalJson('{"a":1}')).toEqual({ ok: true, value: { a: 1 } })
+    expect(parseProposalJson("{nope")).toEqual({ ok: false, issues: [{ ruleId: "workbench.proposal.invalid-json", path: "" }] })
+  })
+
+  it("offers an example proposal that stages against the active theme", () => {
+    const example = parseProposalJson(exampleProposalJson(canonical, "example-1"))
+    if (!example.ok) throw new Error("example unparsable")
+    expect(stageProposal(createProposalSession(), canonical, example.value).ok).toBe(true)
   })
 })
