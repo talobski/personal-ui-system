@@ -11,7 +11,6 @@ import { Panel } from "@personal-ui/ui/components/panel"
 import { SingleToggleGroup } from "@personal-ui/ui/components/single-toggle-group"
 
 import {
-  diffProposal,
   diffThemes,
   editColor,
   editTheme,
@@ -152,7 +151,7 @@ export function App() {
     setProposalResult("")
     const parsed = parseProposalJson(proposalText)
     if (!parsed.ok) return setProposalIssues(parsed.issues)
-    const result = stageProposal(session, current, parsed.value)
+    const result = stageProposal(session, current, parsed.value, new Date().toISOString())
     setSession(result.session)
     if (!result.ok) return showProposalErrors(result.errors)
     setProposalIssues([])
@@ -162,11 +161,11 @@ export function App() {
   const applyStaged = () => {
     if (!staged) return
     const id = staged.proposal.proposalId
-    const result = applyProposal(session, current, id)
+    const result = applyProposal(session, current, id, new Date().toISOString())
     setSession(result.session)
     if (!result.ok) {
       showProposalErrors(result.errors)
-      return setProposalResult(result.session.outcomes.get(id) === "stale" ? `Proposal ${id} is stale; nothing was changed.` : "")
+      return setProposalResult(result.session.records.find((record) => record.proposalId === id)?.status === "stale" ? `Proposal ${id} is stale; nothing was changed.` : "")
     }
     setProposalIssues([])
     setCurrent(result.theme!)
@@ -177,7 +176,7 @@ export function App() {
   const discardStaged = () => {
     if (!staged) return
     const id = staged.proposal.proposalId
-    const result = discardProposal(session, id)
+    const result = discardProposal(session, current, id, new Date().toISOString())
     setSession(result.session)
     setProposalIssues([])
     setProposalResult(result.ok ? `Discarded ${id}. Active theme unchanged.` : "")
@@ -322,7 +321,7 @@ export function App() {
           </Field>
           <div className="flex flex-wrap gap-2">
             <Button onClick={stage}>Stage proposal</Button>
-            <Button variant="outline" onClick={() => setProposalText(exampleProposalJson(current, `example-${session.outcomes.size + 1}`))}>
+            <Button variant="outline" onClick={() => setProposalText(exampleProposalJson(current, `example-${session.records.length + 1}`))}>
               Insert example
             </Button>
           </div>
@@ -331,9 +330,9 @@ export function App() {
               {proposalResult}
             </p>
           )}
-          {session.outcomes.size > 0 && (
+          {session.records.length > 0 && (
             <ul data-testid="proposal-log" className="grid gap-1 text-sm">
-              {[...session.outcomes].map(([id, status]) => (
+              {session.records.map(({ proposalId: id, status }) => (
                 <li key={id} data-proposal-id={id} data-status={status}>
                   <code>{id}</code>: {status}
                 </li>
@@ -418,7 +417,7 @@ export function App() {
                 </p>
               )}
               <ul data-testid="proposal-diff-list" className="grid gap-2">
-                {diffProposal(current, staged.candidate).map((entry) => (
+                {staged.evaluation.diff.map((entry) => (
                   <li key={entry.path} data-path={entry.path} className="break-all">
                     <code>{entry.path}</code>: <code>{JSON.stringify(entry.before)}</code> → <code>{JSON.stringify(entry.after)}</code>
                   </li>

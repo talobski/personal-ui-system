@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 import { applyProposal, createProposalSession, discardProposal, renderShadcnTailwindCss, stageProposal, validateTheme } from "@personal-ui/core"
 
 import {
-  diffProposal,
   diffThemes,
   editColor,
   editTheme,
@@ -201,12 +200,14 @@ describe("export and preview css", () => {
   })
 })
 
+const NOW = "2026-09-21T11:00:00Z"
+
 describe("mutation proposal preview (non-committing)", () => {
   const envelope = (overrides: Record<string, unknown> = {}) => ({
-    version: "1.0",
+    schemaVersion: "1.0",
     proposalId: "p-1",
     base: { themeId: canonical.id, revision: canonical.revision },
-    provenance: { source: "test-agent", sourceId: "run-1", createdAt: "2026-09-21T10:00:00Z" },
+    provenance: { source: "agent", sourceId: "run-1", createdAt: "2026-09-21T10:00:00Z" },
     operations: [
       { op: "setMotionDuration", value: "320ms" },
       { op: "setColor", mode: "dark", token: "primary", value: "oklch(0.8 0.1 150)" },
@@ -216,9 +217,9 @@ describe("mutation proposal preview (non-committing)", () => {
   })
 
   it("diffs active to candidate as sorted {path,before,after}", () => {
-    const result = stageProposal(createProposalSession(), canonical, envelope())
+    const result = stageProposal(createProposalSession(), canonical, envelope(), NOW)
     if (!result.ok) throw new Error("stage failed")
-    const diff = diffProposal(canonical, result.staged.candidate)
+    const diff = result.staged.evaluation.diff
     expect(diff).toEqual([
       { path: "modes.dark.color.primary", before: canonical.modes.dark.color.primary.$value, after: "oklch(0.8 0.1 150)" },
       { path: "motion.durationBase", before: canonical.motion.durationBase.$value, after: "320ms" },
@@ -230,7 +231,7 @@ describe("mutation proposal preview (non-committing)", () => {
 
   it("previews candidate CSS through the existing preview path without changing the active theme", () => {
     const before = JSON.stringify(canonical)
-    const result = stageProposal(createProposalSession(), canonical, envelope())
+    const result = stageProposal(createProposalSession(), canonical, envelope(), NOW)
     if (!result.ok) throw new Error("stage failed")
     const candidateCss = previewVariablesCss(result.staged.candidate)
     expect(candidateCss).toContain("--motion-duration-base: 320ms;")
@@ -250,25 +251,26 @@ describe("mutation proposal preview (non-committing)", () => {
     const before = snapshot()
 
     // Staged then discarded.
-    let session = stageProposal(createProposalSession(), active, request("a")).session
+    let session = stageProposal(createProposalSession(), active, request("a"), NOW).session
     expect(snapshot()).toEqual(before)
-    session = discardProposal(session, "a").session
+    session = discardProposal(session, active, "a", NOW).session
     expect(snapshot()).toEqual(before)
 
     // Staged, then the active revision moves: Apply is stale and applies nothing.
-    session = stageProposal(session, active, request("b")).session
+    session = stageProposal(session, active, request("b"), NOW).session
     const moved = editColor(active, "light", "primary", VALID)
     if (!moved.ok) throw new Error("edit failed")
-    const stale = applyProposal(session, moved.theme, "b")
+    const stale = applyProposal(session, moved.theme, "b", NOW)
     expect(stale.ok).toBe(false)
-    expect(stale.session.outcomes.get("b")).toBe("stale")
+    expect(stale.session.records.find((record) => record.proposalId === "b")?.status).toBe("stale")
+    expect(stale.ok ? [] : stale.errors).toEqual([{ ruleId: "mutation.stale-revision", path: "base.revision" }])
     expect(moved.theme.revision).toBe(active.revision + 1)
     expect(moved.theme.radius.md.$value).toBe(active.radius.md.$value)
     expect(snapshot()).toEqual(before)
 
     // Applied: one revision step in memory, storage still untouched until Save.
-    session = stageProposal(stale.session, active, request("c")).session
-    const applied = applyProposal(session, active, "c")
+    session = stageProposal(stale.session, active, request("c"), NOW).session
+    const applied = applyProposal(session, active, "c", NOW)
     if (!applied.ok) throw new Error("apply failed")
     expect(applied.theme!.revision).toBe(active.revision + 1)
     expect(snapshot()).toEqual(before)
@@ -284,6 +286,6 @@ describe("mutation proposal preview (non-committing)", () => {
   it("offers an example proposal that stages against the active theme", () => {
     const example = parseProposalJson(exampleProposalJson(canonical, "example-1"))
     if (!example.ok) throw new Error("example unparsable")
-    expect(stageProposal(createProposalSession(), canonical, example.value).ok).toBe(true)
+    expect(stageProposal(createProposalSession(), canonical, example.value, NOW).ok).toBe(true)
   })
 })

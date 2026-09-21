@@ -7,10 +7,10 @@ const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-fr
 
 const proposal = (id: string, revision: number, overrides: Record<string, unknown> = {}) =>
   JSON.stringify({
-    version: "1.0",
+    schemaVersion: "1.0",
     proposalId: id,
     base: { themeId: "quiet-editorial", revision },
-    provenance: { source: "browser-test", sourceId: "spec", createdAt: "2026-09-21T10:00:00Z", intentSummary: "Rounder, calmer, warmer." },
+    provenance: { source: "fixture", sourceId: "spec", createdAt: "2026-09-21T10:00:00Z", intentSummary: "Rounder, calmer, warmer." },
     operations: [
       { op: "setRadius", value: "1rem" },
       { op: "setMotionDuration", value: "320ms" },
@@ -171,6 +171,14 @@ for (const mode of ["light", "dark"] as const) {
 
       await stageText(page, proposal("bad-3", 1, { css: "body { display: none }" }))
       await expect(page.getByTestId("proposal-error")).toContainText("proposal.unknown-field at css")
+
+      const legacy = JSON.parse(proposal("bad-4", 1))
+      await stageText(page, JSON.stringify({ ...legacy, schemaVersion: undefined, version: "1.0" }))
+      await expect(page.getByTestId("proposal-error")).toContainText("proposal.unsupported-version at schemaVersion")
+      await expect(page.getByTestId("proposal-error")).toContainText("proposal.unknown-field at version")
+
+      await stageText(page, proposal("bad-5", 1, { provenance: { source: "browser-test", sourceId: "spec", createdAt: "2026-09-21T10:00:00Z" } }))
+      await expect(page.getByTestId("proposal-error")).toContainText("proposal.invalid-provenance at provenance.source")
       await expect(revision(page)).toHaveText("1")
     })
 
@@ -189,7 +197,7 @@ for (const mode of ["light", "dark"] as const) {
       await expect(page.getByTestId("proposal-log").locator('[data-proposal-id="stale-1"]')).toHaveAttribute("data-status", "staged")
 
       await page.getByRole("button", { name: "Apply proposal" }).click()
-      await expect(page.getByTestId("proposal-error")).toContainText("proposal.stale at base")
+      await expect(page.getByTestId("proposal-error")).toContainText("mutation.stale-revision at base.revision")
       await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
       await expect(page.getByTestId("proposal-log").locator('[data-proposal-id="stale-1"]')).toHaveAttribute("data-status", "stale")
       await expect(revision(page)).toHaveText("2")
@@ -216,7 +224,7 @@ for (const mode of ["light", "dark"] as const) {
       const storageBefore = await storedThemes(page)
 
       await page.getByRole("button", { name: "Apply proposal" }).click()
-      await expect(page.getByTestId("proposal-error")).toContainText("proposal.stale at base")
+      await expect(page.getByTestId("proposal-error")).toContainText("mutation.base-mismatch at base.themeId")
       await expect(page.getByTestId("proposal-log").locator('[data-proposal-id="stale-2"]')).toHaveAttribute("data-status", "stale")
       await expect(page.getByTestId("theme-id")).toHaveText("stale-fork")
       await expect(revision(page)).toHaveText("1")
