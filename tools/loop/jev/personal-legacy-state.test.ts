@@ -11,7 +11,7 @@ describe("personal legacy state translation", () => {
     expect(translatePersonalLegacyState(legacy, personalLegacyMigrationContext()).ok).toBe(true)
   })
 
-  it.each([PERSONAL_HISTORICAL_AGENT_RUNS, 16])("preserves exact history at agentRuns=%i", agentRuns => {
+  it.each([PERSONAL_HISTORICAL_AGENT_RUNS, PERSONAL_LIFETIME_AGENT_RUN_CEILING])("preserves exact history at agentRuns=%i", agentRuns => {
     const legacy = personalLegacyStateFixture(agentRuns)
     const context = personalLegacyMigrationContext()
     const result = translatePersonalLegacyState(legacy, context)
@@ -46,7 +46,7 @@ describe("personal legacy state translation", () => {
       return { legacy: { ...personalLegacyStateFixture(), authority: expanded }, context: { ...personalLegacyMigrationContext(), approvedAuthority: expanded } }
     }],
     ["paid spend", () => ({ legacy: { ...personalLegacyStateFixture(), authority: { paidBudget: 1 } }, context: { ...personalLegacyMigrationContext(), approvedAuthority: { paidBudget: 1 } } })],
-    ["Phase B allocation drift", () => ({ legacy: personalLegacyStateFixture(), context: { ...personalLegacyMigrationContext(), phaseB: { ...personalLegacyMigrationContext().phaseB, allocation: { agentRuns: 4, leadToWorkerTurns: 12, phaseAttempts: 4, concurrency: 1, paidSpend: 0 } } } })],
+    ["Phase B allocation drift", () => ({ legacy: personalLegacyStateFixture(), context: { ...personalLegacyMigrationContext(), phaseB: { ...personalLegacyMigrationContext().phaseB, allocation: { agentRuns: 5, leadToWorkerTurns: 12, phaseAttempts: 5, concurrency: 1, paidSpend: 0 } } } })],
     ["credential-value persistence", () => ({ legacy: { ...personalLegacyStateFixture(), runtime: { credential: "do-not-store" } }, context: personalLegacyMigrationContext() })],
     ...[
       "accessToken", "apiKeyValue", "credentials", "bearerToken", "privateKey", "access_token", "api-key-value", "proxyAuthorization",

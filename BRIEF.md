@@ -625,10 +625,12 @@ historical provider observations, owner pause/acceptance records, paid spend 0,
 and all human-only authority boundaries. These values may evolve only through
 new Phase B execution; they must never reset.
 
-The phase allocation is 2 normal agent runs with up to 2 conditional remediation
-runs, a hard phase ceiling of 4, lifetime ceiling 18, 4 Lead-to-worker turns,
-4 phase attempts, concurrency 1, and paid spend 0. One producer runs first; the
-fresh verifier slot is protected. Remediation headroom retains the previously
+The phase allocation began with 2 normal agent runs and up to 2 conditional
+remediation runs. After the bounded remediation was exhausted, the owner
+approved one final control-metadata verification slot: hard phase ceiling 5,
+lifetime ceiling 19, 7 Lead-to-worker turns, 5 phase attempts, concurrency 1,
+and paid spend 0. The fifth run is reserved for the protected fresh verifier.
+Remediation headroom retains the previously
 approved materially-changed, failure-bound conditions.
 
 The canonical `.loop/state.json` remains worker-inaccessible. Only after the
@@ -637,4 +639,4 @@ atomically migrate it to state schema v2. The verified live transaction is
 authorized to harden mode `0644` to `0600`; success retains `0600`, while any
 failure restores the exact prior bytes, hash, and `0644` mode. The global policy
 declaration cap was separately changed from 14 to 23 without changing any other
-policy field; the personal project remains independently capped at 18.
+policy field; the personal project remains independently capped at 19.

@@ -10,8 +10,8 @@ export const PERSONAL_PINNED_LEGACY_COMMIT_ABBREVIATIONS = {
 export const PERSONAL_HISTORICAL_AGENT_RUNS = 14
 export const PERSONAL_HISTORICAL_PROVIDER_REQUESTS = 23
 export const PERSONAL_HISTORICAL_JEV_CALLS = 2
-export const PERSONAL_LIFETIME_AGENT_RUN_CEILING = 18
-export const PERSONAL_PHASE_B_ALLOCATION = { agentRuns: 4, leadToWorkerTurns: 4, phaseAttempts: 4, concurrency: 1, paidSpend: 0 } as const
+export const PERSONAL_LIFETIME_AGENT_RUN_CEILING = 19
+export const PERSONAL_PHASE_B_ALLOCATION = { agentRuns: 5, leadToWorkerTurns: 7, phaseAttempts: 5, concurrency: 1, paidSpend: 0 } as const
 /** Exact human-only baseline; Lead context cannot widen this migration authority. */
 export const PERSONAL_HUMAN_ONLY_AUTHORITY = {
   paidBudget: 0,
