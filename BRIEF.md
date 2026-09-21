@@ -599,3 +599,42 @@ zero serious or critical violations.
 The owner accepted `mutation-proposal-preview-001` as `DONE(verified)` on
 2026-09-21, including the isolated completion-gate-before-merge process used
 for the final remediation.
+
+## Migration Phase B: adopt the shared Loop Engineering runtime
+
+Owner-approved on 2026-09-22. This phase replaces the temporary project-local
+Jev implementation with the exact verified private package
+`@loop-engineering/jev-core@0.1.0`. The immutable local tarball has SHA-256
+`fb3db3792fede89b2a977c120dfe3e4566fe6c303dd4fc2b769c2049304af923`,
+verified runtime commit `40eb9cab16ad2ac3974d98e851ff3abf415b2fb8`, and packaged source commit
+`d1226c2c92f5682cc1d932b2401b2b628555c7ac`. Registry publication and network
+dependency resolution are forbidden.
+
+The producer may change only dependency/lock metadata, Jev integration scripts,
+the temporary adapter replacement, migration fixtures/tooling, and directly
+related tests and documentation. A minimal project-specific configuration shim
+may remain, but it must not duplicate decision acceptance, sanitization,
+persistence, locking, budgets, provider-state handling, or policy logic. Product
+behavior and completed product work are out of scope.
+
+The migration must preserve historical agent runs 14, model/provider requests
+23, Jev requests 2, every task and attempt counter, completed history and
+evidence, accepted product commit `a41caf5f90eea760cf245addf1d70f7e34e9c443`,
+later control checkpoint `dedf949702e9b869670cbb3bc344d4e1b220f4dd`,
+historical provider observations, owner pause/acceptance records, paid spend 0,
+and all human-only authority boundaries. These values may evolve only through
+new Phase B execution; they must never reset.
+
+The phase allocation is 2 normal agent runs with up to 2 conditional remediation
+runs, a hard phase ceiling of 4, lifetime ceiling 18, 4 Lead-to-worker turns,
+4 phase attempts, concurrency 1, and paid spend 0. One producer runs first; the
+fresh verifier slot is protected. Remediation headroom retains the previously
+approved materially-changed, failure-bound conditions.
+
+The canonical `.loop/state.json` remains worker-inaccessible. Only after the
+exact candidate passes protected fresh verification may the Lead back up and
+atomically migrate it to state schema v2. The verified live transaction is
+authorized to harden mode `0644` to `0600`; success retains `0600`, while any
+failure restores the exact prior bytes, hash, and `0644` mode. The global policy
+declaration cap was separately changed from 14 to 23 without changing any other
+policy field; the personal project remains independently capped at 18.
