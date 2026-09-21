@@ -1,6 +1,6 @@
 # Mutation proposal preview checkpoint
 
-Status: `DONE(verified)`; awaiting owner acceptance.
+Status: `DONE(verified)`; owner accepted on 2026-09-21.
 
 ## Preserved implementation
 
@@ -54,3 +54,8 @@ integrates it after the isolated completion gate passed.
 - Product files remain byte-identical to `195a79c`; no defect surfaced.
 
 No additional worker, attempt, or product change is authorized by this result.
+
+The owner accepted PP-01 through PP-10, the 14/14 lifetime run record, and the
+isolated completion-gate-before-merge behavior. The project remains
+`PAUSED(owner)` while retrospective findings are reviewed in the separate Loop
+Engineering project.

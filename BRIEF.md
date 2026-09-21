@@ -595,3 +595,7 @@ explicit keyboard activation evidence for Stage, Discard, second Stage, and
 Apply. No product file changed during remediation. The targeted matrix passed
 28/28 at both viewports in light and dark, with 16 decoded axe attachments and
 zero serious or critical violations.
+
+The owner accepted `mutation-proposal-preview-001` as `DONE(verified)` on
+2026-09-21, including the isolated completion-gate-before-merge process used
+for the final remediation.
