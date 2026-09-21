@@ -17,7 +17,7 @@ export const personalLegacyMigrationContext = (): PersonalLegacyMigrationContext
   acceptedLine: "main", currentTimestamp: "2026-09-22T00:00:00.000Z",
   acceptedMainCommit: { commit: PERSONAL_LEGACY_ACCEPTED_COMMIT, handoffPath: ["handoff", "acceptedMainCommit"], evidenceRefs: ["runs/core-policy-audit-001/evidence/ac-05.json"] },
   currentMainHead: { commit: PERSONAL_CONTROL_CHECKPOINT, handoffPath: ["handoff", "currentMainHead"], evidenceRefs: ["docs/PROJECT_HANDOFF_CHECKPOINT.md"] },
-  phaseB: { phaseId: "shared-runtime-migration-phase-b", allocation: { ...PERSONAL_PHASE_B_ALLOCATION }, counters: { agentRuns: 5, leadToWorkerTurns: 7, phaseAttempts: 5, activeWorkers: 0 } },
+  phaseB: { phaseId: "shared-runtime-migration-phase-b", allocation: { ...PERSONAL_PHASE_B_ALLOCATION }, counters: { agentRuns: 6, leadToWorkerTurns: 8, phaseAttempts: 6, activeWorkers: 0 } },
   approvedAuthority: { ...PERSONAL_HUMAN_ONLY_AUTHORITY },
   expectedTasks: [{ taskId: "core-policy-audit-001", status: "COMPLETED", evidence: ["runs/core-policy-audit-001/evidence/ac-01.json"], result: { accepted: true } }],
   expectedAttemptsByTask: { "core-policy-audit-001": 1, "shared-runtime-migration-phase-b": 1 },

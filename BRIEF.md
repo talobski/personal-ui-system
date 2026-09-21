@@ -627,9 +627,11 @@ new Phase B execution; they must never reset.
 
 The phase allocation began with 2 normal agent runs and up to 2 conditional
 remediation runs. After the bounded remediation was exhausted, the owner
-approved one final control-metadata verification slot: hard phase ceiling 5,
-lifetime ceiling 19, 7 Lead-to-worker turns, 5 phase attempts, concurrency 1,
-and paid spend 0. The fifth run is reserved for the protected fresh verifier.
+approved one final control-metadata verification slot, followed by one bounded
+live-shape sanitization correction after the mandatory dry-run found numeric
+token-counter false positives: hard phase ceiling 6, lifetime ceiling 20,
+8 Lead-to-worker turns, 6 phase attempts, concurrency 1, and paid spend 0. The
+sixth run is reserved for the protected fresh verifier.
 Remediation headroom retains the previously
 approved materially-changed, failure-bound conditions.
 
@@ -639,4 +641,4 @@ atomically migrate it to state schema v2. The verified live transaction is
 authorized to harden mode `0644` to `0600`; success retains `0600`, while any
 failure restores the exact prior bytes, hash, and `0644` mode. The global policy
 declaration cap was separately changed from 14 to 23 without changing any other
-policy field; the personal project remains independently capped at 19.
+policy field; the personal project remains independently capped at 20.

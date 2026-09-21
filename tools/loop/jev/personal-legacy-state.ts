@@ -1,4 +1,4 @@
-import { isSensitiveKey, redactString, stableJson, validateProjectStateV2, type Check, type Json, type JsonObject, type ProjectStateV2 } from "@loop-engineering/jev-core/src/index.ts"
+import { isSensitiveKey, redactString, sanitize, stableJson, validateProjectStateV2, type Check, type Json, type JsonObject, type ProjectStateV2 } from "@loop-engineering/jev-core/src/index.ts"
 
 export const PERSONAL_LEGACY_ACCEPTED_COMMIT = "a41caf5f90eea760cf245addf1d70f7e34e9c443"
 export const PERSONAL_CONTROL_CHECKPOINT = "dedf949702e9b869670cbb3bc344d4e1b220f4dd"
@@ -10,8 +10,8 @@ export const PERSONAL_PINNED_LEGACY_COMMIT_ABBREVIATIONS = {
 export const PERSONAL_HISTORICAL_AGENT_RUNS = 14
 export const PERSONAL_HISTORICAL_PROVIDER_REQUESTS = 23
 export const PERSONAL_HISTORICAL_JEV_CALLS = 2
-export const PERSONAL_LIFETIME_AGENT_RUN_CEILING = 19
-export const PERSONAL_PHASE_B_ALLOCATION = { agentRuns: 5, leadToWorkerTurns: 7, phaseAttempts: 5, concurrency: 1, paidSpend: 0 } as const
+export const PERSONAL_LIFETIME_AGENT_RUN_CEILING = 20
+export const PERSONAL_PHASE_B_ALLOCATION = { agentRuns: 6, leadToWorkerTurns: 8, phaseAttempts: 6, concurrency: 1, paidSpend: 0 } as const
 /** Exact human-only baseline; Lead context cannot widen this migration authority. */
 export const PERSONAL_HUMAN_ONLY_AUTHORITY = {
   paidBudget: 0,
@@ -52,9 +52,16 @@ const hasCredentialValue = (value: Json): boolean => {
   if (typeof value === "string") return redactString(value) !== value
   if (Array.isArray(value)) return value.some(hasCredentialValue)
   if (!record(value)) return false
-  // The immutable shared runtime owns identifier segmentation and literal redaction.
-  // This boundary rejects anything it would redact instead of persisting a surrogate.
-  return Object.entries(value).some(([key, child]) => isSensitiveKey(key) || hasCredentialValue(child))
+  // The immutable shared runtime owns both identifier segmentation and the
+  // numeric/boolean token-counter exception. Reject anything its sanitizer
+  // would change; recurse so non-sensitive containers cannot hide literals.
+  return Object.entries(value).some(([key, child]) => {
+    if (isSensitiveKey(key)) {
+      const screened = sanitize({ [key]: child })
+      if (!screened.ok || stableJson(screened.value) !== stableJson({ [key]: child })) return true
+    }
+    return hasCredentialValue(child)
+  })
 }
 
 const hasNonzeroPaidSpend = (value: Json): boolean => {
