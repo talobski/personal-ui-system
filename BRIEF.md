@@ -547,3 +547,41 @@ lifetime agent runs 12/12, project calls 19/80, paid spend 0.
   "at most 12 worker calls/turns". The controlled unit is Lead-to-worker turns,
   of which one was used. Recorded as a definitional gap to fix in future phase
   budgets, not a breach.
+
+## Phase 4: mutation proposal preview
+
+Owner-approved on 2026-09-21. `mutation-proposal-preview-001` adds a narrow,
+non-committing proposal transaction around the existing closed
+`ThemeOperation` union. It does not add natural-language interpretation,
+provider integration, mutation operations, Jev product integration, MCP,
+registry items, rule promotion, publishing, or deployment.
+
+The strict version `1.0` proposal envelope contains `proposalId`, one declared
+`base` (`themeId` and `revision`), bounded provenance (`source`, `sourceId`,
+RFC-3339 `createdAt`, and optional 240-character `intentSummary`), and one to
+eight existing operations. Unknown fields, arbitrary CSS, paths, and extensible
+metadata are forbidden. A `proposalId` is single-use within the current
+workbench session across every outcome; durable cross-reload replay protection
+is deferred.
+
+One proposal is one atomic transaction. All operations validate against the
+same base and produce one candidate revision. A base at revision 12 with three
+operations stages revision 13 and, if applied, changes active revision 12 to 13
+exactly once. No intermediate revisions or partial results may be observable.
+
+Lifecycle: `received -> rejected | staged`; `staged -> applied | discarded |
+stale`. Initial `themeId` mismatch is rejected with `mutation.base-mismatch`.
+If the active theme id or revision changes after staging, Apply transitions the
+proposal to stale and changes no active state, persistence, revision, or CSS.
+There is no automatic rebase. Apply revalidates atomically and changes active
+in-memory state once; Save remains separate. Discard leaves active state and
+persistence byte-identical. Candidate preview uses the existing iframe and
+rendered CSS without making the candidate active.
+
+Acceptance is PP-01 through PP-10 in
+`.loop/runs/mutation-proposal-preview-001/task.md`. The phase budget is one
+worker run, concurrency one, at most two Lead-to-worker turns, at most two
+changed attempts, 120 minutes, a 50,000 soft worker-token target, spawn depth
+one, and paid budget zero. The owner raised the lifetime agent-run ceiling from
+12 to 13 for exactly this run. Failure pauses the project; it does not authorize
+another run.
