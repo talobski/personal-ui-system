@@ -1,6 +1,7 @@
 import { defineConfig } from "vitest/config"
 
 export default defineConfig({
+  ssr: { noExternal: ["@loop-engineering/jev-core"] },
   test: {
     include: [
       "packages/core/src/**/*.test.ts",

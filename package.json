@@ -14,7 +14,7 @@
     "test:browser": "pnpm test:browser:storybook && pnpm test:browser:workbench",
     "typecheck:jev": "tsc -p tools/loop/jev",
     "test:jev": "vitest run tools/loop/jev",
-    "jev": "node --experimental-strip-types tools/loop/jev/cli.ts"
+    "jev": "node tools/loop/jev/cli.mjs"
   },
   "engines": {
     "node": ">=22"

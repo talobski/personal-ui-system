@@ -1,12 +1,26 @@
-import { stableJson, validateProjectStateV2, type Check, type Json, type JsonObject, type ProjectStateV2 } from "@loop-engineering/jev-core/src/index.ts"
+import { isSensitiveKey, redactString, stableJson, validateProjectStateV2, type Check, type Json, type JsonObject, type ProjectStateV2 } from "@loop-engineering/jev-core/src/index.ts"
 
 export const PERSONAL_LEGACY_ACCEPTED_COMMIT = "a41caf5f90eea760cf245addf1d70f7e34e9c443"
 export const PERSONAL_CONTROL_CHECKPOINT = "dedf949702e9b869670cbb3bc344d4e1b220f4dd"
+/** The only legacy short forms audited in the handoff records. */
+export const PERSONAL_PINNED_LEGACY_COMMIT_ABBREVIATIONS = {
+  [PERSONAL_LEGACY_ACCEPTED_COMMIT]: "a41caf5",
+  [PERSONAL_CONTROL_CHECKPOINT]: "dedf949",
+} as const
 export const PERSONAL_HISTORICAL_AGENT_RUNS = 14
 export const PERSONAL_HISTORICAL_PROVIDER_REQUESTS = 23
 export const PERSONAL_HISTORICAL_JEV_CALLS = 2
 export const PERSONAL_LIFETIME_AGENT_RUN_CEILING = 18
 export const PERSONAL_PHASE_B_ALLOCATION = { agentRuns: 4, leadToWorkerTurns: 4, phaseAttempts: 4, concurrency: 1, paidSpend: 0 } as const
+/** Exact human-only baseline; Lead context cannot widen this migration authority. */
+export const PERSONAL_HUMAN_ONLY_AUTHORITY = {
+  paidBudget: 0,
+  publicPublishing: "human",
+  productionDeployment: "human",
+  destructiveProductionChanges: "human",
+  financialLiability: "human",
+  rulePromotion: "human",
+} as const
 
 const LEGACY_KEYS = ["projectId", "phase", "tasks", "counters", "inFlight", "providerStates", "authority", "runtime", "lastPause", "completedPhases", "handoff", "retrospectiveFindings", "pause"] as const
 
@@ -35,9 +49,12 @@ const exactKeys = (value: JsonObject, keys: readonly string[]): boolean => Objec
 const atPath = (value: JsonObject, path: readonly string[]): unknown => path.reduce<unknown>((current, key) => record(current) ? current[key] : undefined, value)
 
 const hasCredentialValue = (value: Json): boolean => {
+  if (typeof value === "string") return redactString(value) !== value
   if (Array.isArray(value)) return value.some(hasCredentialValue)
   if (!record(value)) return false
-  return Object.entries(value).some(([key, child]) => /^(credential|credentialValue|secret|token|api[_-]?key|authorization|password)$/i.test(key) || hasCredentialValue(child))
+  // The immutable shared runtime owns identifier segmentation and literal redaction.
+  // This boundary rejects anything it would redact instead of persisting a surrogate.
+  return Object.entries(value).some(([key, child]) => isSensitiveKey(key) || hasCredentialValue(child))
 }
 
 const hasNonzeroPaidSpend = (value: Json): boolean => {
@@ -58,7 +75,8 @@ const phaseBudgetIsValid = (phaseB: PersonalLegacyMigrationContext["phaseB"]): b
 
 const validCommitContext = (context: CommitContext, expected: string, legacy: JsonObject): boolean => {
   const abbreviated = atPath(legacy, context.handoffPath)
-  return context.commit === expected && typeof abbreviated === "string" && abbreviated.length > 0 && expected.startsWith(abbreviated) && context.evidenceRefs.every(ref => typeof ref === "string")
+  const pinned = PERSONAL_PINNED_LEGACY_COMMIT_ABBREVIATIONS[expected as keyof typeof PERSONAL_PINNED_LEGACY_COMMIT_ABBREVIATIONS]
+  return context.commit === expected && typeof abbreviated === "string" && (abbreviated === expected || abbreviated === pinned) && context.evidenceRefs.every(ref => typeof ref === "string")
 }
 
 /** Pure one-time mapping; the Lead owns any later atomic live-file transaction. */
@@ -71,7 +89,7 @@ export function translatePersonalLegacyState(input: unknown, context: PersonalLe
   if (!nonnegative(counters.agentRuns) || counters.agentRuns < PERSONAL_HISTORICAL_AGENT_RUNS || counters.agentRuns > PERSONAL_LIFETIME_AGENT_RUN_CEILING || counters.calls !== PERSONAL_HISTORICAL_PROVIDER_REQUESTS || counters.jevCalls !== PERSONAL_HISTORICAL_JEV_CALLS || !record(counters.attemptsByTask) || !Object.values(counters.attemptsByTask).every(nonnegative)) return invalid("legacy counters drift from accepted history")
   if (legacy.inFlight.length !== 0) return invalid("final migration requires quiescent inFlight work")
   if (stableJson(legacy.tasks) !== stableJson(context.expectedTasks) || stableJson(counters.attemptsByTask) !== stableJson(context.expectedAttemptsByTask)) return invalid("legacy task or attempt history differs from the supplied snapshot")
-  if (stableJson(legacy.authority) !== stableJson(context.approvedAuthority)) return invalid("legacy authority differs from approved authority")
+  if (stableJson(context.approvedAuthority) !== stableJson(PERSONAL_HUMAN_ONLY_AUTHORITY) || stableJson(legacy.authority) !== stableJson(PERSONAL_HUMAN_ONLY_AUTHORITY)) return invalid("legacy authority differs from the exact human-only baseline")
   if (hasNonzeroPaidSpend(legacy) || hasNonzeroPaidSpend(context.phaseB) || hasCredentialValue(legacy) || hasCredentialValue(context.phaseB)) return invalid("paid spend or credential-shaped persistence is prohibited")
   if (!validCommitContext(context.acceptedMainCommit, PERSONAL_LEGACY_ACCEPTED_COMMIT, legacy) || !validCommitContext(context.currentMainHead, PERSONAL_CONTROL_CHECKPOINT, legacy)) return invalid("legacy abbreviated commit records do not match supplied full commits")
 
