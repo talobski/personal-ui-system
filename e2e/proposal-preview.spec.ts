@@ -36,6 +36,34 @@ const previewStyle = (page: Page, testId: string, prop: keyof CSSStyleDeclaratio
   previewFrame(page).getByTestId(testId).evaluate((el, p) => String(getComputedStyle(el)[p]), prop)
 const buttonMotion = (page: Page) =>
   previewFrame(page).getByRole("button", { name: "default", exact: true }).evaluate((el) => getComputedStyle(el).transitionDuration)
+// One computed-style probe per theme category, all read from the preview iframe.
+const categoryStyles = (page: Page) =>
+  previewFrame(page).locator("html").evaluate(() => {
+    const byTestId = (id: string) => document.querySelector(`[data-testid="${id}"]`) as HTMLElement
+    const button = Array.from(document.querySelectorAll("button")).find((b) => b.textContent === "default") as HTMLElement
+    const elevation = getComputedStyle(byTestId("elevation-sample"))
+    return {
+      color: getComputedStyle(button).backgroundColor,
+      radius: elevation.borderRadius,
+      density: elevation.paddingTop,
+      typography: elevation.fontFamily,
+      shadow: elevation.boxShadow,
+      motion: getComputedStyle(button).transitionDuration,
+    }
+  })
+// The mode switch starts a colour transition; sample a baseline only once the iframe has no running animations.
+const settled = (page: Page) =>
+  expect.poll(() => previewFrame(page).locator("html").evaluate(() => document.getAnimations().length), { message: "iframe animations settled" }).toBe(0)
+// The browser's own serialisation of a colour, so the expectation is computed-vs-computed.
+const resolveColor = (page: Page, value: string) =>
+  previewFrame(page).locator("html").evaluate((_, v) => {
+    const probe = document.createElement("div")
+    probe.style.backgroundColor = v
+    document.body.append(probe)
+    const resolved = getComputedStyle(probe).backgroundColor
+    probe.remove()
+    return resolved
+  }, value)
 const storedThemes = (page: Page) => page.evaluate((key) => window.localStorage.getItem(key), STORAGE_KEY)
 const revision = (page: Page) => page.getByTestId("theme-revision")
 
@@ -101,6 +129,131 @@ for (const mode of ["light", "dark"] as const) {
       await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
       await expect(page.getByLabel("Proposal JSON")).toHaveAttribute("aria-invalid", "true")
       await expectNoSeriousViolations(page, `${mode}-proposal-error`, testInfo)
+    })
+
+    test("one staged proposal changes computed iframe styles for all six categories without reload, then Discard restores them", async ({ page }, testInfo) => {
+      await openWorkbench(page, mode)
+      await previewFrame(page).locator("html").evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true))
+      const storageBefore = await storedThemes(page)
+      await settled(page)
+      const before = await categoryStyles(page)
+      // Canonical default resolved values (quiet-editorial), so a "changed" assertion cannot pass against a broken baseline.
+      expect(before.radius).toBe("8px")
+      expect(before.density).toBe("12px")
+      expect(before.typography).toMatch(/^Inter,/)
+      expect(before.shadow).toContain("0px 4px 8px -2px")
+      expect(before.motion).toBe("0.2s")
+
+      const operations = [
+        { op: "setColor", mode: "light", token: "primary", value: "oklch(0.4 0.1 150)" },
+        { op: "setColor", mode: "dark", token: "primary", value: "oklch(0.8 0.1 150)" },
+        { op: "setRadius", value: "1rem" },
+        { op: "setDensity", value: 1.5 },
+        { op: "setSansFamily", value: "Georgia" },
+        { op: "setShadowBlur", value: "20px" },
+        { op: "setMotionDuration", value: "320ms" },
+      ]
+      expect(operations.length).toBeLessThanOrEqual(8)
+      await stageText(page, proposal("six-1", 1, { operations }))
+      await expect(page.getByTestId("proposal-staged")).toBeVisible()
+      await expect(page.getByTestId("proposal-error")).toHaveCount(0)
+      await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
+      await expect(revision(page)).toHaveText("1")
+      await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-revision", "2")
+
+      // Computed-style evidence per category (resolved by the browser, not CSS-variable presence).
+      const expectedColor = await resolveColor(page, mode === "light" ? "oklch(0.4 0.1 150)" : "oklch(0.8 0.1 150)")
+      expect(expectedColor).not.toBe(before.color)
+      await expect.poll(async () => (await categoryStyles(page)).color, { message: "color" }).toBe(expectedColor)
+      await expect.poll(async () => (await categoryStyles(page)).radius, { message: "radius" }).toBe("16px")
+      await expect.poll(async () => (await categoryStyles(page)).density, { message: "density" }).toBe("18px")
+      await expect.poll(async () => (await categoryStyles(page)).typography, { message: "typography" }).toMatch(/^Georgia,/)
+      await expect.poll(async () => (await categoryStyles(page)).shadow, { message: "shadow" }).toContain("0px 4px 20px -2px")
+      await expect.poll(async () => (await categoryStyles(page)).motion, { message: "motion" }).toBe("0.32s")
+      const candidate = await categoryStyles(page)
+      for (const key of ["color", "radius", "density", "typography", "shadow", "motion"] as const) expect(candidate[key], key).not.toBe(before[key])
+      expect(candidate.shadow).not.toContain("0px 4px 8px -2px")
+
+      // Active theme, persistence, and the iframe document are untouched.
+      await expect(page.getByTestId("theme-status")).toHaveText("unsaved")
+      await expect(page.getByTestId("diff-empty")).toBeVisible()
+      expect(await storedThemes(page)).toBe(storageBefore)
+      expect(await previewFrame(page).locator("html").evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true)
+      const paths = await page.getByTestId("proposal-diff-list").locator("li").evaluateAll((items) => items.map((li) => li.getAttribute("data-path")))
+      expect(paths).toEqual([
+        "modes.dark.color.primary",
+        "modes.light.color.primary",
+        "motion.durationBase",
+        "radius.md",
+        "shadow.md",
+        "space.density",
+        "typography.sans",
+      ])
+      await expectNoSeriousViolations(page, `${mode}-six-categories-staged`, testInfo)
+
+      await page.getByRole("button", { name: "Discard proposal" }).click()
+      await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
+      await expect(revision(page)).toHaveText("1")
+      await expect.poll(() => categoryStyles(page)).toEqual(before)
+      await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-revision", "1")
+      expect(await storedThemes(page)).toBe(storageBefore)
+      expect(await previewFrame(page).locator("html").evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true)
+    })
+
+    test("keyboard activation drives Stage, Discard, second Stage, and Apply through the lifecycle", async ({ page }) => {
+      await openWorkbench(page, mode)
+      const storageBefore = await storedThemes(page)
+      const log = (id: string) => page.getByTestId("proposal-log").locator(`[data-proposal-id="${id}"]`)
+      const stageButton = page.getByRole("button", { name: "Stage proposal" })
+      // Fill, then Tab from the textarea to the Stage button (it is next in the tab order) and activate with a key.
+      const stageWithKey = async (id: string, key: "Enter" | "Space", base: number) => {
+        const textarea = page.getByLabel("Proposal JSON")
+        await textarea.fill(proposal(id, base))
+        await textarea.focus()
+        await page.keyboard.press("Tab")
+        await expect(stageButton).toBeFocused()
+        await page.keyboard.press(key)
+      }
+
+      // 1. Stage via Enter: staged candidate, active revision unchanged.
+      await stageWithKey("kbd-1", "Enter", 1)
+      await expect(page.getByTestId("proposal-staged")).toBeVisible()
+      await expect(log("kbd-1")).toHaveAttribute("data-status", "staged")
+      await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
+      await expect(revision(page)).toHaveText("1")
+      await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("16px")
+
+      // 2. Discard via Space: candidate gone, active revision and persistence unchanged.
+      const discard = page.getByRole("button", { name: "Discard proposal" })
+      await discard.focus()
+      await expect(discard).toBeFocused()
+      await page.keyboard.press("Space")
+      await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
+      await expect(log("kbd-1")).toHaveAttribute("data-status", "discarded")
+      await expect(revision(page)).toHaveText("1")
+      await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("8px")
+      expect(await storedThemes(page)).toBe(storageBefore)
+
+      // 3. Second Stage via Space with a fresh id: staged again against the unchanged base.
+      await stageWithKey("kbd-2", "Space", 1)
+      await expect(page.getByTestId("proposal-staged")).toBeVisible()
+      await expect(log("kbd-2")).toHaveAttribute("data-status", "staged")
+      await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
+      await expect(revision(page)).toHaveText("1")
+
+      // 4. Apply via Enter: active revision moves 1 -> 2 exactly once, in memory only.
+      const apply = page.getByRole("button", { name: "Apply proposal" })
+      await apply.focus()
+      await expect(apply).toBeFocused()
+      await page.keyboard.press("Enter")
+      await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
+      await expect(log("kbd-2")).toHaveAttribute("data-status", "applied")
+      await expect(revision(page)).toHaveText("2")
+      await expect(page.getByTestId("diff-count")).toHaveText("4")
+      await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("16px")
+      await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-revision", "2")
+      expect(await storedThemes(page)).toBe(storageBefore)
+      await expect(log("kbd-1")).toHaveAttribute("data-status", "discarded")
     })
 
     test("Apply increments the active revision exactly once, persists only on Save, and consumes the id", async ({ page }) => {
