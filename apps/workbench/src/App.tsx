@@ -100,6 +100,8 @@ export function App() {
   const ready = React.useRef(false)
   // A staged candidate is previewed through the same iframe and CSS path without becoming the active theme.
   const staged = session.staged
+  // While a proposal is staged, nothing that can change, replace, persist, or export the active theme is usable.
+  const locked = staged !== null
   const previewTheme = staged?.candidate ?? current
   const previewState = React.useMemo<PreviewState>(
     () => ({ type: "workbench-preview-state", css: previewVariablesCss(previewTheme), mode, themeId: previewTheme.id, revision: previewTheme.revision }),
@@ -239,7 +241,7 @@ export function App() {
           <p className="text-sm text-muted-foreground">Edits the {mode} mode value through the structured setColor mutation.</p>
           <Field>
             <FieldLabel htmlFor="token-select">Token</FieldLabel>
-            <NativeSelect id="token-select" value={token} onChange={(e) => setToken(e.target.value as ColorToken)}>
+            <NativeSelect id="token-select" value={token} disabled={locked} onChange={(e) => setToken(e.target.value as ColorToken)}>
               {COLOR_TOKENS.map((name) => (
                 <NativeSelectOption key={name} value={name}>
                   {name}
@@ -252,6 +254,7 @@ export function App() {
             <Input
               id={editId}
               value={draft}
+              disabled={locked}
               onChange={(e) => setDraft(e.target.value)}
               aria-invalid={editIssues.length > 0}
               aria-describedby={editIssues.length > 0 ? `${editId}-error` : undefined}
@@ -263,14 +266,16 @@ export function App() {
               </FieldError>
             )}
           </Field>
-          <Button onClick={applyEdit}>Apply edit</Button>
+          <Button disabled={locked} onClick={applyEdit}>
+            Apply edit
+          </Button>
         </Panel>
 
         <Panel title="Edit theme settings">
           <p className="text-sm text-muted-foreground">Edits one representative value per remaining category through the structured mutation API.</p>
           <Field>
             <FieldLabel htmlFor="setting-select">Setting</FieldLabel>
-            <NativeSelect id="setting-select" value={setting} onChange={(e) => setSetting(e.target.value as SettingId)}>
+            <NativeSelect id="setting-select" value={setting} disabled={locked} onChange={(e) => setSetting(e.target.value as SettingId)}>
               {SETTING_IDS.map((id) => (
                 <NativeSelectOption key={id} value={id}>
                   {SETTINGS[id].label}
@@ -283,6 +288,7 @@ export function App() {
             <Input
               id={settingValueId}
               value={settingDraft}
+              disabled={locked}
               onChange={(e) => setSettingDraft(e.target.value)}
               aria-invalid={settingIssues.length > 0}
               aria-describedby={settingIssues.length > 0 ? `${settingValueId}-error` : undefined}
@@ -294,7 +300,9 @@ export function App() {
               </FieldError>
             )}
           </Field>
-          <Button onClick={applySetting}>Apply setting</Button>
+          <Button disabled={locked} onClick={applySetting}>
+            Apply setting
+          </Button>
         </Panel>
 
         <Panel title="Mutation proposal">
@@ -344,7 +352,7 @@ export function App() {
         <Panel title="Themes">
           <Field>
             <FieldLabel htmlFor="theme-select">Active theme</FieldLabel>
-            <NativeSelect id="theme-select" value={knownIds.includes(current.id) ? current.id : ""} onChange={(e) => load(e.target.value)}>
+            <NativeSelect id="theme-select" value={knownIds.includes(current.id) ? current.id : ""} disabled={locked} onChange={(e) => load(e.target.value)}>
               {!knownIds.includes(current.id) && <NativeSelectOption value="">{current.name} (unsaved fork)</NativeSelectOption>}
               {knownIds.map((id) => (
                 <NativeSelectOption key={id} value={id}>
@@ -359,6 +367,7 @@ export function App() {
               <Input
                 id={forkIdId}
                 value={forkId}
+                disabled={locked}
                 onChange={(e) => setForkId(e.target.value)}
                 placeholder="my-theme"
                 aria-invalid={forkIssues.length > 0}
@@ -371,13 +380,14 @@ export function App() {
               <Input
                 id={forkNameId}
                 value={forkName}
+                disabled={locked}
                 onChange={(e) => setForkName(e.target.value)}
                 placeholder="My Theme"
                 aria-invalid={forkIssues.length > 0}
                 aria-describedby={forkIssues.length > 0 ? `${forkIdId}-error` : undefined}
               />
             </Field>
-            <Button variant="secondary" onClick={fork}>
+            <Button variant="secondary" disabled={locked} onClick={fork}>
               Fork theme
             </Button>
             {forkIssues.length > 0 && (
@@ -387,8 +397,10 @@ export function App() {
             )}
           </FieldGroup>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={save}>Save theme</Button>
-            <Button variant="outline" onClick={() => download(exportThemeJson(current))}>
+            <Button disabled={locked} onClick={save}>
+              Save theme
+            </Button>
+            <Button variant="outline" disabled={locked} onClick={() => download(exportThemeJson(current))}>
               Export JSON
             </Button>
           </div>
@@ -411,6 +423,7 @@ export function App() {
                 <span data-testid="proposal-candidate-revision">{staged.candidate.revision}</span>. The preview below shows the candidate; the active theme is
                 unchanged.
               </p>
+              <p data-testid="proposal-locked-note">Editing, loading, forking, saving, and exporting the active theme are disabled until this proposal is applied or discarded.</p>
               {(current.id !== staged.proposal.base.themeId || current.revision !== staged.proposal.base.revision) && (
                 <p data-testid="proposal-base-moved" role="status">
                   The active theme has moved since staging. Apply will mark this proposal stale and change nothing.

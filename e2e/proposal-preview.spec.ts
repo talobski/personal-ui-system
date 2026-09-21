@@ -182,55 +182,61 @@ for (const mode of ["light", "dark"] as const) {
       await expect(revision(page)).toHaveText("1")
     })
 
-    test("goes stale on Apply when the revision changes after staging, changing nothing", async ({ page }) => {
+    test("disables every active-state control while a proposal is staged and re-enables them afterwards", async ({ page }, testInfo) => {
       await openWorkbench(page, mode)
       const storageBefore = await storedThemes(page)
-      await stageText(page, proposal("stale-1", 1))
+      const locked = [
+        page.getByLabel("Token"),
+        page.getByLabel("Value (oklch)"),
+        page.getByRole("button", { name: "Apply edit" }),
+        page.getByLabel("Setting", { exact: true }),
+        page.getByLabel("Setting value"),
+        page.getByRole("button", { name: "Apply setting" }),
+        page.getByLabel("Active theme"),
+        page.getByLabel("Fork id"),
+        page.getByLabel("Fork name"),
+        page.getByRole("button", { name: "Fork theme" }),
+        page.getByRole("button", { name: "Save theme" }),
+        page.getByRole("button", { name: "Export JSON" }),
+      ]
+      for (const control of locked) await expect(control).toBeEnabled()
+
+      await stageText(page, proposal("lock-1", 1))
+      await expect(page.getByTestId("proposal-staged")).toBeVisible()
+      for (const control of locked) await expect(control).toBeDisabled()
+      await expect(page.getByTestId("proposal-locked-note")).toBeVisible()
+
+      // View controls and the proposal's own Apply and Discard stay usable.
+      await expect(page.getByRole("radio", { name: "Light", exact: true })).toBeEnabled()
+      await expect(page.getByRole("radio", { name: "Dark", exact: true })).toBeEnabled()
+      await expect(page.getByRole("radio", { name: "Mobile 390" })).toBeEnabled()
+      await expect(page.getByRole("radio", { name: "Desktop 1024" })).toBeEnabled()
+      await expect(page.getByRole("button", { name: "Apply proposal" })).toBeEnabled()
+      await expect(page.getByRole("button", { name: "Discard proposal" })).toBeEnabled()
+      const other = mode === "light" ? "Dark" : "Light"
+      await page.getByRole("radio", { name: other, exact: true }).click()
+      await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-mode", other.toLowerCase())
+      await page.getByRole("radio", { name: "Desktop 1024" }).click()
+      await expect(page.getByTestId("preview-frame")).toHaveAttribute("style", /width: 1024px/)
       await expect(page.getByTestId("proposal-staged")).toBeVisible()
 
-      // An unrelated edit moves the active revision to 2 while the proposal is staged.
-      await page.getByLabel("Setting", { exact: true }).selectOption({ label: "Spacing density" })
-      await page.getByLabel("Setting value").fill("1.25")
-      await page.getByRole("button", { name: "Apply setting" }).click()
-      await expect(revision(page)).toHaveText("2")
-      await expect(page.getByTestId("proposal-base-moved")).toBeVisible()
-      await expect(page.getByTestId("proposal-log").locator('[data-proposal-id="stale-1"]')).toHaveAttribute("data-status", "staged")
-
-      await page.getByRole("button", { name: "Apply proposal" }).click()
-      await expect(page.getByTestId("proposal-error")).toContainText("mutation.stale-revision at base.revision")
-      await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
-      await expect(page.getByTestId("proposal-log").locator('[data-proposal-id="stale-1"]')).toHaveAttribute("data-status", "stale")
-      await expect(revision(page)).toHaveText("2")
-      // Only the density edit is active: the proposal's radius and motion never applied.
-      await expect(page.getByTestId("diff-count")).toHaveText("1")
-      await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("8px")
-      await expect.poll(buttonMotion.bind(null, page)).toBe("0.2s")
-      await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-revision", "2")
-      expect(await storedThemes(page)).toBe(storageBefore)
-
-      await stageText(page, proposal("stale-1", 2))
-      await expect(page.getByTestId("proposal-error")).toContainText("proposal.duplicate-id at proposalId")
-    })
-
-    test("goes stale on Apply when the active themeId changes after staging", async ({ page }) => {
-      await openWorkbench(page, mode)
-      await stageText(page, proposal("stale-2", 1))
-      await expect(page.getByTestId("proposal-staged")).toBeVisible()
-
-      await page.getByLabel("Fork id").fill("stale-fork")
-      await page.getByLabel("Fork name").fill("Stale Fork")
-      await page.getByRole("button", { name: "Fork theme" }).click()
-      await expect(page.getByTestId("theme-id")).toHaveText("stale-fork")
-      const storageBefore = await storedThemes(page)
-
-      await page.getByRole("button", { name: "Apply proposal" }).click()
-      await expect(page.getByTestId("proposal-error")).toContainText("mutation.base-mismatch at base.themeId")
-      await expect(page.getByTestId("proposal-log").locator('[data-proposal-id="stale-2"]')).toHaveAttribute("data-status", "stale")
-      await expect(page.getByTestId("theme-id")).toHaveText("stale-fork")
+      // Nothing about the active theme or persistence moved.
       await expect(revision(page)).toHaveText("1")
       await expect(page.getByTestId("diff-empty")).toBeVisible()
-      await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("8px")
       expect(await storedThemes(page)).toBe(storageBefore)
+      await expectNoSeriousViolations(page, `${mode}-controls-locked`, testInfo)
+
+      // Discard releases the lock.
+      await page.getByRole("button", { name: "Discard proposal" }).click()
+      await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
+      for (const control of locked) await expect(control).toBeEnabled()
+
+      // Apply releases it too.
+      await stageText(page, proposal("lock-2", 1))
+      await expect(page.getByRole("button", { name: "Save theme" })).toBeDisabled()
+      await page.getByRole("button", { name: "Apply proposal" }).click()
+      await expect(revision(page)).toHaveText("2")
+      for (const control of locked) await expect(control).toBeEnabled()
     })
   })
 }
