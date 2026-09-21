@@ -1,6 +1,7 @@
 import * as React from "react"
 
-import { COLOR_TOKENS } from "@personal-ui/core"
+import { applyProposal, COLOR_TOKENS, createProposalSession, discardProposal, stageProposal } from "@personal-ui/core"
+import type { ProposalError, ProposalSession } from "@personal-ui/core"
 import type { ColorToken, Theme } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@personal-ui/ui/components/field"
@@ -9,7 +10,17 @@ import { NativeSelect, NativeSelectOption } from "@personal-ui/ui/components/nat
 import { Panel } from "@personal-ui/ui/components/panel"
 import { SingleToggleGroup } from "@personal-ui/ui/components/single-toggle-group"
 
-import { diffThemes, editColor, editTheme, exportThemeJson, forkTheme, loadCanonicalTheme, previewVariablesCss } from "./lifecycle"
+import {
+  diffThemes,
+  editColor,
+  editTheme,
+  exampleProposalJson,
+  exportThemeJson,
+  forkTheme,
+  loadCanonicalTheme,
+  parseProposalJson,
+  previewVariablesCss,
+} from "./lifecycle"
 import type { Mode, WorkbenchIssue } from "./lifecycle"
 import type { PreviewState } from "./messages"
 import { loadSaved, saveTheme } from "./persistence"
@@ -46,6 +57,7 @@ export function App() {
   const settingValueId = React.useId()
   const forkIdId = React.useId()
   const forkNameId = React.useId()
+  const proposalTextId = React.useId()
   const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage))
   const [current, setCurrent] = React.useState<Theme>(() => (saved.activeId ? saved.themes[saved.activeId]! : canonical))
   const [mode, setMode] = React.useState<Mode>("light")
@@ -61,6 +73,11 @@ export function App() {
   const [forkName, setForkName] = React.useState("")
   const [forkIssues, setForkIssues] = React.useState<WorkbenchIssue[]>([])
   const [notice, setNotice] = React.useState("")
+  // Proposal ids are single-use for this workbench session only; a reload starts a fresh ledger.
+  const [session, setSession] = React.useState<ProposalSession>(createProposalSession)
+  const [proposalText, setProposalText] = React.useState("")
+  const [proposalIssues, setProposalIssues] = React.useState<WorkbenchIssue[]>([])
+  const [proposalResult, setProposalResult] = React.useState("")
 
   const currentValue = current.modes[mode].color[token].$value
   // The draft follows the active theme/mode/token; a rejected draft is never active state.
@@ -81,9 +98,14 @@ export function App() {
 
   const iframeRef = React.useRef<HTMLIFrameElement>(null)
   const ready = React.useRef(false)
+  // A staged candidate is previewed through the same iframe and CSS path without becoming the active theme.
+  const staged = session.staged
+  // While a proposal is staged, nothing that can change, replace, persist, or export the active theme is usable.
+  const locked = staged !== null
+  const previewTheme = staged?.candidate ?? current
   const previewState = React.useMemo<PreviewState>(
-    () => ({ type: "workbench-preview-state", css: previewVariablesCss(current), mode, themeId: current.id, revision: current.revision }),
-    [current, mode]
+    () => ({ type: "workbench-preview-state", css: previewVariablesCss(previewTheme), mode, themeId: previewTheme.id, revision: previewTheme.revision }),
+    [previewTheme, mode]
   )
   const latest = React.useRef(previewState)
   latest.current = previewState
@@ -123,6 +145,43 @@ export function App() {
     setSettingIssues([])
     setCurrent(result.theme)
     setNotice("")
+  }
+
+  const showProposalErrors = (errors: ProposalError[]) => setProposalIssues(errors.map(({ ruleId, path }) => ({ ruleId, path })))
+
+  const stage = () => {
+    setProposalResult("")
+    const parsed = parseProposalJson(proposalText)
+    if (!parsed.ok) return setProposalIssues(parsed.issues)
+    const result = stageProposal(session, current, parsed.value, new Date().toISOString())
+    setSession(result.session)
+    if (!result.ok) return showProposalErrors(result.errors)
+    setProposalIssues([])
+    setProposalResult(`Staged ${result.staged.proposal.proposalId}. Nothing is active until you apply it.`)
+  }
+
+  const applyStaged = () => {
+    if (!staged) return
+    const id = staged.proposal.proposalId
+    const result = applyProposal(session, current, id, new Date().toISOString())
+    setSession(result.session)
+    if (!result.ok) {
+      showProposalErrors(result.errors)
+      return setProposalResult(result.session.records.find((record) => record.proposalId === id)?.status === "stale" ? `Proposal ${id} is stale; nothing was changed.` : "")
+    }
+    setProposalIssues([])
+    setCurrent(result.theme!)
+    setProposalResult(`Applied ${id}. Revision is now ${result.theme!.revision}; not saved yet.`)
+    setNotice("")
+  }
+
+  const discardStaged = () => {
+    if (!staged) return
+    const id = staged.proposal.proposalId
+    const result = discardProposal(session, current, id, new Date().toISOString())
+    setSession(result.session)
+    setProposalIssues([])
+    setProposalResult(result.ok ? `Discarded ${id}. Active theme unchanged.` : "")
   }
 
   const fork = () => {
@@ -182,7 +241,7 @@ export function App() {
           <p className="text-sm text-muted-foreground">Edits the {mode} mode value through the structured setColor mutation.</p>
           <Field>
             <FieldLabel htmlFor="token-select">Token</FieldLabel>
-            <NativeSelect id="token-select" value={token} onChange={(e) => setToken(e.target.value as ColorToken)}>
+            <NativeSelect id="token-select" value={token} disabled={locked} onChange={(e) => setToken(e.target.value as ColorToken)}>
               {COLOR_TOKENS.map((name) => (
                 <NativeSelectOption key={name} value={name}>
                   {name}
@@ -195,6 +254,7 @@ export function App() {
             <Input
               id={editId}
               value={draft}
+              disabled={locked}
               onChange={(e) => setDraft(e.target.value)}
               aria-invalid={editIssues.length > 0}
               aria-describedby={editIssues.length > 0 ? `${editId}-error` : undefined}
@@ -206,14 +266,16 @@ export function App() {
               </FieldError>
             )}
           </Field>
-          <Button onClick={applyEdit}>Apply edit</Button>
+          <Button disabled={locked} onClick={applyEdit}>
+            Apply edit
+          </Button>
         </Panel>
 
         <Panel title="Edit theme settings">
           <p className="text-sm text-muted-foreground">Edits one representative value per remaining category through the structured mutation API.</p>
           <Field>
             <FieldLabel htmlFor="setting-select">Setting</FieldLabel>
-            <NativeSelect id="setting-select" value={setting} onChange={(e) => setSetting(e.target.value as SettingId)}>
+            <NativeSelect id="setting-select" value={setting} disabled={locked} onChange={(e) => setSetting(e.target.value as SettingId)}>
               {SETTING_IDS.map((id) => (
                 <NativeSelectOption key={id} value={id}>
                   {SETTINGS[id].label}
@@ -226,6 +288,7 @@ export function App() {
             <Input
               id={settingValueId}
               value={settingDraft}
+              disabled={locked}
               onChange={(e) => setSettingDraft(e.target.value)}
               aria-invalid={settingIssues.length > 0}
               aria-describedby={settingIssues.length > 0 ? `${settingValueId}-error` : undefined}
@@ -237,13 +300,59 @@ export function App() {
               </FieldError>
             )}
           </Field>
-          <Button onClick={applySetting}>Apply setting</Button>
+          <Button disabled={locked} onClick={applySetting}>
+            Apply setting
+          </Button>
+        </Panel>
+
+        <Panel title="Mutation proposal">
+          <p className="text-sm text-muted-foreground">
+            Paste one MutationProposalV1 (1 to 8 existing operations against one base). Staging previews the candidate without changing the active theme.
+          </p>
+          <Field data-invalid={proposalIssues.length > 0}>
+            <FieldLabel htmlFor={proposalTextId}>Proposal JSON</FieldLabel>
+            <textarea
+              id={proposalTextId}
+              value={proposalText}
+              onChange={(e) => setProposalText(e.target.value)}
+              aria-invalid={proposalIssues.length > 0}
+              aria-describedby={proposalIssues.length > 0 ? `${proposalTextId}-error` : undefined}
+              spellCheck={false}
+              rows={8}
+              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive"
+            />
+            {proposalIssues.length > 0 && (
+              <FieldError id={`${proposalTextId}-error`} data-testid="proposal-error">
+                Rejected, not staged: {describeIssues(proposalIssues)}.
+              </FieldError>
+            )}
+          </Field>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={stage}>Stage proposal</Button>
+            <Button variant="outline" onClick={() => setProposalText(exampleProposalJson(current, `example-${session.records.length + 1}`))}>
+              Insert example
+            </Button>
+          </div>
+          {proposalResult && (
+            <p data-testid="proposal-result" role="status" className="text-sm text-muted-foreground">
+              {proposalResult}
+            </p>
+          )}
+          {session.records.length > 0 && (
+            <ul data-testid="proposal-log" className="grid gap-1 text-sm">
+              {session.records.map(({ proposalId: id, status }) => (
+                <li key={id} data-proposal-id={id} data-status={status}>
+                  <code>{id}</code>: {status}
+                </li>
+              ))}
+            </ul>
+          )}
         </Panel>
 
         <Panel title="Themes">
           <Field>
             <FieldLabel htmlFor="theme-select">Active theme</FieldLabel>
-            <NativeSelect id="theme-select" value={knownIds.includes(current.id) ? current.id : ""} onChange={(e) => load(e.target.value)}>
+            <NativeSelect id="theme-select" value={knownIds.includes(current.id) ? current.id : ""} disabled={locked} onChange={(e) => load(e.target.value)}>
               {!knownIds.includes(current.id) && <NativeSelectOption value="">{current.name} (unsaved fork)</NativeSelectOption>}
               {knownIds.map((id) => (
                 <NativeSelectOption key={id} value={id}>
@@ -258,6 +367,7 @@ export function App() {
               <Input
                 id={forkIdId}
                 value={forkId}
+                disabled={locked}
                 onChange={(e) => setForkId(e.target.value)}
                 placeholder="my-theme"
                 aria-invalid={forkIssues.length > 0}
@@ -270,13 +380,14 @@ export function App() {
               <Input
                 id={forkNameId}
                 value={forkName}
+                disabled={locked}
                 onChange={(e) => setForkName(e.target.value)}
                 placeholder="My Theme"
                 aria-invalid={forkIssues.length > 0}
                 aria-describedby={forkIssues.length > 0 ? `${forkIdId}-error` : undefined}
               />
             </Field>
-            <Button variant="secondary" onClick={fork}>
+            <Button variant="secondary" disabled={locked} onClick={fork}>
               Fork theme
             </Button>
             {forkIssues.length > 0 && (
@@ -286,8 +397,10 @@ export function App() {
             )}
           </FieldGroup>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={save}>Save theme</Button>
-            <Button variant="outline" onClick={() => download(exportThemeJson(current))}>
+            <Button disabled={locked} onClick={save}>
+              Save theme
+            </Button>
+            <Button variant="outline" disabled={locked} onClick={() => download(exportThemeJson(current))}>
               Export JSON
             </Button>
           </div>
@@ -296,6 +409,43 @@ export function App() {
       </div>
 
       <div className="grid min-w-0 content-start gap-4">
+        {staged && (
+          <Panel title="Staged proposal">
+            <div data-testid="proposal-staged" data-proposal-id={staged.proposal.proposalId} className="grid gap-3 text-sm">
+              <p>
+                <code>{staged.proposal.proposalId}</code> from {staged.proposal.provenance.source} (<code>{staged.proposal.provenance.sourceId}</code>) at{" "}
+                {staged.proposal.provenance.createdAt}.
+                {staged.proposal.provenance.intentSummary && <> Intent: {staged.proposal.provenance.intentSummary}</>}
+              </p>
+              <p>
+                Base <code>{staged.proposal.base.themeId}</code> revision {staged.proposal.base.revision}; {staged.proposal.operations.length} operation
+                {staged.proposal.operations.length === 1 ? "" : "s"} produce one candidate at revision{" "}
+                <span data-testid="proposal-candidate-revision">{staged.candidate.revision}</span>. The preview below shows the candidate; the active theme is
+                unchanged.
+              </p>
+              <p data-testid="proposal-locked-note">Editing, loading, forking, saving, and exporting the active theme are disabled until this proposal is applied or discarded.</p>
+              {(current.id !== staged.proposal.base.themeId || current.revision !== staged.proposal.base.revision) && (
+                <p data-testid="proposal-base-moved" role="status">
+                  The active theme has moved since staging. Apply will mark this proposal stale and change nothing.
+                </p>
+              )}
+              <ul data-testid="proposal-diff-list" className="grid gap-2">
+                {staged.evaluation.diff.map((entry) => (
+                  <li key={entry.path} data-path={entry.path} className="break-all">
+                    <code>{entry.path}</code>: <code>{JSON.stringify(entry.before)}</code> → <code>{JSON.stringify(entry.after)}</code>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={applyStaged}>Apply proposal</Button>
+                <Button variant="outline" onClick={discardStaged}>
+                  Discard proposal
+                </Button>
+              </div>
+            </div>
+          </Panel>
+        )}
+
         <Panel title="Preview">
           <div
             role="region"

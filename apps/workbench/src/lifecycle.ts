@@ -1,4 +1,4 @@
-import { applyMutation, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, themeSchema, validateTheme } from "@personal-ui/core"
+import { applyMutation, diffThemeTokens, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, themeSchema, validateTheme } from "@personal-ui/core"
 import type { ColorToken, MutationError, Theme, ThemeOperation } from "@personal-ui/core"
 import canonicalFixture from "@personal-ui/core/theme/fixtures/valid.json"
 
@@ -46,29 +46,9 @@ export function forkTheme(theme: Theme, id: string, name: string, takenIds: read
 
 export type DiffEntry = { path: string; baseline: unknown; current: unknown }
 
-const leaves = (node: unknown, path: string, out: Map<string, unknown>) => {
-  if (typeof node === "object" && node !== null && "$value" in node) {
-    out.set(path, (node as { $value: unknown }).$value)
-  } else if (typeof node === "object" && node !== null && !Array.isArray(node)) {
-    for (const [key, child] of Object.entries(node)) leaves(child, path ? `${path}.${key}` : key, out)
-  }
-}
-
-const tokenValues = (theme: Theme) => {
-  const out = new Map<string, unknown>()
-  for (const group of ["modes", "typography", "radius", "space", "shadow", "motion"] as const) leaves(theme[group], group, out)
-  return out
-}
-
 /** Compact structured diff of token values (`$value` leaves), sorted by path; identity and revision are excluded. */
-export function diffThemes(baseline: Theme, current: Theme): DiffEntry[] {
-  const before = tokenValues(baseline)
-  const after = tokenValues(current)
-  return [...new Set([...before.keys(), ...after.keys()])]
-    .sort()
-    .filter((path) => JSON.stringify(before.get(path)) !== JSON.stringify(after.get(path)))
-    .map((path) => ({ path, baseline: before.get(path), current: after.get(path) }))
-}
+export const diffThemes = (baseline: Theme, current: Theme): DiffEntry[] =>
+  diffThemeTokens(baseline, current).map(({ path, before, after }) => ({ path, baseline: before, current: after }))
 
 /** Portable export: schema-validated theme JSON, deterministic key order from the schema parse. */
 export function exportThemeJson(theme: Theme): { filename: string; json: string } {
@@ -80,3 +60,29 @@ export function exportThemeJson(theme: Theme): { filename: string; json: string 
 export function previewVariablesCss(theme: Theme): string {
   return renderShadcnTailwindCss(theme).split("@theme inline")[0]!.trimEnd()
 }
+
+/** The proposal text box holds JSON only; anything unparsable is reported and never reaches the mutation boundary. */
+export function parseProposalJson(text: string): Outcome<{ value: unknown }> {
+  try {
+    return { ok: true, value: JSON.parse(text) }
+  } catch {
+    return { ok: false, issues: [{ ruleId: "workbench.proposal.invalid-json", path: "" }] }
+  }
+}
+
+/** A valid example proposal for the active theme, so a person can see the envelope and try Apply / Discard. */
+export const exampleProposalJson = (theme: Theme, proposalId: string): string =>
+  JSON.stringify(
+    {
+      schemaVersion: "1.0",
+      proposalId,
+      base: { themeId: theme.id, revision: theme.revision },
+      provenance: { source: "manual", sourceId: "workbench-example", createdAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"), intentSummary: "Softer corners, slightly denser." },
+      operations: [
+        { op: "setRadius", value: "1rem" },
+        { op: "setDensity", value: 0.9 },
+      ],
+    },
+    null,
+    2
+  )
