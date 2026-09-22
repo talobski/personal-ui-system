@@ -1,14 +1,13 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `composition-foundation-pack-v1-001` is owner-approved and
-awaiting its bounded producer. All earlier phases remain accepted and are not
-reopened. The current accepted state on `main` is `a8e63328`: product-owned Jev
-Design Command has passed bounded live interoperability,
-`personal-ui-context/1` provides deterministic list/get/capabilities retrieval,
-and Accessible Form Composition v1 is accepted with its public agent-consumption
-path verified. Canonical execution state remains in `.loop/state.json`; older
-checkpoint documents may describe earlier accepted milestones and are
-historical evidence rather than current control state.
+Status: PAUSED(owner) — `composition-foundation-pack-v1-001` is accepted at
+`063a03e3`. All earlier phases remain accepted and are not reopened. The public
+catalog now contains ten rigorously contracted resources and four verified
+composition fixtures. `workbench-composed-preview-v1-001` has a reconciled
+proposal but is not admitted and has no allocated headroom. Canonical execution
+state remains in `.loop/state.json`; older checkpoint documents may describe
+earlier accepted milestones and are historical evidence rather than current
+control state.
 
 Last updated: 2026-09-23
 
@@ -828,9 +827,9 @@ product/control-plane boundary. Completion evidence is recorded in
 `.loop/runs/accessible-form-composition-v1-001/result.json` and
 `.loop/runs/afc09-agent-consumption-correction-001/result.json`.
 
-## Phase 8: Composition Foundation Pack v1
+## Phase 8 result: Composition Foundation Pack v1
 
-Owner-approved on 2026-09-23. This phase adds exactly five public resources:
+Accepted on 2026-09-23 at main `063a03e3`. The phase added exactly five public resources:
 `card`, `tabs`, `switch`, `textarea`, and `single-toggle-group`. It preserves the
 five accepted resources and every accepted schema, token, mutation, proposal,
 Jev, retrieval, and Workbench boundary. Four verified composition fixtures—
@@ -838,13 +837,19 @@ account profile, notification preferences, workspace settings, and support
 request—exercise the resulting vocabulary without redesigning the Workbench or
 promoting additional resources.
 
-Acceptance is CFP-01 through CFP-12 in
-`.loop/runs/composition-foundation-pack-v1-001/task.md`. Execution remains
-single-worker: one producer followed by protected fresh verification, with a
-third run reserved only for bounded recovery/reverification. The hard phase
-ceiling is 3 agent runs (2 expected), 6 Lead-to-worker turns, 4 artifact
-attempts, concurrency 1, and paid spend 0. STANDARD is the admitted model class;
-MAX remains owner-gated. The temporary owner preference softly favors Claude
-where otherwise equivalent for this phase, with Codex fully admissible and the
-normal Codex default restored when the override ends or fresh evidence changes
-the route.
+CFP-01 through CFP-12 passed protected fresh verification. The verifier's public
+consumption rubric passed 6/6; 412 unit tests, all type/build checks, exactly ten
+registry items, 38 Storybook tests, 48 Workbench tests, one real Vite-dev Design
+Command boundary test, and 68 decoded accessibility attachments passed. The
+completion receipt is
+`.loop/runs/composition-foundation-pack-v1-001/result.json`.
+
+## Proposed Phase 9: Workbench Composed Preview v1
+
+`workbench-composed-preview-v1-001` is proposed but not admitted. It makes the
+four accepted compositions the Workbench's primary preview surface and keeps
+isolated component inspection as a secondary surface. It introduces no public
+resource, schema, token, mutation, proposal, Design Command, Jev, LLM, MCP, or
+credential change. Its final proposed contract is
+`docs/WORKBENCH_COMPOSED_PREVIEW_V1_PROPOSAL.md`. No run or budget headroom is
+allocated until owner approval.
