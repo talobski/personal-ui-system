@@ -1,16 +1,16 @@
 # Personal UI System — Project Brief
 
-Status: DONE(verified) — all nine narrow-V1 acceptance criteria passed; the
+Status: ACTIVE — `jev-design-command-mvp-001` is owner-approved and begins with
+a mandatory official-documentation research gate. All nine narrow-V1 acceptance criteria passed; the
 post-V1 shadcn workbench alignment is also DONE(verified)
 and owner-accepted. `theme-mutation-coverage-001` is DONE(verified) and
 owner-accepted at main `2d913c0`. `preview-feedback-completion-001` is
-DONE(verified) and owner-accepted at main `719ef63`. All phases to date are
-owner-accepted and the project is PAUSED(owner) with no active implementation
-unit. See the Phase 3 sections
+DONE(verified) and owner-accepted at main `719ef63`. All completed phases remain
+owner-accepted and none is reopened. See the Phase 3 sections
 below, and `docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state. See the Phase 2 sections below, and
 `docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state and deferred decisions.
 
-Last updated: 2026-09-21
+Last updated: 2026-09-22
 
 ## Goal
 
@@ -642,3 +642,76 @@ authorized to harden mode `0644` to `0600`; success retains `0600`, while any
 failure restores the exact prior bytes, hash, and `0644` mode. The global policy
 declaration cap was separately changed from 14 to 23 without changing any other
 policy field; the personal project remains independently capped at 20.
+
+## Phase 5: Jev-native design command MVP
+
+Owner-approved on 2026-09-22. This phase adds a focused natural-language
+command input to the workbench. One command is evaluated through one batched
+Jev request containing atomic Choice, Score, and Noul questions. Deterministic
+code maps accepted typed decisions into the existing closed `ThemeOperation`
+union and stages exactly one existing `MutationProposalV1`; preview, Apply,
+Discard, stale handling, persistence boundaries, and revision behavior remain
+unchanged. Nothing applies automatically.
+
+The phase begins with a mandatory research gate against the current official
+TypeSafe documentation starting at <https://docs.typesafe.ai/introduction>.
+The researcher, producer, and verifier must each read the applicable official
+documentation and the retained research checkpoint. Required coverage includes
+state design, Choice/Score/Noul, confidence versus probability, speculative
+fan-out, intent routing, the smart-home demo, the function-calling cookbook,
+the JavaScript SDK/API contract, current model information, current model
+jaggedness, and transport/retry/error behavior. The research artifact must map
+documented limitations to the question graph, composition rules, and negative
+fixtures before product implementation is admitted.
+
+Jev owns only bounded semantic judgments: command kind, targeted categories,
+declared directional choices, categorical strength, and whether clarification
+is needed. Code owns values, arithmetic, OKLCH transforms, clamps, defaults,
+operation construction, validation, proposal construction, confidence policy,
+and every side effect. Jev may not generate CSS, paths, token names, font names,
+dimensions, colors, mutation JSON, prose rationale, or arbitrary operations.
+
+Included work:
+
+- a workbench Design command panel with explicit evaluate, status,
+  interpretation evidence, and the existing staged-proposal controls;
+- one versioned compact state schema, one versioned atomic question catalog,
+  and one versioned deterministic recipe catalog covering directional commands
+  over all six existing theme categories;
+- speculative fan-out in one Jev request per command, with irrelevant answers
+  ignored by code;
+- transparent typed answers, probabilities, confidence, recipe version, and
+  proposal provenance;
+- explicit `staged`, `clarification-required`, `unsupported`, and `rejected`
+  outcomes;
+- offline deterministic fixtures plus bounded supervised live verification only
+  while fresh evidence proves the existing owner-authorized included Jev
+  allocation remains available.
+
+Excluded work: new mutation operations, registry/catalog changes, arbitrary
+CSS or filesystem access, automatic Apply or Save, free-form rationale,
+unbounded compound-command decomposition, website/image interpretation,
+generative-model fallback, MCP, cross-reload proposal replay protection, rule
+promotion, publishing, deployment, and any paid, overage, purchased-credit, or
+auto-recharge route.
+
+Acceptance is JDC-01 through JDC-12 in
+`.loop/runs/jev-design-command-mvp-001/task.md`: documentation-grounded design,
+bounded six-category interpretation, one-call speculative fan-out,
+deterministic composition, fail-closed outcomes, unchanged proposal lifecycle,
+transparent evidence, a closed mutation boundary, jaggedness defenses, full
+browser/accessibility verification, zero-paid operation, and no regression.
+
+Execution is sequential with one worker at a time: research/contract,
+producer, protected fresh verifier, and at most one informative
+correction/reverification slot. The hard phase ceiling is 4 agent runs (3
+expected), 6 Lead-to-worker turns, 4 phase attempts, concurrency 1, spawn depth
+1, at most 16 live Jev requests with no silent retries, and paid spend 0. The
+owner raised the project lifetime ceiling from 20 to 24 solely for this phase.
+Claude is the owner-preferred producer while fresh owner/provider evidence says
+its included capacity is comfortable. If the owner later reports low Claude
+capacity, the Lead checkpoints at the next coherent boundary, preserves the
+worktree/branch/evidence/counters/next action, stops further Claude dispatch,
+and hands off only work that can safely continue on an admissible Codex route.
+Completed work is never replayed; a materially risky provider switch finishes
+or safely pauses the current unit first.
