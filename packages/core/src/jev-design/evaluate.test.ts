@@ -13,19 +13,22 @@ import {
 import { buildDesignCommandState } from "./state"
 import { TYPESAFE_API_URL, TYPESAFE_MODEL } from "./wire"
 
-type RawAnswer = { choice: string; probabilities: Record<string, number>; confidence: number } | { score: number; legend: Record<string, string>; probabilities: Record<string, number>; confidence: number } | { noul: number }
+type RawAnswer =
+  | { type: "choice"; choice: string; probabilities: Record<string, number>; confidence: number }
+  | { type: "score"; score: number; legend: Record<string, string>; probabilities: Record<string, number>; confidence: number }
+  | { type: "noul"; noul: number }
 
 const SCORE_LEGEND = { "0": "subtle", "1": "moderate", "2": "strong" }
 
 function fullAnswers(overrides: Record<string, RawAnswer> = {}): Record<string, RawAnswer> {
   const answers: Record<string, RawAnswer> = {
-    [COMMAND_KIND_QUESTION_ID]: { choice: COMMAND_KIND_THEME_ADJUSTMENT, probabilities: { [COMMAND_KIND_THEME_ADJUSTMENT]: 0.9, [COMMAND_KIND_OUT_OF_SCOPE]: 0.1 }, confidence: 0.9 },
-    [STRENGTH_QUESTION_ID]: { score: 1, legend: SCORE_LEGEND, probabilities: { "0": 0.1, "1": 0.8, "2": 0.1 }, confidence: 0.9 },
-    [NEEDS_CLARIFICATION_QUESTION_ID]: { noul: 0.1 },
+    [COMMAND_KIND_QUESTION_ID]: { type: "choice", choice: COMMAND_KIND_THEME_ADJUSTMENT, probabilities: { [COMMAND_KIND_THEME_ADJUSTMENT]: 0.9, [COMMAND_KIND_OUT_OF_SCOPE]: 0.1 }, confidence: 0.9 },
+    [STRENGTH_QUESTION_ID]: { type: "score", score: 1, legend: SCORE_LEGEND, probabilities: { "0": 0.1, "1": 0.8, "2": 0.1 }, confidence: 0.9 },
+    [NEEDS_CLARIFICATION_QUESTION_ID]: { type: "noul", noul: 0.1 },
   }
   for (const category of Object.keys(categoryQuestionId) as (keyof typeof categoryQuestionId)[]) {
     const { positive, negative } = CATEGORY_DIRECTIONS[category]
-    answers[categoryQuestionId[category]] = { choice: NOT_TARGETED, probabilities: { [positive]: 0, [negative]: 0, [NOT_TARGETED]: 1 }, confidence: 0.9 }
+    answers[categoryQuestionId[category]] = { type: "choice", choice: NOT_TARGETED, probabilities: { [positive]: 0, [negative]: 0, [NOT_TARGETED]: 1 }, confidence: 0.9 }
   }
   return { ...answers, ...overrides }
 }
@@ -33,6 +36,7 @@ function fullAnswers(overrides: Record<string, RawAnswer> = {}): Record<string, 
 const okResponse = (answers: Record<string, unknown>) => new Response(JSON.stringify({ answers }), { status: 200, headers: { "content-type": "application/json" } })
 
 const targetedChoice = (selected: string, other1: string, other2: string): RawAnswer => ({
+  type: "choice",
   choice: selected,
   probabilities: { [selected]: 0.9, [other1]: 0.05, [other2]: 0.05 },
   confidence: 0.9,
@@ -151,11 +155,18 @@ describe("evaluateDesignCommand", () => {
     expect(outcome).toMatchObject({ kind: "rejected", reason: { code: "accept.missing-answer" } })
   })
 
-  it("fails closed when a Score answer arrives Noul-shaped (no type tag to trust; strict shape checking catches it)", async () => {
-    const fetchMock = vi.fn(async () => okResponse(fullAnswers({ [STRENGTH_QUESTION_ID]: { noul: 0.9 } })))
+  it("fails closed when an answer's required type field is missing", async () => {
+    const fetchMock = vi.fn(async () => okResponse(fullAnswers({ [STRENGTH_QUESTION_ID]: { score: 1, legend: SCORE_LEGEND, probabilities: { "0": 0.1, "1": 0.8, "2": 0.1 }, confidence: 0.9 } as unknown as RawAnswer })))
     const state = buildDesignCommandState("make the radius exactly 12px", "light")
     const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
-    expect(outcome).toMatchObject({ kind: "rejected", reason: { code: "accept.malformed-answer" } })
+    expect(outcome).toMatchObject({ kind: "rejected", reason: { code: "accept.primitive-mismatch" } })
+  })
+
+  it("fails closed when an answer's type field does not match the primitive its question was asked as (Noul type for the Score question)", async () => {
+    const fetchMock = vi.fn(async () => okResponse(fullAnswers({ [STRENGTH_QUESTION_ID]: { type: "noul", noul: 0.9 } })))
+    const state = buildDesignCommandState("make it denser", "light")
+    const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
+    expect(outcome).toMatchObject({ kind: "rejected", reason: { code: "accept.primitive-mismatch" } })
   })
 
   it("resolves unsupported for off-topic commands with no confidently targeted category", async () => {
@@ -192,7 +203,7 @@ describe("evaluateDesignCommand", () => {
       okResponse(
         fullAnswers({
           [categoryQuestionId.radius]: targetedChoice("rounder", "sharper", "notTargeted"),
-          [NEEDS_CLARIFICATION_QUESTION_ID]: { noul: 0.9 },
+          [NEEDS_CLARIFICATION_QUESTION_ID]: { type: "noul", noul: 0.9 },
         })
       )
     )
@@ -205,7 +216,12 @@ describe("evaluateDesignCommand", () => {
     const fetchMock = vi.fn(async () =>
       okResponse(
         fullAnswers({
-          [COMMAND_KIND_QUESTION_ID]: { choice: COMMAND_KIND_THEME_ADJUSTMENT, probabilities: { [COMMAND_KIND_THEME_ADJUSTMENT]: 0.55, [COMMAND_KIND_OUT_OF_SCOPE]: 0.45 }, confidence: 0.55 },
+          [COMMAND_KIND_QUESTION_ID]: {
+            type: "choice",
+            choice: COMMAND_KIND_THEME_ADJUSTMENT,
+            probabilities: { [COMMAND_KIND_THEME_ADJUSTMENT]: 0.55, [COMMAND_KIND_OUT_OF_SCOPE]: 0.45 },
+            confidence: 0.55,
+          },
           [categoryQuestionId.radius]: targetedChoice("rounder", "sharper", "notTargeted"),
         })
       )
@@ -220,7 +236,7 @@ describe("evaluateDesignCommand", () => {
       okResponse(
         fullAnswers({
           [categoryQuestionId.radius]: targetedChoice("rounder", "sharper", "notTargeted"),
-          [NEEDS_CLARIFICATION_QUESTION_ID]: { noul: 0.55 },
+          [NEEDS_CLARIFICATION_QUESTION_ID]: { type: "noul", noul: 0.55 },
         })
       )
     )

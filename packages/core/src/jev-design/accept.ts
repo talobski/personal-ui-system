@@ -3,8 +3,9 @@ import type { TypeSafeResponse } from "./wire"
 
 /**
  * Product-owned confidence/acceptance policy, validated against the real `POST /v1/systemone` raw answer shapes
- * (`choice`/`probabilities`/`confidence`, `score`/`legend`/`probabilities`/`confidence`, `noul`) — not the Loop
- * adapter's normalized internal representation. On top of the documented fixed floor (Choice/Score need
+ * (`type`/`choice`/`probabilities`/`confidence`, `type`/`score`/`legend`/`probabilities`/`confidence`,
+ * `type`/`noul`) — not the Loop adapter's normalized internal representation. Every answer's required `type` field
+ * must match the primitive the question was asked as. On top of the documented fixed floor (Choice/Score need
  * `confidence >= 0.5`; Noul rejects exactly `0.5`), this adds one stricter product-owned margin, because
  * `Noul`/`Choice` confidence alone is too permissive for independent category triggers evaluated in parallel
  * (source packet, "do not reuse thresholds across primitive types without an explicit contract").
@@ -21,6 +22,7 @@ export type AcceptRuleId =
   | "accept.missing-answer"
   | "accept.unknown-answer"
   | "accept.malformed-answer"
+  | "accept.primitive-mismatch"
   | "accept.choice-not-offered"
   | "accept.choice-not-max"
   | "accept.choice-confidence"
@@ -73,7 +75,9 @@ const sameKeySet = (actual: readonly string[], expected: readonly string[]): boo
 const sumsToOne = (values: readonly number[]): boolean => Math.abs(values.reduce((sum, v) => sum + v, 0) - 1) <= PROBABILITY_SUM_TOLERANCE
 
 function acceptChoice(question: Extract<InternalQuestion, { type: "choice" }>, raw: unknown): AcceptedChoice | AcceptError {
-  if (!isRecord(raw) || !sameKeySet(Object.keys(raw), ["choice", "probabilities", "confidence"])) return { ruleId: "accept.malformed-answer", path: question.id }
+  if (!isRecord(raw)) return { ruleId: "accept.malformed-answer", path: question.id }
+  if (raw.type !== "choice") return { ruleId: "accept.primitive-mismatch", path: question.id }
+  if (!sameKeySet(Object.keys(raw), ["type", "choice", "probabilities", "confidence"])) return { ruleId: "accept.malformed-answer", path: question.id }
   const optionIds = question.options.map((option) => option.id)
   const selected = raw.choice
   if (typeof selected !== "string" || !optionIds.includes(selected)) return { ruleId: "accept.choice-not-offered", path: question.id }
@@ -98,7 +102,9 @@ function acceptChoice(question: Extract<InternalQuestion, { type: "choice" }>, r
 }
 
 function acceptScore(question: Extract<InternalQuestion, { type: "score" }>, raw: unknown): AcceptedScore | AcceptError {
-  if (!isRecord(raw) || !sameKeySet(Object.keys(raw), ["score", "legend", "probabilities", "confidence"])) return { ruleId: "accept.malformed-answer", path: question.id }
+  if (!isRecord(raw)) return { ruleId: "accept.malformed-answer", path: question.id }
+  if (raw.type !== "score") return { ruleId: "accept.primitive-mismatch", path: question.id }
+  if (!sameKeySet(Object.keys(raw), ["type", "score", "legend", "probabilities", "confidence"])) return { ruleId: "accept.malformed-answer", path: question.id }
   const levels = question.scale.length
   const indexKeys = Array.from({ length: levels }, (_, i) => String(i))
 
@@ -131,7 +137,9 @@ function acceptScore(question: Extract<InternalQuestion, { type: "score" }>, raw
 }
 
 function acceptNoul(question: Extract<InternalQuestion, { type: "noul" }>, raw: unknown): AcceptedNoul | AcceptError {
-  if (!isRecord(raw) || !sameKeySet(Object.keys(raw), ["noul"])) return { ruleId: "accept.malformed-answer", path: question.id }
+  if (!isRecord(raw)) return { ruleId: "accept.malformed-answer", path: question.id }
+  if (raw.type !== "noul") return { ruleId: "accept.primitive-mismatch", path: question.id }
+  if (!sameKeySet(Object.keys(raw), ["type", "noul"])) return { ruleId: "accept.malformed-answer", path: question.id }
   const value = raw.noul
   if (!isFiniteInRange(value, 0, 1)) return { ruleId: "accept.noul-range", path: question.id }
   if (value === 0.5) return { ruleId: "accept.noul-unresolved", path: question.id }
@@ -141,9 +149,10 @@ function acceptNoul(question: Extract<InternalQuestion, { type: "noul" }>, raw: 
 /**
  * Total-batch acceptance: every question sent must have exactly one well-formed, in-contract answer, at its exact
  * expected key set, or the whole decision is unusable (no partial credit). Every answer is validated against the
- * raw `POST /v1/systemone` wire shape for the primitive it was asked as; there is no `type` field in a real answer
- * to discriminate on, so a malformed/wrong-shaped answer surfaces as `accept.malformed-answer` rather than a
- * primitive-mismatch code.
+ * raw `POST /v1/systemone` wire shape for the primitive it was asked as. The official API requires every answer to
+ * carry a `type` field matching the question's primitive; a missing, unrecognized, or mismatched `type` is rejected
+ * as `accept.primitive-mismatch` before any other field is inspected. Any other shape deviation (missing/extra
+ * field, wrong value type, etc.) is `accept.malformed-answer`.
  */
 export function acceptAnswers(questions: readonly InternalQuestion[], response: TypeSafeResponse): AcceptResult {
   const errors: AcceptError[] = []

@@ -69,20 +69,25 @@ from the wire in several fields):
   `criteria` is a Choice option-id -> description map, a Score ordered
   scale array, or a Noul `{true, false}` object. No question body carries an
   `id` field — the id is only the object key.
-- A Choice answer is `{choice, probabilities, confidence}`.
-- A Score answer is `{score, legend, probabilities, confidence}`, where
-  `score` may be fractional and `legend` is an object keyed by
+- Every answer carries a **required `type` field** matching the primitive
+  the question was asked as (`"choice"`, `"score"`, or `"noul"`), in
+  addition to its primitive-specific fields.
+- A Choice answer is `{type: "choice", choice, probabilities, confidence}`.
+- A Score answer is `{type: "score", score, legend, probabilities, confidence}`,
+  where `score` may be fractional and `legend` is an object keyed by
   numeric-string indices (`"0"`, `"1"`, ...), not an ordered array or an
   integer level.
-- A Noul answer is `{noul}`.
+- A Noul answer is `{type: "noul", noul}`.
 
 `questions.ts` keeps a clean internal catalog (`InternalQuestion`, with an
 explicit `id` field, for ergonomic code) and `toWireRequest` is the single
 audited conversion point into the shape above. `accept.ts` validates raw
-answers directly against this contract — there is no `type` discriminator
-field on a real answer, so a wrong-shaped answer (e.g. a Score-shaped body
-for a question asked as Noul) surfaces as `accept.malformed-answer`, not a
-primitive-mismatch code.
+answers directly against this contract: an answer's `type` is checked first
+against the question's expected primitive, before any other field. A
+missing, unrecognized, or mismatched `type` (e.g. a Score-shaped body
+answering a question asked as Noul, or no `type` field at all) is rejected
+as `accept.primitive-mismatch`; any other shape deviation (extra/missing
+field, wrong value type, malformed legend, etc.) is `accept.malformed-answer`.
 
 ## Multi-category support and `needsClarification`
 
@@ -137,8 +142,10 @@ probabilities and all Score probability/legend detail. That is fixed here.
 
 ## Strict acceptance
 
-`accept.ts` validates, per answer: exact top-level key set (no extra/missing
-fields), every probability key exactly matches the offered option set (or
+`accept.ts` validates, per answer: a required `type` field matching the
+question's expected primitive (checked first — `accept.primitive-mismatch`
+if missing, unrecognized, or mismatched), exact top-level key set (no
+extra/missing fields), every probability key exactly matches the offered option set (or
 Score's `"0".."n-1"` index set), every probability finite in `[0,1]`,
 probabilities sum to `1` within a `0.02` tolerance, the selected/max Choice
 option is genuinely the probability max, Score's legend exactly matches the
@@ -225,6 +232,18 @@ continuing to claim success.
    with the eventual proposal actually being staged. **Both fixed.**
 9. This file itself claimed evidence coverage the code didn't have.
    **Rewritten**, per this section.
+
+## Protocol correction on top of `1ac4eeb`
+
+A second, narrower owner-authorized correction added the official API's
+required per-answer `type` discriminator (see "The real TypeSafe wire
+contract" and "Strict acceptance" above, both updated in place): every raw
+answer must carry `type` matching the question's primitive, and a missing,
+unrecognized, or mismatched `type` is rejected as `accept.primitive-mismatch`
+before any other field is checked. Changed files: `wire.ts`, `accept.ts`,
+and their tests (`accept.test.ts`, `evaluate.test.ts`) — no product-boundary,
+credential-isolation, multi-category, confidence-policy, transport, or UI
+behavior changed.
 
 ## What is still not covered by this run
 
