@@ -16,6 +16,38 @@
     "mobileTextPx": 16
   },
   {
+    "kind": "field-composition",
+    "orientation": "responsive",
+    "label": { "kind": "visible", "text": "Country", "htmlFor": "country" },
+    "descriptionId": "country-help",
+    "control": {
+      "kind": "native-select",
+      "id": "country",
+      "disabled": false,
+      "invalid": true,
+      "error": { "id": "country-error", "message": "Choose a country." },
+      "ariaDescribedBy": ["country-help", "country-error"],
+      "mobileTextPx": 16,
+      "options": [{ "label": "Philippines", "value": "ph" }, { "label": "Japan", "value": "jp" }],
+      "value": "ph"
+    }
+  },
+  {
+    "kind": "field-composition",
+    "orientation": "horizontal",
+    "label": { "kind": "visible", "text": "Email", "htmlFor": "email" },
+    "descriptionId": null,
+    "control": {
+      "kind": "input",
+      "id": "email",
+      "disabled": false,
+      "invalid": false,
+      "error": null,
+      "ariaDescribedBy": [],
+      "mobileTextPx": 16
+    }
+  },
+  {
     "kind": "responsive-dialog",
     "viewportWidth": 640,
     "rendered": "drawer",

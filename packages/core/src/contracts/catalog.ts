@@ -7,7 +7,9 @@ import type { Contract } from "./contract"
  */
 const loaders = {
   button: () => import("./data/button").then((m) => m.button),
+  field: () => import("./data/field").then((m) => m.field),
   input: () => import("./data/input").then((m) => m.input),
+  "native-select": () => import("./data/native-select").then((m) => m.nativeSelect),
   "responsive-dialog": () => import("./data/responsive-dialog").then((m) => m.responsiveDialog),
 } as const satisfies Record<string, () => Promise<unknown>>
 

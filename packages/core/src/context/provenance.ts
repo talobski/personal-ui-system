@@ -18,9 +18,17 @@ const RAW_PROVENANCE_MANIFEST = {
     sourceId: "packages/core/src/contracts/data/button.ts",
     sha256: "0a4030b97deb63fbf396fb5542a7f1386a1d40fc1e753286e7b640f6ba23bb32",
   },
+  "resource:field": {
+    sourceId: "packages/core/src/contracts/data/field.ts",
+    sha256: "c83b5660749f72fafa6f5b7bb412fe3e6ec76a23df138ccdcde456912cadcb03",
+  },
   "resource:input": {
     sourceId: "packages/core/src/contracts/data/input.ts",
     sha256: "13037e75e5da76b04dc2e84f05f2c8c9dae05458dba00edf0736504fcd82eeb8",
+  },
+  "resource:native-select": {
+    sourceId: "packages/core/src/contracts/data/native-select.ts",
+    sha256: "52f1969b405b1d6b03033e007d6844fc89f5bf684e2f73538f24d9b056caa83a",
   },
   "resource:responsive-dialog": {
     sourceId: "packages/core/src/contracts/data/responsive-dialog.ts",

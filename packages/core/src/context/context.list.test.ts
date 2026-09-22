@@ -20,7 +20,9 @@ describe("context list (ACR-02)", () => {
 
     expect(result.resources).toEqual([
       { id: "button", kind: "component", purpose: "Trigger a single, clearly named action or navigation." },
+      { id: "field", kind: "pattern", purpose: "Compose a label, control, description, and validation message as one accessible form field." },
       { id: "input", kind: "component", purpose: "Capture a single line of user-entered text or a native input type." },
+      { id: "native-select", kind: "component", purpose: "Choose one value from a small, fixed set with the platform native select control." },
       {
         id: "responsive-dialog",
         kind: "pattern",
@@ -39,6 +41,12 @@ describe("context list (ACR-02)", () => {
     const result = await list()
     const button = result.resources.find((r) => r.id === "button")
     expect(button?.purpose).toBe("Trigger a single, clearly named action or navigation.")
+  })
+
+  it("identifies Field and NativeSelect with their admitted public kinds", async () => {
+    const result = await list()
+    expect(result.resources.find((resource) => resource.id === "field")?.kind).toBe("pattern")
+    expect(result.resources.find((resource) => resource.id === "native-select")?.kind).toBe("component")
   })
 
   it("stays within the 8 KiB list ceiling", async () => {

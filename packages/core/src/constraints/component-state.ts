@@ -36,10 +36,42 @@ const responsiveDialogStateSchema = z.strictObject({
   focusManagement: z.enum(["primitive", "custom"]),
 })
 
+const fieldCompositionStateSchema = z.strictObject({
+  kind: z.literal("field-composition"),
+  orientation: z.enum(["vertical", "horizontal", "responsive"]),
+  label: z
+    .strictObject({ kind: z.enum(["visible", "programmatic"]), text: z.string().min(1).max(200), htmlFor: z.string().min(1).max(80) })
+    .nullable(),
+  descriptionId: z.string().min(1).max(80).nullable(),
+  control: z.discriminatedUnion("kind", [
+    z.strictObject({
+      kind: z.literal("input"),
+      id: z.string().min(1).max(80),
+      disabled: z.boolean(),
+      invalid: z.boolean(),
+      error: z.strictObject({ id: z.string().min(1).max(80), message: z.string().min(1).max(400) }).nullable(),
+      ariaDescribedBy: z.array(z.string().min(1).max(80)).max(12),
+      mobileTextPx: z.number().finite().positive(),
+    }),
+    z.strictObject({
+      kind: z.literal("native-select"),
+      id: z.string().min(1).max(80),
+      disabled: z.boolean(),
+      invalid: z.boolean(),
+      error: z.strictObject({ id: z.string().min(1).max(80), message: z.string().min(1).max(400) }).nullable(),
+      ariaDescribedBy: z.array(z.string().min(1).max(80)).max(12),
+      mobileTextPx: z.number().finite().positive(),
+      options: z.array(z.strictObject({ label: z.string().min(1).max(200), value: z.string().max(200) })).min(1).max(50),
+      value: z.string().min(1).max(200).nullable(),
+    }),
+  ]),
+})
+
 export const componentStateSchema = z.discriminatedUnion("kind", [
   buttonStateSchema,
   inputStateSchema,
   responsiveDialogStateSchema,
+  fieldCompositionStateSchema,
 ])
 
 export type ComponentState = z.infer<typeof componentStateSchema>
@@ -51,6 +83,13 @@ export type ComponentConstraintRuleId =
   | "input.label"
   | "input.error-association"
   | "input.mobile-text-size"
+  | "field.label"
+  | "field.label-association"
+  | "field.invalid-error"
+  | "field.unsupported-composition"
+  | "native-select.option-values"
+  | "native-select.error-association"
+  | "native-select.mobile-text-size"
   | "responsive-dialog.breakpoint"
   | "responsive-dialog.no-custom-focus"
   | "responsive-dialog.titled"
@@ -70,6 +109,15 @@ const pathOf = (path: readonly PropertyKey[]) =>
  * submit state through this closed schema before a composition becomes active.
  */
 export function validateComponentState(input: unknown): ComponentStateValidation {
+  if (
+    typeof input === "object" &&
+    input !== null &&
+    !Array.isArray(input) &&
+    (input as Record<string, unknown>).kind === "field-composition" &&
+    (!isSupportedFieldControl((input as Record<string, unknown>).control))
+  ) {
+    return { ok: false, issues: [{ ruleId: "field.unsupported-composition", path: "control.kind" }] }
+  }
   const parsed = componentStateSchema.safeParse(input)
   if (!parsed.success) {
     return {
@@ -99,6 +147,25 @@ export function validateComponentState(input: unknown): ComponentStateValidation
     if (state.mobileTextPx < 16) issues.push({ ruleId: "input.mobile-text-size", path: "mobileTextPx" })
   }
 
+  if (state.kind === "field-composition") {
+    const { control, label } = state
+    if (label === null) issues.push({ ruleId: "field.label", path: "label" })
+    else if (label.htmlFor !== control.id) issues.push({ ruleId: "field.label-association", path: "label.htmlFor" })
+    if (control.invalid && (control.error === null || !control.ariaDescribedBy.includes(control.error.id))) {
+      issues.push({ ruleId: "field.invalid-error", path: "control.ariaDescribedBy" })
+      if (control.kind === "native-select") issues.push({ ruleId: "native-select.error-association", path: "control.ariaDescribedBy" })
+    }
+    if (control.mobileTextPx < 16) {
+      issues.push({ ruleId: control.kind === "native-select" ? "native-select.mobile-text-size" : "input.mobile-text-size", path: "control.mobileTextPx" })
+    }
+    if (control.kind === "native-select") {
+      const values = control.options.map((option) => option.value)
+      if (values.some((value) => value.length === 0) || new Set(values).size !== values.length || (control.value !== null && !values.includes(control.value))) {
+        issues.push({ ruleId: "native-select.option-values", path: "control.options" })
+      }
+    }
+  }
+
   if (state.kind === "responsive-dialog") {
     const expected = state.viewportWidth <= 640 ? "drawer" : "dialog"
     if (state.rendered !== expected) issues.push({ ruleId: "responsive-dialog.breakpoint", path: "rendered" })
@@ -111,3 +178,9 @@ export function validateComponentState(input: unknown): ComponentStateValidation
 
   return issues.length > 0 ? { ok: false, issues } : { ok: true, state }
 }
+
+const isSupportedFieldControl = (control: unknown): boolean =>
+  typeof control === "object" &&
+  control !== null &&
+  !Array.isArray(control) &&
+  ((control as Record<string, unknown>).kind === "input" || (control as Record<string, unknown>).kind === "native-select")

@@ -12,12 +12,29 @@
       "files": [{ "path": "packages/ui/src/components/button.tsx", "type": "registry:ui" }]
     },
     {
+      "name": "field",
+      "type": "registry:ui",
+      "title": "Field",
+      "description": "Shadcn Field composition for labels, descriptions, controls, and errors.",
+      "dependencies": ["class-variance-authority", "cn", "radix-ui"],
+      "registryDependencies": ["label", "separator"],
+      "files": [{ "path": "packages/ui/src/components/field.tsx", "type": "registry:ui" }]
+    },
+    {
       "name": "input",
       "type": "registry:ui",
       "title": "Input",
       "description": "Shadcn Input, preserved as generated.",
       "dependencies": ["cn"],
       "files": [{ "path": "packages/ui/src/components/input.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "native-select",
+      "type": "registry:ui",
+      "title": "Native Select",
+      "description": "Shadcn NativeSelect for fixed, native single-choice fields.",
+      "dependencies": ["cn", "lucide-react"],
+      "files": [{ "path": "packages/ui/src/components/native-select.tsx", "type": "registry:ui" }]
     },
     {
       "name": "responsive-dialog",

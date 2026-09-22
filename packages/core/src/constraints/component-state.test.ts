@@ -25,4 +25,10 @@ describe("component-state constraints", () => {
       if (!result.ok) expect(result.issues.every((issue) => issue.ruleId === "constraint.invalid-state")).toBe(true)
     }
   })
+
+  it("rejects unsupported Field composition with its stable rule and path", () => {
+    expect(
+      validateComponentState({ kind: "field-composition", orientation: "vertical", label: null, descriptionId: null, control: { kind: "combobox" } })
+    ).toEqual({ ok: false, issues: [{ ruleId: "field.unsupported-composition", path: "control.kind" }] })
+  })
 })

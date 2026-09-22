@@ -70,6 +70,54 @@
     "expected": { "ruleId": "responsive-dialog.breakpoint", "path": "rendered" }
   },
   {
+    "name": "unlabelled Field composition",
+    "state": {
+      "kind": "field-composition", "orientation": "vertical", "label": null, "descriptionId": null,
+      "control": { "kind": "native-select", "id": "country", "disabled": false, "invalid": false, "error": null, "ariaDescribedBy": [], "mobileTextPx": 16, "options": [{ "label": "Philippines", "value": "ph" }], "value": "ph" }
+    },
+    "expected": { "ruleId": "field.label", "path": "label" }
+  },
+  {
+    "name": "mismatched Field label",
+    "state": {
+      "kind": "field-composition", "orientation": "vertical", "label": { "kind": "visible", "text": "Country", "htmlFor": "other" }, "descriptionId": null,
+      "control": { "kind": "native-select", "id": "country", "disabled": false, "invalid": false, "error": null, "ariaDescribedBy": [], "mobileTextPx": 16, "options": [{ "label": "Philippines", "value": "ph" }], "value": "ph" }
+    },
+    "expected": { "ruleId": "field.label-association", "path": "label.htmlFor" }
+  },
+  {
+    "name": "invalid native select without associated error",
+    "state": {
+      "kind": "field-composition", "orientation": "vertical", "label": { "kind": "visible", "text": "Country", "htmlFor": "country" }, "descriptionId": null,
+      "control": { "kind": "native-select", "id": "country", "disabled": false, "invalid": true, "error": { "id": "country-error", "message": "Choose a country." }, "ariaDescribedBy": [], "mobileTextPx": 16, "options": [{ "label": "Philippines", "value": "ph" }], "value": "ph" }
+    },
+    "expected": { "ruleId": "native-select.error-association", "path": "control.ariaDescribedBy" }
+  },
+  {
+    "name": "duplicate native select values",
+    "state": {
+      "kind": "field-composition", "orientation": "vertical", "label": { "kind": "visible", "text": "Country", "htmlFor": "country" }, "descriptionId": null,
+      "control": { "kind": "native-select", "id": "country", "disabled": false, "invalid": false, "error": null, "ariaDescribedBy": [], "mobileTextPx": 16, "options": [{ "label": "Philippines", "value": "ph" }, { "label": "Duplicate", "value": "ph" }], "value": "ph" }
+    },
+    "expected": { "ruleId": "native-select.option-values", "path": "control.options" }
+  },
+  {
+    "name": "blank native select option value",
+    "state": {
+      "kind": "field-composition", "orientation": "vertical", "label": { "kind": "visible", "text": "Country", "htmlFor": "country" }, "descriptionId": null,
+      "control": { "kind": "native-select", "id": "country", "disabled": false, "invalid": false, "error": null, "ariaDescribedBy": [], "mobileTextPx": 16, "options": [{ "label": "Choose a country", "value": "" }], "value": null }
+    },
+    "expected": { "ruleId": "native-select.option-values", "path": "control.options" }
+  },
+  {
+    "name": "small mobile native select text",
+    "state": {
+      "kind": "field-composition", "orientation": "vertical", "label": { "kind": "visible", "text": "Country", "htmlFor": "country" }, "descriptionId": null,
+      "control": { "kind": "native-select", "id": "country", "disabled": false, "invalid": false, "error": null, "ariaDescribedBy": [], "mobileTextPx": 14, "options": [{ "label": "Philippines", "value": "ph" }], "value": "ph" }
+    },
+    "expected": { "ruleId": "native-select.mobile-text-size", "path": "control.mobileTextPx" }
+  },
+  {
     "name": "drawer at desktop breakpoint",
     "state": {
       "kind": "responsive-dialog",

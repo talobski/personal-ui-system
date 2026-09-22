@@ -9,7 +9,7 @@ const get = async (resource: string) => {
 }
 
 describe("context get (ACR-03)", () => {
-  it.each(["button", "input", "responsive-dialog"])("returns full targeted context for %s", async (resource) => {
+  it.each(["button", "field", "input", "native-select", "responsive-dialog"])("returns full targeted context for %s", async (resource) => {
     const result = await get(resource)
 
     expect(validateTheme(result.theme).ok).toBe(true)
@@ -58,8 +58,13 @@ describe("context get (ACR-03)", () => {
     expect(principlesFor("no-such-resource")).toBeUndefined()
   })
 
+  it("does not require or invent principles for the admitted form resources", async () => {
+    expect((await get("field")).principles).toBeUndefined()
+    expect((await get("native-select")).principles).toBeUndefined()
+  })
+
   it("stays within the 32 KiB get ceiling for every pilot", async () => {
-    for (const resource of ["button", "input", "responsive-dialog"]) {
+    for (const resource of ["button", "field", "input", "native-select", "responsive-dialog"]) {
       const result = await get(resource)
       const bytes = new TextEncoder().encode(toCanonicalJson(result)).length
       expect(bytes).toBeLessThanOrEqual(OPERATION_MAX_BYTES.get)
@@ -77,5 +82,7 @@ describe("context get (ACR-03)", () => {
     const serialized = toCanonicalJson(result)
     expect(serialized).not.toContain('"id":"input"')
     expect(serialized).not.toContain('"id":"responsive-dialog"')
+    expect(serialized).not.toContain('"id":"field"')
+    expect(serialized).not.toContain('"id":"native-select"')
   })
 })

@@ -34,8 +34,8 @@ deterministic design-system consumption surface — not a proposal-construction 
 ### `list`
 
 Design-system identity plus stable, sorted-by-id (code-unit order) summaries: every validated theme (`{id, name,
-revision}`) and exactly the three existing V1 contracts (`{id, kind, purpose}` — `kind` is `"pattern"` for
-`responsive-dialog` and `"component"` for the other two; `purpose` is sourced verbatim from that resource's own
+revision}`) and exactly the five public contracts (`{id, kind, purpose}` — `kind` is `"pattern"` for `field` and
+`responsive-dialog` and `"component"` for the other three; `purpose` is sourced verbatim from that resource's own
 validated contract, never invented prose).
 
 ### `get`
@@ -86,7 +86,7 @@ payload before that wrapper exists; `context.envelope-ceiling.test.ts` proves th
 payload that fits the ceiling on its own but exceeds it once wrapped is correctly rejected). An oversize result fails
 closed with `context.oversize-result` — no truncation, no partial payload. `context.ceiling.test.ts` proves the
 boundary directly (accepts exactly at the ceiling, rejects one byte over) independent of real fixture size; the real
-`get` payloads for all three pilots measure under 7 KiB today.
+`get` payloads for all five public resources must remain within the 32 KiB ceiling.
 
 ## Determinism, byte stability, and output immutability
 

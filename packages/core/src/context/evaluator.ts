@@ -16,6 +16,13 @@ const KEYS_BY_OPERATION: Readonly<Record<string, ReadonlySet<string>>> = {
   get: new Set(["version", "operation", "theme", "resource"]),
   capabilities: new Set(["version", "operation"]),
 }
+const RESOURCE_KINDS = Object.freeze({
+  button: "component",
+  field: "pattern",
+  input: "component",
+  "native-select": "component",
+  "responsive-dialog": "pattern",
+} as const)
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -41,7 +48,7 @@ async function buildListPayload(): Promise<ListResult> {
     ids.map(async (id) => {
       const contract = await getContract(id)
       if (!contract) throw new Error(`contract "${id}" is in the catalog but failed to load`)
-      return { id, kind: (id === "responsive-dialog" ? "pattern" : "component") as "component" | "pattern", purpose: contract.purpose }
+      return { id, kind: RESOURCE_KINDS[id], purpose: contract.purpose }
     })
   )
   return {

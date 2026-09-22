@@ -22,6 +22,22 @@ describe("shadcn foundation", () => {
     }
   })
 
+  it("keeps Field and NativeSelect as shadcn-derived native form composition", () => {
+    const field = source("field.tsx")
+    const nativeSelect = source("native-select.tsx")
+    expect(field).toContain('data-slot="field"')
+    expect(field).toContain('from "class-variance-authority"')
+    expect(field).toContain('from "@personal-ui/ui/components/label"')
+    expect(nativeSelect).toContain('React.ComponentProps<"select">')
+    expect(nativeSelect).toContain('data-slot="native-select"')
+    expect(nativeSelect).toContain('from "lucide-react"')
+    for (const implementation of [field, nativeSelect]) {
+      expect(implementation).not.toMatch(/addEventListener\(["']keydown/)
+      expect(implementation).not.toMatch(/role=["'](?:combobox|listbox)/)
+      expect(implementation).not.toMatch(/focusTrap|trapFocus|dismissOnEscape/i)
+    }
+  })
+
   it("delegates dialog focus and dismissal to Radix/Vaul primitives", () => {
     const dialog = source("dialog.tsx")
     const drawer = source("drawer.tsx")
@@ -43,6 +59,10 @@ describe("shadcn foundation", () => {
     const item = (name: string) => registry.items.find((entry) => entry.name === name)
     expect(item("button")?.dependencies).toEqual(expect.arrayContaining(["class-variance-authority", "radix-ui"]))
     expect(item("input")?.dependencies).toEqual(expect.arrayContaining(["cn"]))
+    expect(item("field")?.dependencies).toEqual(expect.arrayContaining(["class-variance-authority", "cn", "radix-ui"]))
+    expect(item("field")?.registryDependencies).toEqual(expect.arrayContaining(["label", "separator"]))
+    expect(item("native-select")?.dependencies).toEqual(expect.arrayContaining(["cn", "lucide-react"]))
     expect(item("responsive-dialog")?.registryDependencies).toEqual(expect.arrayContaining(["dialog", "drawer"]))
+    expect(registry.items.map((entry) => entry.name).sort()).toEqual(["button", "field", "input", "native-select", "responsive-dialog"])
   })
 })
