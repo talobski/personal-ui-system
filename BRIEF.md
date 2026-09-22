@@ -1,14 +1,13 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `jev-design-command-mvp-001` is owner-approved and begins with
-a mandatory official-documentation research gate. All nine narrow-V1 acceptance criteria passed; the
-post-V1 shadcn workbench alignment is also DONE(verified)
-and owner-accepted. `theme-mutation-coverage-001` is DONE(verified) and
-owner-accepted at main `2d913c0`. `preview-feedback-completion-001` is
-DONE(verified) and owner-accepted at main `719ef63`. All completed phases remain
-owner-accepted and none is reopened. See the Phase 3 sections
-below, and `docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state. See the Phase 2 sections below, and
-`docs/PROJECT_HANDOFF_CHECKPOINT.md` for handoff state and deferred decisions.
+Status: ACTIVE — `accessible-form-composition-v1-001` is owner-approved and
+awaiting its bounded producer. All earlier phases remain accepted and are not
+reopened. The current accepted state on `main` is `b826a931`: product-owned Jev
+Design Command has passed bounded live interoperability, and
+`personal-ui-context/1` provides deterministic list/get/capabilities retrieval
+with fresh-agent consumption verified. Canonical execution state remains in
+`.loop/state.json`; older checkpoint documents may describe earlier accepted
+milestones and are historical evidence rather than current control state.
 
 Last updated: 2026-09-22
 
@@ -746,3 +745,70 @@ worktree/branch/evidence/counters/next action, stops further Claude dispatch,
 and hands off only work that can safely continue on an admissible Codex route.
 Completed work is never replayed; a materially risky provider switch finishes
 or safely pauses the current unit first.
+
+## Phase 6 result: Agent Context Retrieval v1
+
+Accepted on 2026-09-22 at main `b826a931`. The product-owned contract
+`personal-ui-context/1` exposes deterministic, read-only `list`, `get`, and
+`capabilities` operations through the core package and a local JSON CLI. It can
+discover the validated theme and three pilot resources, retrieve one targeted
+theme plus one component/pattern contract, and describe the existing closed
+mutation/proposal capabilities without depending on the workbench, Jev, an LLM,
+network access, credentials, MCP, or Loop Engineering state.
+
+ACR-01 through ACR-12 passed protected fresh verification. An unfamiliar agent
+used only the public retrieval/package surfaces to select the responsive dialog
+pattern, explain its responsive and accessibility obligations, identify an
+unsupported composition, construct one valid existing proposal, and confirm
+that arbitrary CSS/path mutation was rejected. The phase passed 362 unit tests,
+typecheck, registry/workbench/Storybook builds, and 53 browser tests. Stable
+ordering, complete success-envelope byte ceilings, source-hash provenance,
+immutable result graphs, stable fail-closed CLI errors, and control-plane
+isolation were independently verified. The completion receipt is
+`.loop/runs/agent-context-retrieval-v1-001/result.json`.
+
+## Phase 7: Accessible Form Composition v1
+
+Owner-approved on 2026-09-22. This phase adds exactly two public resources while
+preserving the accepted Button, Input, and Responsive Dialog/Drawer pilots:
+
+- `field` as a public composition pattern;
+- `native-select` as a public component.
+
+The existing component-contract schema, `personal-ui-context/1`, theme schema,
+`ThemeOperation`, and `MutationProposalV1` remain frozen. The phase defines how
+Field, Input, and NativeSelect compose into accessible labelled form controls,
+including descriptions, invalid/error association, native option behavior,
+mobile text sizing, keyboard/focus behavior, and closed deterministic
+admissibility. It adds the two corresponding registry items, compact contracts,
+stories, provenance entries, retrieval metadata, and verification fixtures.
+
+Retrieval integration exposes correct resource kind, purpose, the already
+declared contract guidance fields, provenance, and stable ordering. It does not
+add a new principles field, require principle content for the two resources, or
+invent/promote a design principle. The existing optional principles behavior of
+`personal-ui-context/1` remains unchanged and may omit principles for these
+resources.
+
+Acceptance is AFC-01 through AFC-12 in
+`.loop/runs/accessible-form-composition-v1-001/task.md`: bounded catalog change,
+complete Field and NativeSelect contracts, registry validity, closed
+constraints, responsive/accessibility behavior, frozen retrieval integration,
+existing byte ceilings and provenance rules, fresh-agent form composition,
+browser evidence, and full regression/control-plane isolation.
+
+Explicitly excluded: any additional component or pattern, custom
+combobox/listbox behavior, async search, multi-select, schema-version change,
+new design principles, richer Design Command behavior, Jev, a general-purpose
+LLM or provider abstraction, MCP, project extraction, network or credential
+use, Workbench redesign, publishing, deployment, and paid capacity.
+
+Execution uses one worker at a time: one producer followed by protected fresh
+verification, with one third run reserved only for bounded
+recovery/reverification after an informative failure. The hard phase ceiling is
+3 agent runs (2 expected), 6 Lead-to-worker turns, 4 phase attempts,
+concurrency 1, and paid spend 0. The project/global lifetime run ceiling is 30.
+STANDARD is the default model class; STRONG requires a recorded concrete
+expected benefit, and MAX remains owner-gated per dispatch. The owner prefers
+Codex for the producer; verifier routing remains independent and uses fresh
+provider/capacity evidence at dispatch.
