@@ -10,6 +10,7 @@ import { NativeSelect, NativeSelectOption } from "@personal-ui/ui/components/nat
 import { Panel } from "@personal-ui/ui/components/panel"
 import { SingleToggleGroup } from "@personal-ui/ui/components/single-toggle-group"
 
+import { buildDesignCommandProposal, evaluateDesignCommandClient } from "./designCommand"
 import {
   diffThemes,
   editColor,
@@ -22,6 +23,7 @@ import {
   previewVariablesCss,
 } from "./lifecycle"
 import type { Mode, WorkbenchIssue } from "./lifecycle"
+import type { DesignCommandOutcome } from "@personal-ui/core"
 import type { PreviewState } from "./messages"
 import { loadSaved, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
@@ -58,6 +60,7 @@ export function App() {
   const forkIdId = React.useId()
   const forkNameId = React.useId()
   const proposalTextId = React.useId()
+  const commandTextId = React.useId()
   const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage))
   const [current, setCurrent] = React.useState<Theme>(() => (saved.activeId ? saved.themes[saved.activeId]! : canonical))
   const [mode, setMode] = React.useState<Mode>("light")
@@ -78,6 +81,10 @@ export function App() {
   const [proposalText, setProposalText] = React.useState("")
   const [proposalIssues, setProposalIssues] = React.useState<WorkbenchIssue[]>([])
   const [proposalResult, setProposalResult] = React.useState("")
+  const [commandText, setCommandText] = React.useState("")
+  const [commandEvaluating, setCommandEvaluating] = React.useState(false)
+  const [commandOutcome, setCommandOutcome] = React.useState<DesignCommandOutcome | null>(null)
+  const [commandSeq, setCommandSeq] = React.useState(0)
 
   const currentValue = current.modes[mode].color[token].$value
   // The draft follows the active theme/mode/token; a rejected draft is never active state.
@@ -173,6 +180,23 @@ export function App() {
     setCurrent(result.theme!)
     setProposalResult(`Applied ${id}. Revision is now ${result.theme!.revision}; not saved yet.`)
     setNotice("")
+  }
+
+  const evaluateCommand = async () => {
+    setCommandEvaluating(true)
+    setCommandOutcome(null)
+    const result = await evaluateDesignCommandClient(commandText, mode)
+    setCommandEvaluating(false)
+    setCommandOutcome(result.outcome)
+    if (result.outcome.kind !== "staged") return
+    const seq = commandSeq + 1
+    setCommandSeq(seq)
+    const proposal = buildDesignCommandProposal(commandText, result.outcome.operations, { themeId: current.id, revision: current.revision }, `design-command-${seq}`, new Date().toISOString())
+    const staged = stageProposal(session, current, proposal, new Date().toISOString())
+    setSession(staged.session)
+    if (!staged.ok) return showProposalErrors(staged.errors)
+    setProposalIssues([])
+    setProposalResult(`Staged ${staged.staged.proposal.proposalId} from a design command. Nothing is active until you apply it.`)
   }
 
   const discardStaged = () => {
@@ -303,6 +327,71 @@ export function App() {
           <Button disabled={locked} onClick={applySetting}>
             Apply setting
           </Button>
+        </Panel>
+
+        <Panel title="Design command">
+          <p className="text-sm text-muted-foreground">
+            Describe a directional change (e.g. "make it denser and warmer"). One evaluation sends the command to Jev through the
+            localhost product API; deterministic code composes any accepted judgments into a normal mutation proposal below. Nothing
+            applies automatically.
+          </p>
+          <Field>
+            <FieldLabel htmlFor={commandTextId}>Command</FieldLabel>
+            <textarea
+              id={commandTextId}
+              value={commandText}
+              disabled={locked || commandEvaluating}
+              onChange={(e) => setCommandText(e.target.value)}
+              spellCheck={false}
+              rows={2}
+              data-testid="design-command-input"
+              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            />
+          </Field>
+          <Button disabled={locked || commandEvaluating || commandText.trim().length === 0} onClick={evaluateCommand} data-testid="design-command-evaluate">
+            {commandEvaluating ? "Evaluating…" : "Evaluate"}
+          </Button>
+          {commandEvaluating && (
+            <p role="status" data-testid="design-command-pending" className="text-sm text-muted-foreground">
+              Waiting on one Jev request…
+            </p>
+          )}
+          {commandOutcome && (
+            <div data-testid="design-command-outcome" data-outcome-kind={commandOutcome.kind} className="grid gap-2 text-sm">
+              {commandOutcome.kind === "rejected" ? (
+                <p role="status" data-testid="design-command-rejected">
+                  Rejected: <code>{commandOutcome.reason.code}</code>. Nothing was staged or changed.
+                </p>
+              ) : (
+                <>
+                  <p role="status" data-testid={`design-command-${commandOutcome.kind}`}>
+                    {commandOutcome.kind === "staged" && `Staged ${commandOutcome.operations.length} operation(s) from this command.`}
+                    {commandOutcome.kind === "clarification-required" && "More than one directional intent was detected. Restate as a single change."}
+                    {commandOutcome.kind === "unsupported" && "No supported category was recognized in this command."}
+                  </p>
+                  <details data-testid="design-command-evidence">
+                    <summary>Typed evidence (recipe {commandOutcome.evidence.recipeCatalogVersion}, questions {commandOutcome.evidence.questionCatalogVersion})</summary>
+                    <ul className="grid gap-1 pl-4">
+                      <li>
+                        commandKind: <code>{commandOutcome.evidence.commandKindSelected}</code> (confidence {commandOutcome.evidence.commandKindConfidence.toFixed(2)})
+                      </li>
+                      {commandOutcome.evidence.categories.map((entry) => (
+                        <li key={entry.category} data-testid={`design-command-evidence-${entry.category}`}>
+                          {entry.category}: <code>{entry.selected}</code> (confidence {entry.confidence.toFixed(2)}, {entry.targeted ? "targeted" : "not targeted"})
+                        </li>
+                      ))}
+                      <li>
+                        strength: <code>{commandOutcome.evidence.strengthLabel}</code> (confidence {commandOutcome.evidence.strengthConfidence.toFixed(2)})
+                      </li>
+                      <li>
+                        needsClarification: <code>{commandOutcome.evidence.needsClarificationValue.toFixed(2)}</code> ({commandOutcome.evidence.needsClarificationDecided ? "decided" : "undecided"})
+                      </li>
+                    </ul>
+                  </details>
+                </>
+              )}
+            </div>
+          )}
         </Panel>
 
         <Panel title="Mutation proposal">

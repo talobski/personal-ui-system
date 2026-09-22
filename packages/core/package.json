@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./theme/fixtures/*.css": "./src/theme/fixtures/*.css",
-    "./theme/fixtures/*.json": "./src/theme/fixtures/*.json"
+    "./theme/fixtures/*.json": "./src/theme/fixtures/*.json",
+    "./jev-design/evaluate": "./src/jev-design/evaluate.ts"
   },
   "scripts": {
     "test": "vitest run",
