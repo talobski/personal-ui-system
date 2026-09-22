@@ -152,5 +152,105 @@
       "focusManagement": "primitive"
     },
     "expected": { "ruleId": "responsive-dialog.titled", "path": "hasTitle" }
+  },
+  {
+    "name": "invalid textarea without associated error",
+    "state": {
+      "kind": "field-composition", "orientation": "vertical", "label": { "kind": "visible", "text": "Message", "htmlFor": "message" }, "descriptionId": null,
+      "control": { "kind": "textarea", "id": "message", "disabled": false, "invalid": true, "error": { "id": "message-error", "message": "Enter a message." }, "ariaDescribedBy": [], "mobileTextPx": 16 }
+    },
+    "expected": { "ruleId": "textarea.error-association", "path": "control.ariaDescribedBy" }
+  },
+  {
+    "name": "small mobile textarea text",
+    "state": {
+      "kind": "field-composition", "orientation": "vertical", "label": { "kind": "visible", "text": "Message", "htmlFor": "message" }, "descriptionId": null,
+      "control": { "kind": "textarea", "id": "message", "disabled": false, "invalid": false, "error": null, "ariaDescribedBy": [], "mobileTextPx": 14 }
+    },
+    "expected": { "ruleId": "textarea.mobile-text-size", "path": "control.mobileTextPx" }
+  },
+  {
+    "name": "switch without accessible name",
+    "state": { "kind": "switch", "id": "marketing-emails", "accessibleName": null, "checked": false, "disabled": false },
+    "expected": { "ruleId": "switch.accessible-name", "path": "accessibleName" }
+  },
+  {
+    "name": "duplicate tab ids",
+    "state": {
+      "kind": "tabs",
+      "tabs": [
+        { "id": "profile", "label": "Profile", "disabled": false },
+        { "id": "profile", "label": "Profile again", "disabled": false }
+      ],
+      "activeTabId": "profile"
+    },
+    "expected": { "ruleId": "tabs.unique-ids", "path": "tabs" }
+  },
+  {
+    "name": "active tab not present",
+    "state": {
+      "kind": "tabs",
+      "tabs": [{ "id": "profile", "label": "Profile", "disabled": false }],
+      "activeTabId": "billing"
+    },
+    "expected": { "ruleId": "tabs.active-tab", "path": "activeTabId" }
+  },
+  {
+    "name": "active tab disabled",
+    "state": {
+      "kind": "tabs",
+      "tabs": [{ "id": "profile", "label": "Profile", "disabled": true }],
+      "activeTabId": "profile"
+    },
+    "expected": { "ruleId": "tabs.active-tab", "path": "activeTabId" }
+  },
+  {
+    "name": "single toggle group without label",
+    "state": {
+      "kind": "single-toggle-group",
+      "label": null,
+      "options": [
+        { "label": "Monthly", "value": "monthly", "disabled": false },
+        { "label": "Yearly", "value": "yearly", "disabled": false }
+      ],
+      "value": "monthly"
+    },
+    "expected": { "ruleId": "single-toggle-group.label", "path": "label" }
+  },
+  {
+    "name": "single toggle group duplicate option values",
+    "state": {
+      "kind": "single-toggle-group",
+      "label": "Plan",
+      "options": [
+        { "label": "Monthly", "value": "monthly", "disabled": false },
+        { "label": "Duplicate", "value": "monthly", "disabled": false }
+      ],
+      "value": "monthly"
+    },
+    "expected": { "ruleId": "single-toggle-group.option-values", "path": "options" }
+  },
+  {
+    "name": "single toggle group empty value",
+    "state": {
+      "kind": "single-toggle-group",
+      "label": "Plan",
+      "options": [
+        { "label": "Monthly", "value": "monthly", "disabled": false },
+        { "label": "Yearly", "value": "yearly", "disabled": false }
+      ],
+      "value": null
+    },
+    "expected": { "ruleId": "single-toggle-group.value-required", "path": "value" }
+  },
+  {
+    "name": "card with two actions",
+    "state": { "kind": "card", "hasTitle": true, "actionCount": 2 },
+    "expected": { "ruleId": "card.single-action", "path": "actionCount" }
+  },
+  {
+    "name": "untitled card",
+    "state": { "kind": "card", "hasTitle": false, "actionCount": 0 },
+    "expected": { "ruleId": "card.titled", "path": "hasTitle" }
   }
 ]

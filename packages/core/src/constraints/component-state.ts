@@ -64,7 +64,49 @@ const fieldCompositionStateSchema = z.strictObject({
       options: z.array(z.strictObject({ label: z.string().min(1).max(200), value: z.string().max(200) })).min(1).max(50),
       value: z.string().min(1).max(200).nullable(),
     }),
+    z.strictObject({
+      kind: z.literal("textarea"),
+      id: z.string().min(1).max(80),
+      disabled: z.boolean(),
+      invalid: z.boolean(),
+      error: z.strictObject({ id: z.string().min(1).max(80), message: z.string().min(1).max(400) }).nullable(),
+      ariaDescribedBy: z.array(z.string().min(1).max(80)).max(12),
+      mobileTextPx: z.number().finite().positive(),
+    }),
+    z.strictObject({
+      kind: z.literal("switch"),
+      id: z.string().min(1).max(80),
+      disabled: z.boolean(),
+      checked: z.boolean(),
+    }),
   ]),
+})
+
+const tabsStateSchema = z.strictObject({
+  kind: z.literal("tabs"),
+  tabs: z.array(z.strictObject({ id: z.string().min(1).max(80), label: z.string().min(1).max(200), disabled: z.boolean() })).min(1).max(12),
+  activeTabId: z.string().min(1).max(80),
+})
+
+const switchStateSchema = z.strictObject({
+  kind: z.literal("switch"),
+  id: z.string().min(1).max(80),
+  accessibleName: z.string().min(1).max(200).nullable(),
+  checked: z.boolean(),
+  disabled: z.boolean(),
+})
+
+const singleToggleGroupStateSchema = z.strictObject({
+  kind: z.literal("single-toggle-group"),
+  label: z.string().min(1).max(200).nullable(),
+  options: z.array(z.strictObject({ label: z.string().min(1).max(200), value: z.string().max(200), disabled: z.boolean() })).min(2).max(8),
+  value: z.string().max(200).nullable(),
+})
+
+const cardStateSchema = z.strictObject({
+  kind: z.literal("card"),
+  hasTitle: z.boolean(),
+  actionCount: z.number().int().nonnegative().max(12),
 })
 
 export const componentStateSchema = z.discriminatedUnion("kind", [
@@ -72,6 +114,10 @@ export const componentStateSchema = z.discriminatedUnion("kind", [
   inputStateSchema,
   responsiveDialogStateSchema,
   fieldCompositionStateSchema,
+  tabsStateSchema,
+  switchStateSchema,
+  singleToggleGroupStateSchema,
+  cardStateSchema,
 ])
 
 export type ComponentState = z.infer<typeof componentStateSchema>
@@ -90,6 +136,16 @@ export type ComponentConstraintRuleId =
   | "native-select.option-values"
   | "native-select.error-association"
   | "native-select.mobile-text-size"
+  | "textarea.error-association"
+  | "textarea.mobile-text-size"
+  | "switch.accessible-name"
+  | "tabs.unique-ids"
+  | "tabs.active-tab"
+  | "single-toggle-group.label"
+  | "single-toggle-group.option-values"
+  | "single-toggle-group.value-required"
+  | "card.single-action"
+  | "card.titled"
   | "responsive-dialog.breakpoint"
   | "responsive-dialog.no-custom-focus"
   | "responsive-dialog.titled"
@@ -151,19 +207,53 @@ export function validateComponentState(input: unknown): ComponentStateValidation
     const { control, label } = state
     if (label === null) issues.push({ ruleId: "field.label", path: "label" })
     else if (label.htmlFor !== control.id) issues.push({ ruleId: "field.label-association", path: "label.htmlFor" })
-    if (control.invalid && (control.error === null || !control.ariaDescribedBy.includes(control.error.id))) {
-      issues.push({ ruleId: "field.invalid-error", path: "control.ariaDescribedBy" })
-      if (control.kind === "native-select") issues.push({ ruleId: "native-select.error-association", path: "control.ariaDescribedBy" })
+
+    if (control.kind !== "switch") {
+      if (control.invalid && (control.error === null || !control.ariaDescribedBy.includes(control.error.id))) {
+        issues.push({ ruleId: "field.invalid-error", path: "control.ariaDescribedBy" })
+        if (control.kind === "native-select") issues.push({ ruleId: "native-select.error-association", path: "control.ariaDescribedBy" })
+        if (control.kind === "textarea") issues.push({ ruleId: "textarea.error-association", path: "control.ariaDescribedBy" })
+      }
+      if (control.mobileTextPx < 16) {
+        const ruleId =
+          control.kind === "native-select" ? "native-select.mobile-text-size" : control.kind === "textarea" ? "textarea.mobile-text-size" : "input.mobile-text-size"
+        issues.push({ ruleId, path: "control.mobileTextPx" })
+      }
     }
-    if (control.mobileTextPx < 16) {
-      issues.push({ ruleId: control.kind === "native-select" ? "native-select.mobile-text-size" : "input.mobile-text-size", path: "control.mobileTextPx" })
-    }
+
     if (control.kind === "native-select") {
       const values = control.options.map((option) => option.value)
       if (values.some((value) => value.length === 0) || new Set(values).size !== values.length || (control.value !== null && !values.includes(control.value))) {
         issues.push({ ruleId: "native-select.option-values", path: "control.options" })
       }
     }
+  }
+
+  if (state.kind === "switch") {
+    if (state.accessibleName === null) issues.push({ ruleId: "switch.accessible-name", path: "accessibleName" })
+  }
+
+  if (state.kind === "tabs") {
+    const ids = state.tabs.map((tab) => tab.id)
+    if (new Set(ids).size !== ids.length) issues.push({ ruleId: "tabs.unique-ids", path: "tabs" })
+    const activeTab = state.tabs.find((tab) => tab.id === state.activeTabId)
+    if (!activeTab || activeTab.disabled) issues.push({ ruleId: "tabs.active-tab", path: "activeTabId" })
+  }
+
+  if (state.kind === "single-toggle-group") {
+    if (state.label === null) issues.push({ ruleId: "single-toggle-group.label", path: "label" })
+    const values = state.options.map((option) => option.value)
+    if (values.some((value) => value.length === 0) || new Set(values).size !== values.length) {
+      issues.push({ ruleId: "single-toggle-group.option-values", path: "options" })
+    }
+    if (state.value === null || !values.includes(state.value)) {
+      issues.push({ ruleId: "single-toggle-group.value-required", path: "value" })
+    }
+  }
+
+  if (state.kind === "card") {
+    if (!state.hasTitle) issues.push({ ruleId: "card.titled", path: "hasTitle" })
+    if (state.actionCount > 1) issues.push({ ruleId: "card.single-action", path: "actionCount" })
   }
 
   if (state.kind === "responsive-dialog") {
@@ -183,4 +273,4 @@ const isSupportedFieldControl = (control: unknown): boolean =>
   typeof control === "object" &&
   control !== null &&
   !Array.isArray(control) &&
-  ((control as Record<string, unknown>).kind === "input" || (control as Record<string, unknown>).kind === "native-select")
+  ["input", "native-select", "textarea", "switch"].includes((control as Record<string, unknown>).kind as string)

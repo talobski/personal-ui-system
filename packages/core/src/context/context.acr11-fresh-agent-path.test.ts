@@ -39,7 +39,18 @@ describe("fresh-agent-verifiable path (ACR-11)", () => {
   it("selects Field plus NativeSelect, reads their duties, and validates the admitted structured state", async () => {
     const list = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "list" })
     if (!list.ok || list.operation !== "list") throw new Error("expected list")
-    expect(list.resources.map((resource) => resource.id)).toEqual(["button", "field", "input", "native-select", "responsive-dialog"])
+    expect(list.resources.map((resource) => resource.id)).toEqual([
+      "button",
+      "card",
+      "field",
+      "input",
+      "native-select",
+      "responsive-dialog",
+      "single-toggle-group",
+      "switch",
+      "tabs",
+      "textarea",
+    ])
     const [field, nativeSelect] = await Promise.all(["field", "native-select"].map((resource) => evaluateContextRequest({ version: "personal-ui-context/1", operation: "get", theme: "quiet-editorial", resource })))
     if (!field.ok || field.operation !== "get" || !nativeSelect.ok || nativeSelect.operation !== "get") throw new Error("expected get")
     expect(field.resource.composition.join(" ")).toMatch(/NativeSelect/)

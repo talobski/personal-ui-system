@@ -52,6 +52,25 @@ describe("shadcn foundation", () => {
     }
   })
 
+  it("keeps Card, Tabs, Switch, Textarea, and SingleToggleGroup as thin shadcn-derived compositions", () => {
+    const card = source("card.tsx")
+    const tabs = source("tabs.tsx")
+    const switchSource = source("switch.tsx")
+    const textarea = source("textarea.tsx")
+    const singleToggleGroup = source("single-toggle-group.tsx")
+    expect(card).toContain('data-slot="card"')
+    expect(tabs).toContain('from "radix-ui"')
+    expect(tabs).toContain('data-slot="tabs"')
+    expect(switchSource).toContain('from "radix-ui"')
+    expect(switchSource).toContain('data-slot="switch"')
+    expect(textarea).toContain('React.ComponentProps<"textarea">')
+    expect(singleToggleGroup).toContain('from "@personal-ui/ui/components/toggle-group"')
+    for (const implementation of [card, tabs, switchSource, textarea, singleToggleGroup]) {
+      expect(implementation).not.toMatch(/addEventListener\(["']keydown/)
+      expect(implementation).not.toMatch(/focusTrap|trapFocus|dismissOnEscape/i)
+    }
+  })
+
   it("declares the pilot dependency provenance in the shadcn registry", () => {
     const registry = JSON.parse(readFileSync(join(components, "../../../registry.json"), "utf8")) as {
       items: Array<{ name: string; dependencies?: string[]; registryDependencies?: string[] }>
@@ -63,6 +82,22 @@ describe("shadcn foundation", () => {
     expect(item("field")?.registryDependencies).toEqual(expect.arrayContaining(["label", "separator"]))
     expect(item("native-select")?.dependencies).toEqual(expect.arrayContaining(["cn", "lucide-react"]))
     expect(item("responsive-dialog")?.registryDependencies).toEqual(expect.arrayContaining(["dialog", "drawer"]))
-    expect(registry.items.map((entry) => entry.name).sort()).toEqual(["button", "field", "input", "native-select", "responsive-dialog"])
+    expect(item("card")?.dependencies).toEqual(expect.arrayContaining(["cn"]))
+    expect(item("tabs")?.dependencies).toEqual(expect.arrayContaining(["cn", "radix-ui"]))
+    expect(item("switch")?.dependencies).toEqual(expect.arrayContaining(["cn", "radix-ui"]))
+    expect(item("textarea")?.dependencies).toEqual(expect.arrayContaining(["cn"]))
+    expect(item("single-toggle-group")?.registryDependencies).toEqual(expect.arrayContaining(["toggle-group", "toggle"]))
+    expect(registry.items.map((entry) => entry.name).sort()).toEqual([
+      "button",
+      "card",
+      "field",
+      "input",
+      "native-select",
+      "responsive-dialog",
+      "single-toggle-group",
+      "switch",
+      "tabs",
+      "textarea",
+    ])
   })
 })

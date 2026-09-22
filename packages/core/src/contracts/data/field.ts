@@ -2,7 +2,7 @@ export const field = {
   id: "field",
   purpose: "Compose a label, control, description, and validation message as one accessible form field.",
   use: [
-    "Use Field with FieldLabel and FieldContent around one Input or NativeSelect.",
+    "Use Field with FieldLabel and FieldContent around one Input, NativeSelect, Textarea, or Switch.",
     "Use vertical, horizontal, or container-responsive orientation for a labelled field.",
     "Keep the label, optional description, control, and error in the same Field so their relationships remain clear.",
   ],
@@ -21,7 +21,7 @@ export const field = {
     "Disabled state belongs on the native control and is reflected by Field styling without replacing native semantics.",
   ],
   composition: [
-    "Compose exactly one supported Input or NativeSelect control in a Field state.",
+    "Compose exactly one supported Input, NativeSelect, Textarea, or Switch control in a Field state.",
     "Use FieldContent for the control, description, and FieldError; pair FieldLabel htmlFor with the control id.",
     "Field is shadcn-derived and composes the existing Label and Separator foundations; do not reimplement form semantics.",
   ],
@@ -38,6 +38,6 @@ export const field = {
     { id: "field.label", rule: "A Field composition must include a visible or programmatic label." },
     { id: "field.label-association", rule: "The Field label htmlFor value must equal the composed control id." },
     { id: "field.invalid-error", rule: "An invalid Field control must have an associated error message." },
-    { id: "field.unsupported-composition", rule: "A Field may compose only one admitted Input or NativeSelect control." },
+    { id: "field.unsupported-composition", rule: "A Field may compose only one admitted Input, NativeSelect, Textarea, or Switch control." },
   ],
 }

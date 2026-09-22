@@ -19,6 +19,10 @@ describe("component-state constraints", () => {
       { kind: "arbitrary", css: "body{}" },
       { kind: "button-group", buttons: [], file: "/tmp/theme.css" },
       { kind: "responsive-dialog", viewportWidth: 1024, rendered: "dialog", hasTitle: true, hasDescription: true, focusManagement: "primitive", css: "x" },
+      { kind: "tabs", tabs: [{ id: "profile", label: "Profile", disabled: false }], activeTabId: "profile", css: "body{}" },
+      { kind: "single-toggle-group", label: "Plan", options: [{ label: "A", value: "a", disabled: false }], value: "a", file: "/tmp/x" },
+      { kind: "card", hasTitle: true, actionCount: 1, css: "body{}" },
+      { kind: "switch", id: "x", accessibleName: "X", checked: false, disabled: false, path: "/etc/passwd" },
     ]) {
       const result = validateComponentState(state)
       expect(result.ok).toBe(false)

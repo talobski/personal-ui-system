@@ -20,6 +20,7 @@ describe("context list (ACR-02)", () => {
 
     expect(result.resources).toEqual([
       { id: "button", kind: "component", purpose: "Trigger a single, clearly named action or navigation." },
+      { id: "card", kind: "component", purpose: "Group related panel content — a title, description, body, and actions — inside one bordered surface." },
       { id: "field", kind: "pattern", purpose: "Compose a label, control, description, and validation message as one accessible form field." },
       { id: "input", kind: "component", purpose: "Capture a single line of user-entered text or a native input type." },
       { id: "native-select", kind: "component", purpose: "Choose one value from a small, fixed set with the platform native select control." },
@@ -28,6 +29,10 @@ describe("context list (ACR-02)", () => {
         kind: "pattern",
         purpose: "Present focused, blocking content as a centered Dialog on wide viewports and a bottom Drawer on narrow ones.",
       },
+      { id: "single-toggle-group", kind: "pattern", purpose: "Choose exactly one option from a small, bounded, always-visible set." },
+      { id: "switch", kind: "component", purpose: "Toggle a single boolean setting on or off immediately, with no separate save step." },
+      { id: "tabs", kind: "component", purpose: "Switch the visible content of one region between a small set of related panels." },
+      { id: "textarea", kind: "component", purpose: "Capture multiple lines of free-form user-entered text." },
     ])
   })
 

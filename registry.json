@@ -43,6 +43,46 @@
       "description": "One public pattern that renders the shadcn Dialog above 640px and the shadcn Drawer at 640px and below.",
       "registryDependencies": ["button", "dialog", "drawer"],
       "files": [{ "path": "packages/ui/src/components/responsive-dialog.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "card",
+      "type": "registry:ui",
+      "title": "Card",
+      "description": "Shadcn Card composition for grouped panel content, preserved as generated.",
+      "dependencies": ["cn"],
+      "files": [{ "path": "packages/ui/src/components/card.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "Shadcn Tabs for switching between related panels of content.",
+      "dependencies": ["cn", "radix-ui"],
+      "files": [{ "path": "packages/ui/src/components/tabs.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "switch",
+      "type": "registry:ui",
+      "title": "Switch",
+      "description": "Shadcn Switch for a single labelled on/off control.",
+      "dependencies": ["cn", "radix-ui"],
+      "files": [{ "path": "packages/ui/src/components/switch.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "textarea",
+      "type": "registry:ui",
+      "title": "Textarea",
+      "description": "Shadcn Textarea for multi-line text entry.",
+      "dependencies": ["cn"],
+      "files": [{ "path": "packages/ui/src/components/textarea.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "single-toggle-group",
+      "type": "registry:ui",
+      "title": "Single Toggle Group",
+      "description": "Single-select shadcn ToggleGroup that always keeps exactly one bounded option selected.",
+      "registryDependencies": ["toggle-group", "toggle"],
+      "files": [{ "path": "packages/ui/src/components/single-toggle-group.tsx", "type": "registry:ui" }]
     }
   ]
 }

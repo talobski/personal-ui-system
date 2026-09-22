@@ -1,12 +1,25 @@
 import { describe, expect, it } from "vitest"
 import { contractByteLength, contractSchema, CONTRACT_MAX_BYTES, getContract, listContractIds } from "../index"
 
+const ALL_RESOURCE_IDS = [
+  "button",
+  "card",
+  "field",
+  "input",
+  "native-select",
+  "responsive-dialog",
+  "single-toggle-group",
+  "switch",
+  "tabs",
+  "textarea",
+]
+
 describe("contract lookup", () => {
-  it("lists exactly the five public resources", () => {
-    expect(listContractIds().sort()).toEqual(["button", "field", "input", "native-select", "responsive-dialog"])
+  it("lists exactly the ten public resources", () => {
+    expect(listContractIds().sort()).toEqual([...ALL_RESOURCE_IDS].sort())
   })
 
-  it.each(["button", "field", "input", "native-select", "responsive-dialog"])("returns only the %s contract, validated and within 8 KiB", async (id) => {
+  it.each(ALL_RESOURCE_IDS)("returns only the %s contract, validated and within 8 KiB", async (id) => {
     const contract = await getContract(id)
     expect(contract?.id).toBe(id)
     expect(contractSchema.safeParse(contract).success).toBe(true)

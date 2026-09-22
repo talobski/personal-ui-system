@@ -62,5 +62,56 @@
     "hasTitle": true,
     "hasDescription": true,
     "focusManagement": "primitive"
+  },
+  {
+    "kind": "field-composition",
+    "orientation": "vertical",
+    "label": { "kind": "visible", "text": "Message", "htmlFor": "message" },
+    "descriptionId": "message-help",
+    "control": {
+      "kind": "textarea",
+      "id": "message",
+      "disabled": false,
+      "invalid": true,
+      "error": { "id": "message-error", "message": "Enter a message." },
+      "ariaDescribedBy": ["message-help", "message-error"],
+      "mobileTextPx": 16
+    }
+  },
+  {
+    "kind": "field-composition",
+    "orientation": "horizontal",
+    "label": { "kind": "visible", "text": "Email notifications", "htmlFor": "email-notifications" },
+    "descriptionId": null,
+    "control": { "kind": "switch", "id": "email-notifications", "disabled": false, "checked": true }
+  },
+  {
+    "kind": "switch",
+    "id": "marketing-emails",
+    "accessibleName": "Marketing emails",
+    "checked": false,
+    "disabled": false
+  },
+  {
+    "kind": "tabs",
+    "tabs": [
+      { "id": "profile", "label": "Profile", "disabled": false },
+      { "id": "billing", "label": "Billing", "disabled": false }
+    ],
+    "activeTabId": "profile"
+  },
+  {
+    "kind": "single-toggle-group",
+    "label": "Plan",
+    "options": [
+      { "label": "Monthly", "value": "monthly", "disabled": false },
+      { "label": "Yearly", "value": "yearly", "disabled": false }
+    ],
+    "value": "monthly"
+  },
+  {
+    "kind": "card",
+    "hasTitle": true,
+    "actionCount": 1
   }
 ]

@@ -20,7 +20,7 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "resource:field": {
     sourceId: "packages/core/src/contracts/data/field.ts",
-    sha256: "c83b5660749f72fafa6f5b7bb412fe3e6ec76a23df138ccdcde456912cadcb03",
+    sha256: "3c3194d68934daae69b489a4cdcaef6494ff6d48f107f478bfd042881fd1f047",
   },
   "resource:input": {
     sourceId: "packages/core/src/contracts/data/input.ts",
@@ -33,6 +33,26 @@ const RAW_PROVENANCE_MANIFEST = {
   "resource:responsive-dialog": {
     sourceId: "packages/core/src/contracts/data/responsive-dialog.ts",
     sha256: "3d3a00d5a2b5350980f1eec86fee801fc9907c96b636047b443b5c68c059eb65",
+  },
+  "resource:card": {
+    sourceId: "packages/core/src/contracts/data/card.ts",
+    sha256: "bff3ff48a4843735d7d2f1cd5cd932a3398d7f565acbad66a31143893020c9da",
+  },
+  "resource:tabs": {
+    sourceId: "packages/core/src/contracts/data/tabs.ts",
+    sha256: "6a4dadd685049cc5d620fc97ae53102e2911f4839b3f2747b997e170c29b4f9c",
+  },
+  "resource:switch": {
+    sourceId: "packages/core/src/contracts/data/switch.ts",
+    sha256: "2212caff5fac95eeb7d528280e204c56b2d224a545e9ded5c9e4823fef357a21",
+  },
+  "resource:textarea": {
+    sourceId: "packages/core/src/contracts/data/textarea.ts",
+    sha256: "2bfcaf9968692955a0633aed5d7dfeea3632e366c3ad4c20b0f55cf4e6d24c15",
+  },
+  "resource:single-toggle-group": {
+    sourceId: "packages/core/src/contracts/data/single-toggle-group.ts",
+    sha256: "2735628ebca773adac5aa8e783385025db0eac0ad29330a020a5db1aa4bdfe3b",
   },
 } as const satisfies Record<string, ProvenanceEntry>
 

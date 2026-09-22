@@ -11,6 +11,11 @@ const loaders = {
   input: () => import("./data/input").then((m) => m.input),
   "native-select": () => import("./data/native-select").then((m) => m.nativeSelect),
   "responsive-dialog": () => import("./data/responsive-dialog").then((m) => m.responsiveDialog),
+  card: () => import("./data/card").then((m) => m.card),
+  tabs: () => import("./data/tabs").then((m) => m.tabs),
+  switch: () => import("./data/switch").then((m) => m.switchContract),
+  textarea: () => import("./data/textarea").then((m) => m.textarea),
+  "single-toggle-group": () => import("./data/single-toggle-group").then((m) => m.singleToggleGroup),
 } as const satisfies Record<string, () => Promise<unknown>>
 
 export type ContractId = keyof typeof loaders
