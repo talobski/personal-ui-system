@@ -1,15 +1,16 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `accessible-form-composition-v1-001` is owner-approved and
+Status: ACTIVE — `composition-foundation-pack-v1-001` is owner-approved and
 awaiting its bounded producer. All earlier phases remain accepted and are not
-reopened. The current accepted state on `main` is `b826a931`: product-owned Jev
-Design Command has passed bounded live interoperability, and
-`personal-ui-context/1` provides deterministic list/get/capabilities retrieval
-with fresh-agent consumption verified. Canonical execution state remains in
-`.loop/state.json`; older checkpoint documents may describe earlier accepted
-milestones and are historical evidence rather than current control state.
+reopened. The current accepted state on `main` is `a8e63328`: product-owned Jev
+Design Command has passed bounded live interoperability,
+`personal-ui-context/1` provides deterministic list/get/capabilities retrieval,
+and Accessible Form Composition v1 is accepted with its public agent-consumption
+path verified. Canonical execution state remains in `.loop/state.json`; older
+checkpoint documents may describe earlier accepted milestones and are
+historical evidence rather than current control state.
 
-Last updated: 2026-09-22
+Last updated: 2026-09-23
 
 ## Goal
 
@@ -812,3 +813,38 @@ STANDARD is the default model class; STRONG requires a recorded concrete
 expected benefit, and MAX remains owner-gated per dispatch. The owner prefers
 Codex for the producer; verifier routing remains independent and uses fresh
 provider/capacity evidence at dispatch.
+
+## Phase 7 result: Accessible Form Composition v1
+
+Accepted on 2026-09-23 at main `a8e63328`. The public catalog now contains
+exactly five resources: Button, Field, Input, Native Select, and Responsive
+Dialog/Drawer. AFC-01 through AFC-12 passed after a bounded documentation-and-
+tests-only correction made the existing proposal path independently
+discoverable to unfamiliar agents. The final protected fresh verifier completed
+the public rubric 7/7 using only the core package manifest and README, the public
+context CLI, and public core exports. The accepted runtime preserves the
+existing schemas, theme/mutation/proposal semantics, Workbench behavior, and
+product/control-plane boundary. Completion evidence is recorded in
+`.loop/runs/accessible-form-composition-v1-001/result.json` and
+`.loop/runs/afc09-agent-consumption-correction-001/result.json`.
+
+## Phase 8: Composition Foundation Pack v1
+
+Owner-approved on 2026-09-23. This phase adds exactly five public resources:
+`card`, `tabs`, `switch`, `textarea`, and `single-toggle-group`. It preserves the
+five accepted resources and every accepted schema, token, mutation, proposal,
+Jev, retrieval, and Workbench boundary. Four verified composition fixtures—
+account profile, notification preferences, workspace settings, and support
+request—exercise the resulting vocabulary without redesigning the Workbench or
+promoting additional resources.
+
+Acceptance is CFP-01 through CFP-12 in
+`.loop/runs/composition-foundation-pack-v1-001/task.md`. Execution remains
+single-worker: one producer followed by protected fresh verification, with a
+third run reserved only for bounded recovery/reverification. The hard phase
+ceiling is 3 agent runs (2 expected), 6 Lead-to-worker turns, 4 artifact
+attempts, concurrency 1, and paid spend 0. STANDARD is the admitted model class;
+MAX remains owner-gated. The temporary owner preference softly favors Claude
+where otherwise equivalent for this phase, with Codex fully admissible and the
+normal Codex default restored when the override ends or fresh evidence changes
+the route.
