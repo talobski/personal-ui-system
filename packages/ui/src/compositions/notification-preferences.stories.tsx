@@ -19,7 +19,7 @@ function NotificationRow({ id, title, description, defaultChecked = true, disabl
 
 function NotificationPreferences() {
   return (
-    <Card className="w-[26rem]">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Notification preferences</CardTitle>
         <CardDescription>Choose which updates reach you and how.</CardDescription>

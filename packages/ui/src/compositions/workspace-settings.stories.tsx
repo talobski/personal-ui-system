@@ -81,7 +81,7 @@ function AppearancePanel() {
 
 function WorkspaceSettings() {
   return (
-    <Tabs defaultValue="general" className="w-[26rem]">
+    <Tabs defaultValue="general" className="w-full max-w-md">
       <TabsList>
         <TabsTrigger value="general">General</TabsTrigger>
         <TabsTrigger value="notifications">Notifications</TabsTrigger>

@@ -10,7 +10,7 @@ import { Textarea } from "@personal-ui/ui/components/textarea"
 function AccountProfile({ invalidEmail = false }: { invalidEmail?: boolean }) {
   const emailErrorId = "profile-email-error"
   return (
-    <Card className="w-[26rem]">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Account profile</CardTitle>
         <CardDescription>Keep your account details current.</CardDescription>

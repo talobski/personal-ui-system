@@ -30,7 +30,12 @@ describe("context list (ACR-02)", () => {
         purpose: "Present focused, blocking content as a centered Dialog on wide viewports and a bottom Drawer on narrow ones.",
       },
       { id: "single-toggle-group", kind: "pattern", purpose: "Choose exactly one option from a small, bounded, always-visible set." },
-      { id: "switch", kind: "component", purpose: "Toggle a single boolean setting on or off immediately, with no separate save step." },
+      {
+        id: "switch",
+        kind: "component",
+        purpose:
+          "Toggle a single boolean setting on or off. The visible on/off state always updates immediately; whether that change is persisted immediately or held for an explicit Save is one commit model declared for the whole surface.",
+      },
       { id: "tabs", kind: "component", purpose: "Switch the visible content of one region between a small set of related panels." },
       { id: "textarea", kind: "component", purpose: "Capture multiple lines of free-form user-entered text." },
     ])

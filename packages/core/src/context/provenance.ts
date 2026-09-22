@@ -40,11 +40,11 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "resource:tabs": {
     sourceId: "packages/core/src/contracts/data/tabs.ts",
-    sha256: "6a4dadd685049cc5d620fc97ae53102e2911f4839b3f2747b997e170c29b4f9c",
+    sha256: "2f585e332480fa960d2b167adb84e1551391190604bb60cc4b47936f0818d7a2",
   },
   "resource:switch": {
     sourceId: "packages/core/src/contracts/data/switch.ts",
-    sha256: "2212caff5fac95eeb7d528280e204c56b2d224a545e9ded5c9e4823fef357a21",
+    sha256: "3ad20183f435d069e6b499ba11abf65adf899772e61b72f0c8f8e58d8e9dc0d5",
   },
   "resource:textarea": {
     sourceId: "packages/core/src/contracts/data/textarea.ts",

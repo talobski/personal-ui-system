@@ -19,6 +19,15 @@ async function assertNoSeriousOrCritical(page: import("@playwright/test").Page, 
   expect(serious).toEqual([])
 }
 
+/** The fixture must stay fluid within the viewport (bounded desktop max width) rather than forcing horizontal scroll. */
+async function assertNoHorizontalOverflow(page: import("@playwright/test").Page) {
+  const overflow = await page.evaluate(() => ({
+    documentElement: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    body: document.body.scrollWidth > document.body.clientWidth,
+  }))
+  expect(overflow).toEqual({ documentElement: false, body: false })
+}
+
 test("Workspace settings composes Tabs, Card, Field controls, Switch, and SingleToggleGroup for a bounded choice", async ({ page }, testInfo) => {
   for (const mode of colorModes) {
     await test.step(mode, async () => {
@@ -30,6 +39,12 @@ test("Workspace settings composes Tabs, Card, Field controls, Switch, and Single
       const appearanceTab = page.getByRole("tab", { name: "Appearance" })
       await expect(generalTab).toHaveAttribute("aria-selected", "true")
       await expect(page.getByLabel("Workspace name")).toHaveValue("Personal UI System")
+
+      // TabsList is a single non-wrapping row: at the narrowest supported viewport it must still stay within the
+      // viewport's width rather than overflowing, since this small, short-labelled tab set is the documented limit.
+      const tablistBox = await page.getByRole("tablist").boundingBox()
+      expect(tablistBox).not.toBeNull()
+      expect(tablistBox!.x + tablistBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width)
 
       await generalTab.focus()
       await page.keyboard.press("ArrowRight")
@@ -54,6 +69,7 @@ test("Workspace settings composes Tabs, Card, Field controls, Switch, and Single
       await expect(compact).toHaveAttribute("data-state", "on")
       await expect(comfortable).toHaveAttribute("data-state", "off")
 
+      await assertNoHorizontalOverflow(page)
       await assertNoSeriousOrCritical(page, testInfo, mode)
     })
   }

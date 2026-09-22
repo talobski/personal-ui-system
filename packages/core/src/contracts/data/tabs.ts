@@ -2,18 +2,19 @@ export const tabs = {
   id: "tabs",
   purpose: "Switch the visible content of one region between a small set of related panels.",
   use: [
-    "Use Tabs to let a user switch between two to twelve related views of the same object without navigating away.",
-    "Give every TabsTrigger a stable, unique value and a short visible label.",
+    "Use Tabs to let a user switch between two to five related views of the same object without navigating away.",
+    "Give every TabsTrigger a short (roughly one word) visible label and a stable, unique value.",
     "Set one non-disabled TabsTrigger as the initially active tab.",
+    "Keep the tab count and label lengths short enough that TabsList's single row fits the narrowest supported viewport without horizontal overflow.",
   ],
   avoid: [
     "Using Tabs for a linear multi-step process (use a wizard or separate route instead).",
     "Hiding required or unrelated content behind a tab a user must discover.",
-    "More than about six top-level tabs in one TabsList.",
+    "More than about five top-level tabs, or any long-label tabs, in one TabsList intended for narrow viewports.",
   ],
   variants: ["default"],
   responsiveBehavior:
-    "TabsList sizes to its content and wraps within its container's width; it does not collapse into a select or menu at narrow viewports.",
+    "TabsList is a single, non-wrapping row (shadcn default: inline-flex, no flex-wrap) sized to its content; it does not reflow to multiple rows and does not collapse into a select or menu at narrow viewports. This is only safe at narrow viewports for a small tab count with short labels that the row's intrinsic width stays within the viewport; TabsList itself does not scroll or clip overflow.",
   accessibility: [
     "Built on Radix Tabs: TabsList exposes role=tablist, TabsTrigger role=tab, and TabsContent role=tabpanel with the correct aria-selected/aria-controls wiring.",
     "Arrow-key navigation moves focus between tabs; Home/End move to the first/last enabled tab; do not add a custom keyboard handler.",
@@ -32,6 +33,7 @@ export const tabs = {
     "Reusing the same value for two TabsTrigger elements.",
     "Setting the active tab to a value with no matching TabsContent.",
     "Making the initially active tab a disabled one.",
+    "Using enough tabs or long enough labels that the non-wrapping TabsList row overflows the narrowest supported viewport.",
   ],
   mobileReplacement: null,
   constraints: [

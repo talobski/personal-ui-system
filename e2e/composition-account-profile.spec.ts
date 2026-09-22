@@ -19,6 +19,15 @@ async function assertNoSeriousOrCritical(page: import("@playwright/test").Page, 
   expect(serious).toEqual([])
 }
 
+/** The fixture must stay fluid within the viewport (bounded desktop max width) rather than forcing horizontal scroll. */
+async function assertNoHorizontalOverflow(page: import("@playwright/test").Page) {
+  const overflow = await page.evaluate(() => ({
+    documentElement: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    body: document.body.scrollWidth > document.body.clientWidth,
+  }))
+  expect(overflow).toEqual({ documentElement: false, body: false })
+}
+
 test("Account profile composes Card, Field, Input, NativeSelect, Textarea, and Button", async ({ page }, testInfo) => {
   for (const mode of colorModes) {
     await test.step(mode, async () => {
@@ -36,6 +45,7 @@ test("Account profile composes Card, Field, Input, NativeSelect, Textarea, and B
       await expect(page.getByLabel("Bio")).toHaveValue("Mathematician and writer.")
       await expect(page.getByRole("button", { name: "Save changes" })).toBeVisible()
 
+      await assertNoHorizontalOverflow(page)
       await assertNoSeriousOrCritical(page, testInfo, mode)
     })
   }

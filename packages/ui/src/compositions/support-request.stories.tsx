@@ -10,7 +10,7 @@ import { Textarea } from "@personal-ui/ui/components/textarea"
 function SupportRequest({ invalidMessage = false }: { invalidMessage?: boolean }) {
   const messageErrorId = "support-message-error"
   return (
-    <Card className="w-[26rem]">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Contact support</CardTitle>
         <CardDescription>We usually reply within one business day.</CardDescription>
