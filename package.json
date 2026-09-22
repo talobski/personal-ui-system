@@ -15,7 +15,8 @@
     "test:browser": "pnpm test:browser:storybook && pnpm test:browser:workbench && pnpm test:browser:design-command-live",
     "typecheck:jev": "tsc -p tools/loop/jev",
     "test:jev": "vitest run tools/loop/jev",
-    "jev": "node tools/loop/jev/cli.mjs"
+    "jev": "node tools/loop/jev/cli.mjs",
+    "context": "node packages/core/src/context/bootstrap.mjs"
   },
   "engines": {
     "node": ">=22"

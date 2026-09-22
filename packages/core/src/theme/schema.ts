@@ -64,9 +64,11 @@ const colorSet = z.strictObject(
 
 const fontFamily = token("fontFamily", z.array(fontNameSchema).min(1))
 
+export const THEME_SCHEMA_VERSION = "1.0" as const
+
 export const themeSchema = z.strictObject({
   $schema: z.literal("https://personal-ui.local/schema/theme-1.json"),
-  schemaVersion: z.literal("1.0"),
+  schemaVersion: z.literal(THEME_SCHEMA_VERSION),
   kind: z.literal("personal-ui-theme"),
   id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   name: z.string().min(1).max(80).regex(/^[A-Za-z0-9 ]+$/),

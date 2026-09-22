@@ -63,7 +63,7 @@ export type MutationResult =
   | { ok: false; errors: MutationError[] }
 
 /** Allowlisted keys per operation; also the closed set of operation names. */
-const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
+export const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
   ["setColor", new Set(["op", "mode", "token", "value"])],
   ["setRadius", new Set(["op", "value"])],
   ["setDensity", new Set(["op", "value"])],

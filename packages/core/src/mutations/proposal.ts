@@ -49,6 +49,12 @@ export type ProposalError = { ruleId: ProposalRuleId | MutationRuleId; path: str
 /** Lifecycle: received -> rejected | staged; staged -> applied | discarded | stale. `received` is never stored. */
 export type ProposalStatus = "rejected" | "staged" | "applied" | "discarded" | "stale"
 
+/** Data mirror of the lifecycle documented above, for read-only introspection (e.g. context capabilities). */
+export const PROPOSAL_LIFECYCLE_TRANSITIONS = {
+  received: ["rejected", "staged"],
+  staged: ["applied", "discarded", "stale"],
+} as const satisfies Record<string, readonly ProposalStatus[]>
+
 /** What was measured when the proposal was staged. `diff` is active -> candidate, sorted by path. */
 export type ProposalEvaluation = {
   evaluatedAt: string
