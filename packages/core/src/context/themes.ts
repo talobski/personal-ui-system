@@ -1,6 +1,7 @@
 import { validateTheme } from "../theme/schema"
 import type { Theme } from "../theme/schema"
 import canonicalFixture from "../theme/fixtures/valid.json" with { type: "json" }
+import { compareCodeUnits } from "./ordering"
 
 export type ThemeSummary = { id: string; name: string; revision: number }
 
@@ -15,7 +16,7 @@ const loaders = {
 
 export type ThemeId = keyof typeof loaders
 
-export const listThemeIds = (): ThemeId[] => (Object.keys(loaders) as ThemeId[]).slice().sort()
+export const listThemeIds = (): ThemeId[] => (Object.keys(loaders) as ThemeId[]).slice().sort(compareCodeUnits)
 
 export function getValidatedTheme(id: string): Theme | undefined {
   if (!Object.hasOwn(loaders, id)) return undefined

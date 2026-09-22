@@ -1,32 +1,36 @@
-import { OPERATION_KEYS } from "../mutations/mutation"
+import { describeOperations } from "../mutations/mutation"
+import { compareCodeUnits } from "./ordering"
 import type { MutationOperationCapability } from "./types"
 
 /**
- * Human-readable value constraints per mutation operation. Field/operation names themselves come from
- * `OPERATION_KEYS` (the mutation module's own closed set), never duplicated here; `context.capabilities.test.ts`
- * asserts this map's key set equals `OPERATION_KEYS`'s, so an operation added to the mutation union without an
- * entry here fails the suite instead of leaving capabilities silently inaccurate.
+ * Human-readable value constraints per mutation operation. Operation/field names come from `describeOperations()`
+ * (a fresh copy of the mutation module's own closed set on every call), never duplicated here; `context.capabilities
+ * .test.ts` asserts this map's key set equals that set, so an operation added to the mutation union without an entry
+ * here fails the suite instead of leaving capabilities silently inaccurate. Frozen: this is a shared singleton read
+ * on every `capabilities` call.
  */
-export const VALUE_CONSTRAINT_DESCRIPTIONS: Readonly<Record<string, string>> = {
+export const VALUE_CONSTRAINT_DESCRIPTIONS: Readonly<Record<string, string>> = Object.freeze({
   setColor: "oklch(L C H [/ A]) string matching the theme color grammar",
   setRadius: "non-negative rem/px/em dimension",
   setDensity: "number from 0.5 to 2",
   setSansFamily: "single font name matching the theme font-name grammar",
   setShadowBlur: "non-negative rem/px/em dimension",
   setMotionDuration: "non-negative ms/s duration",
-}
+})
 
+/** Builds a fresh array/object graph every call; safe to return directly without additional copying or freezing. */
 export function mutationOperationCapabilities(): MutationOperationCapability[] {
-  return [...OPERATION_KEYS.entries()]
-    .map(([name, fields]) => ({
+  return describeOperations()
+    .map(({ name, fields }) => ({
       name,
-      fields: [...fields].sort(),
+      fields: [...fields].sort(compareCodeUnits),
       valueConstraint: VALUE_CONSTRAINT_DESCRIPTIONS[name] ?? "undescribed",
     }))
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => compareCodeUnits(a.name, b.name))
 }
 
-export const UNSUPPORTED_ESCAPE_HATCHES = [
+/** Frozen: a shared singleton read on every `capabilities` call. */
+export const UNSUPPORTED_ESCAPE_HATCHES = Object.freeze([
   "arbitrary CSS declarations, selectors, or raw stylesheet text",
   "arbitrary or caller-supplied filesystem paths",
   "generic set-any-path or JSON-pointer style operations",
@@ -34,4 +38,4 @@ export const UNSUPPORTED_ESCAPE_HATCHES = [
   "new mutation operations, themes, components, or contracts beyond the closed catalog",
   "natural-language command interpretation or model-provider configuration",
   "network access, credentials, or MCP/tool coordination",
-] as const
+] as const)

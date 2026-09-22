@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { evaluateContextRequest, OPERATION_MAX_BYTES, toCanonicalJson } from "../index"
-import { OPERATION_KEYS } from "../mutations/mutation"
+import { compareCodeUnits, evaluateContextRequest, OPERATION_MAX_BYTES, toCanonicalJson } from "../index"
+import { describeOperations } from "../mutations/mutation"
 import { VALUE_CONSTRAINT_DESCRIPTIONS } from "./capability-descriptions"
+
+const operationNames = () => describeOperations().map((o) => o.name)
+const fieldsFor = (name: string) => describeOperations().find((o) => o.name === name)!.fields
 
 const CAPABILITIES = { version: "personal-ui-context/1", operation: "capabilities" } as const
 
@@ -15,17 +18,17 @@ const capabilities = async () => {
 describe("context capabilities (ACR-04)", () => {
   it("describes exactly the closed set of existing mutation operations", async () => {
     const result = await capabilities()
-    expect(result.mutation.operations.map((o) => o.name).sort()).toEqual([...OPERATION_KEYS.keys()].sort())
+    expect(result.mutation.operations.map((o) => o.name).sort(compareCodeUnits)).toEqual(operationNames().sort(compareCodeUnits))
   })
 
   it("has an accurate, up-to-date value-constraint description for every operation mutation.ts declares", () => {
-    expect(Object.keys(VALUE_CONSTRAINT_DESCRIPTIONS).sort()).toEqual([...OPERATION_KEYS.keys()].sort())
+    expect(Object.keys(VALUE_CONSTRAINT_DESCRIPTIONS).sort(compareCodeUnits)).toEqual(operationNames().sort(compareCodeUnits))
   })
 
-  it("declares each operation's exact allowlisted fields", async () => {
+  it("declares each operation's exact allowlisted fields, sorted by code unit", async () => {
     const result = await capabilities()
     for (const operation of result.mutation.operations) {
-      expect(operation.fields).toEqual([...OPERATION_KEYS.get(operation.name)!].sort())
+      expect(operation.fields).toEqual([...fieldsFor(operation.name)].sort(compareCodeUnits))
     }
   })
 

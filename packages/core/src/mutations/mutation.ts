@@ -62,8 +62,13 @@ export type MutationResult =
   | { ok: true; theme: Theme; css: string }
   | { ok: false; errors: MutationError[] }
 
-/** Allowlisted keys per operation; also the closed set of operation names. */
-export const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
+/**
+ * Allowlisted keys per operation; also the closed set of operation names. Deliberately not exported: a Map is
+ * mutable at runtime regardless of a `ReadonlyMap` type annotation (the annotation only blocks the compiler, not a
+ * caller who narrows or casts around it), and this is the live allowlist `validateMutation` checks every request
+ * against. External read access goes only through `describeOperations`, which returns an independent copy.
+ */
+const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
   ["setColor", new Set(["op", "mode", "token", "value"])],
   ["setRadius", new Set(["op", "value"])],
   ["setDensity", new Set(["op", "value"])],
@@ -72,6 +77,17 @@ export const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map(
   ["setMotionDuration", new Set(["op", "value"])],
 ])
 const REQUEST_KEYS = new Set(["schemaVersion", "requestId", "base", "operations"])
+
+export type MutationOperationDescriptor = { name: string; fields: readonly string[] }
+
+/**
+ * A fresh, independent copy of the closed operation/field allowlist on every call — every array is newly allocated,
+ * so mutating a returned descriptor (or the array it lives in) can never reach, and can never affect, the internal
+ * `OPERATION_KEYS` map that `validateMutation` actually consults.
+ */
+export function describeOperations(): MutationOperationDescriptor[] {
+  return [...OPERATION_KEYS.entries()].map(([name, fields]) => ({ name, fields: [...fields] }))
+}
 
 /** Radius and blur render straight into CSS, where a negative length is invalid. */
 const nonNegativeDimension = (value: unknown) =>

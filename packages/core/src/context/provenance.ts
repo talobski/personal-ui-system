@@ -5,9 +5,11 @@ export type ProvenanceEntry = { sourceId: string; sha256: string }
  * the exact committed source file bytes at `sourceId` (a fixed, repo-relative path — never an absolute worktree or
  * environment path). Runtime code only reads this static manifest; it never opens `sourceId` from disk. A dedicated
  * test recomputes every hash from the live file and asserts equality, so a source edit without a manifest update
- * fails the suite instead of silently drifting.
+ * fails the suite instead of silently drifting. The manifest and every entry are deep-frozen: these object
+ * references are embedded directly (not copied) into every `get` result, so without freezing a caller mutating one
+ * result's `provenance` field could permanently corrupt this singleton for every later, unrelated call.
  */
-export const PROVENANCE_MANIFEST = {
+const RAW_PROVENANCE_MANIFEST = {
   "theme:quiet-editorial": {
     sourceId: "packages/core/src/theme/fixtures/valid.json",
     sha256: "1a1f7e1bd4b8846b686ca39736613f6d690827f9ee292107767bf78c81b025e9",
@@ -25,6 +27,10 @@ export const PROVENANCE_MANIFEST = {
     sha256: "3d3a00d5a2b5350980f1eec86fee801fc9907c96b636047b443b5c68c059eb65",
   },
 } as const satisfies Record<string, ProvenanceEntry>
+
+export const PROVENANCE_MANIFEST = Object.freeze(
+  Object.fromEntries(Object.entries(RAW_PROVENANCE_MANIFEST).map(([key, entry]) => [key, Object.freeze({ ...entry })]))
+) as typeof RAW_PROVENANCE_MANIFEST
 
 export type ProvenanceKey = keyof typeof PROVENANCE_MANIFEST
 

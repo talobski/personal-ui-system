@@ -49,11 +49,15 @@ export type ProposalError = { ruleId: ProposalRuleId | MutationRuleId; path: str
 /** Lifecycle: received -> rejected | staged; staged -> applied | discarded | stale. `received` is never stored. */
 export type ProposalStatus = "rejected" | "staged" | "applied" | "discarded" | "stale"
 
-/** Data mirror of the lifecycle documented above, for read-only introspection (e.g. context capabilities). */
-export const PROPOSAL_LIFECYCLE_TRANSITIONS = {
-  received: ["rejected", "staged"],
-  staged: ["applied", "discarded", "stale"],
-} as const satisfies Record<string, readonly ProposalStatus[]>
+/**
+ * Data mirror of the lifecycle documented above, for read-only introspection (e.g. context capabilities). Deep-frozen
+ * (the outer object and each nested array) so a caller mutation attempt throws instead of silently corrupting this
+ * module-level singleton for every later caller.
+ */
+export const PROPOSAL_LIFECYCLE_TRANSITIONS = Object.freeze({
+  received: Object.freeze(["rejected", "staged"] as const),
+  staged: Object.freeze(["applied", "discarded", "stale"] as const),
+}) satisfies Record<string, readonly ProposalStatus[]>
 
 /** What was measured when the proposal was staged. `diff` is active -> candidate, sorted by path. */
 export type ProposalEvaluation = {

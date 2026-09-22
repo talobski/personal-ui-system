@@ -14,6 +14,17 @@ const run = (args: string[]): { status: number; stdout: string; stderr: string }
   }
 }
 
+/** Every CLI failure must be exactly one JSON line on stderr (no prose/usage text), empty stdout, nonzero exit. */
+const expectSingleJsonErrorLine = (stderr: string, stdout: string) => {
+  expect(stdout).toBe("")
+  const lines = stderr.trimEnd().split("\n")
+  expect(lines).toHaveLength(1)
+  const parsed = JSON.parse(lines[0]!)
+  expect(parsed.ok).toBe(false)
+  expect(Array.isArray(parsed.errors)).toBe(true)
+  return parsed
+}
+
 describe("context CLI (ACR-08)", () => {
   it("list prints one JSON stdout line and exits 0", () => {
     const { status, stdout, stderr } = run(["list", "--version", "personal-ui-context/1"])
@@ -42,23 +53,71 @@ describe("context CLI (ACR-08)", () => {
     expect(parsed.operation).toBe("capabilities")
   })
 
-  it("an unknown resource fails closed: nonzero exit, stable JSON error on stderr, empty stdout", () => {
+  it("an unknown resource fails closed: nonzero exit, one stable JSON line on stderr, empty stdout", () => {
     const { status, stdout, stderr } = run(["get", "--version", "personal-ui-context/1", "--theme", "quiet-editorial", "--resource", "nope"])
     expect(status).toBe(1)
     expect(stdout).toBe("")
     expect(JSON.parse(stderr.trimEnd())).toEqual({ ok: false, errors: [{ ruleId: "context.unknown-resource", path: "resource" }] })
   })
 
-  it("rejects an unsupported flag rather than silently ignoring it", () => {
-    const { status, stdout, stderr } = run(["list", "--version", "personal-ui-context/1", "--output", "/tmp/x.json"])
+  it("no arguments: one stable JSON line on stderr, nothing else", () => {
+    const { status, stdout, stderr } = run([])
     expect(status).toBe(2)
-    expect(stdout).toBe("")
-    expect(stderr).toContain("unsupported flag")
+    const parsed = expectSingleJsonErrorLine(stderr, stdout)
+    expect(parsed).toEqual({ ok: false, errors: [{ ruleId: "context.invalid-request", path: "argv.operation" }] })
   })
 
-  it("has no network, write, path, or output option to reject in the first place", () => {
-    const { stderr } = run(["list", "--version", "personal-ui-context/1", "--write", "x"])
-    expect(stderr).toContain("unsupported flag")
+  it("an unsupported flag: one stable JSON line, no prose, no reflected flag name", () => {
+    const { status, stdout, stderr } = run(["list", "--version", "personal-ui-context/1", "--output", "/tmp/x.json"])
+    expect(status).toBe(2)
+    const parsed = expectSingleJsonErrorLine(stderr, stdout)
+    expect(parsed).toEqual({ ok: false, errors: [{ ruleId: "context.invalid-request", path: "argv.flags.unsupported" }] })
+    expect(stderr).not.toContain("output")
+    expect(stderr).not.toContain("/tmp/x.json")
+  })
+
+  it("a flag with a missing value: one stable JSON line", () => {
+    const { status, stdout, stderr } = run(["list", "--version"])
+    expect(status).toBe(2)
+    const parsed = expectSingleJsonErrorLine(stderr, stdout)
+    expect(parsed).toEqual({ ok: false, errors: [{ ruleId: "context.invalid-request", path: "argv.flags.missing-value" }] })
+  })
+
+  it("positional junk after flags: one stable JSON line", () => {
+    const { status, stdout, stderr } = run(["list", "--version", "personal-ui-context/1", "junk"])
+    expect(status).toBe(2)
+    const parsed = expectSingleJsonErrorLine(stderr, stdout)
+    expect(parsed).toEqual({ ok: false, errors: [{ ruleId: "context.invalid-request", path: "argv.positional" }] })
+  })
+
+  it("a duplicate flag is rejected, not last-one-wins", () => {
+    const { status, stdout, stderr } = run([
+      "get", "--version", "personal-ui-context/1", "--theme", "quiet-editorial", "--theme", "quiet-editorial", "--resource", "button",
+    ])
+    expect(status).toBe(2)
+    const parsed = expectSingleJsonErrorLine(stderr, stdout)
+    expect(parsed).toEqual({ ok: false, errors: [{ ruleId: "context.invalid-request", path: "argv.flags.duplicate" }] })
+  })
+
+  it("list rejects theme/resource flags via the same evaluator unknown-field rule", () => {
+    const { status, stdout, stderr } = run(["list", "--version", "personal-ui-context/1", "--theme", "quiet-editorial"])
+    expect(status).toBe(1)
+    const parsed = expectSingleJsonErrorLine(stderr, stdout)
+    expect(parsed).toEqual({ ok: false, errors: [{ ruleId: "context.unknown-field", path: "theme" }] })
+  })
+
+  it("capabilities rejects theme/resource flags via the same evaluator unknown-field rule", () => {
+    const { status, stdout, stderr } = run(["capabilities", "--version", "personal-ui-context/1", "--resource", "button"])
+    expect(status).toBe(1)
+    const parsed = expectSingleJsonErrorLine(stderr, stdout)
+    expect(parsed).toEqual({ ok: false, errors: [{ ruleId: "context.unknown-field", path: "resource" }] })
+  })
+
+  it("get requires both theme and resource, enforced by the evaluator", () => {
+    const { status, stdout, stderr } = run(["get", "--version", "personal-ui-context/1", "--theme", "quiet-editorial"])
+    expect(status).toBe(1)
+    const parsed = expectSingleJsonErrorLine(stderr, stdout)
+    expect(parsed).toEqual({ ok: false, errors: [{ ruleId: "context.invalid-request", path: "resource" }] })
   })
 
   it("is byte-identical across separate process invocations", () => {

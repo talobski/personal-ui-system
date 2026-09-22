@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { evaluateContextRequest, OPERATION_MAX_BYTES, toCanonicalJson } from "../index"
+import { compareCodeUnits, evaluateContextRequest, OPERATION_MAX_BYTES, toCanonicalJson } from "../index"
 
 const LIST = { version: "personal-ui-context/1", operation: "list" } as const
 
@@ -19,16 +19,26 @@ describe("context list (ACR-02)", () => {
     expect(result.themes).toEqual([{ id: "quiet-editorial", name: "Quiet Editorial", revision: 1 }])
 
     expect(result.resources).toEqual([
-      { id: "button", kind: "component" },
-      { id: "input", kind: "component" },
-      { id: "responsive-dialog", kind: "pattern" },
+      { id: "button", kind: "component", purpose: "Trigger a single, clearly named action or navigation." },
+      { id: "input", kind: "component", purpose: "Capture a single line of user-entered text or a native input type." },
+      {
+        id: "responsive-dialog",
+        kind: "pattern",
+        purpose: "Present focused, blocking content as a centered Dialog on wide viewports and a bottom Drawer on narrow ones.",
+      },
     ])
   })
 
-  it("sorts themes and resources by id", async () => {
+  it("sorts themes and resources by id, using explicit code-unit order (ACR-05)", async () => {
     const result = await list()
-    expect(result.themes.map((t) => t.id)).toEqual([...result.themes.map((t) => t.id)].sort())
-    expect(result.resources.map((r) => r.id)).toEqual([...result.resources.map((r) => r.id)].sort())
+    expect(result.themes.map((t) => t.id)).toEqual([...result.themes.map((t) => t.id)].sort(compareCodeUnits))
+    expect(result.resources.map((r) => r.id)).toEqual([...result.resources.map((r) => r.id)].sort(compareCodeUnits))
+  })
+
+  it("sources every resource's purpose verbatim from its own validated contract", async () => {
+    const result = await list()
+    const button = result.resources.find((r) => r.id === "button")
+    expect(button?.purpose).toBe("Trigger a single, clearly named action or navigation.")
   })
 
   it("stays within the 8 KiB list ceiling", async () => {

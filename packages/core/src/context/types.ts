@@ -23,7 +23,8 @@ export type CapabilitiesRequest = { version: string; operation: "capabilities" }
 export type ContextRequest = ListRequest | GetRequest | CapabilitiesRequest
 
 export type ThemeSummary = { id: string; name: string; revision: number }
-export type ResourceSummary = { id: string; kind: "component" | "pattern" }
+/** `purpose` is sourced verbatim from the resource's own validated contract, never invented prose. */
+export type ResourceSummary = { id: string; kind: "component" | "pattern"; purpose: string }
 
 export type ListResult = {
   version: string

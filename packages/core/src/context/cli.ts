@@ -1,56 +1,61 @@
 import { evaluateContextRequest } from "./evaluator"
 import { toCanonicalJson } from "./serialize"
-
-const USAGE =
-  "usage: context <list|get|capabilities> --version personal-ui-context/1 [--theme <id> --resource <id>]\n" +
-  "Read-only. Prints one JSON result on stdout, or one JSON error on stderr with a nonzero exit."
+import type { ContextError } from "./types"
 
 const ALLOWED_FLAGS = new Set(["version", "theme", "resource"])
 
-type ParsedArgs = { operation: string | undefined; flags: Record<string, string> }
+type ParseSuccess = { operation: string; flags: Record<string, string> }
+type ParseOutcome = { ok: true; value: ParseSuccess } | { ok: false; error: ContextError }
 
-function parseArgs(argv: readonly string[]): ParsedArgs {
+/**
+ * Every failure path returns a stable `{ ruleId, path }` with a fixed, pre-chosen `path` string — never the
+ * offending token or flag name itself — so a CLI parse error can never reflect arbitrary caller-supplied text into
+ * its own output.
+ */
+function parseArgs(argv: readonly string[]): ParseOutcome {
   const [operation, ...rest] = argv
+  if (!operation) return { ok: false, error: { ruleId: "context.invalid-request", path: "argv.operation" } }
+
   const flags: Record<string, string> = {}
   for (let index = 0; index < rest.length; index += 1) {
     const token = rest[index]
-    if (!token || !token.startsWith("--")) throw new Error(`unrecognized argument "${token ?? ""}"`)
+    if (!token || !token.startsWith("--")) return { ok: false, error: { ruleId: "context.invalid-request", path: "argv.positional" } }
     const name = token.slice(2)
-    if (!ALLOWED_FLAGS.has(name)) throw new Error(`unsupported flag "--${name}"`)
+    if (!ALLOWED_FLAGS.has(name)) return { ok: false, error: { ruleId: "context.invalid-request", path: "argv.flags.unsupported" } }
+    if (Object.hasOwn(flags, name)) return { ok: false, error: { ruleId: "context.invalid-request", path: "argv.flags.duplicate" } }
     const value = rest[index + 1]
-    if (value === undefined || value.startsWith("--")) throw new Error(`missing value for "--${name}"`)
+    if (value === undefined || value.startsWith("--")) return { ok: false, error: { ruleId: "context.invalid-request", path: "argv.flags.missing-value" } }
     flags[name] = value
     index += 1
   }
-  return { operation, flags }
+  return { ok: true, value: { operation, flags } }
 }
 
-function usageError(message: string): never {
-  process.stderr.write(toCanonicalJson({ ok: false, errors: [{ ruleId: "context.invalid-request", path: "cli" }] }) + "\n")
-  process.stderr.write(`${message}\n${USAGE}\n`)
-  process.exit(2)
+/** The only thing ever written to stderr: exactly one line of the same stable `{ ok: false, errors }` JSON shape core returns. */
+const emitError = (errors: ContextError[]): void => {
+  process.stderr.write(toCanonicalJson({ ok: false, errors }) + "\n")
 }
 
 async function main(): Promise<void> {
   // `pnpm context -- <args>` forwards a leading "--" token verbatim; drop it so it is never mistaken for an operation.
-  const argv = process.argv.slice(2)
-  if (argv[0] === "--") argv.shift()
+  const rawArgv = process.argv.slice(2)
+  const argv = rawArgv[0] === "--" ? rawArgv.slice(1) : rawArgv
 
-  let parsed: ParsedArgs
-  try {
-    parsed = parseArgs(argv)
-  } catch (error) {
-    usageError(error instanceof Error ? error.message : String(error))
+  const parsed = parseArgs(argv)
+  if (!parsed.ok) {
+    emitError([parsed.error])
+    process.exitCode = 2
+    return
   }
-  if (!parsed.operation) usageError("missing operation")
 
-  const request: Record<string, unknown> = { version: parsed.flags.version, operation: parsed.operation }
-  if (parsed.flags.theme !== undefined) request.theme = parsed.flags.theme
-  if (parsed.flags.resource !== undefined) request.resource = parsed.flags.resource
+  const { operation, flags } = parsed.value
+  const request: Record<string, unknown> = { version: flags.version, operation }
+  if (flags.theme !== undefined) request.theme = flags.theme
+  if (flags.resource !== undefined) request.resource = flags.resource
 
   const result = await evaluateContextRequest(request)
   if (!result.ok) {
-    process.stderr.write(toCanonicalJson(result) + "\n")
+    emitError(result.errors)
     process.exitCode = 1
     return
   }

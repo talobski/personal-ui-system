@@ -3,9 +3,10 @@ import { MUTATION_SCHEMA_VERSION } from "../mutations/mutation"
 import { MAX_PROPOSAL_OPERATIONS, MAX_INTENT_SUMMARY_LENGTH, PROPOSAL_SCHEMA_VERSION, PROPOSAL_LIFECYCLE_TRANSITIONS, PROVENANCE_SOURCES } from "../mutations/proposal"
 import { mutationOperationCapabilities, UNSUPPORTED_ESCAPE_HATCHES } from "./capability-descriptions"
 import { CONTEXT_SCHEMA_VERSION, identity } from "./identity"
+import { compareCodeUnits } from "./ordering"
 import { principlesFor } from "./principles"
 import { PROVENANCE_MANIFEST, resourceProvenanceKey, themeProvenanceKey } from "./provenance"
-import { serializeWithCeiling } from "./serialize"
+import { deepFreeze, serializeWithCeiling } from "./serialize"
 import { getValidatedTheme, listThemeSummaries } from "./themes"
 import type { ContextError, ContextPayload, ContextResult, GetResult, ListResult, CapabilitiesResult } from "./types"
 
@@ -20,17 +21,29 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 
 const fail = (errors: ContextError[]): ContextResult => ({ ok: false, errors })
 
+/** The exact object shape returned to a caller and printed by the CLI: `ok: true` first, then the payload's own keys. */
+export const buildSuccessEnvelope = <T extends ContextPayload>(payload: T): { ok: true } & T => ({ ok: true, ...payload })
+
+/**
+ * Measures and freezes the *exact* envelope that will be returned/emitted (including `ok: true`, not the bare
+ * payload) against its operation's ceiling, and fails closed before anything is returned if it does not fit.
+ */
 function finalize(payload: ContextPayload): ContextResult {
-  const serialized = serializeWithCeiling(payload.operation, payload)
+  const envelope = buildSuccessEnvelope(payload)
+  const serialized = serializeWithCeiling(payload.operation, envelope)
   if (!serialized.ok) return fail([{ ruleId: "context.oversize-result", path: "" }])
-  return { ok: true, ...payload } as ContextResult
+  return deepFreeze(envelope)
 }
 
-function buildListPayload(): ListResult {
-  const resources = listContractIds()
-    .slice()
-    .sort()
-    .map((id) => ({ id, kind: (id === "responsive-dialog" ? "pattern" : "component") as "component" | "pattern" }))
+async function buildListPayload(): Promise<ListResult> {
+  const ids = listContractIds().slice().sort(compareCodeUnits)
+  const resources = await Promise.all(
+    ids.map(async (id) => {
+      const contract = await getContract(id)
+      if (!contract) throw new Error(`contract "${id}" is in the catalog but failed to load`)
+      return { id, kind: (id === "responsive-dialog" ? "pattern" : "component") as "component" | "pattern", purpose: contract.purpose }
+    })
+  )
   return {
     version: CONTEXT_SCHEMA_VERSION,
     operation: "list",
@@ -59,7 +72,8 @@ function buildCapabilitiesPayload(): CapabilitiesResult {
 
 /**
  * Pure, deterministic core evaluator: same request in, same result out. `get` awaits exactly one dynamic import (the
- * requested contract module, via the existing catalog), never the full catalog, so a single lookup stays targeted.
+ * requested contract module, via the existing catalog), never the full catalog, so a single lookup stays targeted;
+ * `list` awaits one dynamic import per pilot to source each resource's `purpose` from its own validated contract.
  */
 export async function evaluateContextRequest(input: unknown): Promise<ContextResult> {
   if (!isRecord(input)) return fail([{ ruleId: "context.invalid-request", path: "" }])
@@ -83,7 +97,7 @@ export async function evaluateContextRequest(input: unknown): Promise<ContextRes
 
   if (errors.length > 0) return fail(errors)
 
-  if (operation === "list") return finalize(buildListPayload())
+  if (operation === "list") return finalize(await buildListPayload())
   if (operation === "capabilities") return finalize(buildCapabilitiesPayload())
 
   const themeId = input.theme as string
