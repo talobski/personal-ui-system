@@ -11,7 +11,8 @@
     "build:workbench": "pnpm --filter @personal-ui/workbench build",
     "test:browser:storybook": "playwright test",
     "test:browser:workbench": "playwright test -c playwright.workbench.config.ts",
-    "test:browser": "pnpm test:browser:storybook && pnpm test:browser:workbench",
+    "test:browser:design-command-live": "playwright test -c playwright.designcommand.config.ts",
+    "test:browser": "pnpm test:browser:storybook && pnpm test:browser:workbench && pnpm test:browser:design-command-live",
     "typecheck:jev": "tsc -p tools/loop/jev",
     "test:jev": "vitest run tools/loop/jev",
     "jev": "node tools/loop/jev/cli.mjs"

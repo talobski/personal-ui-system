@@ -5,7 +5,13 @@ const PORT = 6006
 // Runs against the static Storybook build (`pnpm build:storybook` first).
 export default defineConfig({
   testDir: "e2e",
-  testIgnore: ["workbench.spec.ts", "default-equivalence.spec.ts", "proposal-preview.spec.ts", "design-command.spec.ts"],
+  testIgnore: [
+    "workbench.spec.ts",
+    "default-equivalence.spec.ts",
+    "proposal-preview.spec.ts",
+    "design-command.spec.ts",
+    "design-command-live-boundary.spec.ts",
+  ],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },
   projects: [

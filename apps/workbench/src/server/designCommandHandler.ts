@@ -11,6 +11,9 @@ import { evaluateDesignCommand } from "@personal-ui/core/jev-design/evaluate"
  */
 export const PRODUCT_CREDENTIAL_ENV_VAR = "TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY"
 export const DESIGN_COMMAND_ROUTE = "/api/design-command/evaluate"
+/** `commandText` is capped at 280 characters plus a short `activeMode` field; this is generous headroom over any
+ * legitimate request and rejects an oversized body before it is even parsed as JSON. */
+export const MAX_REQUEST_BODY_BYTES = 8 * 1024
 
 export type DesignCommandServerEnv = Readonly<Record<string, string | undefined>>
 
@@ -35,9 +38,17 @@ export async function handleDesignCommandEvaluate(request: Request, env: DesignC
   const apiKey = env[PRODUCT_CREDENTIAL_ENV_VAR]
   if (typeof apiKey !== "string" || apiKey.trim().length === 0) return rejected("transport.missing-credential")
 
+  let text: string
+  try {
+    text = await request.text()
+  } catch {
+    return rejected("design-command.invalid-request-body", 400)
+  }
+  if (text.length > MAX_REQUEST_BODY_BYTES) return rejected("design-command.request-too-large", 413)
+
   let body: unknown
   try {
-    body = await request.json()
+    body = JSON.parse(text)
   } catch {
     return rejected("design-command.invalid-request-body", 400)
   }

@@ -1,7 +1,7 @@
 import { acceptAnswers } from "./accept"
 import { composeDesignCommandOutcome } from "./compose"
 import type { DesignCommandOutcome } from "./compose"
-import { buildQuestionCatalog, buildTypeSafeRequest } from "./questions"
+import { buildQuestionCatalog, toWireRequest } from "./questions"
 import { isCommandTextUsable } from "./state"
 import type { DesignCommandState } from "./state"
 import { TYPESAFE_API_URL } from "./wire"
@@ -25,53 +25,54 @@ function isTypeSafeResponse(value: unknown): value is TypeSafeResponse {
   return isRecord(value) && isRecord(value.answers)
 }
 
+const isAbortError = (error: unknown): boolean => error instanceof Error && error.name === "AbortError"
+
 /**
  * One bounded HTTP attempt against the fixed TypeSafe endpoint. No silent retry. A missing or empty `apiKey` makes
- * zero fetches. Every transport, shape, or acceptance failure returns `{kind:"rejected"}` and never partially
- * resolves a proposal. This function never reads `process.env`; the server-side caller owns reading the product
- * credential and passes it in.
+ * zero fetches. The timeout covers the full round trip, including reading the response body — a slow-streaming
+ * body cannot hold the attempt open past `timeoutMs` merely because the response headers arrived promptly. Every
+ * transport, shape, or acceptance failure returns `{kind:"rejected"}` and never partially resolves a proposal.
+ * This function never reads `process.env`; the server-side caller owns reading the product credential and passes
+ * it in.
  */
 export async function evaluateDesignCommand(state: DesignCommandState, deps: EvaluateDesignCommandDeps): Promise<DesignCommandOutcome> {
   if (!isCommandTextUsable(state)) return { kind: "rejected", reason: { code: "design-command.empty-text" } }
   if (!deps.apiKey || deps.apiKey.trim().length === 0) return { kind: "rejected", reason: { code: "transport.missing-credential" } }
 
   const questions = buildQuestionCatalog()
-  const request = buildTypeSafeRequest(state)
+  const request = toWireRequest(state, questions)
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), deps.timeoutMs ?? DEFAULT_TIMEOUT_MS)
-  let response: Response
+
+  let text: string
   try {
-    response = await deps.fetch(TYPESAFE_API_URL, {
+    const response = await deps.fetch(TYPESAFE_API_URL, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${deps.apiKey}` },
       body: JSON.stringify(request),
       signal: controller.signal,
     })
+    if (!response.ok) {
+      const code =
+        response.status === 401 || response.status === 403
+          ? "transport.unauthorized"
+          : response.status === 429
+            ? "transport.rate-limited"
+            : response.status === 529
+              ? "transport.overloaded"
+              : "transport.http-error"
+      return { kind: "rejected", reason: { code, path: String(response.status) } }
+    }
+    // Reading the body happens inside the same try/timeout scope: a response that streams its body slowly must
+    // still abort at `timeoutMs`, not just a slow header/connect phase.
+    text = await response.text()
   } catch (error) {
-    return { kind: "rejected", reason: { code: error instanceof Error && error.name === "AbortError" ? "transport.timeout" : "transport.network" } }
+    return { kind: "rejected", reason: { code: isAbortError(error) ? "transport.timeout" : "transport.network" } }
   } finally {
     clearTimeout(timeout)
   }
 
-  if (!response.ok) {
-    const code =
-      response.status === 401 || response.status === 403
-        ? "transport.unauthorized"
-        : response.status === 429
-          ? "transport.rate-limited"
-          : response.status === 529
-            ? "transport.overloaded"
-            : "transport.http-error"
-    return { kind: "rejected", reason: { code, path: String(response.status) } }
-  }
-
-  let text: string
-  try {
-    text = await response.text()
-  } catch {
-    return { kind: "rejected", reason: { code: "transport.malformed-response" } }
-  }
   if (text.length > MAX_RESPONSE_BYTES) return { kind: "rejected", reason: { code: "transport.oversized-response" } }
 
   let body: unknown

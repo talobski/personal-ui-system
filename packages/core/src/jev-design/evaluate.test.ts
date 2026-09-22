@@ -12,32 +12,36 @@ import {
 } from "./questions"
 import { buildDesignCommandState } from "./state"
 import { TYPESAFE_API_URL, TYPESAFE_MODEL } from "./wire"
-import type { TypeSafeAnswer } from "./wire"
 
-function fullAnswers(overrides: Record<string, TypeSafeAnswer> = {}): Record<string, TypeSafeAnswer> {
-  const answers: Record<string, TypeSafeAnswer> = {
-    [COMMAND_KIND_QUESTION_ID]: { type: "choice", selected: COMMAND_KIND_THEME_ADJUSTMENT, probabilities: { [COMMAND_KIND_THEME_ADJUSTMENT]: 0.9, [COMMAND_KIND_OUT_OF_SCOPE]: 0.1 }, confidence: 0.9 },
-    [STRENGTH_QUESTION_ID]: { type: "score", level: 1, legend: ["subtle", "moderate", "strong"], confidence: 0.9 },
-    [NEEDS_CLARIFICATION_QUESTION_ID]: { type: "noul", value: 0.1 },
+type RawAnswer = { choice: string; probabilities: Record<string, number>; confidence: number } | { score: number; legend: Record<string, string>; probabilities: Record<string, number>; confidence: number } | { noul: number }
+
+const SCORE_LEGEND = { "0": "subtle", "1": "moderate", "2": "strong" }
+
+function fullAnswers(overrides: Record<string, RawAnswer> = {}): Record<string, RawAnswer> {
+  const answers: Record<string, RawAnswer> = {
+    [COMMAND_KIND_QUESTION_ID]: { choice: COMMAND_KIND_THEME_ADJUSTMENT, probabilities: { [COMMAND_KIND_THEME_ADJUSTMENT]: 0.9, [COMMAND_KIND_OUT_OF_SCOPE]: 0.1 }, confidence: 0.9 },
+    [STRENGTH_QUESTION_ID]: { score: 1, legend: SCORE_LEGEND, probabilities: { "0": 0.1, "1": 0.8, "2": 0.1 }, confidence: 0.9 },
+    [NEEDS_CLARIFICATION_QUESTION_ID]: { noul: 0.1 },
   }
   for (const category of Object.keys(categoryQuestionId) as (keyof typeof categoryQuestionId)[]) {
     const { positive, negative } = CATEGORY_DIRECTIONS[category]
-    answers[categoryQuestionId[category]] = {
-      type: "choice",
-      selected: NOT_TARGETED,
-      probabilities: { [positive]: 0, [negative]: 0, [NOT_TARGETED]: 1 },
-      confidence: 0.9,
-    }
+    answers[categoryQuestionId[category]] = { choice: NOT_TARGETED, probabilities: { [positive]: 0, [negative]: 0, [NOT_TARGETED]: 1 }, confidence: 0.9 }
   }
   return { ...answers, ...overrides }
 }
 
-const okResponse = (answers: Record<string, TypeSafeAnswer>) => new Response(JSON.stringify({ answers }), { status: 200, headers: { "content-type": "application/json" } })
+const okResponse = (answers: Record<string, unknown>) => new Response(JSON.stringify({ answers }), { status: 200, headers: { "content-type": "application/json" } })
+
+const targetedChoice = (selected: string, other1: string, other2: string): RawAnswer => ({
+  choice: selected,
+  probabilities: { [selected]: 0.9, [other1]: 0.05, [other2]: 0.05 },
+  confidence: 0.9,
+})
 
 afterEach(() => vi.restoreAllMocks())
 
 describe("evaluateDesignCommand", () => {
-  it("makes exactly one fetch call to the fixed endpoint, with the product apiKey and fixed model", async () => {
+  it("makes exactly one fetch call to the fixed endpoint, with the product apiKey, fixed model, and questions keyed by id", async () => {
     const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => okResponse(fullAnswers()))
     const state = buildDesignCommandState("nothing in particular", "light")
     await evaluateDesignCommand(state, { apiKey: "sentinel-product-key", fetch: fetchMock as unknown as typeof fetch })
@@ -47,6 +51,9 @@ describe("evaluateDesignCommand", () => {
     expect(init?.headers).toMatchObject({ authorization: "Bearer sentinel-product-key" })
     const body = JSON.parse(init?.body as string)
     expect(body.model).toBe(TYPESAFE_MODEL)
+    expect(Array.isArray(body.questions)).toBe(false)
+    expect(body.questions[COMMAND_KIND_QUESTION_ID]).toBeDefined()
+    expect(body.questions[COMMAND_KIND_QUESTION_ID].type).toBe("choice")
   })
 
   it("makes zero fetches and fails closed when apiKey is missing or empty", async () => {
@@ -66,19 +73,46 @@ describe("evaluateDesignCommand", () => {
   })
 
   it("does not retry: a network error fails closed on the first attempt", async () => {
-    const fetchMock = vi.fn(async () => { throw new TypeError("fetch failed") })
+    const fetchMock = vi.fn(async () => {
+      throw new TypeError("fetch failed")
+    })
     const state = buildDesignCommandState("make it denser", "light")
     const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(outcome).toEqual({ kind: "rejected", reason: { code: "transport.network" } })
   })
 
-  it("fails closed on a timeout/abort", async () => {
-    const fetchMock = vi.fn((_url: string, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
-      init?.signal?.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })))
-    }))
+  it("fails closed on a timeout while waiting for the response", async () => {
+    const fetchMock = vi.fn(
+      (_url: string, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })))
+        })
+    )
     const state = buildDesignCommandState("make it denser", "light")
     const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch, timeoutMs: 5 })
+    expect(outcome).toEqual({ kind: "rejected", reason: { code: "transport.timeout" } })
+  })
+
+  it("fails closed on a timeout while reading a slow response body (the timeout covers body reading, not just headers)", async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const signal = init?.signal
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            const abort = () => {
+              controller.error(Object.assign(new Error("aborted"), { name: "AbortError" }))
+            }
+            if (signal?.aborted) return abort()
+            signal?.addEventListener("abort", abort)
+            // Never enqueues or closes: simulates a response whose headers arrived but whose body stalls forever.
+          },
+        }),
+        { status: 200 }
+      )
+    })
+    const state = buildDesignCommandState("make it denser", "light")
+    const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch, timeoutMs: 20 })
     expect(outcome).toEqual({ kind: "rejected", reason: { code: "transport.timeout" } })
   })
 
@@ -117,39 +151,81 @@ describe("evaluateDesignCommand", () => {
     expect(outcome).toMatchObject({ kind: "rejected", reason: { code: "accept.missing-answer" } })
   })
 
-  it("fails closed on primitive mismatch (numeric arithmetic jaggedness never bypasses typed answers)", async () => {
-    const fetchMock = vi.fn(async () => okResponse(fullAnswers({ [STRENGTH_QUESTION_ID]: { type: "noul", value: 0.9 } })))
+  it("fails closed when a Score answer arrives Noul-shaped (no type tag to trust; strict shape checking catches it)", async () => {
+    const fetchMock = vi.fn(async () => okResponse(fullAnswers({ [STRENGTH_QUESTION_ID]: { noul: 0.9 } })))
     const state = buildDesignCommandState("make the radius exactly 12px", "light")
     const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
-    expect(outcome).toMatchObject({ kind: "rejected", reason: { code: "accept.primitive-mismatch" } })
+    expect(outcome).toMatchObject({ kind: "rejected", reason: { code: "accept.malformed-answer" } })
   })
 
   it("resolves unsupported for off-topic commands with no confidently targeted category", async () => {
     const fetchMock = vi.fn(async () => okResponse(fullAnswers()))
     const state = buildDesignCommandState("what's the weather like today", "light")
     const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
-    expect(outcome.kind).toBe("unsupported")
+    expect(outcome).toMatchObject({ kind: "unsupported", cause: "no-category-targeted" })
   })
 
   it("resolves staged with a proper operation for a clean single-category command", async () => {
-    const fetchMock = vi.fn(async () => okResponse(fullAnswers({ [categoryQuestionId.motion]: { type: "choice", selected: "faster", probabilities: { faster: 0.9, slower: 0.05, notTargeted: 0.05 }, confidence: 0.9 } })))
+    const fetchMock = vi.fn(async () => okResponse(fullAnswers({ [categoryQuestionId.motion]: targetedChoice("faster", "slower", "notTargeted") })))
     const state = buildDesignCommandState("make transitions feel snappier", "light")
     const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
     expect(outcome).toMatchObject({ kind: "staged", operations: [{ op: "setMotionDuration", value: "100ms" }] })
   })
 
-  it("resolves clarification-required for a compound command rather than a silent best-guess", async () => {
+  it("resolves staged with two operations for a legitimate multi-category command ('make it denser and warmer')", async () => {
     const fetchMock = vi.fn(async () =>
       okResponse(
         fullAnswers({
-          [categoryQuestionId.density]: { type: "choice", selected: "denser", probabilities: { denser: 0.9, looser: 0.05, notTargeted: 0.05 }, confidence: 0.9 },
-          [categoryQuestionId.color]: { type: "choice", selected: "warmer", probabilities: { warmer: 0.9, cooler: 0.05, notTargeted: 0.05 }, confidence: 0.9 },
-          [NEEDS_CLARIFICATION_QUESTION_ID]: { type: "noul", value: 0.9 },
+          [categoryQuestionId.density]: targetedChoice("denser", "looser", "notTargeted"),
+          [categoryQuestionId.color]: targetedChoice("warmer", "cooler", "notTargeted"),
         })
       )
     )
     const state = buildDesignCommandState("make it denser and warmer", "light")
     const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
-    expect(outcome.kind).toBe("clarification-required")
+    expect(outcome.kind).toBe("staged")
+    if (outcome.kind === "staged") expect(outcome.operations.map((op) => op.op).sort()).toEqual(["setColor", "setDensity"])
+  })
+
+  it("resolves clarification-required (ambiguous) for a genuinely contradictory command, never a silent best-guess", async () => {
+    const fetchMock = vi.fn(async () =>
+      okResponse(
+        fullAnswers({
+          [categoryQuestionId.radius]: targetedChoice("rounder", "sharper", "notTargeted"),
+          [NEEDS_CLARIFICATION_QUESTION_ID]: { noul: 0.9 },
+        })
+      )
+    )
+    const state = buildDesignCommandState("make the corners rounder but also sharper", "light")
+    const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
+    expect(outcome).toMatchObject({ kind: "clarification-required", cause: "ambiguous" })
+  })
+
+  it("resolves clarification-required when commandKind is accepted but undecided, never staging", async () => {
+    const fetchMock = vi.fn(async () =>
+      okResponse(
+        fullAnswers({
+          [COMMAND_KIND_QUESTION_ID]: { choice: COMMAND_KIND_THEME_ADJUSTMENT, probabilities: { [COMMAND_KIND_THEME_ADJUSTMENT]: 0.55, [COMMAND_KIND_OUT_OF_SCOPE]: 0.45 }, confidence: 0.55 },
+          [categoryQuestionId.radius]: targetedChoice("rounder", "sharper", "notTargeted"),
+        })
+      )
+    )
+    const state = buildDesignCommandState("make it rounder maybe", "light")
+    const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
+    expect(outcome).toMatchObject({ kind: "clarification-required", cause: "command-kind-undecided" })
+  })
+
+  it("resolves clarification-required when needsClarification is accepted but undecided, never staging", async () => {
+    const fetchMock = vi.fn(async () =>
+      okResponse(
+        fullAnswers({
+          [categoryQuestionId.radius]: targetedChoice("rounder", "sharper", "notTargeted"),
+          [NEEDS_CLARIFICATION_QUESTION_ID]: { noul: 0.55 },
+        })
+      )
+    )
+    const state = buildDesignCommandState("make it rounder, unsure how much", "light")
+    const outcome = await evaluateDesignCommand(state, { apiKey: "k", fetch: fetchMock as unknown as typeof fetch })
+    expect(outcome).toMatchObject({ kind: "clarification-required", cause: "needs-clarification-undecided" })
   })
 })

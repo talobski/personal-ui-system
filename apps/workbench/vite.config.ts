@@ -10,6 +10,12 @@ import type { DesignCommandServerEnv } from "./src/server/designCommandHandler.t
 
 const uiSrc = fileURLToPath(new URL("../../packages/ui/src", import.meta.url))
 
+/** Mirrors `MAX_REQUEST_BODY_BYTES` in `./src/server/designCommandHandler.ts`. Duplicated, not imported, because
+ * this file is evaluated by Vite's config loader (see the comment on `designCommandApiPlugin` below) and cannot
+ * statically import a runtime value from that module. Bounds how much of a request body this middleware buffers
+ * into memory before the handler's own (identical) size check would reject it anyway. */
+const MAX_REQUEST_BODY_BYTES = 8 * 1024
+
 /**
  * The localhost product API middleware. It runs only inside the Vite dev-server Node process — it is never part of
  * the client bundle — and reads `process.env` only at request time, never at config-eval time, so the credential
@@ -32,7 +38,17 @@ function designCommandApiPlugin(): Plugin {
           return
         }
         const chunks: Buffer[] = []
-        for await (const chunk of req) chunks.push(chunk as Buffer)
+        let total = 0
+        for await (const chunk of req) {
+          total += (chunk as Buffer).byteLength
+          if (total > MAX_REQUEST_BODY_BYTES) {
+            res.statusCode = 413
+            res.end(JSON.stringify({ outcome: { kind: "rejected", reason: { code: "design-command.request-too-large" } } }))
+            req.destroy()
+            return
+          }
+          chunks.push(chunk as Buffer)
+        }
         const request = new Request(`http://${req.headers.host ?? "127.0.0.1"}/api/design-command/evaluate`, {
           method: "POST",
           headers: { "content-type": "application/json" },

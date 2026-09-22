@@ -108,7 +108,10 @@ export function App() {
   // A staged candidate is previewed through the same iframe and CSS path without becoming the active theme.
   const staged = session.staged
   // While a proposal is staged, nothing that can change, replace, persist, or export the active theme is usable.
-  const locked = staged !== null
+  // Locked while a proposal is staged, and also while a Design command evaluation is pending: the evaluation
+  // captures `current`'s id/revision as the proposal's base only once the response resolves, so nothing that can
+  // change `current` or `session` may run in between, or that captured base could race product state.
+  const locked = staged !== null || commandEvaluating
   const previewTheme = staged?.candidate ?? current
   const previewState = React.useMemo<PreviewState>(
     () => ({ type: "workbench-preview-state", css: previewVariablesCss(previewTheme), mode, themeId: previewTheme.id, revision: previewTheme.revision }),
@@ -186,15 +189,27 @@ export function App() {
     setCommandEvaluating(true)
     setCommandOutcome(null)
     const result = await evaluateDesignCommandClient(commandText, mode)
-    setCommandEvaluating(false)
-    setCommandOutcome(result.outcome)
-    if (result.outcome.kind !== "staged") return
+    if (result.outcome.kind !== "staged") {
+      setCommandEvaluating(false)
+      setCommandOutcome(result.outcome)
+      return
+    }
+    // Everything mutating is locked from the moment evaluation started (see `locked`), so `current`/`session` here
+    // are still exactly what they were when the request was issued: the captured base cannot have raced anything.
     const seq = commandSeq + 1
     setCommandSeq(seq)
     const proposal = buildDesignCommandProposal(commandText, result.outcome.operations, { themeId: current.id, revision: current.revision }, `design-command-${seq}`, new Date().toISOString())
     const staged = stageProposal(session, current, proposal, new Date().toISOString())
     setSession(staged.session)
-    if (!staged.ok) return showProposalErrors(staged.errors)
+    setCommandEvaluating(false)
+    if (!staged.ok) {
+      // The Jev-level outcome was "staged", but staging it against product state failed (e.g. a stale/duplicate
+      // id): the visible command outcome must not go on claiming success once that has happened.
+      showProposalErrors(staged.errors)
+      setCommandOutcome({ kind: "rejected", reason: { code: staged.errors[0]?.ruleId ?? "proposal.invalid-proposal", path: staged.errors[0]?.path } })
+      return
+    }
+    setCommandOutcome(result.outcome)
     setProposalIssues([])
     setProposalResult(`Staged ${staged.staged.proposal.proposalId} from a design command. Nothing is active until you apply it.`)
   }
@@ -340,7 +355,7 @@ export function App() {
             <textarea
               id={commandTextId}
               value={commandText}
-              disabled={locked || commandEvaluating}
+              disabled={locked}
               onChange={(e) => setCommandText(e.target.value)}
               spellCheck={false}
               rows={2}
@@ -348,7 +363,7 @@ export function App() {
               className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             />
           </Field>
-          <Button disabled={locked || commandEvaluating || commandText.trim().length === 0} onClick={evaluateCommand} data-testid="design-command-evaluate">
+          <Button disabled={locked || commandText.trim().length === 0} onClick={evaluateCommand} data-testid="design-command-evaluate">
             {commandEvaluating ? "Evaluating…" : "Evaluate"}
           </Button>
           {commandEvaluating && (
@@ -366,24 +381,45 @@ export function App() {
                 <>
                   <p role="status" data-testid={`design-command-${commandOutcome.kind}`}>
                     {commandOutcome.kind === "staged" && `Staged ${commandOutcome.operations.length} operation(s) from this command.`}
-                    {commandOutcome.kind === "clarification-required" && "More than one directional intent was detected. Restate as a single change."}
-                    {commandOutcome.kind === "unsupported" && "No supported category was recognized in this command."}
+                    {commandOutcome.kind === "clarification-required" &&
+                      {
+                        ambiguous: "This command is contradictory or too vague to act on safely. Restate it more specifically.",
+                        "command-kind-undecided": "Not confident this is a theme-adjustment command. Restate it more specifically.",
+                        "needs-clarification-undecided": "Not confident this command is unambiguous. Restate it more specifically.",
+                      }[commandOutcome.cause]}
+                    {commandOutcome.kind === "unsupported" &&
+                      (commandOutcome.cause === "out-of-scope"
+                        ? "This command does not appear to ask for a theme adjustment."
+                        : "No supported category (color, radius, density, typography, shadow, motion) was recognized in this command.")}
                   </p>
                   <details data-testid="design-command-evidence">
                     <summary>Typed evidence (recipe {commandOutcome.evidence.recipeCatalogVersion}, questions {commandOutcome.evidence.questionCatalogVersion})</summary>
                     <ul className="grid gap-1 pl-4">
-                      <li>
-                        commandKind: <code>{commandOutcome.evidence.commandKindSelected}</code> (confidence {commandOutcome.evidence.commandKindConfidence.toFixed(2)})
+                      <li data-testid="design-command-evidence-command-kind">
+                        commandKind: <code>{commandOutcome.evidence.commandKindSelected}</code> (confidence {commandOutcome.evidence.commandKindConfidence.toFixed(2)}, probabilities{" "}
+                        {Object.entries(commandOutcome.evidence.commandKindProbabilities)
+                          .map(([id, p]) => `${id} ${p.toFixed(2)}`)
+                          .join(", ")}
+                        )
                       </li>
                       {commandOutcome.evidence.categories.map((entry) => (
                         <li key={entry.category} data-testid={`design-command-evidence-${entry.category}`}>
-                          {entry.category}: <code>{entry.selected}</code> (confidence {entry.confidence.toFixed(2)}, {entry.targeted ? "targeted" : "not targeted"})
+                          {entry.category}: <code>{entry.selected}</code> (confidence {entry.confidence.toFixed(2)}, {entry.targeted ? "targeted" : "not targeted"}, probabilities{" "}
+                          {Object.entries(entry.probabilities)
+                            .map(([id, p]) => `${id} ${p.toFixed(2)}`)
+                            .join(", ")}
+                          )
                         </li>
                       ))}
-                      <li>
-                        strength: <code>{commandOutcome.evidence.strengthLabel}</code> (confidence {commandOutcome.evidence.strengthConfidence.toFixed(2)})
+                      <li data-testid="design-command-evidence-strength">
+                        strength: <code>{commandOutcome.evidence.strengthLabel}</code> (raw score {commandOutcome.evidence.strengthScore.toFixed(2)}, confidence{" "}
+                        {commandOutcome.evidence.strengthConfidence.toFixed(2)}, probabilities{" "}
+                        {Object.entries(commandOutcome.evidence.strengthProbabilities)
+                          .map(([index, p]) => `${commandOutcome.evidence.strengthLegend[index]} ${p.toFixed(2)}`)
+                          .join(", ")}
+                        )
                       </li>
-                      <li>
+                      <li data-testid="design-command-evidence-clarification">
                         needsClarification: <code>{commandOutcome.evidence.needsClarificationValue.toFixed(2)}</code> ({commandOutcome.evidence.needsClarificationDecided ? "decided" : "undecided"})
                       </li>
                     </ul>
@@ -417,7 +453,9 @@ export function App() {
             )}
           </Field>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={stage}>Stage proposal</Button>
+            <Button disabled={locked} onClick={stage}>
+              Stage proposal
+            </Button>
             <Button variant="outline" onClick={() => setProposalText(exampleProposalJson(current, `example-${session.records.length + 1}`))}>
               Insert example
             </Button>

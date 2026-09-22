@@ -5,6 +5,7 @@ const PORT = Number(process.env.WORKBENCH_PORT ?? 5173)
 // Runs against the production workbench build (`pnpm build:workbench` first).
 export default defineConfig({
   testDir: "e2e",
+  // design-command-live-boundary.spec.ts runs under playwright.designcommand.config.ts (vite dev), not here.
   testMatch: ["workbench.spec.ts", "default-equivalence.spec.ts", "proposal-preview.spec.ts", "design-command.spec.ts"],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },

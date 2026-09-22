@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": { "types": ["node"], "typeRoots": ["../node_modules/@types"] },
-  "include": ["./**/*.ts", "../playwright.config.ts", "../playwright.workbench.config.ts"]
+  "include": ["./**/*.ts", "../playwright.config.ts", "../playwright.workbench.config.ts", "../playwright.designcommand.config.ts"]
 }

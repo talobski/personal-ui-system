@@ -99,4 +99,18 @@ describe("handleDesignCommandEvaluate — request handling", () => {
     const payload = await response.json()
     expect(payload.outcome).toEqual({ kind: "rejected", reason: { code: "design-command.empty-text" } })
   })
+
+  it("rejects an oversized request body with zero fetches", async () => {
+    const fetchMock = vi.fn(async () => fullAnswers())
+    const env = { TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY: "product-sentinel-value" }
+    const response = await handleDesignCommandEvaluate(
+      request({ commandText: "make it denser", activeMode: "light", padding: "x".repeat(16 * 1024) }),
+      env,
+      fetchMock as unknown as typeof fetch
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(response.status).toBe(413)
+    const payload = await response.json()
+    expect(payload.outcome).toEqual({ kind: "rejected", reason: { code: "design-command.request-too-large" } })
+  })
 })

@@ -67,3 +67,89 @@ test("Evaluate is disabled while a proposal is staged", async ({ page }) => {
   await expect(page.getByTestId("proposal-staged")).toBeVisible()
   await expect(page.getByTestId("design-command-evaluate")).toBeDisabled()
 })
+
+test("locks every mutating/load/save/export control while a Design command evaluation is pending, and renders full typed evidence including probabilities on a staged outcome", async ({
+  page,
+}) => {
+  await openWorkbench(page)
+
+  let releasePendingResponse: (() => void) | undefined
+  const pending = new Promise<void>((resolve) => {
+    releasePendingResponse = resolve
+  })
+  // Intercept the browser -> localhost product API call at the network layer, regardless of whether a real
+  // backend route exists for it, so the pending/lock and evidence-rendering behavior is provable without any
+  // credential or live Jev call.
+  await page.route("**/api/design-command/evaluate", async (route) => {
+    await pending
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        outcome: {
+          kind: "staged",
+          operations: [{ op: "setRadius", value: "0.75rem" }],
+          evidence: {
+            questionCatalogVersion: "design-command-questions/1",
+            recipeCatalogVersion: "design-command-recipes/1",
+            commandKindSelected: "themeAdjustment",
+            commandKindConfidence: 0.92,
+            commandKindProbabilities: { themeAdjustment: 0.92, outOfScope: 0.08 },
+            categories: [
+              { category: "color", selected: "notTargeted", targeted: false, direction: null, confidence: 0.9, probabilities: { warmer: 0.05, cooler: 0.05, notTargeted: 0.9 } },
+              { category: "radius", selected: "rounder", targeted: true, direction: "positive", confidence: 0.88, probabilities: { rounder: 0.88, sharper: 0.02, notTargeted: 0.1 } },
+              { category: "density", selected: "notTargeted", targeted: false, direction: null, confidence: 0.9, probabilities: { looser: 0.05, denser: 0.05, notTargeted: 0.9 } },
+              { category: "typography", selected: "notTargeted", targeted: false, direction: null, confidence: 0.9, probabilities: { editorial: 0.05, neutral: 0.05, notTargeted: 0.9 } },
+              { category: "shadow", selected: "notTargeted", targeted: false, direction: null, confidence: 0.9, probabilities: { stronger: 0.05, softer: 0.05, notTargeted: 0.9 } },
+              { category: "motion", selected: "notTargeted", targeted: false, direction: null, confidence: 0.9, probabilities: { faster: 0.05, slower: 0.05, notTargeted: 0.9 } },
+            ],
+            strengthLabel: "moderate",
+            strengthScore: 1.1,
+            strengthConfidence: 0.85,
+            strengthProbabilities: { "0": 0.1, "1": 0.8, "2": 0.1 },
+            strengthLegend: { "0": "subtle", "1": "moderate", "2": "strong" },
+            needsClarificationValue: 0.05,
+            needsClarificationDecided: true,
+          },
+        },
+      }),
+    })
+  })
+
+  await page.getByTestId("design-command-input").click()
+  await page.keyboard.type("make the corners rounder")
+  await page.getByTestId("design-command-evaluate").click()
+  await expect(page.getByTestId("design-command-pending")).toBeVisible()
+
+  const lockedWhilePending = [
+    page.getByLabel("Token"),
+    page.getByLabel("Value (oklch)"),
+    page.getByRole("button", { name: "Apply edit" }),
+    page.getByLabel("Setting", { exact: true }),
+    page.getByLabel("Setting value"),
+    page.getByRole("button", { name: "Apply setting" }),
+    page.getByLabel("Active theme"),
+    page.getByLabel("Fork id"),
+    page.getByLabel("Fork name"),
+    page.getByRole("button", { name: "Fork theme" }),
+    page.getByRole("button", { name: "Save theme" }),
+    page.getByRole("button", { name: "Export JSON" }),
+    page.getByRole("button", { name: "Stage proposal" }),
+    page.getByTestId("design-command-input"),
+  ]
+  for (const control of lockedWhilePending) await expect(control).toBeDisabled()
+
+  releasePendingResponse?.()
+
+  await expect(page.getByTestId("design-command-pending")).toHaveCount(0)
+  await expect(page.getByTestId("design-command-outcome")).toHaveAttribute("data-outcome-kind", "staged")
+  await expect(page.getByTestId("proposal-staged")).toBeVisible()
+  // The theme was mutated exactly once, through the normal proposal lifecycle: nothing staged twice or silently.
+  await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
+
+  const evidence = page.getByTestId("design-command-evidence")
+  await evidence.locator("summary").click()
+  await expect(page.getByTestId("design-command-evidence-command-kind")).toContainText("themeAdjustment 0.92")
+  await expect(page.getByTestId("design-command-evidence-radius")).toContainText("rounder 0.88")
+  await expect(page.getByTestId("design-command-evidence-strength")).toContainText("moderate 0.80")
+})

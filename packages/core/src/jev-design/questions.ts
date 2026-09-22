@@ -1,5 +1,5 @@
 import type { DesignCommandState } from "./state"
-import type { ChoiceQuestion, NoulQuestion, ScoreQuestion, TypeSafeQuestion, TypeSafeRequest } from "./wire"
+import type { TypeSafeRequest, WireQuestion } from "./wire"
 import { TYPESAFE_MODEL } from "./wire"
 
 export const QUESTION_CATALOG_VERSION = "design-command-questions/1"
@@ -35,7 +35,14 @@ export const COMMAND_KIND_OUT_OF_SCOPE = "outOfScope"
 export const STRENGTH_SCALE = ["subtle", "moderate", "strong"] as const
 export type StrengthLevel = (typeof STRENGTH_SCALE)[number]
 
-function categoryQuestion(category: DesignCategory): ChoiceQuestion {
+/** Product-owned internal catalog representation. Ids are explicit fields here for ergonomic code; `toWireRequest`
+ * is the one place that converts this into the real wire shape, where ids become object keys instead. */
+export type InternalChoiceQuestion = { id: string; type: "choice"; instructions: string; options: readonly { id: string; description: string }[] }
+export type InternalScoreQuestion = { id: string; type: "score"; instructions: string; scale: readonly string[] }
+export type InternalNoulQuestion = { id: string; type: "noul"; instructions: string; criteria: { true: string; false: string } }
+export type InternalQuestion = InternalChoiceQuestion | InternalScoreQuestion | InternalNoulQuestion
+
+function categoryQuestion(category: DesignCategory): InternalChoiceQuestion {
   const { positive, negative } = CATEGORY_DIRECTIONS[category]
   return {
     id: CATEGORY_QUESTION_IDS[category],
@@ -44,7 +51,8 @@ function categoryQuestion(category: DesignCategory): ChoiceQuestion {
       `Does the design command in state.commandText ask for a change to this project's ${category} theme tokens? ` +
       `Answer "${positive}" if it asks to move ${category} toward more ${positive}, "${negative}" if it asks to move ` +
       `${category} toward more ${negative}, or "${NOT_TARGETED}" if the command does not address ${category} at all. ` +
-      `Judge only from the literal text of state.commandText.`,
+      `Judge only from the literal text of state.commandText. A command can address more than one category at once — ` +
+      `judge this category entirely independently of any other category the text might also mention.`,
     options: [
       { id: positive, description: `The command asks for more ${positive} ${category}.` },
       { id: negative, description: `The command asks for more ${negative} ${category}.` },
@@ -53,7 +61,7 @@ function categoryQuestion(category: DesignCategory): ChoiceQuestion {
   }
 }
 
-const commandKindQuestion: ChoiceQuestion = {
+const commandKindQuestion: InternalChoiceQuestion = {
   id: COMMAND_KIND_QUESTION_ID,
   type: "choice",
   instructions:
@@ -65,7 +73,7 @@ const commandKindQuestion: ChoiceQuestion = {
   ],
 }
 
-const strengthQuestion: ScoreQuestion = {
+const strengthQuestion: InternalScoreQuestion = {
   id: STRENGTH_QUESTION_ID,
   type: "score",
   instructions:
@@ -75,21 +83,32 @@ const strengthQuestion: ScoreQuestion = {
   scale: STRENGTH_SCALE,
 }
 
-const needsClarificationQuestion: NoulQuestion = {
+/**
+ * `needsClarification` is deliberately NOT a proxy for "does this command touch more than one category" — a
+ * command that asks for several independent, unambiguous category changes at once (e.g. "make it denser and
+ * warmer") is fully supported and must compose every one of them, not be routed to clarification. This question is
+ * reserved for genuine contradiction, irreducible vagueness, or scope outside the six supported categories in a
+ * way that prevents a safe, specific mapping.
+ */
+const needsClarificationQuestion: InternalNoulQuestion = {
   id: NEEDS_CLARIFICATION_QUESTION_ID,
   type: "noul",
   instructions:
-    "Does state.commandText express more than one distinct directional theme intent (for example, two different " +
-    'categories, or contradictory directions for the same category), such that a single unambiguous change cannot ' +
-    "be determined? Answer strictly from the literal text.",
+    "Is state.commandText contradictory (for example, it asks for two opposite changes to the same aspect, such " +
+    'as "rounder but also sharper corners"), too vague to determine any concrete change, or does it ask for ' +
+    "something entirely outside color, corner roundness, spacing density, typography character, shadow elevation, " +
+    "and motion speed, such that it cannot be safely and specifically mapped to those six categories? Answer " +
+    "true only for genuine contradiction, vagueness, or out-of-catalog scope. Do NOT answer true merely because " +
+    "the command touches more than one of the six categories at once — requesting several independent category " +
+    "changes in one command is fully supported and is never by itself a reason to answer true.",
   criteria: {
-    true: "The command expresses two or more distinct directional intents, or is self-contradictory.",
-    false: "The command expresses at most one clear directional intent (or none).",
+    true: "The command contradicts itself, is too vague to act on, or asks for something outside the six supported categories, in a way that prevents a safe, specific mapping.",
+    false: "The command's intent(s) can each be safely and specifically mapped to the six categories, even if it touches more than one of them.",
   },
 }
 
 /** All nine questions, in a fixed order, sent together in one packet. Irrelevant answers are ignored by code. */
-export function buildQuestionCatalog(): readonly TypeSafeQuestion[] {
+export function buildQuestionCatalog(): readonly InternalQuestion[] {
   return [
     commandKindQuestion,
     ...DESIGN_CATEGORIES.map((category) => categoryQuestion(category)),
@@ -100,7 +119,23 @@ export function buildQuestionCatalog(): readonly TypeSafeQuestion[] {
 
 export const categoryQuestionId = CATEGORY_QUESTION_IDS
 
+function toWireQuestion(question: InternalQuestion): WireQuestion {
+  switch (question.type) {
+    case "choice":
+      return { type: "choice", instructions: question.instructions, criteria: Object.fromEntries(question.options.map((o) => [o.id, o.description])) }
+    case "score":
+      return { type: "score", instructions: question.instructions, criteria: question.scale }
+    case "noul":
+      return { type: "noul", instructions: question.instructions, criteria: question.criteria }
+  }
+}
+
+/** The one audited conversion from the internal catalog to the real `POST /v1/systemone` wire request shape. */
+export function toWireRequest(state: DesignCommandState, questions: readonly InternalQuestion[]): TypeSafeRequest {
+  return { model: TYPESAFE_MODEL, state, questions: Object.fromEntries(questions.map((q) => [q.id, toWireQuestion(q)])) }
+}
+
 /** Builds the exact one-call TypeSafe request for a command evaluation. State is the only user-authored value. */
 export function buildTypeSafeRequest(state: DesignCommandState): TypeSafeRequest {
-  return { model: TYPESAFE_MODEL, state, questions: buildQuestionCatalog() }
+  return toWireRequest(state, buildQuestionCatalog())
 }
