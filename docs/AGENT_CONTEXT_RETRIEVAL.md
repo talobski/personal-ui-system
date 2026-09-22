@@ -1,8 +1,11 @@
 # Agent context retrieval v1
 
-Worker notes for `agent-context-retrieval-v1-001`. The versioned contract is `personal-ui-context/1`, a general
-deterministic design-system consumption surface — not a proposal-construction API. It is additive: no existing
-`registry.json`, contract, theme fixture, mutation operation, or proposal semantics changed.
+The canonical public consumption guide is [packages/core/README.md](../packages/core/README.md). It covers the
+public CLI, public `@personal-ui/core` imports, component-state validation, proposal staging, and the deterministic
+rejection of arbitrary CSS/path attempts. This document remains implementation reference material for
+`agent-context-retrieval-v1-001`. The versioned contract is `personal-ui-context/1`, a general deterministic
+design-system consumption surface — not a proposal-construction API. It is additive: no existing `registry.json`,
+contract, theme fixture, mutation operation, or proposal semantics changed.
 
 ## Where things live
 
@@ -163,7 +166,10 @@ Colocated under `packages/core/src/context/*.test.ts`:
 - `context.cli.test.ts` — spawns the CLI as a separate process: stdout-only success, stderr-only single-line stable-
   JSON failure (no prose) for no-args/unsupported-flag/missing-flag-value/positional-junk/duplicate-flag, exit codes,
   operation-specific flag enforcement, and cross-invocation byte stability.
-- `context.acr11-fresh-agent-path.test.ts` — the ACR-11 scenario end to end, using only the public `context` API plus
-  core's existing `applyMutation`/`stageProposal`: component selection from `list`, reading responsive/accessibility
-  obligations and an unsupported composition straight off `get`, staging one valid proposal built from a
-  `capabilities`-described operation, and rejecting an arbitrary CSS/path operation.
+- `context.acr11-fresh-agent-path.test.ts` — the original ACR-11 scenario end to end, using only the public `context`
+  API plus core's existing proposal/state APIs. It is useful behavioral coverage, but its hardcoded scenario alone
+  does not prove an independent agent can discover the public path.
+- `context.documentation-contract.test.ts` — extracts the marked JSON examples from `packages/core/README.md`, then
+  exercises them only through the public `@personal-ui/core` barrel. Executable documentation together with a
+  protected fresh-agent verification is now the proof of independent discoverability; the test keeps the guide and
+  shipped behavior from drifting apart.

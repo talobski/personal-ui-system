@@ -1,0 +1,126 @@
+# `@personal-ui/core` public consumption guide
+
+`@personal-ui/core` is the public package for deterministic design-system retrieval, component-state validation, and non-committing theme proposals. Use its public barrel (`@personal-ui/core`) only; consumers do not need an internal module import or the workbench.
+
+## Retrieve the available context
+
+The read-only context CLI accepts exactly these commands:
+
+```sh
+node packages/core/src/context/bootstrap.mjs list --version personal-ui-context/1
+node packages/core/src/context/bootstrap.mjs get --version personal-ui-context/1 --theme quiet-editorial --resource field
+node packages/core/src/context/bootstrap.mjs capabilities --version personal-ui-context/1
+```
+
+`list` discovers the closed theme and resource ids. `get` returns the selected theme and resource contract. `capabilities` describes the closed theme-token operation union; it does not add operations. In a package-manager workspace, the equivalent public script is `pnpm context -- <same arguments>`.
+
+## Public API
+
+```ts
+import { createProposalSession, evaluateContextRequest, stageProposal, validateComponentState } from "@personal-ui/core"
+import type { MutationProposalV1 } from "@personal-ui/core"
+```
+
+Retrieve the theme before creating a proposal:
+
+```ts
+const retrieved = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "get", theme: "quiet-editorial", resource: "field" })
+if (!retrieved.ok || retrieved.operation !== "get") throw new Error("context retrieval failed")
+const activeTheme = retrieved.theme
+```
+
+### Validate a component composition
+
+This complete Field composition is valid. The JSON is intentionally executable as a documentation contract.
+
+<!-- afc09:field-state:start -->
+```json
+{
+  "kind": "field-composition",
+  "orientation": "responsive",
+  "label": { "kind": "visible", "text": "Country", "htmlFor": "country" },
+  "descriptionId": null,
+  "control": {
+    "kind": "native-select",
+    "id": "country",
+    "disabled": false,
+    "invalid": true,
+    "error": { "id": "country-error", "message": "Choose a country." },
+    "ariaDescribedBy": ["country-error"],
+    "mobileTextPx": 16,
+    "options": [{ "label": "Philippines", "value": "ph" }],
+    "value": "ph"
+  }
+}
+```
+<!-- afc09:field-state:end -->
+
+```ts
+const fieldState = /* JSON above */
+const validation = validateComponentState(fieldState)
+if (!validation.ok) throw new Error(JSON.stringify(validation.issues))
+```
+
+Component-state validation only admits or rejects structured component state. It does not mutate a theme.
+
+### Stage a closed theme-token proposal
+
+`stageProposal` has the exact signature:
+
+```ts
+stageProposal(session, activeTheme, proposal, now)
+```
+
+- `session` is the `ProposalSession` returned by `createProposalSession()` (or the session returned by a prior lifecycle call).
+- `activeTheme` is the retrieved current `Theme`; its id and revision must match `proposal.base`.
+- `proposal` is an unknown input validated as `MutationProposalV1` and then against the closed theme-token operation union.
+- `now` is the RFC-3339 timestamp recorded for receipt and evaluation.
+
+The following is a complete valid `MutationProposalV1`. Its `base` values come from the retrieved `activeTheme` above (`activeTheme.id` and `activeTheme.revision`); for the currently retrieved `quiet-editorial` fixture, those values are `quiet-editorial` and `1`.
+
+<!-- afc09:valid-proposal:start -->
+```json
+{
+  "schemaVersion": "1.0",
+  "proposalId": "docs-valid-color",
+  "base": { "themeId": "quiet-editorial", "revision": 1 },
+  "provenance": { "source": "agent", "sourceId": "docs-guide", "createdAt": "2026-01-01T00:00:00Z" },
+  "operations": [
+    { "op": "setColor", "mode": "light", "token": "primary", "value": "oklch(0.4 0.05 260)" }
+  ]
+}
+```
+<!-- afc09:valid-proposal:end -->
+
+```ts
+const session = createProposalSession()
+const proposal: MutationProposalV1 = /* JSON above */
+const staged = stageProposal(session, activeTheme, proposal, "2026-01-01T00:00:00Z")
+if (!staged.ok) throw new Error(JSON.stringify(staged.errors))
+```
+
+Staging mutates only the closed theme-token operation union into a candidate in the returned session. It never applies that candidate as the active theme; application is a later lifecycle step.
+
+### Unsupported CSS/path escape attempt
+
+Arbitrary CSS and arbitrary paths are not operations in the closed union. This complete proposal-shaped attempt is passed through the same lifecycle and is deterministically rejected with `mutation.unknown-operation` at `operations[0].op`.
+
+<!-- afc09:set-css-attempt:start -->
+```json
+{
+  "schemaVersion": "1.0",
+  "proposalId": "docs-set-css-rejection",
+  "base": { "themeId": "quiet-editorial", "revision": 1 },
+  "provenance": { "source": "agent", "sourceId": "docs-guide", "createdAt": "2026-01-01T00:00:00Z" },
+  "operations": [
+    { "op": "setCss", "path": "/any/arbitrary/path.css", "value": "body { color: rebeccapurple; }" }
+  ]
+}
+```
+<!-- afc09:set-css-attempt:end -->
+
+```ts
+const rejected = stageProposal(createProposalSession(), activeTheme, /* JSON above */, "2026-01-01T00:00:00Z")
+if (rejected.ok) throw new Error("unexpectedly staged")
+// rejected.errors is [{ ruleId: "mutation.unknown-operation", path: "operations[0].op" }]
+```
