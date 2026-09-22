@@ -1,13 +1,14 @@
 # Personal UI System — Project Brief
 
-Status: PAUSED(owner) — `composition-foundation-pack-v1-001` is accepted at
-`063a03e3`. All earlier phases remain accepted and are not reopened. The public
-catalog now contains ten rigorously contracted resources and four verified
-composition fixtures. `workbench-composed-preview-v1-001` has a reconciled
-proposal but is not admitted and has no allocated headroom. Canonical execution
-state remains in `.loop/state.json`; older checkpoint documents may describe
-earlier accepted milestones and are historical evidence rather than current
-control state.
+Status: ACTIVE — `workbench-composed-preview-v1-001` is owner-approved and
+admitted from the accepted Composition Foundation Pack product state at
+`063a03e3`. All earlier phases remain accepted and are not reopened. The phase
+makes the four accepted compositions the Workbench's default preview surface,
+retains components as secondary precision inspection, and changes no public
+product schema, registry resource, theme token, mutation operation, or product
+AI boundary. Canonical execution state remains in `.loop/state.json`; older
+checkpoint documents may describe earlier accepted milestones and are
+historical evidence rather than current control state.
 
 Last updated: 2026-09-23
 

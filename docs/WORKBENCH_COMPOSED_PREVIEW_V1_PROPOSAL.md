@@ -1,11 +1,13 @@
-# Workbench Composed Preview v1 — proposed phase contract
+# Workbench Composed Preview v1 — admitted phase contract
 
 Phase ID: `workbench-composed-preview-v1-001`
 
-Status: **PROPOSED — NOT ADMITTED**
+Status: **OWNER-APPROVED — ADMITTED**
 
-No agent-run, attempt, concurrency, or spend allocation is attached to this
-proposal. Admission requires separate owner approval.
+Approved allocation: at most 3 agent runs (2 expected), concurrency 1, 6
+Lead-to-worker turns, 4 artifact attempts, and $0 paid spend. Run 1 is the
+producer, run 2 is protected fresh verification, and run 3 is reserved only
+for bounded recovery or reverification.
 
 ## Accepted dependency surface
 
@@ -81,19 +83,29 @@ component inspection.
   and motion tokens. Literal visual colors, one-off shadow/radius values, and
   raw CSS styling escapes are prohibited where an accepted token exists. Theme
   value text shown or edited as product data is not visual styling.
-- **WCP-06 — Theme judgment across compositions:** deterministic evidence shows
-  that color, typography, radius, shadow, density, and motion changes each alter
-  relevant computed styles in at least one composed preview without bypassing
-  the existing renderer. Light/dark changes update both composed and isolated
-  surfaces.
-- **WCP-07 — Lifecycle behavior preserved:** theme selection/editing,
+- **WCP-06 — Theme judgment across compositions:** deterministic computed-style
+  evidence on real composition targets proves color (primary action and Card
+  relationship), typography (Card title and composition root), radius (Card),
+  shadow (Card), density (Card/Field gap or padding), and motion (Button or
+  Switch) respond through the existing renderer. Evidence compares active and
+  staged values, proves staging leaves the active theme unchanged, proves
+  Discard restores the active preview, proves Apply changes it exactly once,
+  covers light/dark, and covers reduced motion.
+- **WCP-07 — Lifecycle behavior and state clarity:** theme selection/editing,
   validation, save, fork, export, proposal staging/evidence, Apply/Discard, and
-  Design Command keep their accepted semantics. Pending evaluation continues
-  to lock unsafe concurrent actions; failures leave the active theme unchanged.
-- **WCP-08 — Responsive Workbench:** at the accepted mobile and desktop
-  viewports, the Workbench has no horizontal page overflow, the preview remains
-  usable, controls remain labelled and reachable, and every composition stays
-  within its preview boundary. Viewport simulation remains deterministic.
+  Design Command keep their accepted semantics. The UI separately labels the
+  active theme and preview source; while staged, a non-color-only status Card
+  states “Previewing staged proposal — active theme unchanged” with adjacent
+  Apply/Discard actions, and the preview frame exposes deterministic state
+  attributes. Pending evaluation continues to lock unsafe concurrent actions;
+  failures leave the active theme unchanged.
+- **WCP-08 — Responsive Workbench:** at 390x844 and 1440x900, the Workbench has
+  no horizontal page overflow, the preview remains usable, controls remain
+  labelled and reachable, and every composition stays within its preview
+  boundary. Desktop presents the large preview before a bounded inspector;
+  mobile stacks preview before inspector. Existing deterministic simulated
+  preview widths remain 390 and 1024 pixels; a local preview scroller is allowed
+  where needed, but page-level overflow is not.
 - **WCP-09 — Accessibility:** keyboard-only users can switch preview surfaces,
   select compositions/components, operate editor and lifecycle controls, and
   return focus predictably. Focus indicators remain visible; labels,
@@ -130,12 +142,11 @@ or extraction; persistence redesign; collaboration; deployment; publishing;
 copying tweakcn or shadcn/create layout or styling literally; removing isolated
 component previews.
 
-## Proposed execution shape (unallocated)
+## Approved execution shape
 
 The work is coupled across Workbench layout, shared composition extraction,
-renderer state, and browser acceptance. Use one producer followed by one
-protected fresh verifier; keep one third run only for bounded recovery if the
-owner later admits corresponding headroom. STANDARD remains the default model
-class. STRONG requires a recorded concrete expected benefit, and MAX remains
-inadmissible without explicit per-dispatch owner approval. Do not use
-`PARALLEL_INDEPENDENT` for this phase.
+renderer state, and browser acceptance. Use one Codex-preferred producer
+followed by one protected fresh verifier; keep one third run only for bounded
+recovery. STANDARD is selected because this is a bounded UI/state refactor over
+accepted interfaces and no concrete STRONG benefit exists. MAX is not
+authorized. Do not use `PARALLEL_INDEPENDENT` for this phase.
