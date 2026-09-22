@@ -1,5 +1,12 @@
 # Jev official-source packet for the design-command phase
 
+> **Architecture correction (2026-09-22):** The owner clarified that this
+> phase is a product-level Jev integration. `@loop-engineering/jev-core`, its
+> contracts, `.loop` coupling, budgets, and credential are control-plane-only
+> and are not candidate product infrastructure. Questions below about that
+> package are retained as historical research context; the accepted product
+> boundary is `docs/JEV_PRODUCT_ARCHITECTURE.md`.
+
 Retrieved by the Lead on 2026-09-22 from the official TypeSafe documentation.
 This packet exists because the admitted worker profiles prohibit external
 network access. Workers must treat the linked TypeSafe pages as the sources,

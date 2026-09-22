@@ -653,6 +653,29 @@ union and stages exactly one existing `MutationProposalV1`; preview, Apply,
 Discard, stale handling, persistence boundaries, and revision behavior remain
 unchanged. Nothing applies automatically.
 
+Architecture corrected and owner-approved on 2026-09-22: this is a
+**product-level Jev integration**, separate from the Loop Engineering control
+plane. `DESIGN_COMMAND` is the versioned internal product contract
+`personal-ui-design-command/1`; it is not a Loop routing contract. Product code
+must not import or depend on `@loop-engineering/jev-core`, `.loop` state, Loop
+billing or request budgets, `WORKER_FAN_OUT`, or any other orchestration
+semantics. The existing shared package and `tools/loop/jev/` remain exclusively
+for Loop Engineering control-plane use.
+
+The local product transport boundary is workbench browser -> localhost product
+API -> TypeSafe API. Only that server-side product API may read
+`TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY`. It must never read or fall back to
+`TYPESAFE_LOOP_ENGINEERING_API_KEY` or `TYPESAFE_API_KEY`, and no product AI
+credential may enter a Vite client environment variable, browser bundle,
+localStorage, IndexedDB, proposal provenance, logs, analytics, or `.loop`.
+Missing or empty credentials fail before transport. Rejected credentials,
+timeouts, rate limits, malformed or incomplete responses, and answers below
+the product confidence policy fail closed with no retry, no staged proposal,
+and no active-theme mutation. The local environment-variable path is
+development infrastructure only; future public BYOK support uses a
+backend-managed per-user secret flow rather than direct browser-to-TypeSafe
+calls.
+
 The phase begins with a mandatory research gate against the current official
 TypeSafe documentation starting at <https://docs.typesafe.ai/introduction>.
 The researcher, producer, and verifier must each read the applicable official
@@ -684,16 +707,24 @@ Included work:
   proposal provenance;
 - explicit `staged`, `clarification-required`, `unsupported`, and `rejected`
   outcomes;
+- a product-local bounded transport and localhost API with injected-fetch
+  offline tests proving credential isolation, one-attempt behavior, response
+  validation, and secret-safe failures;
 - offline deterministic fixtures plus bounded supervised live verification only
-  while fresh evidence proves the existing owner-authorized included Jev
-  allocation remains available.
+  while fresh evidence independently proves the product credential's
+  owner-authorized included Jev allocation remains available. Credential
+  presence alone is not billing evidence.
 
 Excluded work: new mutation operations, registry/catalog changes, arbitrary
 CSS or filesystem access, automatic Apply or Save, free-form rationale,
 unbounded compound-command decomposition, website/image interpretation,
 generative-model fallback, MCP, cross-reload proposal replay protection, rule
 promotion, publishing, deployment, and any paid, overage, purchased-credit, or
-auto-recharge route.
+auto-recharge route. A general-purpose LLM, LLM credential, provider
+abstraction, agent/tool coordination, free-form planning, and generated
+explanations are also excluded from this phase; the need for them is deferred
+until a concrete later capability cannot be represented by the closed Jev and
+deterministic-code boundary.
 
 Acceptance is JDC-01 through JDC-12 in
 `.loop/runs/jev-design-command-mvp-001/task.md`: documentation-grounded design,

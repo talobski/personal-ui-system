@@ -1,5 +1,16 @@
 # Jev-native design-command research (Phase 5)
 
+> **Superseded architecture note (2026-09-22):** This artifact was produced
+> under the incorrect assumption that the product-level design command had to
+> use the Loop Engineering control-plane runtime. The owner subsequently
+> clarified and approved a strict separation. Its official-source inventory,
+> Jev jaggedness analysis, and bounded-composition principles remain evidence;
+> its `WORKER_FAN_OUT`, eight-question, `.loop`, CLI transport, single-category,
+> and Loop-credential conclusions must not be implemented. The controlling
+> product architecture and verification plan are
+> `docs/JEV_PRODUCT_ARCHITECTURE.md` and
+> `.loop/runs/jev-design-command-mvp-001/task.md`.
+
 Retrieval date: 2026-09-22. Sources are `docs/JEV_OFFICIAL_SOURCE_PACKET.md` (the
 Lead-audited packet over the official TypeSafe documentation listed below) plus
 direct inspection of the vendored `@loop-engineering/jev-core@0.1.0` source
