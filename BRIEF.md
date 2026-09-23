@@ -1,14 +1,14 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `workbench-composed-preview-v1-001` is owner-approved and
-admitted from the accepted Composition Foundation Pack product state at
-`063a03e3`. All earlier phases remain accepted and are not reopened. The phase
-makes the four accepted compositions the Workbench's default preview surface,
-retains components as secondary precision inspection, and changes no public
-product schema, registry resource, theme token, mutation operation, or product
-AI boundary. Canonical execution state remains in `.loop/state.json`; older
-checkpoint documents may describe earlier accepted milestones and are
-historical evidence rather than current control state.
+Status: PAUSED — `workbench-composed-preview-v1-001` has a preserved, Lead-green
+candidate at `ea72724f871607881cc48e886198c99152785a5a`, but remains unaccepted
+until protected fresh verification completes WCP-11. The phase was explicitly
+migrated on 2026-09-23 to the simplified Loop execution-envelope semantics;
+legacy turn, artifact-attempt, and recovery counters remain historical
+telemetry. All earlier phases remain accepted and are not reopened. Canonical
+execution state remains in `.loop/state.json`; older checkpoint documents may
+describe earlier accepted milestones and are historical evidence rather than
+current control state.
 
 Last updated: 2026-09-23
 
@@ -845,12 +845,13 @@ Command boundary test, and 68 decoded accessibility attachments passed. The
 completion receipt is
 `.loop/runs/composition-foundation-pack-v1-001/result.json`.
 
-## Proposed Phase 9: Workbench Composed Preview v1
+## Active Phase 9: Workbench Composed Preview v1
 
-`workbench-composed-preview-v1-001` is proposed but not admitted. It makes the
-four accepted compositions the Workbench's primary preview surface and keeps
-isolated component inspection as a secondary surface. It introduces no public
-resource, schema, token, mutation, proposal, Design Command, Jev, LLM, MCP, or
-credential change. Its final proposed contract is
-`docs/WORKBENCH_COMPOSED_PREVIEW_V1_PROPOSAL.md`. No run or budget headroom is
-allocated until owner approval.
+`workbench-composed-preview-v1-001` is admitted and has a preserved candidate at
+`ea72724f871607881cc48e886198c99152785a5a`. Lead evidence is green, including
+412/412 unit tests, Storybook 38/38, Workbench 62/62, and the Design Command
+boundary 1/1. Protected fresh verification has completed 3/6 WCP-11 items; that
+evidence remains distinct from Lead evidence. The candidate is not accepted and
+must not move to main until all WCP-01 through WCP-12 criteria pass. The explicit
+simplified-runtime migration receipt is
+`.loop/runs/workbench-composed-preview-v1-001/migration-receipt.json`.
