@@ -1,0 +1,42 @@
+{
+  "checks": [
+    {
+      "file": "desktop.svg",
+      "size": [
+        1600,
+        1000
+      ],
+      "sha256": "fbd6712d0aedc29f82dabea76d813692d0a98a2fd585214ae5c25d53ecf2f721",
+      "xml_and_structure": "pass"
+    },
+    {
+      "file": "mobile.svg",
+      "size": [
+        1250,
+        932
+      ],
+      "sha256": "4e12348fce95ef48d724cbe877a63405ceb2a18f93df7e4e37333b0b5cb45a96",
+      "xml_and_structure": "pass"
+    },
+    {
+      "file": "gallery.svg",
+      "size": [
+        1008,
+        1000
+      ],
+      "sha256": "4774f8d1a8f6bc8856234bb0b3f9c843c4569c9daa4c777430322f0745c6a854",
+      "xml_and_structure": "pass"
+    }
+  ],
+  "local_review_links": "pass",
+  "embedded_studies": [
+    "desktop.svg",
+    "mobile.svg",
+    "gallery.svg"
+  ],
+  "embedded_svg_bytes_match_sources": "pass",
+  "required_external_image_dependencies": 0,
+  "review_sha256": "64fb851050d8907fc820a1d7b902347c5e9d9a0f32cfb8505b8996e0863f6efd",
+  "gallery_card_count": 8,
+  "runtime_or_pixel_verification": "not performed; prohibited browser/Computer Use"
+}
