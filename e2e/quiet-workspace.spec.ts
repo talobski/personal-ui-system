@@ -4,6 +4,25 @@ import { workspaceMode, editorCategory } from "./workbench-navigation"
 
 const ids = ["productive-week", "account-profile", "team-access", "workspace-settings", "notifications", "support-request", "recent-activity", "room-to-think"]
 
+test("preview width starts responsively and preserves an explicit choice across outer resizes", async ({ page }) => {
+  const startsDesktop = page.viewportSize()!.width >= 1024
+  await page.goto("/")
+  await workspaceMode(page, "Preview")
+  const frame = page.getByTestId("preview-frame")
+  const initialLabel = startsDesktop ? "Desktop 1024" : "Mobile 390"
+  const chosenLabel = startsDesktop ? "Mobile 390" : "Desktop 1024"
+  const chosenWidth = startsDesktop ? 390 : 1024
+  await expect(page.getByRole("radio", { name: initialLabel, exact: true })).toBeChecked()
+  await expect(frame).toHaveCSS("width", startsDesktop ? "1024px" : "390px")
+  await page.getByRole("radio", { name: chosenLabel, exact: true }).click()
+  for (const width of startsDesktop ? [390, 1600] : [1600, 390]) {
+    await page.setViewportSize({ width, height: 1000 })
+    await workspaceMode(page, "Preview")
+    await expect(page.getByRole("radio", { name: chosenLabel, exact: true })).toBeChecked()
+    await expect(frame).toHaveCSS("width", `${chosenWidth}px`)
+  }
+})
+
 for (const mode of ["light", "dark"] as const) {
   test(`quiet workspace layout, cards, mobile preservation and accessibility — ${mode}`, async ({ page }, info) => {
     await page.goto("/")
@@ -94,7 +113,7 @@ test("desktop separator pointer, Arrow, Home, End, focus and viewport clamps", a
   await page.keyboard.press("Home"); await expect.poll(width).toBeCloseTo(352, 0)
   await page.keyboard.press("ArrowRight"); await expect.poll(width).toBeGreaterThan(352)
   const box = (await handle.boundingBox())!
-  await page.mouse.move(box.x + box.width / 2, box.y + 100); await page.mouse.down(); await page.mouse.move(box.x + 900, box.y + 100); await page.mouse.up()
+  await page.mouse.move(box.x + box.width / 2, box.y + 100); await page.mouse.down(); await page.mouse.move(page.viewportSize()!.width - 10, box.y + 100, { steps: 10 }); await page.mouse.up()
   await expect.poll(width).toBeCloseTo(480, 0)
   await page.setViewportSize({ width: 1024, height: 900 })
   await expect.poll(width).toBeLessThanOrEqual(384.5)

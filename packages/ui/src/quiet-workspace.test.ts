@@ -1,7 +1,12 @@
 import { readFileSync } from "node:fs"
 import { expect, it } from "vitest"
 import { validateComponentState, evaluateContextRequest, getContract } from "@personal-ui/core"
-import { editorBounds } from "../../../apps/workbench/src/layout"
+import { editorBounds, initialPreviewWidth } from "../../../apps/workbench/src/layout"
+
+it("initializes preview width at the outer Workbench desktop breakpoint", () => {
+  for (const width of [320, 390, 1023]) expect(initialPreviewWidth(width)).toBe("mobile")
+  for (const width of [1024, 1440, 1600]) expect(initialPreviewWidth(width)).toBe("desktop")
+})
 
 it("clamps editor bounds at desktop sizes without widening the theme", () => {
   expect(editorBounds(1440)).toEqual({ min: 352, max: 480, defaultSize: 352 })

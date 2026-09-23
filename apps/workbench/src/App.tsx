@@ -2,7 +2,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/compon
 import { Textarea } from "@personal-ui/ui/components/textarea"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@personal-ui/ui/components/resizable-panel"
 import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogClose } from "@personal-ui/ui/components/responsive-dialog"
-import { editorBounds } from "./layout"
+import { editorBounds, initialPreviewWidth } from "./layout"
 import * as React from "react"
 
 import { applyProposal, COLOR_TOKENS, createProposalSession, discardProposal, stageProposal } from "@personal-ui/core"
@@ -80,7 +80,7 @@ export function App() {
   const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage))
   const [current, setCurrent] = React.useState<Theme>(() => (saved.activeId ? saved.themes[saved.activeId]! : canonical))
   const [mode, setMode] = React.useState<Mode>("light")
-  const [width, setWidth] = React.useState<Width>("mobile")
+  const [width, setWidth] = React.useState<Width>(() => initialPreviewWidth(viewportWidth))
 
   const [token, setToken] = React.useState<ColorToken>("primary")
   const [draft, setDraft] = React.useState("")
