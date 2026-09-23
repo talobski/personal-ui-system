@@ -1,16 +1,15 @@
 # Personal UI System — Project Brief
 
-Status: PAUSED — `workbench-composed-preview-v1-001` has a preserved, Lead-green
-candidate at `ea72724f871607881cc48e886198c99152785a5a`, but remains unaccepted
-until protected fresh verification completes WCP-11. The phase was explicitly
-migrated on 2026-09-23 to the simplified Loop execution-envelope semantics;
-legacy turn, artifact-attempt, and recovery counters remain historical
-telemetry. All earlier phases remain accepted and are not reopened. Canonical
-execution state remains in `.loop/state.json`; older checkpoint documents may
-describe earlier accepted milestones and are historical evidence rather than
-current control state.
+Status: ACTIVE — `quiet-workspace-workbench-v1-001` is accepted at product
+commit `5320f55968c2eb25476a7c23ad20d377f0c56117`. The owner approved the visual
+implementation, the protected fresh verifier passed, and the exact promoted
+tree passed post-promotion regression. The earlier
+`workbench-composed-preview-v1-001` candidate remains preserved but
+owner-abandoned, unaccepted, and excluded from future implementation bases.
+Canonical execution state remains in `.loop/state.json`; older checkpoint
+documents are historical evidence rather than current control state.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-24
 
 ## Goal
 
@@ -845,13 +844,39 @@ Command boundary test, and 68 decoded accessibility attachments passed. The
 completion receipt is
 `.loop/runs/composition-foundation-pack-v1-001/result.json`.
 
-## Active Phase 9: Workbench Composed Preview v1
+## Abandoned Phase 9: Workbench Composed Preview v1
 
-`workbench-composed-preview-v1-001` is admitted and has a preserved candidate at
+`workbench-composed-preview-v1-001` has a preserved historical candidate at
 `ea72724f871607881cc48e886198c99152785a5a`. Lead evidence is green, including
 412/412 unit tests, Storybook 38/38, Workbench 62/62, and the Design Command
 boundary 1/1. Protected fresh verification has completed 3/6 WCP-11 items; that
-evidence remains distinct from Lead evidence. The candidate is not accepted and
-must not move to main until all WCP-01 through WCP-12 criteria pass. The explicit
-simplified-runtime migration receipt is
+evidence remains distinct from Lead evidence. The owner abandoned the phase;
+the candidate is not accepted, was never moved to main, and must not be reused
+as a future implementation base. The explicit simplified-runtime migration
+receipt is
 `.loop/runs/workbench-composed-preview-v1-001/migration-receipt.json`.
+
+## Phase 10 result: Quiet Workspace Workbench v1
+
+Accepted on 2026-09-24 at product commit
+`5320f55968c2eb25476a7c23ad20d377f0c56117`. The phase implements the
+owner-approved Quiet Workspace direction from accepted main without inspecting
+or reusing the abandoned WCP candidate.
+
+The Workbench now uses a full-width application layout with a restrained top
+bar, a bounded shadcn-derived resizable editor panel, a dominant composition
+preview, responsive Desktop 1024/Mobile 390 defaults, and full-width mobile
+Controls/Preview modes. Exactly eight shared compositions are consumed by both
+Workbench and Storybook. The sole public catalog addition is
+`resizable-panel`, bringing the registry to exactly eleven resources. Existing
+theme editing, validation, fork/save/export/persistence, proposal lifecycle,
+Design Command, responsive, and accessibility behavior remains intact.
+
+The owner approved desktop light/dark and mobile Controls/Preview renders. The
+protected fresh verifier passed an independent source, contract, test, and
+offline-build audit at the exact candidate. Lead and post-promotion evidence
+passed 420 unit tests, all typechecks and builds, Workbench 55 passed with one
+expected mobile skip for a desktop-only check, Storybook 40/40, Design Command
+1/1, the exact eleven-resource registry, and frozen/bundle/credential/network
+scans. No schema, token, mutation, proposal, Jev, LLM, MCP, credential, network,
+deployment, or publishing boundary changed.
