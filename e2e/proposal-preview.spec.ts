@@ -1,3 +1,4 @@
+import { workspaceMode, editorCategory, previewStates, openFork, assertActiveControls } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { Page, TestInfo } from "@playwright/test"
@@ -22,12 +23,15 @@ const proposal = (id: string, revision: number, overrides: Record<string, unknow
 
 async function openWorkbench(page: Page, mode: "light" | "dark") {
   await page.goto("/")
+  await previewStates(page)
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
+  await workspaceMode(page, "Preview")
   await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-mode", mode)
 }
 
 const stageText = async (page: Page, text: string) => {
+  await editorCategory(page, "Command")
   await page.getByLabel("Proposal JSON").fill(text)
   await page.getByRole("button", { name: "Stage proposal" }).click()
 }
@@ -35,7 +39,7 @@ const stageText = async (page: Page, text: string) => {
 const previewStyle = (page: Page, testId: string, prop: keyof CSSStyleDeclaration) =>
   previewFrame(page).getByTestId(testId).evaluate((el, p) => String(getComputedStyle(el)[p]), prop)
 const buttonMotion = (page: Page) =>
-  previewFrame(page).getByRole("button", { name: "default", exact: true }).evaluate((el) => getComputedStyle(el).transitionDuration)
+  previewFrame(page).getByRole("button", { name: "default", exact: true, includeHidden: true }).evaluate((el) => getComputedStyle(el).transitionDuration)
 // One computed-style probe per theme category, all read from the preview iframe.
 const categoryStyles = (page: Page) =>
   previewFrame(page).locator("html").evaluate(() => {
@@ -89,6 +93,7 @@ for (const mode of ["light", "dark"] as const) {
       expect(await buttonMotion(page)).toBe("0.2s")
 
       await stageText(page, proposal("stage-1", 1))
+      await workspaceMode(page, "Preview")
       await expect(page.getByTestId("proposal-staged")).toBeVisible()
       await expect(page.getByTestId("proposal-error")).toHaveCount(0)
       await expect(page.getByTestId("proposal-log").locator('[data-proposal-id="stage-1"]')).toHaveAttribute("data-status", "staged")
@@ -97,6 +102,7 @@ for (const mode of ["light", "dark"] as const) {
       await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
       await expect(revision(page)).toHaveText("1")
       await expect(page.getByTestId("theme-status")).toHaveText("unsaved")
+      await workspaceMode(page, "Controls")
       await expect(page.getByTestId("diff-empty")).toBeVisible()
 
       // The candidate is visible through the existing iframe path, with no reload.
@@ -109,13 +115,16 @@ for (const mode of ["light", "dark"] as const) {
       expect(paths).toEqual(["modes.dark.color.primary", "modes.light.color.primary", "motion.durationBase", "radius.md"])
       await expect(page.getByTestId("proposal-diff-list").locator('[data-path="radius.md"]')).toContainText('"0.5rem" → "1rem"')
       expect(await storedThemes(page)).toBe(storageBefore)
+      await workspaceMode(page, "Preview")
       await expectNoSeriousViolations(page, `${mode}-proposal-staged`, testInfo)
 
       // Discard: candidate gone, active and persisted state byte-identical.
+      await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Discard proposal" }).click()
       await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
       await expect(page.getByTestId("proposal-log").locator('[data-proposal-id="stage-1"]')).toHaveAttribute("data-status", "discarded")
       await expect(revision(page)).toHaveText("1")
+      await workspaceMode(page, "Controls")
       await expect(page.getByTestId("diff-empty")).toBeVisible()
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe(radiusBefore)
       await expect.poll(buttonMotion.bind(null, page)).toBe("0.2s")
@@ -155,6 +164,7 @@ for (const mode of ["light", "dark"] as const) {
       ]
       expect(operations.length).toBeLessThanOrEqual(8)
       await stageText(page, proposal("six-1", 1, { operations }))
+      await workspaceMode(page, "Preview")
       await expect(page.getByTestId("proposal-staged")).toBeVisible()
       await expect(page.getByTestId("proposal-error")).toHaveCount(0)
       await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
@@ -176,6 +186,7 @@ for (const mode of ["light", "dark"] as const) {
 
       // Active theme, persistence, and the iframe document are untouched.
       await expect(page.getByTestId("theme-status")).toHaveText("unsaved")
+      await workspaceMode(page, "Controls")
       await expect(page.getByTestId("diff-empty")).toBeVisible()
       expect(await storedThemes(page)).toBe(storageBefore)
       expect(await previewFrame(page).locator("html").evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true)
@@ -189,8 +200,10 @@ for (const mode of ["light", "dark"] as const) {
         "space.density",
         "typography.sans",
       ])
+      await workspaceMode(page, "Preview")
       await expectNoSeriousViolations(page, `${mode}-six-categories-staged`, testInfo)
 
+      await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Discard proposal" }).click()
       await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
       await expect(revision(page)).toHaveText("1")
@@ -208,6 +221,7 @@ for (const mode of ["light", "dark"] as const) {
       // Fill, then Tab from the textarea to the Stage button (it is next in the tab order) and activate with a key.
       const stageWithKey = async (id: string, key: "Enter" | "Space", base: number) => {
         const textarea = page.getByLabel("Proposal JSON")
+        await editorCategory(page, "Command")
         await textarea.fill(proposal(id, base))
         await textarea.focus()
         await page.keyboard.press("Tab")
@@ -217,6 +231,7 @@ for (const mode of ["light", "dark"] as const) {
 
       // 1. Stage via Enter: staged candidate, active revision unchanged.
       await stageWithKey("kbd-1", "Enter", 1)
+      await workspaceMode(page, "Preview")
       await expect(page.getByTestId("proposal-staged")).toBeVisible()
       await expect(log("kbd-1")).toHaveAttribute("data-status", "staged")
       await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
@@ -225,6 +240,7 @@ for (const mode of ["light", "dark"] as const) {
 
       // 2. Discard via Space: candidate gone, active revision and persistence unchanged.
       const discard = page.getByRole("button", { name: "Discard proposal" })
+      await workspaceMode(page, "Preview")
       await discard.focus()
       await expect(discard).toBeFocused()
       await page.keyboard.press("Space")
@@ -236,6 +252,7 @@ for (const mode of ["light", "dark"] as const) {
 
       // 3. Second Stage via Space with a fresh id: staged again against the unchanged base.
       await stageWithKey("kbd-2", "Space", 1)
+      await workspaceMode(page, "Preview")
       await expect(page.getByTestId("proposal-staged")).toBeVisible()
       await expect(log("kbd-2")).toHaveAttribute("data-status", "staged")
       await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
@@ -243,6 +260,7 @@ for (const mode of ["light", "dark"] as const) {
 
       // 4. Apply via Enter: active revision moves 1 -> 2 exactly once, in memory only.
       const apply = page.getByRole("button", { name: "Apply proposal" })
+      await workspaceMode(page, "Preview")
       await apply.focus()
       await expect(apply).toBeFocused()
       await page.keyboard.press("Enter")
@@ -260,7 +278,9 @@ for (const mode of ["light", "dark"] as const) {
       await openWorkbench(page, mode)
       const storageBefore = await storedThemes(page)
       await stageText(page, proposal("apply-1", 1))
+      await workspaceMode(page, "Preview")
       await expect(page.getByTestId("proposal-staged")).toBeVisible()
+      await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Apply proposal" }).click()
 
       await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
@@ -281,13 +301,16 @@ for (const mode of ["light", "dark"] as const) {
       // A new id against the new base works and moves the revision by exactly one more.
       await stageText(page, proposal("apply-2", 2, { operations: [{ op: "setDensity", value: 1.25 }] }))
       await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("3")
+      await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Apply proposal" }).click()
       await expect(revision(page)).toHaveText("3")
 
       // Save is the only step that persists, and it persists the applied revision.
+      await openFork(page)
       await page.getByLabel("Fork id").fill("applied-fork")
       await page.getByLabel("Fork name").fill("Applied Fork")
-      await page.getByRole("button", { name: "Fork theme" }).click()
+      await page.getByRole("dialog").getByRole("button", { name: "Fork theme", exact: true }).click()
+      await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Save theme" }).click()
       await expect(page.getByTestId("theme-status")).toHaveText("saved")
       expect(await storedThemes(page)).not.toBe(storageBefore)
@@ -301,6 +324,7 @@ for (const mode of ["light", "dark"] as const) {
       await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
       await expect(page.getByTestId("proposal-log").locator('[data-proposal-id="mismatch-1"]')).toHaveAttribute("data-status", "rejected")
       await expect(revision(page)).toHaveText("1")
+      await workspaceMode(page, "Controls")
       await expect(page.getByTestId("diff-empty")).toBeVisible()
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("8px")
       expect(await storedThemes(page)).toBe(storageBefore)
@@ -338,25 +362,13 @@ for (const mode of ["light", "dark"] as const) {
     test("disables every active-state control while a proposal is staged and re-enables them afterwards", async ({ page }, testInfo) => {
       await openWorkbench(page, mode)
       const storageBefore = await storedThemes(page)
-      const locked = [
-        page.getByLabel("Token"),
-        page.getByLabel("Value (oklch)"),
-        page.getByRole("button", { name: "Apply edit" }),
-        page.getByLabel("Setting", { exact: true }),
-        page.getByLabel("Setting value"),
-        page.getByRole("button", { name: "Apply setting" }),
-        page.getByLabel("Active theme"),
-        page.getByLabel("Fork id"),
-        page.getByLabel("Fork name"),
-        page.getByRole("button", { name: "Fork theme" }),
-        page.getByRole("button", { name: "Save theme" }),
-        page.getByRole("button", { name: "Export JSON" }),
-      ]
-      for (const control of locked) await expect(control).toBeEnabled()
+      await assertActiveControls(page, false)
 
       await stageText(page, proposal("lock-1", 1))
+      await workspaceMode(page, "Preview")
       await expect(page.getByTestId("proposal-staged")).toBeVisible()
-      for (const control of locked) await expect(control).toBeDisabled()
+      await assertActiveControls(page, true)
+      await workspaceMode(page, "Preview")
       await expect(page.getByTestId("proposal-locked-note")).toBeVisible()
 
       // View controls and the proposal's own Apply and Discard stay usable.
@@ -367,29 +379,37 @@ for (const mode of ["light", "dark"] as const) {
       await expect(page.getByRole("button", { name: "Apply proposal" })).toBeEnabled()
       await expect(page.getByRole("button", { name: "Discard proposal" })).toBeEnabled()
       const other = mode === "light" ? "Dark" : "Light"
+      await workspaceMode(page, "Preview")
       await page.getByRole("radio", { name: other, exact: true }).click()
       await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-mode", other.toLowerCase())
+      await workspaceMode(page, "Preview")
       await page.getByRole("radio", { name: "Desktop 1024" }).click()
       await expect(page.getByTestId("preview-frame")).toHaveAttribute("style", /width: 1024px/)
+      await workspaceMode(page, "Preview")
       await expect(page.getByTestId("proposal-staged")).toBeVisible()
 
       // Nothing about the active theme or persistence moved.
       await expect(revision(page)).toHaveText("1")
+      await workspaceMode(page, "Controls")
       await expect(page.getByTestId("diff-empty")).toBeVisible()
       expect(await storedThemes(page)).toBe(storageBefore)
+      await workspaceMode(page, "Preview")
       await expectNoSeriousViolations(page, `${mode}-controls-locked`, testInfo)
 
       // Discard releases the lock.
+      await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Discard proposal" }).click()
       await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
-      for (const control of locked) await expect(control).toBeEnabled()
+      await assertActiveControls(page, false)
 
       // Apply releases it too.
       await stageText(page, proposal("lock-2", 1))
+      await workspaceMode(page, "Preview")
       await expect(page.getByRole("button", { name: "Save theme" })).toBeDisabled()
+      await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Apply proposal" }).click()
       await expect(revision(page)).toHaveText("2")
-      for (const control of locked) await expect(control).toBeEnabled()
+      await assertActiveControls(page, false)
     })
   })
 }

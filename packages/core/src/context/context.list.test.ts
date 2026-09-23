@@ -24,6 +24,7 @@ describe("context list (ACR-02)", () => {
       { id: "field", kind: "pattern", purpose: "Compose a label, control, description, and validation message as one accessible form field." },
       { id: "input", kind: "component", purpose: "Capture a single line of user-entered text or a native input type." },
       { id: "native-select", kind: "component", purpose: "Choose one value from a small, fixed set with the platform native select control." },
+      { id: "resizable-panel", kind: "pattern", purpose: "Divide a desktop workspace into bounded panels with an accessible pointer and keyboard separator." },
       {
         id: "responsive-dialog",
         kind: "pattern",

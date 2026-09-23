@@ -1,3 +1,4 @@
+import { workspaceMode, editorCategory, previewStates, openFork, assertActiveControls } from "./workbench-navigation"
 import { readFileSync, writeFileSync } from "node:fs"
 import { expect, test } from "@playwright/test"
 import type { Locator, Page } from "@playwright/test"
@@ -31,16 +32,19 @@ const sample = (locator: Locator) =>
 async function collect(page: Page) {
   const frame = previewFrame(page)
   await page.goto("/")
+  await previewStates(page)
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
   await expect(page.getByTestId("theme-id")).toHaveText("quiet-editorial")
+  await workspaceMode(page, "Preview")
   await page.getByRole("radio", { name: "Light", exact: true }).click()
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-mode", "light")
+  await workspaceMode(page, "Preview")
   await page.getByRole("radio", { name: "Desktop 1024" }).click()
 
   const result: Record<string, Record<string, string>> = {}
   result["body"] = { fontFamily: (await sample(frame.locator("body"))).fontFamily! }
-  result["button-default"] = await sample(frame.getByRole("button", { name: "default", exact: true }))
-  result["input-default"] = await sample(frame.getByLabel("Default"))
+  result["button-default"] = await sample(frame.getByRole("button", { name: "default", exact: true, includeHidden: true }))
+  result["input-default"] = await sample(frame.getByRole("textbox", { name: "Default", exact: true }))
   result["elevation-sample"] = await sample(frame.getByTestId("elevation-sample"))
 
   await frame.getByRole("button", { name: "Open dialog" }).click()

@@ -6,6 +6,7 @@ import type { Contract } from "./contract"
  * contract module, so retrieving one item never loads the others.
  */
 const loaders = {
+  "resizable-panel": () => import("./data/resizable-panel").then((m) => m.resizablePanel),
   button: () => import("./data/button").then((m) => m.button),
   field: () => import("./data/field").then((m) => m.field),
   input: () => import("./data/input").then((m) => m.input),

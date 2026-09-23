@@ -17,6 +17,7 @@ const KEYS_BY_OPERATION: Readonly<Record<string, ReadonlySet<string>>> = {
   capabilities: new Set(["version", "operation"]),
 }
 const RESOURCE_KINDS = Object.freeze({
+  "resizable-panel": "pattern",
   button: "component",
   field: "pattern",
   input: "component",

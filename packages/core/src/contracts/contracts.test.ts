@@ -7,6 +7,7 @@ const ALL_RESOURCE_IDS = [
   "field",
   "input",
   "native-select",
+  "resizable-panel",
   "responsive-dialog",
   "single-toggle-group",
   "switch",
@@ -15,7 +16,7 @@ const ALL_RESOURCE_IDS = [
 ]
 
 describe("contract lookup", () => {
-  it("lists exactly the ten public resources", () => {
+  it("lists exactly the eleven public resources", () => {
     expect(listContractIds().sort()).toEqual([...ALL_RESOURCE_IDS].sort())
   })
 

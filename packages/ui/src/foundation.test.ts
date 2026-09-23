@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { readFileSync, readdirSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
@@ -8,6 +8,29 @@ const root = join(components, "components")
 const source = (name: string) => readFileSync(join(root, name), "utf8")
 
 describe("shadcn foundation", () => {
+  it("keeps explicit Playwright checks as the Storybook matrix's sole automated axe owner", () => {
+    const preview = readFileSync(join(components, "../.storybook/preview.ts"), "utf8")
+    const main = readFileSync(join(components, "../.storybook/main.ts"), "utf8")
+    expect(preview).toMatch(/parameters:\s*\{\s*a11y:\s*\{\s*test:\s*"off"/)
+    expect(main).toContain('addons: ["@storybook/addon-a11y"]')
+
+    const repo = join(components, "../../..")
+    const config = readFileSync(join(repo, "playwright.config.ts"), "utf8")
+    const ignoredBlock = config.match(/testIgnore:\s*\[([\s\S]*?)\]/)
+    expect(ignoredBlock).not.toBeNull()
+    const ignored = [...ignoredBlock![1]!.matchAll(/"([^"]+)"/g)].map(match => match[1])
+    const specs = readdirSync(join(repo, "e2e")).filter(name => name.endsWith(".spec.ts") && !ignored.includes(name))
+    expect(specs.length).toBeGreaterThan(0)
+    for (const name of specs) {
+      const spec = readFileSync(join(repo, "e2e", name), "utf8")
+      expect(spec, name).toMatch(/new AxeBuilder\(\{ page \}\)\.analyze\(\)/)
+      expect(spec, name).toContain('impact === "critical"')
+      expect(spec, name).toContain('impact === "serious"')
+      expect(spec, name).toContain(".attach(")
+      expect(spec, name).toContain(".toEqual([])")
+    }
+  })
+
   it("keeps Button and Input as thin shadcn-derived components", () => {
     const button = source("button.tsx")
     const input = source("input.tsx")
@@ -93,6 +116,7 @@ describe("shadcn foundation", () => {
       "field",
       "input",
       "native-select",
+      "resizable-panel",
       "responsive-dialog",
       "single-toggle-group",
       "switch",

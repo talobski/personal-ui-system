@@ -110,6 +110,15 @@ const cardStateSchema = z.strictObject({
 })
 
 export const componentStateSchema = z.discriminatedUnion("kind", [
+  z.strictObject({
+    kind: z.literal("resizable-panel"),
+    minPx: z.number().finite().positive(),
+    defaultPx: z.number().finite().positive(),
+    maxPx: z.number().finite().positive(),
+    separatorName: z.string().min(1).max(200).nullable(),
+    primitiveSeparator: z.boolean(),
+    visibleFocus: z.boolean(),
+  }),
   buttonStateSchema,
   inputStateSchema,
   responsiveDialogStateSchema,
@@ -123,6 +132,8 @@ export const componentStateSchema = z.discriminatedUnion("kind", [
 export type ComponentState = z.infer<typeof componentStateSchema>
 
 export type ComponentConstraintRuleId =
+  | "resizable-panel.bounds"
+  | "resizable-panel.accessible-separator"
   | "constraint.invalid-state"
   | "button.one-primary"
   | "button.icon-name"
@@ -184,6 +195,10 @@ export function validateComponentState(input: unknown): ComponentStateValidation
 
   const issues: ComponentConstraintIssue[] = []
   const state = parsed.data
+  if (state.kind === "resizable-panel") {
+    if (state.minPx > state.defaultPx || state.defaultPx > state.maxPx) issues.push({ ruleId: "resizable-panel.bounds", path: "defaultPx" })
+    if (!state.separatorName?.trim() || !state.primitiveSeparator || !state.visibleFocus) issues.push({ ruleId: "resizable-panel.accessible-separator", path: "separatorName" })
+  }
   if (state.kind === "button-group") {
     if (state.buttons.filter((button) => button.variant === "default").length > 1) {
       issues.push({ ruleId: "button.one-primary", path: "buttons" })

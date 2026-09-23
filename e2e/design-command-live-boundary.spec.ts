@@ -1,3 +1,4 @@
+import { workspaceMode, editorCategory, previewStates, openFork, assertActiveControls } from "./workbench-navigation"
 import { expect, test } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
@@ -10,6 +11,8 @@ test("the real localhost product API middleware (vite dev) fails closed with tra
   })
 
   await page.goto("/")
+  await previewStates(page)
+  await editorCategory(page, "Command")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 
   await page.getByTestId("design-command-input").click()

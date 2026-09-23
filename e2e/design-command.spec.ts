@@ -1,3 +1,4 @@
+import { workspaceMode, editorCategory, previewStates, openFork, assertActiveControls } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { Page, TestInfo } from "@playwright/test"
@@ -6,6 +7,8 @@ const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-fr
 
 async function openWorkbench(page: Page) {
   await page.goto("/")
+  await previewStates(page)
+  await editorCategory(page, "Command")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 }
 
@@ -62,9 +65,12 @@ test("the Design command panel is present with an accessible, keyboard-operable 
 
 test("Evaluate is disabled while a proposal is staged", async ({ page }) => {
   await openWorkbench(page)
+  await editorCategory(page, "Command")
   await page.getByRole("button", { name: "Insert example" }).click()
   await page.getByRole("button", { name: "Stage proposal" }).click()
+  await workspaceMode(page, "Preview")
   await expect(page.getByTestId("proposal-staged")).toBeVisible()
+  await editorCategory(page, "Command")
   await expect(page.getByTestId("design-command-evaluate")).toBeDisabled()
 })
 
@@ -121,33 +127,21 @@ test("locks every mutating/load/save/export control while a Design command evalu
   await page.getByTestId("design-command-evaluate").click()
   await expect(page.getByTestId("design-command-pending")).toBeVisible()
 
-  const lockedWhilePending = [
-    page.getByLabel("Token"),
-    page.getByLabel("Value (oklch)"),
-    page.getByRole("button", { name: "Apply edit" }),
-    page.getByLabel("Setting", { exact: true }),
-    page.getByLabel("Setting value"),
-    page.getByRole("button", { name: "Apply setting" }),
-    page.getByLabel("Active theme"),
-    page.getByLabel("Fork id"),
-    page.getByLabel("Fork name"),
-    page.getByRole("button", { name: "Fork theme" }),
-    page.getByRole("button", { name: "Save theme" }),
-    page.getByRole("button", { name: "Export JSON" }),
-    page.getByRole("button", { name: "Stage proposal" }),
-    page.getByTestId("design-command-input"),
-  ]
-  for (const control of lockedWhilePending) await expect(control).toBeDisabled()
+  await assertActiveControls(page, true)
+  await expect(page.getByTestId("design-command-input")).toBeDisabled()
+  await expect(page.getByRole("button", { name: "Stage proposal" })).toBeDisabled()
 
   releasePendingResponse?.()
 
   await expect(page.getByTestId("design-command-pending")).toHaveCount(0)
   await expect(page.getByTestId("design-command-outcome")).toHaveAttribute("data-outcome-kind", "staged")
+  await workspaceMode(page, "Preview")
   await expect(page.getByTestId("proposal-staged")).toBeVisible()
   // The theme was mutated exactly once, through the normal proposal lifecycle: nothing staged twice or silently.
   await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
 
   const evidence = page.getByTestId("design-command-evidence")
+  await editorCategory(page, "Command")
   await evidence.locator("summary").click()
   await expect(page.getByTestId("design-command-evidence-command-kind")).toContainText("themeAdjustment 0.92")
   await expect(page.getByTestId("design-command-evidence-radius")).toContainText("rounder 0.88")

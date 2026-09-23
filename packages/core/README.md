@@ -14,6 +14,19 @@ node packages/core/src/context/bootstrap.mjs capabilities --version personal-ui-
 
 `list` discovers the closed theme and resource ids. `get` returns the selected theme and resource contract. `capabilities` describes the closed theme-token operation union; it does not add operations. In a package-manager workspace, the equivalent public script is `pnpm context -- <same arguments>`.
 
+The catalog contains eleven resources. `resizable-panel` is the desktop layout
+pattern backed by `react-resizable-panels@4.13.2`; retrieve it with
+`get --version personal-ui-context/1 --theme quiet-editorial --resource resizable-panel`.
+Its UI entry point exports `ResizablePanelGroup`, `ResizablePanel`, and
+`ResizableHandle` from `@personal-ui/ui/components/resizable-panel`.
+Numeric bounds are pixels. Use the library separator with an accessible name
+and visible focus; replace the desktop split with full-width Tabs on mobile.
+Example admissibility state:
+
+```json
+{"kind":"resizable-panel","minPx":352,"defaultPx":352,"maxPx":480,"separatorName":"Resize editor","primitiveSeparator":true,"visibleFocus":true}
+```
+
 ## Public API
 
 ```ts

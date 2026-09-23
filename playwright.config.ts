@@ -6,6 +6,7 @@ const PORT = 6006
 export default defineConfig({
   testDir: "e2e",
   testIgnore: [
+    "quiet-workspace.spec.ts",
     "workbench.spec.ts",
     "default-equivalence.spec.ts",
     "proposal-preview.spec.ts",

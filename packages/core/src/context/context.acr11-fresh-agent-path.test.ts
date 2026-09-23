@@ -45,6 +45,7 @@ describe("fresh-agent-verifiable path (ACR-11)", () => {
       "field",
       "input",
       "native-select",
+      "resizable-panel",
       "responsive-dialog",
       "single-toggle-group",
       "switch",

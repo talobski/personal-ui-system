@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./components/*": "./src/components/*.tsx",
-    "./lib/*": "./src/lib/*.ts"
+    "./lib/*": "./src/lib/*.ts",
+    "./compositions/*": "./src/compositions/*.tsx"
   },
   "peerDependencies": {
     "react": ">=19",

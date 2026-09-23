@@ -83,6 +83,22 @@
       "description": "Single-select shadcn ToggleGroup that always keeps exactly one bounded option selected.",
       "registryDependencies": ["toggle-group", "toggle"],
       "files": [{ "path": "packages/ui/src/components/single-toggle-group.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "resizable-panel",
+      "type": "registry:ui",
+      "title": "Resizable Panel",
+      "description": "Shadcn-derived bounded accessible panels using react-resizable-panels v4.",
+      "dependencies": [
+        "cn",
+        "react-resizable-panels@4.13.2"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/resizable-panel.tsx",
+          "type": "registry:ui"
+        }
+      ]
     }
   ]
 }

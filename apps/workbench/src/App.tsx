@@ -1,3 +1,8 @@
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
+import { Textarea } from "@personal-ui/ui/components/textarea"
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@personal-ui/ui/components/resizable-panel"
+import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogClose } from "@personal-ui/ui/components/responsive-dialog"
+import { editorBounds } from "./layout"
 import * as React from "react"
 
 import { applyProposal, COLOR_TOKENS, createProposalSession, discardProposal, stageProposal } from "@personal-ui/core"
@@ -55,6 +60,17 @@ function Notice({ children }: { children: React.ReactNode }) {
 }
 
 export function App() {
+  const [viewportWidth, setViewportWidth] = React.useState(window.innerWidth)
+  const [mobileMode, setMobileMode] = React.useState("controls")
+  const [category, setCategory] = React.useState("colors")
+  const [forkOpen, setForkOpen] = React.useState(false)
+  React.useEffect(() => {
+    const resize = () => setViewportWidth(window.innerWidth)
+    window.addEventListener("resize", resize)
+    return () => window.removeEventListener("resize", resize)
+  }, [])
+  const desktop = viewportWidth >= 1024
+  const bounds = editorBounds(viewportWidth)
   const editId = React.useId()
   const settingValueId = React.useId()
   const forkIdId = React.useId()
@@ -227,6 +243,7 @@ export function App() {
     const result = forkTheme(current, forkId.trim(), forkName.trim(), knownIds)
     if (!result.ok) return setForkIssues(result.issues)
     setForkIssues([])
+    setForkOpen(false)
     setCurrent(result.theme)
     setForkId("")
     setForkName("")
@@ -247,37 +264,40 @@ export function App() {
   }
 
   return (
-    <div className="mx-auto grid max-w-[1400px] gap-4 p-4 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
-      <header className="lg:col-span-2">
-        <h1 className="text-xl font-semibold">Personal UI Workbench</h1>
+    <div className="quiet-shell">
+      <header className="quiet-header"><h1 className="text-sm font-semibold">Personal UI Workbench</h1><Button asChild variant="ghost" size="sm"><a href="https://github.com/talobski/personal-ui-system">GitHub ↗</a></Button></header>
+      {notice && <div className="px-4 py-2"><Notice>{notice}</Notice></div>}
+      <Tabs value={mobileMode} onValueChange={setMobileMode} className="quiet-modes" data-mode={mobileMode}>
+        <TabsList className="quiet-mobile-tabs" aria-label="Workspace mode"><TabsTrigger value="controls">Controls</TabsTrigger><TabsTrigger value="preview">Preview</TabsTrigger></TabsList>
+        {(staged || commandEvaluating) && <div className="quiet-status" role="status">{commandEvaluating ? "Evaluating design command…" : "Previewing a proposal · active theme unchanged"}
+          <Button size="sm" variant="outline" onClick={() => { if (commandEvaluating) { setMobileMode("controls"); setCategory("command") } else { setMobileMode("preview"); requestAnimationFrame(() => document.getElementById("candidate-review")?.scrollIntoView()) } }}>Review changes</Button>
+        </div>}
+        <ResizablePanelGroup orientation="horizontal" disabled={!desktop} className="quiet-split">
+          <ResizablePanel id="editor-panel" style={{ overflow: "hidden" }} defaultSize={352} minSize={desktop ? bounds.min : 0} maxSize={desktop ? bounds.max : "100%"} groupResizeBehavior="preserve-pixel-size">
+            <TabsContent value="controls" forceMount className="quiet-editor" hidden={!desktop && mobileMode !== "controls"}>
+              <div className="quiet-theme">          <Field>
+            <FieldLabel htmlFor="theme-select">Active theme</FieldLabel>
+            <NativeSelect id="theme-select" value={knownIds.includes(current.id) ? current.id : ""} disabled={locked} onChange={(e) => load(e.target.value)}>
+              {!knownIds.includes(current.id) && <NativeSelectOption value="">{current.name} (unsaved fork)</NativeSelectOption>}
+              {knownIds.map((id) => (
+                <NativeSelectOption key={id} value={id}>
+                  {id === canonical.id ? `${canonical.name} (baseline)` : (saved.themes[id]?.name ?? id)}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </Field>
         <p className="text-sm text-muted-foreground">
           Editing <strong data-testid="theme-name">{current.name}</strong> (<code data-testid="theme-id">{current.id}</code>, revision{" "}
           <span data-testid="theme-revision">{current.revision}</span>) —{" "}
           <span data-testid="theme-status">{dirty ? "unsaved" : "saved"}</span>
         </p>
-      </header>
-
-      <div className="grid content-start gap-4">
-        <Panel title="View">
-          <SingleToggleGroup
-            label="Color mode"
-            value={mode}
-            onValueChange={setMode}
-            options={[
-              { value: "light", label: "Light" },
-              { value: "dark", label: "Dark" },
-            ]}
-          />
-          <SingleToggleGroup
-            label="Preview width"
-            value={width}
-            onValueChange={setWidth}
-            options={(Object.keys(WIDTHS) as Width[]).map((w) => ({ value: w, label: `${w === "mobile" ? "Mobile" : "Desktop"} ${WIDTHS[w]}` }))}
-          />
-        </Panel>
-
-        <Panel title="Edit color">
-          <p className="text-sm text-muted-foreground">Edits the {mode} mode value through the structured setColor mutation.</p>
+</div>
+              <Tabs value={category} onValueChange={value => { setCategory(value); if (value === "typography") setSetting("font"); else if (value === "other" && setting === "font") setSetting("radius") }}>
+                <div className="quiet-category-select"><Field><FieldLabel htmlFor="editor-category">Editor category</FieldLabel><NativeSelect id="editor-category" value={category} onChange={e => { const value = e.target.value; setCategory(value); if (value === "typography") setSetting("font"); else if (value === "other" && setting === "font") setSetting("radius") }}><NativeSelectOption value="colors">Colors</NativeSelectOption><NativeSelectOption value="typography">Typography</NativeSelectOption><NativeSelectOption value="other">Other</NativeSelectOption><NativeSelectOption value="command">Command</NativeSelectOption></NativeSelect></Field></div>
+                <TabsList className="quiet-categories" aria-label="Editor categories"><TabsTrigger value="colors">Colors</TabsTrigger><TabsTrigger value="typography">Typography</TabsTrigger><TabsTrigger value="other">Other</TabsTrigger><TabsTrigger value="command">Command</TabsTrigger></TabsList>
+                <TabsContent value="colors" forceMount className="data-[state=inactive]:hidden"><Panel title="Edit color">
+          <p className="text-sm text-muted-foreground">Edit one token in the {mode} palette.</p>
+          <div aria-hidden="true" className="flex gap-2">{["primary", "secondary", "accent", "muted", "background", "foreground"].map(name => <span key={name} className="h-7 flex-1 rounded-sm border" style={{ background: current.modes[mode].color[name as ColorToken].$value }} />)}</div>
           <Field>
             <FieldLabel htmlFor="token-select">Token</FieldLabel>
             <NativeSelect id="token-select" value={token} disabled={locked} onChange={(e) => setToken(e.target.value as ColorToken)}>
@@ -308,14 +328,13 @@ export function App() {
           <Button disabled={locked} onClick={applyEdit}>
             Apply edit
           </Button>
-        </Panel>
-
-        <Panel title="Edit theme settings">
-          <p className="text-sm text-muted-foreground">Edits one representative value per remaining category through the structured mutation API.</p>
+        </Panel></TabsContent>
+                <TabsContent value={category === "typography" ? "typography" : "other"} forceMount hidden={category !== "typography" && category !== "other"}><Panel title={category === "typography" ? "Typography" : "Edit theme settings"}>
+          <p className="text-sm text-muted-foreground">One setting at a time. Changes apply after validation.</p>
           <Field>
             <FieldLabel htmlFor="setting-select">Setting</FieldLabel>
             <NativeSelect id="setting-select" value={setting} disabled={locked} onChange={(e) => setSetting(e.target.value as SettingId)}>
-              {SETTING_IDS.map((id) => (
+              {SETTING_IDS.filter(id => category === "typography" ? id === "font" : id !== "font").map((id) => (
                 <NativeSelectOption key={id} value={id}>
                   {SETTINGS[id].label}
                 </NativeSelectOption>
@@ -342,9 +361,8 @@ export function App() {
           <Button disabled={locked} onClick={applySetting}>
             Apply setting
           </Button>
-        </Panel>
-
-        <Panel title="Design command">
+        </Panel></TabsContent>
+                <TabsContent value="command" forceMount className="data-[state=inactive]:hidden"><Panel title="Design command">
           <p className="text-sm text-muted-foreground">
             Describe a directional change (e.g. "make it denser and warmer"). One evaluation sends the command to Jev through the
             localhost product API; deterministic code composes any accepted judgments into a normal mutation proposal below. Nothing
@@ -352,7 +370,7 @@ export function App() {
           </p>
           <Field>
             <FieldLabel htmlFor={commandTextId}>Command</FieldLabel>
-            <textarea
+            <Textarea
               id={commandTextId}
               value={commandText}
               disabled={locked}
@@ -360,7 +378,7 @@ export function App() {
               spellCheck={false}
               rows={2}
               data-testid="design-command-input"
-              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 text-base md:text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             />
           </Field>
           <Button disabled={locked || commandText.trim().length === 0} onClick={evaluateCommand} data-testid="design-command-evaluate">
@@ -428,15 +446,13 @@ export function App() {
               )}
             </div>
           )}
-        </Panel>
-
-        <Panel title="Mutation proposal">
+        </Panel><div id="proposal-editor"><Panel title="Mutation proposal">
           <p className="text-sm text-muted-foreground">
             Paste one MutationProposalV1 (1 to 8 existing operations against one base). Staging previews the candidate without changing the active theme.
           </p>
           <Field data-invalid={proposalIssues.length > 0}>
             <FieldLabel htmlFor={proposalTextId}>Proposal JSON</FieldLabel>
-            <textarea
+            <Textarea
               id={proposalTextId}
               value={proposalText}
               onChange={(e) => setProposalText(e.target.value)}
@@ -444,7 +460,7 @@ export function App() {
               aria-describedby={proposalIssues.length > 0 ? `${proposalTextId}-error` : undefined}
               spellCheck={false}
               rows={8}
-              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive"
+              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 font-mono text-base md:text-xs shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive"
             />
             {proposalIssues.length > 0 && (
               <FieldError id={`${proposalTextId}-error`} data-testid="proposal-error">
@@ -474,21 +490,29 @@ export function App() {
               ))}
             </ul>
           )}
-        </Panel>
-
-        <Panel title="Themes">
-          <Field>
-            <FieldLabel htmlFor="theme-select">Active theme</FieldLabel>
-            <NativeSelect id="theme-select" value={knownIds.includes(current.id) ? current.id : ""} disabled={locked} onChange={(e) => load(e.target.value)}>
-              {!knownIds.includes(current.id) && <NativeSelectOption value="">{current.name} (unsaved fork)</NativeSelectOption>}
-              {knownIds.map((id) => (
-                <NativeSelectOption key={id} value={id}>
-                  {id === canonical.id ? `${canonical.name} (baseline)` : (saved.themes[id]?.name ?? id)}
-                </NativeSelectOption>
+        </Panel></div></TabsContent>
+              </Tabs>
+              <div className="quiet-baseline">        <Panel title="Diff vs baseline">
+          <p className="text-sm text-muted-foreground">
+            Baseline: canonical <code>{canonical.id}</code> revision {canonical.revision}. <span data-testid="diff-count">{diff.length}</span> changed token
+            {diff.length === 1 ? "" : "s"}.
+          </p>
+          {diff.length === 0 ? (
+            <p className="text-sm" data-testid="diff-empty">
+              No differences.
+            </p>
+          ) : (
+            <details id="baseline-details"><summary className="cursor-pointer text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">View baseline diff</summary><ul data-testid="diff-list" className="grid gap-2 text-sm">
+              {diff.map((entry) => (
+                <li key={entry.path} data-path={entry.path} className="break-all">
+                  <code>{entry.path}</code>: <code>{JSON.stringify(entry.baseline)}</code> → <code>{JSON.stringify(entry.current)}</code>
+                </li>
               ))}
-            </NativeSelect>
-          </Field>
-          <FieldGroup className="gap-3">
+            </ul></details>
+          )}
+        </Panel>
+</div>
+              <div className="p-4"><ResponsiveDialog open={forkOpen} onOpenChange={setForkOpen}><ResponsiveDialogTrigger asChild><Button variant="outline" disabled={locked}>Fork theme</Button></ResponsiveDialogTrigger><ResponsiveDialogContent><ResponsiveDialogHeader><ResponsiveDialogTitle>Fork theme</ResponsiveDialogTitle><ResponsiveDialogDescription>Create a named local draft. Save remains a separate action.</ResponsiveDialogDescription></ResponsiveDialogHeader><div className="px-4 sm:px-0">          <FieldGroup className="gap-3">
             <Field data-invalid={forkIssues.length > 0}>
               <FieldLabel htmlFor={forkIdId}>Fork id</FieldLabel>
               <Input
@@ -523,7 +547,29 @@ export function App() {
               </FieldError>
             )}
           </FieldGroup>
-          <div className="flex flex-wrap gap-2">
+</div><ResponsiveDialogFooter><ResponsiveDialogClose asChild><Button variant="outline">Cancel</Button></ResponsiveDialogClose></ResponsiveDialogFooter></ResponsiveDialogContent></ResponsiveDialog></div>
+            </TabsContent>
+          </ResizablePanel>
+          <ResizableHandle aria-label="Resize editor" className="quiet-handle" disabled={!desktop} />
+          <ResizablePanel id="preview-panel" style={{ overflow: "hidden" }} minSize={desktop ? 632 : 0}>
+            <TabsContent value="preview" forceMount className="quiet-preview" hidden={!desktop && mobileMode !== "preview"}>
+              <div className="quiet-toolbar">          <SingleToggleGroup
+            label="Color mode"
+            value={mode}
+            onValueChange={setMode}
+            options={[
+              { value: "light", label: "Light" },
+              { value: "dark", label: "Dark" },
+            ]}
+          />
+          <SingleToggleGroup
+            label="Preview width"
+            value={width}
+            onValueChange={setWidth}
+            options={(Object.keys(WIDTHS) as Width[]).map((w) => ({ value: w, label: `${w === "mobile" ? "Mobile" : "Desktop"} ${WIDTHS[w]}` }))}
+          />
+
+                <Button variant="outline" onClick={() => { setMobileMode("controls"); setCategory("command"); requestAnimationFrame(() => document.getElementById(proposalTextId)?.focus()) }}>Proposal JSON</Button>          <div className="flex flex-wrap gap-2">
             <Button disabled={locked} onClick={save}>
               Save theme
             </Button>
@@ -531,12 +577,10 @@ export function App() {
               Export JSON
             </Button>
           </div>
-          {notice && <Notice>{notice}</Notice>}
-        </Panel>
-      </div>
 
-      <div className="grid min-w-0 content-start gap-4">
-        {staged && (
+              </div>
+
+              <div id="candidate-review">        {staged && (
           <Panel title="Staged proposal">
             <div data-testid="proposal-staged" data-proposal-id={staged.proposal.proposalId} className="grid gap-3 text-sm">
               <p>
@@ -551,6 +595,7 @@ export function App() {
                 unchanged.
               </p>
               <p data-testid="proposal-locked-note">Editing, loading, forking, saving, and exporting the active theme are disabled until this proposal is applied or discarded.</p>
+              <details><summary className="cursor-pointer">Candidate operations</summary><pre className="overflow-x-auto text-xs">{JSON.stringify(staged.proposal.operations, null, 2)}</pre></details>
               {(current.id !== staged.proposal.base.themeId || current.revision !== staged.proposal.base.revision) && (
                 <p data-testid="proposal-base-moved" role="status">
                   The active theme has moved since staging. Apply will mark this proposal stale and change nothing.
@@ -573,8 +618,8 @@ export function App() {
           </Panel>
         )}
 
-        <Panel title="Preview">
-          <div
+</div>
+              <div className="quiet-preview-body">          <div
             role="region"
             aria-label="Preview viewport"
             tabIndex={0}
@@ -588,28 +633,11 @@ export function App() {
               style={{ width: WIDTHS[width], height: 720, display: "block", border: 0 }}
             />
           </div>
-        </Panel>
-
-        <Panel title="Diff vs baseline">
-          <p className="text-sm text-muted-foreground">
-            Baseline: canonical <code>{canonical.id}</code> revision {canonical.revision}. <span data-testid="diff-count">{diff.length}</span> changed token
-            {diff.length === 1 ? "" : "s"}.
-          </p>
-          {diff.length === 0 ? (
-            <p className="text-sm" data-testid="diff-empty">
-              No differences.
-            </p>
-          ) : (
-            <ul data-testid="diff-list" className="grid gap-2 text-sm">
-              {diff.map((entry) => (
-                <li key={entry.path} data-path={entry.path} className="break-all">
-                  <code>{entry.path}</code>: <code>{JSON.stringify(entry.baseline)}</code> → <code>{JSON.stringify(entry.current)}</code>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-      </div>
+</div>
+            </TabsContent>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </Tabs>
     </div>
   )
 }

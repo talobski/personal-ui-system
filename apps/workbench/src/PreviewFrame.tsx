@@ -1,3 +1,5 @@
+import { Gallery } from "./Gallery"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
 import * as React from "react"
 
 import { Button } from "@personal-ui/ui/components/button"
@@ -46,6 +48,9 @@ export function PreviewFrame() {
       data-revision={state?.revision}
     >
       <style id="workbench-theme">{state?.css ?? ""}</style>
+      <Tabs defaultValue="cards"><TabsList aria-label="Preview views"><TabsTrigger value="cards">Cards</TabsTrigger><TabsTrigger value="states">States</TabsTrigger></TabsList>
+      <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden"><Gallery /></TabsContent>
+      <TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">
       <section aria-labelledby="pv-buttons" className="grid gap-2">
         <h2 id="pv-buttons" className="text-sm font-semibold">
           Button
@@ -128,6 +133,7 @@ export function PreviewFrame() {
           </ResponsiveDialog>
         </div>
       </section>
+      </TabsContent></Tabs>
     </main>
   )
 }
