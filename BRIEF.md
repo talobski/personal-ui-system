@@ -69,6 +69,27 @@ Preferred baseline: TypeScript, React, Vite, Tailwind CSS v4, shadcn/ui, pnpm wo
 
 Canonical sources of truth are versioned data/schema files and component source, not workbench storage, generated CSS, Storybook manifests, or model prose.
 
+## Project-specific worker routing
+
+For substantive implementation work in `personal-ui-system`, STRONG is the
+default producer class. The preferred configured STRONG routes are Codex
+`gpt-5.6-sol` at medium effort and Claude `claude-opus-5` at medium effort;
+provider selection still uses current admissibility, capacity evidence, and any
+active owner preference.
+
+STANDARD remains appropriate for clearly mechanical, narrow, or routine work
+when no meaningful benefit from STRONG is expected. Verification also defaults
+to STANDARD unless the verification task itself has a recorded concrete reason
+to use STRONG.
+
+For visual direction, high-taste frontend work, or similarly demanding UI
+tasks, MAX should be preferred when justified. Astra is the preferred MAX route
+for primarily visual/UI work, but every MAX dispatch remains explicitly
+owner-gated for the exact task, profile, model, and effort.
+
+This is a project-level routing preference intended to reduce correction loops;
+it does not modify the global Loop Engineering model-class policy.
+
 ## Design boundaries
 
 ### Theme owns
