@@ -84,6 +84,8 @@ describe("normalizeColor: four input families to canonical OKLCH", () => {
     ["oklch(0.5 0.1 1e999)", "non-finite"],
     ["oklch(0.7 0.4 150)", "out-of-gamut"],
     ["oklch(0.99 0.3 30)", "out-of-gamut"],
+    ["oklch(0.5 1e308 20)", "out-of-gamut"],
+    ["oklch(0.5 1e21 20)", "out-of-gamut"],
   ])("rejects %s (%s) deterministically", (input, reason) => {
     expect(normalizeColor(input)).toEqual({ ok: false, reason })
     expect(normalizeColor(input)).toEqual(normalizeColor(input))
@@ -105,7 +107,7 @@ describe("normalizeLength", () => {
   ])("%s -> %s", (input, expected) => expect(normalizeLength(input)).toBe(expected))
 
   it("rejects other units, expressions, and non-finite numbers", () => {
-    for (const input of ["1", "1pt", "calc(1rem)", "1e999rem", "1 rem", "var(--x)"]) expect(normalizeLength(input)).toBeNull()
+    for (const input of ["1", "1pt", "calc(1rem)", "1e999rem", "1e308px", "-1e308px", "1 rem", "var(--x)"]) expect(normalizeLength(input)).toBeNull()
     expect(normalizeLength("1px", ["rem"])).toBeNull()
   })
 })

@@ -6,11 +6,51 @@ Branch: `loop/theme-system-v2-default-live-controls-001` · prepared base `f3f18
 Provider-neutral. A continuation reads this file, the contract, and `git log f3f1812..HEAD`; completed units are
 not replayed.
 
-## Current state (handoff checkpoint, 2026-09-24)
+## Current state (Astra continuation, 2026-09-24)
+
+- Continued the owner-approved one-use `loop_worker_codex_max` / `codex/gpt-6-astra` producer
+  handoff (MAX, medium, auto, fast off; included-subscription only). No routing or capacity changes made.
+- Initial HEAD: `129660b8e5a4a5a0f20bc338bbed88e4342dee10`; branch and clean initial worktree matched
+  the envelope. Prepared base: `f3f1812df8090638567f665a85e56225d9afdfe9`; accepted base remains
+  `2ffaf6d4d13d2b334f198b8df40d10988673924d`. The four Claude commits were preserved in order.
+- Current candidate is the commit containing this receipt, directly after that initial HEAD
+  (`git rev-parse HEAD` after checkout). Completed units below were continued, not replayed.
+- **Demonstrated defect (TSV2-01/05):** `normalizeColor("oklch(0.5 1e308 20)")` and the `1e21`
+  chroma case threw a TypeError when formatted chroma was not parseable as canonical decimal;
+  `normalizeLength("1e308px")` returned `Infinitypx` after rounding overflow. These violate
+  deterministic rejection/canonical output. Focused regression first reproduced 3 failures / 61 passes.
+- **Small correction:** reject an unparseable rounded colour as out-of-gamut, and reject non-finite
+  rounded lengths. Added colour/length regression inputs and schema rejection cases. No UI, proposal,
+  catalog, dependency, lockfile, scope, or acceptance change.
+- Changed files: `packages/core/src/theme/color.ts`, `packages/core/src/theme/color.test.ts`,
+  `packages/core/src/theme/theme.test.ts`, and this checkpoint.
+- Focused commands/results:
+  - `git log --oneline f3f1812..129660b`, range diff/source inspection, `git status --porcelain=v1`,
+    `git rev-parse HEAD`, `git branch --show-current`: handoff matches.
+  - Inline local Node/assert audit of that range: exact four-commit chain, frozen proposal/Design
+    Command/protocol/composition/style/control-plane paths and dependencies unchanged; registry retains
+    the prior 11 entries and adds only Slider/Collapsible (13 total). Passed.
+  - `TMPDIR="$PWD/node_modules/.cache/astra-tmp" ./node_modules/.bin/vitest run
+    packages/core/src/theme/color.test.ts packages/core/src/theme/theme.test.ts
+    packages/core/src/theme/default.test.ts packages/core/src/theme/migrate.test.ts
+    packages/core/src/mutations/mutation.v2.test.ts`: **151 passed**, 5 files, after correction.
+  - `./node_modules/.bin/tsc --noEmit -p packages/core`: passed.
+  - `git diff --check`: passed.
+- Environment-only interruptions: the first Vitest invocation could not write the system temporary
+  directory; using an ignored worktree-local temporary directory resolved it. Two inline audit heredoc
+  attempts could not create shell temporary files; `node -e` completed the same read-only audit.
+- No further producer scope or known defect remains from this bounded audit. The full regression
+  numbers below remain attributed to Claude's initial candidate, not this corrected candidate.
+  No full matrix replay, owner visual acceptance, protected verification, network, credentials,
+  canonical `.loop` access, external action, or main promotion was performed.
+- **Single next safe action:** return the committed candidate to the Lead for its separately owned
+  acceptance-evidence workflow and protected fresh verification. Owner visual review remains pending.
+
+## Prior Claude handoff checkpoint (2026-09-24)
 
 - Owner reported low Claude capacity; the producer stopped after the already-started final regression rerun.
   This is a provider-neutral Claude -> (owner-approved) continuation handoff. No acceptance is claimed.
-- Candidate: the commit that adds this revision of the file (`git log -1 -- docs/THEME_SYSTEM_V2_CHECKPOINT.md`).
+- Candidate: `129660b8e5a4a5a0f20bc338bbed88e4342dee10`.
   The working tree was clean after that commit. Previous unit commits: `a358417`, `812ef48`, `f94de3a`.
 - Unit in progress: none. All four planned units are implemented; the regression below ran on the final tree.
 - **Single next safe action:** the Lead runs the protected Codex STANDARD verifier and its own browser matrix on the

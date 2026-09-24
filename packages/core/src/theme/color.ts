@@ -165,8 +165,9 @@ export function normalizeColor(input: unknown): ColorNormalization {
   if (typeof parsed === "string") return { ok: false, reason: parsed }
   if (!finite(parsed.l, parsed.c, parsed.h, parsed.alpha)) return { ok: false, reason: "non-finite" }
   const canonical = formatOklch(parsed)
-  const rounded = parseCanonicalOklch(canonical)!
-  if (!inP3Gamut(rounded)) return { ok: false, reason: "out-of-gamut" }
+  const rounded = parseCanonicalOklch(canonical)
+  // Extreme finite chroma may overflow rounding or format in exponent notation; neither is an admissible colour.
+  if (!rounded || !inP3Gamut(rounded)) return { ok: false, reason: "out-of-gamut" }
   return { ok: true, value: canonical }
 }
 
@@ -202,7 +203,8 @@ export function parseLength(input: unknown, units: readonly ParsedLength["unit"]
   const unit = match[2]!.toLowerCase() as ParsedLength["unit"]
   const value = Number(match[1])
   if (!Number.isFinite(value) || !units.includes(unit)) return null
-  return { value: round(value, LENGTH_PRECISION_DECIMALS), unit }
+  const rounded = round(value, LENGTH_PRECISION_DECIMALS)
+  return Number.isFinite(rounded) ? { value: rounded, unit } : null
 }
 
 export const formatLength = ({ value, unit }: ParsedLength) => `${num(round(value, LENGTH_PRECISION_DECIMALS))}${unit}`

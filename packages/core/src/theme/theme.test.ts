@@ -87,6 +87,8 @@ describe("theme schema v2", () => {
       (t) => (t.schemaVersion = "3.0"),
       (t) => (t.colors.light.primary.$value = "oklch(0.7 0.4 150)"),
       (t) => (t.colors.light.primary.$value = "red"),
+      (t) => (t.colors.light.primary.$value = "oklch(0.5 1e308 20)"),
+      (t) => (t.radius.base.$value = "1e308px"),
     ]
     for (const mutate of cases) {
       const candidate = structuredClone(defaultFixture) as Record<string, any>
