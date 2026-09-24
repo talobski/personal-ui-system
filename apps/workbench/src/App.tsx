@@ -2,27 +2,27 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/compon
 import { Textarea } from "@personal-ui/ui/components/textarea"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@personal-ui/ui/components/resizable-panel"
 import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogClose } from "@personal-ui/ui/components/responsive-dialog"
-import { editorBounds, initialPreviewWidth } from "./layout"
+import { editorBounds } from "./layout"
 import * as React from "react"
 
-import { applyProposal, COLOR_TOKENS, createProposalSession, diffThemeTokens, discardProposal, stageProposal } from "@personal-ui/core"
+import { applyProposal, createProposalSession, diffThemeTokens, discardProposal, stageProposal } from "@personal-ui/core"
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
-import type { ColorToken, Theme, ThemeOperation } from "@personal-ui/core"
+import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@personal-ui/ui/components/field"
+import { Field, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
-import { NativeSelect, NativeSelectOption } from "@personal-ui/ui/components/native-select"
+import { Label } from "@personal-ui/ui/components/label"
+import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from "@personal-ui/ui/components/native-select"
 import { Panel } from "@personal-ui/ui/components/panel"
-import { SingleToggleGroup } from "@personal-ui/ui/components/single-toggle-group"
+import { Switch } from "@personal-ui/ui/components/switch"
 
 import { buildDesignCommandProposal, evaluateDesignCommandClient } from "./designCommand"
 import {
+  createCustomTheme,
   DEFAULT_THEME_ID,
-  diffThemes,
   editTheme,
   exampleProposalJson,
   exportThemeJson,
-  forkTheme,
   loadBuiltInThemes,
   parseProposalJson,
   previewVariablesCss,
@@ -32,13 +32,10 @@ import type { DesignCommandOutcome } from "@personal-ui/core"
 import type { PreviewState } from "./messages"
 import { loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
-import { buildFontOperation, buildShadowColorOperation, FONT_CONTROLS, formatFontStack, NUMERIC_CONTROLS, readShadowColor } from "./controls"
+import { buildFontOperation, buildShadowColorOperation, COLOR_GROUPS, FONT_CONTROLS, formatFontStack, NUMERIC_CONTROLS, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
-import { ControlSection, LiveNumberField, LiveTextField } from "./LiveControls"
+import { ControlSection, LiveColorField, LiveNumberField, LiveTextField } from "./LiveControls"
 import type { ApplyManual } from "./LiveControls"
-
-const WIDTHS = { mobile: 390, desktop: 1024 } as const
-type Width = keyof typeof WIDTHS
 
 const builtIns = loadBuiltInThemes()
 const builtInIds = builtIns.map((theme) => theme.id)
@@ -68,7 +65,6 @@ export function App() {
   const [viewportWidth, setViewportWidth] = React.useState(window.innerWidth)
   const [mobileMode, setMobileMode] = React.useState("controls")
   const [category, setCategory] = React.useState("colors")
-  const [forkOpen, setForkOpen] = React.useState(false)
   React.useEffect(() => {
     const resize = () => setViewportWidth(window.innerWidth)
     window.addEventListener("resize", resize)
@@ -76,26 +72,21 @@ export function App() {
   }, [])
   const desktop = viewportWidth >= 1024
   const bounds = editorBounds(viewportWidth)
-  const forkIdId = React.useId()
-  const forkNameId = React.useId()
+  const saveAsNameId = React.useId()
+  const saveAsFormId = React.useId()
   const proposalTextId = React.useId()
   const commandTextId = React.useId()
   const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage, builtInIds))
   // Fresh state selects the built-in Default; a valid persisted selection (built-in or saved) is restored.
   const [current, setCurrent] = React.useState<Theme>(() => (saved.activeId ? (builtInById(saved.activeId) ?? saved.themes[saved.activeId]!) : defaultTheme))
-  // The built-in a theme descends from: itself for a built-in, the recorded fork base for a saved theme.
-  const [baselineId, setBaselineId] = React.useState(() => (saved.activeId ? (builtInById(saved.activeId)?.id ?? saved.bases[saved.activeId] ?? DEFAULT_THEME_ID) : DEFAULT_THEME_ID))
-  const baseline = builtInById(baselineId) ?? defaultTheme
   // Manual controls may fire faster than React re-renders (slider drags); each edit builds on the latest active theme.
   const currentRef = React.useRef(current)
   currentRef.current = current
   const [mode, setMode] = React.useState<Mode>("light")
-  const [width, setWidth] = React.useState<Width>(() => initialPreviewWidth(viewportWidth))
 
-  const [token, setToken] = React.useState<ColorToken>("primary")
-  const [forkId, setForkId] = React.useState("")
-  const [forkName, setForkName] = React.useState("")
-  const [forkIssues, setForkIssues] = React.useState<WorkbenchIssue[]>([])
+  const [saveAsOpen, setSaveAsOpen] = React.useState(false)
+  const [saveAsName, setSaveAsName] = React.useState("")
+  const [saveAsIssues, setSaveAsIssues] = React.useState<WorkbenchIssue[]>([])
   const [notice, setNotice] = React.useState("")
   // Proposal ids are single-use for this workbench session only; a reload starts a fresh ledger.
   const [session, setSession] = React.useState<ProposalSession>(createProposalSession)
@@ -110,6 +101,9 @@ export function App() {
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", mode === "dark")
   }, [mode])
+
+  // Workbench chrome renders the canonical active theme's variables; it never shows a staged candidate.
+  const activeCss = React.useMemo(() => previewVariablesCss(current), [current])
 
   const iframeRef = React.useRef<HTMLIFrameElement>(null)
   const ready = React.useRef(false)
@@ -144,11 +138,11 @@ export function App() {
   }, [post])
   React.useEffect(post, [post, previewState])
 
-  const diff = React.useMemo(() => diffThemes(baseline, current), [baseline, current])
   const savedCopy = saved.themes[current.id]
   const builtInCopy = builtInById(current.id)
-  const status = builtInCopy ? (JSON.stringify(builtInCopy) === JSON.stringify(current) ? "built-in" : "edited built-in, fork to save") : savedCopy !== undefined && JSON.stringify(savedCopy) === JSON.stringify(current) ? "saved" : "unsaved"
-  const knownIds = [...builtInIds, ...Object.keys(saved.themes)]
+  const status = builtInCopy ? (JSON.stringify(builtInCopy) === JSON.stringify(current) ? "built-in" : "built-in, edited") : savedCopy !== undefined && JSON.stringify(savedCopy) === JSON.stringify(current) ? "custom, saved" : "custom, unsaved changes"
+  const savedIds = Object.keys(saved.themes)
+  const knownIds = [...builtInIds, ...savedIds]
 
   /**
    * The one manual-edit path: control value -> typed operation -> core validation -> active in-memory theme -> preview.
@@ -234,31 +228,41 @@ export function App() {
     setProposalResult(result.ok ? `Discarded ${id}. Active theme unchanged.` : "")
   }
 
-  const fork = () => {
-    const result = forkTheme(current, forkId.trim(), forkName.trim(), knownIds)
-    // A fork keeps the built-in it descends from as its baseline.
-    if (!result.ok) return setForkIssues(result.issues)
-    setForkIssues([])
-    setForkOpen(false)
-    setCurrent(result.theme)
-    setForkId("")
-    setForkName("")
-    setNotice(`Forked "${result.theme.name}" (${result.theme.id}). Not saved yet.`)
+  /**
+   * Save. A built-in is immutable, so saving one opens Save As (the trigger's default action); a custom theme is
+   * updated in place. The persisted base records which built-in a custom theme descends from.
+   */
+  const save = (event: React.MouseEvent) => {
+    if (builtInCopy) {
+      setSaveAsName(`${current.name} Custom`)
+      setSaveAsIssues([])
+      return
+    }
+    event.preventDefault()
+    const result = saveTheme(window.localStorage, saved, current, builtInIds, saved.bases[current.id] ?? DEFAULT_THEME_ID)
+    if (!result.ok) return setNotice(`Not saved: ${describeIssues(result.issues)}`)
+    setSaved(result.saved)
+    setNotice(`Saved "${current.name}" locally.`)
   }
 
-  const save = () => {
-    const result = saveTheme(window.localStorage, saved, current, builtInIds, baselineId)
-    if (!result.ok) return setNotice(`Not saved: ${describeIssues(result.issues)}${result.issues[0]?.ruleId === "workbench.save.reserved-id" ? " (fork first)" : ""}`)
+  const saveAs = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (locked || !builtInCopy) return
+    const copy = createCustomTheme(current, saveAsName, knownIds)
+    if (!copy.ok) return setSaveAsIssues(copy.issues)
+    const result = saveTheme(window.localStorage, saved, copy.theme, builtInIds, builtInCopy.id)
+    if (!result.ok) return setSaveAsIssues(result.issues)
     setSaved(result.saved)
-    setNotice(`Saved "${current.name}" (${current.id}) locally.`)
+    setCurrent(copy.theme)
+    setSaveAsIssues([])
+    setSaveAsOpen(false)
+    setNotice(`Saved "${copy.theme.name}" as a custom theme. ${builtInCopy.name} is unchanged.`)
   }
 
   const load = (id: string) => {
-    const builtIn = builtInById(id)
-    const next = builtIn ?? saved.themes[id]
+    const next = builtInById(id) ?? saved.themes[id]
     if (!next) return
     setCurrent(next)
-    setBaselineId(builtIn ? builtIn.id : (saved.bases[id] ?? DEFAULT_THEME_ID))
     // Only the selection is persisted; selecting never saves theme data.
     setSaved(saveSelection(window.localStorage, saved, id))
     setNotice("")
@@ -273,61 +277,52 @@ export function App() {
 
   return (
     <div className="quiet-shell">
+      <style id="workbench-active-theme" data-theme-id={current.id} data-revision={current.revision}>{activeCss}</style>
       <header className="quiet-header"><h1 className="text-sm font-semibold">Personal UI Workbench</h1><Button asChild variant="ghost" size="sm"><a href="https://github.com/talobski/personal-ui-system">GitHub ↗</a></Button></header>
       {notice && <div className="px-4 py-2"><Notice>{notice}</Notice></div>}
       <Tabs value={mobileMode} onValueChange={setMobileMode} className="quiet-modes" data-mode={mobileMode}>
         <TabsList className="quiet-mobile-tabs" aria-label="Workspace mode"><TabsTrigger value="controls">Controls</TabsTrigger><TabsTrigger value="preview">Preview</TabsTrigger></TabsList>
-        {(staged || commandEvaluating) && <div className="quiet-status" role="status">{commandEvaluating ? "Evaluating design command…" : "Previewing a proposal · active theme unchanged"}
+        {(staged || commandEvaluating) && <div className="quiet-status" role="status" data-testid="staged-status">{commandEvaluating ? "Evaluating design command…" : "Preview shows a staged proposal, not yet active · Workbench shows your active theme"}
           <Button size="sm" variant="outline" onClick={() => { if (commandEvaluating) { setMobileMode("controls"); setCategory("command") } else { setMobileMode("preview"); requestAnimationFrame(() => document.getElementById("candidate-review")?.scrollIntoView()) } }}>Review changes</Button>
         </div>}
         <ResizablePanelGroup orientation="horizontal" disabled={!desktop} className="quiet-split">
           <ResizablePanel id="editor-panel" style={{ overflow: "hidden" }} defaultSize={352} minSize={desktop ? bounds.min : 0} maxSize={desktop ? bounds.max : "100%"} groupResizeBehavior="preserve-pixel-size">
             <TabsContent value="controls" forceMount className="quiet-editor" hidden={!desktop && mobileMode !== "controls"}>
-              <div className="quiet-theme">          <Field>
-            <FieldLabel htmlFor="theme-select">Active theme</FieldLabel>
-            <NativeSelect id="theme-select" value={knownIds.includes(current.id) ? current.id : ""} disabled={locked} onChange={(e) => load(e.target.value)}>
-              {!knownIds.includes(current.id) && <NativeSelectOption value="">{current.name} (unsaved fork)</NativeSelectOption>}
-              {knownIds.map((id) => (
-                <NativeSelectOption key={id} value={id}>
-                  {builtInById(id) ? `${builtInById(id)!.name} (built-in)` : (saved.themes[id]?.name ?? id)}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </Field>
-        <p className="text-sm text-muted-foreground">
-          Editing <strong data-testid="theme-name">{current.name}</strong> (<code data-testid="theme-id">{current.id}</code>, revision{" "}
-          <span data-testid="theme-revision">{current.revision}</span>) —{" "}
-          <span data-testid="theme-status">{status}</span>
-        </p>
-</div>
+              <div className="quiet-theme">
+                <NativeSelect id="theme-select" aria-label="Active theme" size="sm" value={current.id} disabled={locked} onChange={(e) => load(e.target.value)}>
+                  {!knownIds.includes(current.id) && <NativeSelectOption value={current.id}>{current.name}</NativeSelectOption>}
+                  <NativeSelectOptGroup label="Built-in">
+                    {builtIns.map((theme) => <NativeSelectOption key={theme.id} value={theme.id}>{theme.name}</NativeSelectOption>)}
+                  </NativeSelectOptGroup>
+                  {savedIds.length > 0 && <NativeSelectOptGroup label="Custom">
+                    {savedIds.map((id) => <NativeSelectOption key={id} value={id}>{saved.themes[id]!.name}</NativeSelectOption>)}
+                  </NativeSelectOptGroup>}
+                </NativeSelect>
+                <p className="quiet-theme-meta" data-testid="theme-meta">
+                  <span data-testid="theme-status">{status}</span> · <code data-testid="theme-id">{current.id}</code> · rev <span data-testid="theme-revision">{current.revision}</span>
+                </p>
+              </div>
               <Tabs value={category} onValueChange={setCategory}>
                 <div className="quiet-category-select"><Field><FieldLabel htmlFor="editor-category">Editor category</FieldLabel><NativeSelect id="editor-category" value={category} onChange={e => setCategory(e.target.value)}><NativeSelectOption value="colors">Colors</NativeSelectOption><NativeSelectOption value="typography">Typography</NativeSelectOption><NativeSelectOption value="other">Other</NativeSelectOption><NativeSelectOption value="command">Command</NativeSelectOption></NativeSelect></Field></div>
                 <TabsList className="quiet-categories" aria-label="Editor categories"><TabsTrigger value="colors">Colors</TabsTrigger><TabsTrigger value="typography">Typography</TabsTrigger><TabsTrigger value="other">Other</TabsTrigger><TabsTrigger value="command">Command</TabsTrigger></TabsList>
-                <TabsContent value="colors" forceMount className="data-[state=inactive]:hidden"><Panel title="Edit color">
-          <p className="text-sm text-muted-foreground">Edit one token in the {mode} palette. HEX, rgb(a), hsl(a), and oklch are accepted and stored as canonical oklch; valid values apply immediately.</p>
+                <TabsContent value="colors" forceMount className="data-[state=inactive]:hidden"><Panel title="Colors">
+          <p className="text-sm text-muted-foreground">Editing the {mode} palette. Pick a color or type HEX, rgb(a), hsl(a), or oklch; values are stored as oklch and valid values apply immediately.</p>
           {manualLockNote}
-          <div aria-hidden="true" className="flex gap-2">{["primary", "secondary", "accent", "muted", "background", "foreground"].map(name => <span key={name} className="h-7 flex-1 rounded-sm border" style={{ background: current.colors[mode][name as ColorToken].$value }} />)}</div>
-          <Field>
-            <FieldLabel htmlFor="token-select">Token</FieldLabel>
-            <NativeSelect id="token-select" value={token} disabled={locked} onChange={(e) => setToken(e.target.value as ColorToken)}>
-              {COLOR_TOKENS.map((name) => (
-                <NativeSelectOption key={name} value={name}>
-                  {name}
-                </NativeSelectOption>
+          {COLOR_GROUPS.map((group) => (
+            <ControlSection key={group.id} id={`colors-${group.id}`} title={group.title}>
+              {group.tokens.map((token) => (
+                <LiveColorField
+                  key={`${current.id}-${mode}-${token}`}
+                  id={`color-${token}`}
+                  label={token}
+                  value={current.colors[mode][token].$value}
+                  build={(raw) => ({ op: "setColor", mode, token, value: raw })}
+                  disabled={locked}
+                  apply={applyManual}
+                />
               ))}
-            </NativeSelect>
-          </Field>
-          <LiveTextField
-            key={`${current.id}-${mode}-${token}`}
-            id="color-value"
-            label="Color value"
-            value={current.colors[mode][token].$value}
-            build={(raw) => ({ op: "setColor", mode, token, value: raw })}
-            hint="Expected HEX, rgb(a), hsl(a), or oklch inside the Display P3 gamut."
-            disabled={locked}
-            apply={applyManual}
-            canonicalNote
-          />
+            </ControlSection>
+          ))}
         </Panel></TabsContent>
                 <TabsContent value="typography" forceMount className="data-[state=inactive]:hidden"><Panel title="Typography">
           <p className="text-sm text-muted-foreground">Changes apply immediately after validation. Font stacks are comma-separated, in fallback order.</p>
@@ -512,92 +507,60 @@ export function App() {
           )}
         </Panel></div></TabsContent>
               </Tabs>
-              <div className="quiet-baseline">        <Panel title="Diff vs baseline">
-          <p className="text-sm text-muted-foreground">
-            Baseline: built-in <code>{baseline.id}</code> revision {baseline.revision}. <span data-testid="diff-count">{diff.length}</span> changed token
-            {diff.length === 1 ? "" : "s"}.
-          </p>
-          {diff.length === 0 ? (
-            <p className="text-sm" data-testid="diff-empty">
-              No differences.
-            </p>
-          ) : (
-            <details id="baseline-details"><summary className="cursor-pointer text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">View baseline diff</summary><ul data-testid="diff-list" className="grid gap-2 text-sm">
-              {diff.map((entry) => (
-                <li key={entry.path} data-path={entry.path} className="break-all">
-                  <code>{entry.path}</code>: <code>{JSON.stringify(entry.baseline)}</code> → <code>{JSON.stringify(entry.current)}</code>
-                </li>
-              ))}
-            </ul></details>
-          )}
-        </Panel>
-</div>
-              <div className="p-4"><ResponsiveDialog open={forkOpen} onOpenChange={setForkOpen}><ResponsiveDialogTrigger asChild><Button variant="outline" disabled={locked}>Fork theme</Button></ResponsiveDialogTrigger><ResponsiveDialogContent><ResponsiveDialogHeader><ResponsiveDialogTitle>Fork theme</ResponsiveDialogTitle><ResponsiveDialogDescription>Create a named local draft. Save remains a separate action.</ResponsiveDialogDescription></ResponsiveDialogHeader><div className="px-4 sm:px-0">          <FieldGroup className="gap-3">
-            <Field data-invalid={forkIssues.length > 0}>
-              <FieldLabel htmlFor={forkIdId}>Fork id</FieldLabel>
-              <Input
-                id={forkIdId}
-                value={forkId}
-                disabled={locked}
-                onChange={(e) => setForkId(e.target.value)}
-                placeholder="my-theme"
-                aria-invalid={forkIssues.length > 0}
-                aria-describedby={forkIssues.length > 0 ? `${forkIdId}-error` : undefined}
-                spellCheck={false}
-              />
-            </Field>
-            <Field data-invalid={forkIssues.length > 0}>
-              <FieldLabel htmlFor={forkNameId}>Fork name</FieldLabel>
-              <Input
-                id={forkNameId}
-                value={forkName}
-                disabled={locked}
-                onChange={(e) => setForkName(e.target.value)}
-                placeholder="My Theme"
-                aria-invalid={forkIssues.length > 0}
-                aria-describedby={forkIssues.length > 0 ? `${forkIdId}-error` : undefined}
-              />
-            </Field>
-            <Button variant="secondary" disabled={locked} onClick={fork}>
-              Fork theme
-            </Button>
-            {forkIssues.length > 0 && (
-              <FieldError id={`${forkIdId}-error`} data-testid="fork-error">
-                Fork rejected: {describeIssues(forkIssues)}. Ids are lowercase-hyphenated and unused; names are letters, digits, and spaces.
-              </FieldError>
-            )}
-          </FieldGroup>
-</div><ResponsiveDialogFooter><ResponsiveDialogClose asChild><Button variant="outline">Cancel</Button></ResponsiveDialogClose></ResponsiveDialogFooter></ResponsiveDialogContent></ResponsiveDialog></div>
             </TabsContent>
           </ResizablePanel>
-          <ResizableHandle aria-label="Resize editor" className="quiet-handle" disabled={!desktop} />
+          <ResizableHandle aria-label="Resize editor" className="quiet-handle w-px bg-border hover:bg-ring/60 focus-visible:bg-ring data-[separator=active]:bg-ring data-[separator=hover]:bg-ring/60 [&>span]:hidden" disabled={!desktop} />
           <ResizablePanel id="preview-panel" style={{ overflow: "hidden" }} minSize={desktop ? 632 : 0}>
             <TabsContent value="preview" forceMount className="quiet-preview" hidden={!desktop && mobileMode !== "preview"}>
-              <div className="quiet-toolbar">          <SingleToggleGroup
-            label="Color mode"
-            value={mode}
-            onValueChange={setMode}
-            options={[
-              { value: "light", label: "Light" },
-              { value: "dark", label: "Dark" },
-            ]}
-          />
-          <SingleToggleGroup
-            label="Preview width"
-            value={width}
-            onValueChange={setWidth}
-            options={(Object.keys(WIDTHS) as Width[]).map((w) => ({ value: w, label: `${w === "mobile" ? "Mobile" : "Desktop"} ${WIDTHS[w]}` }))}
-          />
-
-                <Button variant="outline" onClick={() => { setMobileMode("controls"); setCategory("command"); requestAnimationFrame(() => document.getElementById(proposalTextId)?.focus()) }}>Proposal JSON</Button>          <div className="flex flex-wrap gap-2">
-            <Button disabled={locked} onClick={save}>
-              Save theme
-            </Button>
-            <Button variant="outline" disabled={locked} onClick={() => download(exportThemeJson(current))}>
-              Export JSON
-            </Button>
-          </div>
-
+              <div className="quiet-toolbar">
+                <div className="flex items-center gap-2">
+                  <Switch id="color-mode-switch" checked={mode === "dark"} onCheckedChange={(checked) => setMode(checked ? "dark" : "light")} />
+                  <Label htmlFor="color-mode-switch">Dark mode</Label>
+                </div>
+                <div className="ml-auto flex flex-wrap items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => { setMobileMode("controls"); setCategory("command"); requestAnimationFrame(() => document.getElementById(proposalTextId)?.focus()) }}>Proposal</Button>
+                  <Button variant="outline" size="sm" disabled={locked} onClick={() => download(exportThemeJson(current))}>
+                    Export JSON
+                  </Button>
+                  <ResponsiveDialog open={saveAsOpen} onOpenChange={setSaveAsOpen}>
+                    <ResponsiveDialogTrigger asChild>
+                      <Button size="sm" disabled={locked} onClick={save}>
+                        Save
+                      </Button>
+                    </ResponsiveDialogTrigger>
+                    <ResponsiveDialogContent>
+                      <ResponsiveDialogHeader>
+                        <ResponsiveDialogTitle>Save as a custom theme</ResponsiveDialogTitle>
+                        <ResponsiveDialogDescription>{builtInCopy?.name ?? "This built-in"} is built in and stays unchanged. Your edits are saved locally under a new name.</ResponsiveDialogDescription>
+                      </ResponsiveDialogHeader>
+                      <form id={saveAsFormId} onSubmit={saveAs} className="px-4 sm:px-0" noValidate>
+                        <Field data-invalid={saveAsIssues.length > 0}>
+                          <FieldLabel htmlFor={saveAsNameId}>Theme name</FieldLabel>
+                          <Input
+                            id={saveAsNameId}
+                            value={saveAsName}
+                            onChange={(e) => setSaveAsName(e.target.value)}
+                            autoComplete="off"
+                            spellCheck={false}
+                            aria-invalid={saveAsIssues.length > 0}
+                            aria-describedby={saveAsIssues.length > 0 ? `${saveAsNameId}-error` : undefined}
+                          />
+                          {saveAsIssues.length > 0 && (
+                            <FieldError id={`${saveAsNameId}-error`} data-testid="save-as-error">
+                              {saveAsIssues[0]?.ruleId === "workbench.save-as.invalid-name"
+                                ? "Enter a name of 1 to 80 letters, digits, and spaces."
+                                : `Not saved: ${describeIssues(saveAsIssues)}.`}
+                            </FieldError>
+                          )}
+                        </Field>
+                      </form>
+                      <ResponsiveDialogFooter>
+                        <Button type="submit" form={saveAsFormId}>Save theme</Button>
+                        <ResponsiveDialogClose asChild><Button variant="outline">Cancel</Button></ResponsiveDialogClose>
+                      </ResponsiveDialogFooter>
+                    </ResponsiveDialogContent>
+                  </ResponsiveDialog>
+                </div>
               </div>
 
               <div id="candidate-review">        {staged && (
@@ -614,7 +577,7 @@ export function App() {
                 <span data-testid="proposal-candidate-revision">{staged.candidate.revision}</span>. The preview below shows the candidate; the active theme is
                 unchanged.
               </p>
-              <p data-testid="proposal-locked-note">Manual controls, loading, forking, saving, and exporting the active theme are disabled until this proposal is applied or discarded.</p>
+              <p data-testid="proposal-locked-note">Manual controls, theme selection, saving, and exporting the active theme are disabled until this proposal is applied or discarded.</p>
               <details><summary className="cursor-pointer">Candidate operations</summary><pre className="overflow-x-auto text-xs">{JSON.stringify(staged.proposal.operations, null, 2)}</pre></details>
               {(current.id !== staged.proposal.base.themeId || current.revision !== staged.proposal.base.revision) && (
                 <p data-testid="proposal-base-moved" role="status">
@@ -639,21 +602,11 @@ export function App() {
         )}
 
 </div>
-              <div className="quiet-preview-body">          <div
-            role="region"
-            aria-label="Preview viewport"
-            tabIndex={0}
-            className="overflow-x-auto rounded-md border outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-          >
-            <iframe
-              ref={iframeRef}
-              title="Component preview"
-              src="/?preview=1"
-              data-testid="preview-frame"
-              style={{ width: WIDTHS[width], height: 720, display: "block", border: 0 }}
-            />
-          </div>
-</div>
+              <div className="quiet-preview-body">
+                <div role="region" aria-label="Preview viewport" tabIndex={0} className="quiet-viewport rounded-md border outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                  <iframe ref={iframeRef} title="Component preview" src="/?preview=1" data-testid="preview-frame" className="block size-full border-0" />
+                </div>
+              </div>
             </TabsContent>
           </ResizablePanel>
         </ResizablePanelGroup>

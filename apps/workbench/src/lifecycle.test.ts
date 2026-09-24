@@ -1,19 +1,19 @@
 import { describe, expect, it } from "vitest"
-import { applyProposal, createProposalSession, discardProposal, renderShadcnTailwindCss, stageProposal, validateTheme } from "@personal-ui/core"
+import { applyProposal, COLOR_TOKENS, createProposalSession, diffThemeTokens, discardProposal, normalizeColor, renderShadcnTailwindCss, stageProposal, validateTheme } from "@personal-ui/core"
 
 import {
-  diffThemes,
+  createCustomTheme,
+  customThemeId,
   editColor,
   editTheme,
   exampleProposalJson,
   exportThemeJson,
   DEFAULT_THEME_ID,
-  forkTheme,
   loadBuiltInThemes,
   parseProposalJson,
   previewVariablesCss,
 } from "./lifecycle"
-import { buildFontOperation, buildShadowColorOperation, NUMERIC_CONTROLS, parseFontStack, parseNumericDraft, readShadowColor } from "./controls"
+import { buildFontOperation, buildShadowColorOperation, COLOR_GROUPS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseFontStack, parseNumericDraft, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
 import { emptySaved, loadSaved, saveSelection, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
@@ -94,7 +94,7 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
     if (!result.ok) throw new Error(JSON.stringify(result.issues))
     expect(result.theme.revision).toBe(defaultTheme.revision + 1)
     expect(control.read(result.theme)).toBeCloseTo(value, 6)
-    expect(diffThemes(defaultTheme, result.theme).map((entry) => entry.path)).toEqual(diff)
+    expect(diffThemeTokens(defaultTheme, result.theme).map((entry) => entry.path)).toEqual(diff)
     expect(previewVariablesCss(result.theme)).toContain(css)
   })
 
@@ -117,7 +117,7 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
       const result = editTheme(defaultTheme, buildFontOperation(family, "Inter, system-ui"))
       if (!result.ok) throw new Error("font edit failed")
       expect(result.theme.typography[family].$value).toEqual(["Inter", "system-ui"])
-      expect(diffThemes(defaultTheme, result.theme).map((d) => d.path)).toEqual([`typography.${family}`])
+      expect(diffThemeTokens(defaultTheme, result.theme).map((d) => d.path)).toEqual([`typography.${family}`])
     }
     for (const raw of ["", "Inter,", 'x"; } a{', "Inter; color: red"]) {
       expect(editTheme(defaultTheme, buildFontOperation("sans", raw))).toEqual({ ok: false, issues: [{ ruleId: "mutation.invalid-value", path: "operations[0].value" }] })
@@ -138,42 +138,88 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
     }
   })
 
-  it("round-trips a manually edited theme through fork, save, reload, and export", () => {
+  it("round-trips a manually edited theme through Save As, reload, and export", () => {
     let theme = defaultTheme
     for (const [id, value] of [["tracking", 0.01], ["radius", 0.75], ["shadowBlur", 8]] as const) {
       const edited = editTheme(theme, NUMERIC_CONTROLS[id].build(value, theme))
       if (!edited.ok) throw new Error("edit failed")
       theme = edited.theme
     }
-    const fork = forkTheme(theme, "my-fork", "My Fork", BUILT_IN_IDS)
-    if (!fork.ok) throw new Error("fork failed")
+    const copy = createCustomTheme(theme, "My Theme", BUILT_IN_IDS)
+    if (!copy.ok) throw new Error("save as failed")
     const storage = memoryStorage()
-    expect(saveTheme(storage, emptySaved(), fork.theme, BUILT_IN_IDS, DEFAULT_THEME_ID).ok).toBe(true)
+    expect(saveTheme(storage, emptySaved(), copy.theme, BUILT_IN_IDS, DEFAULT_THEME_ID).ok).toBe(true)
     const reloaded = loadSaved(storage, BUILT_IN_IDS)
-    expect(reloaded.themes["my-fork"]).toEqual(fork.theme)
-    expect(reloaded.bases).toEqual({ "my-fork": DEFAULT_THEME_ID })
-    expect(validateTheme(JSON.parse(exportThemeJson(fork.theme).json))).toEqual({ ok: true, theme: fork.theme })
+    expect(reloaded.themes["my-theme"]).toEqual(copy.theme)
+    expect(reloaded.bases).toEqual({ "my-theme": DEFAULT_THEME_ID })
+    expect(validateTheme(JSON.parse(exportThemeJson(copy.theme).json))).toEqual({ ok: true, theme: copy.theme })
   })
 })
 
-describe("forkTheme", () => {
-  it("creates a schema-valid fork with the new id/name and revision 1", () => {
-    const result = forkTheme(editColorOrThrow(), "my-fork", "My Fork", [canonical.id])
+describe("Save As (WTEP-08)", () => {
+  it("creates a schema-valid custom copy with a derived id, the given name, and revision 1, never touching the source", () => {
+    const source = editColorOrThrow()
+    const before = structuredClone(source)
+    const result = createCustomTheme(source, "  My Warm   Theme 2 ", [canonical.id])
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    expect(result.theme).toMatchObject({ id: "my-fork", name: "My Fork", revision: 1 })
+    expect(result.theme).toMatchObject({ id: "my-warm-theme-2", name: "My Warm   Theme 2", revision: 1 })
     expect(result.theme.colors.light.primary.$value).toBe(VALID)
-    expect(validateTheme(result.theme).ok).toBe(true)
+    expect(validateTheme(result.theme)).toEqual({ ok: true, theme: result.theme })
+    expect(source).toEqual(before)
+    expect(diffThemeTokens(source, result.theme)).toEqual([])
   })
 
-  it("rejects malformed ids/names and duplicate ids with stable rules", () => {
-    expect(forkTheme(canonical, "Bad Id", "Ok", [])).toEqual({ ok: false, issues: [{ ruleId: "workbench.fork.invalid", path: "id" }] })
-    expect(forkTheme(canonical, "ok-id", "Bad-Name!", [])).toEqual({ ok: false, issues: [{ ruleId: "workbench.fork.invalid", path: "name" }] })
-    expect(forkTheme(canonical, "", "", []).ok).toBe(false)
-    expect(forkTheme(canonical, canonical.id, "Same", [canonical.id])).toEqual({
-      ok: false,
-      issues: [{ ruleId: "workbench.fork.duplicate-id", path: "id" }],
-    })
+  it("derives deterministic ids that never collide with built-in or saved ids", () => {
+    expect(customThemeId("Default", BUILT_IN_IDS)).toBe("default-2")
+    expect(customThemeId("Default", [...BUILT_IN_IDS, "default-2"])).toBe("default-3")
+    expect(customThemeId("Quiet Editorial", BUILT_IN_IDS)).toBe("quiet-editorial-2")
+    expect(customThemeId("Ocean", BUILT_IN_IDS)).toBe("ocean")
+    expect(customThemeId("Ocean", BUILT_IN_IDS)).toBe(customThemeId("Ocean", BUILT_IN_IDS))
+  })
+
+  it("rejects names the theme schema rejects with one stable rule", () => {
+    for (const name of ["", "   ", "Bad-Name!", "../etc", "a".repeat(81), "Tab\tName"]) {
+      expect(createCustomTheme(canonical, name, [])).toEqual({ ok: false, issues: [{ ruleId: "workbench.save-as.invalid-name", path: "name" }] })
+    }
+  })
+})
+
+describe("grouped colour rows and native picker (WTEP-05, WTEP-06)", () => {
+  it("lists every canonical colour token exactly once, in the approved groups", () => {
+    expect(COLOR_GROUPS.map((group) => group.title)).toEqual(["Surfaces", "Primary", "Secondary", "Muted", "Accent", "Destructive", "Border, Input & Ring", "Charts"])
+    const tokens = COLOR_GROUPS.flatMap((group) => group.tokens)
+    expect([...tokens].sort()).toEqual([...COLOR_TOKENS].sort())
+    expect(new Set(tokens).size).toBe(COLOR_TOKENS.length)
+  })
+
+  it("shows the nearest sRGB hex for a canonical value, and picked hex round-trips through core to canonical oklch", () => {
+    expect(pickerHex("oklch(0.499314 0.098664 250.433057)")).toBe("#336699")
+    expect(pickerHex("oklch(1 0 0)")).toBe("#ffffff")
+    expect(pickerHex("oklch(0 0 0)")).toBe("#000000")
+    expect(pickerHex("not a colour")).toBe("#000000")
+    for (const theme of builtIns) {
+      for (const mode of ["light", "dark"] as const) {
+        for (const token of COLOR_TOKENS) {
+          const hex = pickerHex(theme.colors[mode][token].$value)
+          expect(hex).toMatch(/^#[0-9a-f]{6}$/)
+          const input = pickedColorInput(hex, theme.colors[mode][token].$value)
+          const normalized = normalizeColor(input)
+          expect(normalized.ok).toBe(true)
+          const edited = editColor(theme, mode, token, input)
+          expect(edited.ok).toBe(true)
+          if (edited.ok && normalized.ok) expect(edited.theme.colors[mode][token].$value).toBe(normalized.value)
+          if (edited.ok) expect(edited.theme.colors[mode][token].$value).toMatch(/^oklch\(/)
+        }
+      }
+    }
+  })
+
+  it("keeps a token's alpha when the opaque picker changes its colour", () => {
+    expect(pickedColorInput("#336699", "oklch(0.5 0.1 250)")).toBe("#336699")
+    expect(pickedColorInput("#336699", "oklch(1 0 0 / 0.1)")).toBe("rgb(51 102 153 / 0.1)")
+    const result = editColor(canonical, "dark", "border", pickedColorInput("#336699", "oklch(1 0 0 / 0.1)"))
+    expect(result.ok && result.theme.colors.dark.border.$value).toMatch(/ \/ 0\.1\)$/)
   })
 })
 
@@ -183,30 +229,11 @@ function editColorOrThrow() {
   return result.theme
 }
 
-describe("diffThemes", () => {
-  it("is empty for identical themes and ignores id, name, and revision", () => {
-    expect(diffThemes(canonical, canonical)).toEqual([])
-    const forked = forkTheme(canonical, "other", "Other", [])
-    if (!forked.ok) throw new Error("fork failed")
-    expect(diffThemes(canonical, forked.theme)).toEqual([])
-  })
-
-  it("reports exactly the changed token paths, sorted, with before/after values", () => {
-    const edited = editColorOrThrow()
-    const next = editColor(edited, "dark", "background", "oklch(0.1 0.01 250)")
-    if (!next.ok) throw new Error("edit failed")
-    expect(diffThemes(canonical, next.theme)).toEqual([
-      { path: "colors.dark.background", baseline: canonical.colors.dark.background.$value, current: "oklch(0.1 0.01 250)" },
-      { path: "colors.light.primary", baseline: canonical.colors.light.primary.$value, current: VALID },
-    ])
-  })
-})
-
 describe("persistence (TSV2-04, TSV2-12)", () => {
-  it("round-trips saved themes, the selection, and the fork base through storage", () => {
+  it("round-trips saved themes, the selection, and the internal base through storage", () => {
     const storage = memoryStorage()
-    const fork = forkTheme(editColorOrThrow(), "my-fork", "My Fork", BUILT_IN_IDS)
-    if (!fork.ok) throw new Error("fork failed")
+    const fork = createCustomTheme(editColorOrThrow(), "My Fork", BUILT_IN_IDS)
+    if (!fork.ok) throw new Error("save as failed")
     const saved = saveTheme(storage, emptySaved(), fork.theme, BUILT_IN_IDS, canonical.id)
     expect(saved.ok).toBe(true)
     // A fresh read from the same storage models a browser refresh.
@@ -263,8 +290,8 @@ describe("persistence (TSV2-04, TSV2-12)", () => {
 
   it("reports storage failure with a stable rule", () => {
     const storage: StorageLike = { getItem: () => null, setItem: () => { throw new Error("quota") } }
-    const fork = forkTheme(canonical, "my-fork", "My Fork", [])
-    if (!fork.ok) throw new Error("fork failed")
+    const fork = createCustomTheme(canonical, "My Fork", [])
+    if (!fork.ok) throw new Error("save as failed")
     expect(saveTheme(storage, emptySaved(), fork.theme, [], canonical.id)).toEqual({
       ok: false,
       issues: [{ ruleId: "workbench.save.storage-unavailable", path: "" }],
@@ -273,8 +300,8 @@ describe("persistence (TSV2-04, TSV2-12)", () => {
   })
 
   it("drops corrupt, invalid, or id-mismatched entries and bad bases instead of trusting them", () => {
-    const fork = forkTheme(canonical, "good", "Good", [])
-    if (!fork.ok) throw new Error("fork failed")
+    const fork = createCustomTheme(canonical, "Good", [])
+    if (!fork.ok) throw new Error("save as failed")
     const bad = structuredClone(fork.theme)
     bad.colors.light.primary.$value = "red"
     const stored = { themes: { good: fork.theme, bad, mismatch: fork.theme }, activeId: "bad", bases: { good: "nope", bad: "default" } }
@@ -344,8 +371,8 @@ describe("mutation proposal preview (non-committing)", () => {
   })
 
   it("stage, discard, and stale leave active state and persistence byte-identical; only Apply then Save persists", () => {
-    const fork = forkTheme(canonical, "my-fork", "My Fork", [])
-    if (!fork.ok) throw new Error("fork failed")
+    const fork = createCustomTheme(canonical, "My Fork", [])
+    if (!fork.ok) throw new Error("save as failed")
     const storage = memoryStorage()
     const saved = saveTheme(storage, emptySaved(), fork.theme, BUILT_IN_IDS, canonical.id)
     if (!saved.ok) throw new Error("save failed")

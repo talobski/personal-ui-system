@@ -1,5 +1,5 @@
-import { MANUAL_CONTROL_BOUNDS, parseLength, readShadowProfile } from "@personal-ui/core"
-import type { FontFamilyToken, ShadowProfile, Theme, ThemeOperation } from "@personal-ui/core"
+import { MANUAL_CONTROL_BOUNDS, parseCanonicalOklch, parseLength, readShadowProfile } from "@personal-ui/core"
+import type { ColorToken, FontFamilyToken, ShadowProfile, Theme, ThemeOperation } from "@personal-ui/core"
 
 /**
  * Manual-control models. Every control reads its value from the canonical active theme and turns a new value into one
@@ -145,3 +145,52 @@ export const buildFontOperation = (family: FontFamilyToken, raw: string): ThemeO
 export const readShadowColor = (theme: Theme) => readShadowProfile(theme).color
 
 export const buildShadowColorOperation = (raw: string, theme: Theme): ThemeOperation => ({ op: "setShadowProfile", value: { ...pxProfile(theme), color: raw } })
+
+/** The grouped colour editor: every canonical colour token appears in exactly one group, in this order. */
+export const COLOR_GROUPS: readonly { id: string; title: string; tokens: readonly ColorToken[] }[] = [
+  { id: "surfaces", title: "Surfaces", tokens: ["background", "foreground", "card", "card-foreground", "popover", "popover-foreground"] },
+  { id: "primary", title: "Primary", tokens: ["primary", "primary-foreground"] },
+  { id: "secondary", title: "Secondary", tokens: ["secondary", "secondary-foreground"] },
+  { id: "muted", title: "Muted", tokens: ["muted", "muted-foreground"] },
+  { id: "accent", title: "Accent", tokens: ["accent", "accent-foreground"] },
+  { id: "destructive", title: "Destructive", tokens: ["destructive", "destructive-foreground"] },
+  { id: "border", title: "Border, Input & Ring", tokens: ["border", "input", "ring"] },
+  { id: "charts", title: "Charts", tokens: ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] },
+]
+
+const toSrgbChannel = (linear: number) => {
+  const encoded = linear <= 0.0031308 ? 12.92 * linear : 1.055 * linear ** (1 / 2.4) - 0.055
+  return Math.round(Math.min(1, Math.max(0, encoded)) * 255)
+}
+
+/**
+ * Display-only: the nearest opaque sRGB `#rrggbb` for a canonical OKLCH value, because the native colour picker only
+ * speaks sRGB hex. Out-of-sRGB channels are clipped. Never stored: picked values re-enter through `setColor`.
+ */
+export function pickerHex(canonical: string): string {
+  const parsed = parseCanonicalOklch(canonical)
+  if (!parsed) return "#000000"
+  const hue = (parsed.h * Math.PI) / 180
+  const a = parsed.c * Math.cos(hue)
+  const b = parsed.c * Math.sin(hue)
+  const l = (parsed.l + 0.3963377774 * a + 0.2158037573 * b) ** 3
+  const m = (parsed.l - 0.1055613458 * a - 0.0638541728 * b) ** 3
+  const s = (parsed.l - 0.0894841775 * a - 1.291485548 * b) ** 3
+  const channels = [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ]
+  return `#${channels.map((channel) => toSrgbChannel(channel).toString(16).padStart(2, "0")).join("")}`
+}
+
+/**
+ * A picked `#rrggbb` as `setColor` input. The picker has no alpha channel, so the token's current alpha is kept by
+ * sending `rgb(r g b / alpha)`; core normalizes either form to canonical OKLCH.
+ */
+export function pickedColorInput(hex: string, canonical: string): string {
+  const alpha = parseCanonicalOklch(canonical)?.alpha ?? 1
+  if (alpha === 1 || !/^#[0-9a-f]{6}$/i.test(hex)) return hex
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+  return `rgb(${r} ${g} ${b} / ${alpha})`
+}
