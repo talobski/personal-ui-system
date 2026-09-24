@@ -102,7 +102,7 @@ export function App() {
   const [commandOutcome, setCommandOutcome] = React.useState<DesignCommandOutcome | null>(null)
   const [commandSeq, setCommandSeq] = React.useState(0)
 
-  const currentValue = current.modes[mode].color[token].$value
+  const currentValue = current.colors[mode][token].$value
   // The draft follows the active theme/mode/token; a rejected draft is never active state.
   React.useEffect(() => {
     setDraft(currentValue)
@@ -297,7 +297,7 @@ export function App() {
                 <TabsList className="quiet-categories" aria-label="Editor categories"><TabsTrigger value="colors">Colors</TabsTrigger><TabsTrigger value="typography">Typography</TabsTrigger><TabsTrigger value="other">Other</TabsTrigger><TabsTrigger value="command">Command</TabsTrigger></TabsList>
                 <TabsContent value="colors" forceMount className="data-[state=inactive]:hidden"><Panel title="Edit color">
           <p className="text-sm text-muted-foreground">Edit one token in the {mode} palette.</p>
-          <div aria-hidden="true" className="flex gap-2">{["primary", "secondary", "accent", "muted", "background", "foreground"].map(name => <span key={name} className="h-7 flex-1 rounded-sm border" style={{ background: current.modes[mode].color[name as ColorToken].$value }} />)}</div>
+          <div aria-hidden="true" className="flex gap-2">{["primary", "secondary", "accent", "muted", "background", "foreground"].map(name => <span key={name} className="h-7 flex-1 rounded-sm border" style={{ background: current.colors[mode][name as ColorToken].$value }} />)}</div>
           <Field>
             <FieldLabel htmlFor="token-select">Token</FieldLabel>
             <NativeSelect id="token-select" value={token} disabled={locked} onChange={(e) => setToken(e.target.value as ColorToken)}>

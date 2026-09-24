@@ -15,6 +15,7 @@
   --accent: oklch(0.94 0.02 250);
   --accent-foreground: oklch(0.25 0.02 250);
   --destructive: oklch(0.5 0.2 27);
+  --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.9 0.005 250);
   --input: oklch(0.75 0.01 250);
   --ring: oklch(0.55 0.08 260);
@@ -24,14 +25,22 @@
   --chart-4: oklch(0.8 0.15 90);
   --chart-5: oklch(0.7 0.15 60);
   --font-family-sans: "Inter", system-ui, sans-serif;
+  --font-family-serif: ui-serif, "Georgia", "Cambria", "Times New Roman", "Times", serif;
   --font-family-mono: "JetBrains Mono", ui-monospace, monospace;
-  --shadow-layers-sm: 0px 1px 2px 0px oklch(0 0 0 / 5%);
-  --shadow-layers-md: 0px 4px 8px -2px oklch(0 0 0 / 10%);
-  --shadow-layers-lg: 0px 10px 20px -4px oklch(0 0 0 / 15%);
+  --tracking-base: 0em;
+  --shadow-layers-2xs: 0px 1px 0px 0px oklch(0 0 0 / 0.05);
+  --shadow-layers-xs: 0px 1px 2px 0px oklch(0 0 0 / 0.05);
+  --shadow-layers-sm: 0px 1px 2px 0px oklch(0 0 0 / 0.05);
+  --shadow-layers-default: 0px 1px 2px 0px oklch(0 0 0 / 0.05);
+  --shadow-layers-md: 0px 4px 8px -2px oklch(0 0 0 / 0.1);
+  --shadow-layers-lg: 0px 10px 20px -4px oklch(0 0 0 / 0.15);
+  --shadow-layers-xl: 0px 20px 25px -5px oklch(0 0 0 / 0.1), 0px 8px 10px -6px oklch(0 0 0 / 0.1);
+  --shadow-layers-2xl: 0px 25px 50px -12px oklch(0 0 0 / 0.25);
   --radius: 0.5rem;
   --radius-scale-sm: 0.25rem;
   --radius-scale-md: 0.5rem;
   --radius-scale-lg: 0.75rem;
+  --radius-scale-xl: 0.75rem;
   --space-base: 0.25rem;
   --density: 1;
   --motion-duration-fast: 150ms;
@@ -54,8 +63,9 @@
   --accent: oklch(0.3 0.02 250);
   --accent-foreground: oklch(0.96 0.005 250);
   --destructive: oklch(0.7 0.19 22);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --destructive-foreground: oklch(0.985104 0 0);
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.15);
   --ring: oklch(0.6 0.08 260);
   --chart-1: oklch(0.65 0.18 270);
   --chart-2: oklch(0.7 0.12 170);
@@ -80,6 +90,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -89,15 +100,29 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --font-sans: var(--font-family-sans);
+  --font-serif: var(--font-family-serif);
   --font-mono: var(--font-family-mono);
+  --tracking-normal: var(--tracking-base);
   --radius-sm: var(--radius-scale-sm);
   --radius-md: var(--radius-scale-md);
   --radius-lg: var(--radius-scale-lg);
+  --radius-xl: var(--radius-scale-xl);
+  --shadow-2xs: var(--shadow-layers-2xs);
+  --shadow-xs: var(--shadow-layers-xs);
   --shadow-sm: var(--shadow-layers-sm);
+  --shadow: var(--shadow-layers-default);
   --shadow-md: var(--shadow-layers-md);
   --shadow-lg: var(--shadow-layers-lg);
+  --shadow-xl: var(--shadow-layers-xl);
+  --shadow-2xl: var(--shadow-layers-2xl);
   --spacing: calc(var(--space-base) * var(--density));
   --default-transition-duration: var(--motion-duration-base);
+}
+
+@layer base {
+  body {
+    letter-spacing: var(--tracking-base);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

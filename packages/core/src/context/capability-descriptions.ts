@@ -10,12 +10,17 @@ import type { MutationOperationCapability } from "./types"
  * on every `capabilities` call.
  */
 export const VALUE_CONSTRAINT_DESCRIPTIONS: Readonly<Record<string, string>> = Object.freeze({
-  setColor: "oklch(L C H [/ A]) string matching the theme color grammar",
-  setRadius: "non-negative rem/px/em dimension",
+  setColor: "HEX, rgb(a), hsl(a), or oklch colour inside the Display P3 gamut; stored as canonical oklch(L C H [/ A])",
+  setRadius: "non-negative rem/px/em dimension for radius.md",
   setDensity: "number from 0.5 to 2",
   setSansFamily: "single font name matching the theme font-name grammar",
   setShadowBlur: "non-negative rem/px/em dimension",
   setMotionDuration: "non-negative ms/s duration",
+  setFontFamily: "family sans|serif|mono and an ordered array of 1 to 16 font names",
+  setTracking: "em value from -0.25em to 0.25em",
+  setRadiusBase: "rem/px length from 0 to 2.5rem; derives radius sm/md/lg/xl",
+  setSpacingBase: "rem/px length from 0.1rem to 0.5rem",
+  setShadowProfile: "{ color: opaque colour, opacity: 0..1, blur: 0..64px, spread/offsetX/offsetY: -32..32px }; derives all eight shadow tiers",
 })
 
 /** Builds a fresh array/object graph every call; safe to return directly without additional copying or freezing. */

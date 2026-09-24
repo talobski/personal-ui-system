@@ -16,7 +16,10 @@ describe("context list (ACR-02)", () => {
     expect(result.identity.system).toBe("personal-ui-system")
     expect(result.identity.contextSchemaVersion).toBe("personal-ui-context/1")
 
-    expect(result.themes).toEqual([{ id: "quiet-editorial", name: "Quiet Editorial", revision: 1 }])
+    expect(result.themes).toEqual([
+      { id: "default", name: "Default", revision: 1 },
+      { id: "quiet-editorial", name: "Quiet Editorial", revision: 1 },
+    ])
 
     expect(result.resources).toEqual([
       { id: "button", kind: "component", purpose: "Trigger a single, clearly named action or navigation." },

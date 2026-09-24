@@ -1,5 +1,8 @@
-import { COLOR_TOKENS, densitySchema, dimensionSchema, durationSchema, fontNameSchema, oklchSchema, themeSchema } from "../theme/schema"
-import type { ColorToken, Theme } from "../theme/schema"
+import { normalizeColor, parseLength } from "../theme/color"
+import { admitRemLength, admitShadowProfile, deriveRadiusScale, deriveShadowTiers, MANUAL_CONTROL_BOUNDS, SHADOW_PROFILE_FIELDS } from "../theme/derive"
+import type { ShadowProfile } from "../theme/derive"
+import { COLOR_TOKENS, densitySchema, durationSchema, FONT_FAMILY_TOKENS, fontNameSchema, fontStackSchema, SHADOW_TOKENS, themeSchema, trackingSchema } from "../theme/schema"
+import type { ColorToken, FontFamilyToken, Theme } from "../theme/schema"
 import { renderShadcnTailwindCss } from "../theme/render"
 
 export const MUTATION_SCHEMA_VERSION = "1.0"
@@ -8,12 +11,14 @@ const MODES = ["light", "dark"] as const
 type Mode = (typeof MODES)[number]
 
 /**
- * Closed operation union: one typed operation per token category. There is no raw-CSS, path, file, bulk, or
- * set-any-path operation. Apart from `setColor`, each operation edits exactly one fixed, representative target
- * (documented per operation), so it carries no token or path field to select anything else.
+ * Closed operation union. There is no raw-CSS, path, file, bulk, or set-any-path operation. `setColor` selects a mode
+ * and token from closed lists and `setFontFamily` a family from a closed list; every other operation edits one fixed
+ * target (documented per operation), so it carries no token or path field to select anything else.
+ *
+ * `setColor` accepts HEX, RGB(A), HSL(A), or OKLCH input; the stored value is canonical OKLCH.
  */
 export type SetColorOperation = { op: "setColor"; mode: Mode; token: ColorToken; value: string }
-/** Sets `radius.md`, the token behind the rendered `--radius`. Non-negative dimension. */
+/** Sets `radius.md` alone (rendered `--radius-md`); the rest of the scale is kept. Non-negative dimension. */
 export type SetRadiusOperation = { op: "setRadius"; value: string }
 /** Sets `space.density`, the spacing multiplier. Number within the schema range. */
 export type SetDensityOperation = { op: "setDensity"; value: number }
@@ -23,6 +28,16 @@ export type SetSansFamilyOperation = { op: "setSansFamily"; value: string }
 export type SetShadowBlurOperation = { op: "setShadowBlur"; value: string }
 /** Sets `motion.durationBase`, the default transition duration. */
 export type SetMotionDurationOperation = { op: "setMotionDuration"; value: string }
+/** Replaces the whole `typography.<family>` stack. */
+export type SetFontFamilyOperation = { op: "setFontFamily"; family: FontFamilyToken; value: readonly string[] }
+/** Sets `typography.tracking`, an em value within the tracking bounds. */
+export type SetTrackingOperation = { op: "setTracking"; value: string }
+/** Sets `radius.base` and derives the full `sm`/`md`/`lg`/`xl` scale from it (`theme/derive.ts`). */
+export type SetRadiusBaseOperation = { op: "setRadiusBase"; value: string }
+/** Sets `space.base`, the length the spacing scale is built on. */
+export type SetSpacingBaseOperation = { op: "setSpacingBase"; value: string }
+/** Derives all eight shadow tiers from one profile (`theme/derive.ts`); no profile is stored beside the tiers. */
+export type SetShadowProfileOperation = { op: "setShadowProfile"; value: ShadowProfile }
 export type ThemeOperation =
   | SetColorOperation
   | SetRadiusOperation
@@ -30,6 +45,11 @@ export type ThemeOperation =
   | SetSansFamilyOperation
   | SetShadowBlurOperation
   | SetMotionDurationOperation
+  | SetFontFamilyOperation
+  | SetTrackingOperation
+  | SetRadiusBaseOperation
+  | SetSpacingBaseOperation
+  | SetShadowProfileOperation
 
 export type MutationRequest = {
   schemaVersion: typeof MUTATION_SCHEMA_VERSION
@@ -46,6 +66,7 @@ export type MutationRuleId =
   | "mutation.unknown-operation"
   | "mutation.unknown-field"
   | "mutation.invalid-mode"
+  | "mutation.invalid-family"
   | "mutation.unknown-token"
   | "mutation.invalid-value"
   | "mutation.missing-target"
@@ -75,6 +96,11 @@ const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
   ["setSansFamily", new Set(["op", "value"])],
   ["setShadowBlur", new Set(["op", "value"])],
   ["setMotionDuration", new Set(["op", "value"])],
+  ["setFontFamily", new Set(["op", "family", "value"])],
+  ["setTracking", new Set(["op", "value"])],
+  ["setRadiusBase", new Set(["op", "value"])],
+  ["setSpacingBase", new Set(["op", "value"])],
+  ["setShadowProfile", new Set(["op", "value"])],
 ])
 const REQUEST_KEYS = new Set(["schemaVersion", "requestId", "base", "operations"])
 
@@ -90,16 +116,23 @@ export function describeOperations(): MutationOperationDescriptor[] {
 }
 
 /** Radius and blur render straight into CSS, where a negative length is invalid. */
-const nonNegativeDimension = (value: unknown) =>
-  dimensionSchema.safeParse(value).success && !(value as string).startsWith("-")
+const nonNegativeDimension = (value: unknown) => {
+  const parsed = parseLength(value)
+  return parsed !== null && parsed.value >= 0
+}
 
 /** Value validators for the single-value operations. */
 const VALUE_CHECKS: Record<string, (value: unknown) => boolean> = {
+  setColor: (value) => normalizeColor(value).ok,
   setRadius: nonNegativeDimension,
   setDensity: (value) => densitySchema.safeParse(value).success,
   setSansFamily: (value) => fontNameSchema.safeParse(value).success,
   setShadowBlur: nonNegativeDimension,
   setMotionDuration: (value) => durationSchema.safeParse(value).success,
+  setFontFamily: (value) => fontStackSchema.safeParse(value).success,
+  setTracking: (value) => trackingSchema.safeParse(value).success,
+  setRadiusBase: (value) => admitRemLength(value, MANUAL_CONTROL_BOUNDS.radiusBase) !== null,
+  setSpacingBase: (value) => admitRemLength(value, MANUAL_CONTROL_BOUNDS.spacingBase) !== null,
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -138,7 +171,17 @@ export function validateMutation(input: unknown, base: Pick<Theme, "id" | "revis
       if (operation.op === "setColor") {
         if (!MODES.includes(operation.mode as Mode)) fail("mutation.invalid-mode", `${at}.mode`)
         if (!COLOR_TOKENS.includes(operation.token as ColorToken)) fail("mutation.unknown-token", `${at}.token`)
-        if (!oklchSchema.safeParse(operation.value).success) fail("mutation.invalid-value", `${at}.value`)
+      }
+      if (operation.op === "setFontFamily" && !FONT_FAMILY_TOKENS.includes(operation.family as FontFamilyToken)) {
+        fail("mutation.invalid-family", `${at}.family`)
+      }
+      if (operation.op === "setShadowProfile") {
+        const value = operation.value
+        if (!isRecord(value)) return fail("mutation.invalid-value", `${at}.value`)
+        const allowed = new Set<string>(SHADOW_PROFILE_FIELDS)
+        for (const key of Object.keys(value)) if (!allowed.has(key)) fail("mutation.unknown-field", `${at}.value.${key}`)
+        const admission = admitShadowProfile(value)
+        if (!admission.ok) for (const field of admission.invalid) fail("mutation.invalid-value", `${at}.value.${field}`)
       } else if (!VALUE_CHECKS[operation.op as string]!(operation.value)) {
         fail("mutation.invalid-value", `${at}.value`)
       }
@@ -158,7 +201,7 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
   validation.request.operations.forEach((operation, index) => {
     switch (operation.op) {
       case "setColor":
-        next.modes[operation.mode].color[operation.token].$value = operation.value
+        next.colors[operation.mode][operation.token].$value = (normalizeColor(operation.value) as { ok: true; value: string }).value
         break
       case "setRadius":
         next.radius.md.$value = operation.value
@@ -170,7 +213,7 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
         next.typography.sans.$value[0] = operation.value
         break
       case "setShadowBlur": {
-        // The schema admits an empty layer list; there is then nothing to edit.
+        // v2 tiers are non-empty, so this is defensive only: with no layer there is nothing to edit.
         const layer = next.shadow.md.$value[0]
         if (layer) layer.blur = operation.value
         else missing.push({ ruleId: "mutation.missing-target", path: `operations[${index}]` })
@@ -179,6 +222,27 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
       case "setMotionDuration":
         next.motion.durationBase.$value = operation.value
         break
+      case "setFontFamily":
+        next.typography[operation.family].$value = [...operation.value]
+        break
+      case "setTracking":
+        next.typography.tracking.$value = trackingSchema.parse(operation.value)
+        break
+      case "setRadiusBase": {
+        const scale = deriveRadiusScale(admitRemLength(operation.value, MANUAL_CONTROL_BOUNDS.radiusBase)!)
+        for (const key of ["base", "sm", "md", "lg", "xl"] as const) next.radius[key].$value = scale[key]
+        break
+      }
+      case "setSpacingBase":
+        next.space.base.$value = admitRemLength(operation.value, MANUAL_CONTROL_BOUNDS.spacingBase)!
+        break
+      case "setShadowProfile": {
+        const admission = admitShadowProfile(operation.value as unknown as Record<string, unknown>)
+        if (!admission.ok) break
+        const tiers = deriveShadowTiers(admission.profile)
+        for (const tier of SHADOW_TOKENS) next.shadow[tier].$value = tiers[tier]
+        break
+      }
     }
   })
   if (missing.length > 0) return { ok: false, errors: missing }

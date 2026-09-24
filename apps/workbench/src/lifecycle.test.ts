@@ -29,10 +29,10 @@ describe("editColor", () => {
     const result = editColor(canonical, "light", "primary", VALID)
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    expect(result.theme.modes.light.color.primary.$value).toBe(VALID)
-    expect(result.theme.modes.dark.color.primary.$value).toBe(canonical.modes.dark.color.primary.$value)
+    expect(result.theme.colors.light.primary.$value).toBe(VALID)
+    expect(result.theme.colors.dark.primary.$value).toBe(canonical.colors.dark.primary.$value)
     expect(result.theme.revision).toBe(canonical.revision + 1)
-    expect(canonical.modes.light.color.primary.$value).not.toBe(VALID)
+    expect(canonical.colors.light.primary.$value).not.toBe(VALID)
   })
 
   it.each(["red", "#fff", "oklch(0.4 0.1)", "red; } body { display: none", "var(--x)", ""])(
@@ -98,7 +98,7 @@ describe("forkTheme", () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.theme).toMatchObject({ id: "my-fork", name: "My Fork", revision: 1 })
-    expect(result.theme.modes.light.color.primary.$value).toBe(VALID)
+    expect(result.theme.colors.light.primary.$value).toBe(VALID)
     expect(validateTheme(result.theme).ok).toBe(true)
   })
 
@@ -132,8 +132,8 @@ describe("diffThemes", () => {
     const next = editColor(edited, "dark", "background", "oklch(0.1 0.01 250)")
     if (!next.ok) throw new Error("edit failed")
     expect(diffThemes(canonical, next.theme)).toEqual([
-      { path: "modes.dark.color.background", baseline: canonical.modes.dark.color.background.$value, current: "oklch(0.1 0.01 250)" },
-      { path: "modes.light.color.primary", baseline: canonical.modes.light.color.primary.$value, current: VALID },
+      { path: "colors.dark.background", baseline: canonical.colors.dark.background.$value, current: "oklch(0.1 0.01 250)" },
+      { path: "colors.light.primary", baseline: canonical.colors.light.primary.$value, current: VALID },
     ])
   })
 })
@@ -172,7 +172,7 @@ describe("persistence", () => {
     const fork = forkTheme(canonical, "good", "Good", [])
     if (!fork.ok) throw new Error("fork failed")
     const bad = structuredClone(fork.theme)
-    bad.modes.light.color.primary.$value = "red"
+    bad.colors.light.primary.$value = "red"
     const stored = { themes: { good: fork.theme, bad, mismatch: fork.theme }, activeId: "bad" }
     expect(loadSaved(memoryStorage({ [STORAGE_KEY]: JSON.stringify(stored) }))).toEqual({ themes: { good: fork.theme }, activeId: null })
     expect(loadSaved(memoryStorage({ [STORAGE_KEY]: "{not json" }))).toEqual(emptySaved())
@@ -221,7 +221,7 @@ describe("mutation proposal preview (non-committing)", () => {
     if (!result.ok) throw new Error("stage failed")
     const diff = result.staged.evaluation.diff
     expect(diff).toEqual([
-      { path: "modes.dark.color.primary", before: canonical.modes.dark.color.primary.$value, after: "oklch(0.8 0.1 150)" },
+      { path: "colors.dark.primary", before: canonical.colors.dark.primary.$value, after: "oklch(0.8 0.1 150)" },
       { path: "motion.durationBase", before: canonical.motion.durationBase.$value, after: "320ms" },
       { path: "radius.md", before: canonical.radius.md.$value, after: "1rem" },
     ])

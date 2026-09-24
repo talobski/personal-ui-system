@@ -14,6 +14,10 @@ const RAW_PROVENANCE_MANIFEST = {
     sourceId: "packages/core/src/contracts/data/resizable-panel.ts",
     sha256: "41688d427b0cad180bad7fd73883241aeaca26cd18935f497c610922a2c182c3",
   },
+  "theme:default": {
+    sourceId: "packages/core/src/theme/fixtures/default.json",
+    sha256: "93fc2887f5ee7a355df8c3ca52a0adb005e7ac526942a5f3a0b2563521944282",
+  },
   "theme:quiet-editorial": {
     sourceId: "packages/core/src/theme/fixtures/valid.json",
     sha256: "1a1f7e1bd4b8846b686ca39736613f6d690827f9ee292107767bf78c81b025e9",

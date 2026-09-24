@@ -118,7 +118,7 @@ test.describe("workbench theme lifecycle", () => {
       await expect(page.getByTestId("theme-revision")).toHaveText("2")
       await expect.poll(() => previewVar(page, "--primary")).toBe(EDIT[mode])
       await expect(page.getByTestId("diff-count")).toHaveText("1")
-      await expect(page.getByTestId("diff-list").locator(`[data-path="modes.${mode}.color.primary"]`)).toContainText(EDIT[mode])
+      await expect(page.getByTestId("diff-list").locator(`[data-path="colors.${mode}.primary"]`)).toContainText(EDIT[mode])
       await expect(page.getByTestId("edit-error")).toHaveCount(0)
 
       // Invalid edit: rejected with a stable rule, nothing activates.
@@ -156,7 +156,7 @@ test.describe("workbench theme lifecycle", () => {
       await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
       await expect(page.getByTestId("theme-id")).toHaveText("my-fork")
       await expect(page.getByTestId("theme-status")).toHaveText("saved")
-      await expect(page.getByTestId("diff-list").locator(`[data-path="modes.${mode}.color.primary"]`)).toContainText(EDIT[mode])
+      await expect(page.getByTestId("diff-list").locator(`[data-path="colors.${mode}.primary"]`)).toContainText(EDIT[mode])
       await workspaceMode(page, "Preview")
       await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
       await expect.poll(() => previewVar(page, "--primary")).toBe(EDIT[mode])
@@ -169,7 +169,7 @@ test.describe("workbench theme lifecycle", () => {
       expect(file.suggestedFilename()).toBe("my-fork.theme.json")
       const exported = JSON.parse(await (await import("node:fs/promises")).readFile((await file.path())!, "utf8"))
       expect(exported).toMatchObject({ id: "my-fork", name: "My Fork", kind: "personal-ui-theme", revision: 1 })
-      expect(exported.modes[mode].color.primary.$value).toBe(EDIT[mode])
+      expect(exported.colors[mode].primary.$value).toBe(EDIT[mode])
 
       await expectNoSeriousViolations(page, `${mode}-after-reload`, testInfo)
     })

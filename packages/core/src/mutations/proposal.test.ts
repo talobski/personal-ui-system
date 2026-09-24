@@ -38,7 +38,7 @@ describe("proposal envelope (strict MutationProposalV1)", () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.staged.candidate.revision).toBe(theme.revision + 1)
-    expect(result.staged.candidate.modes.light.color.primary.$value).toBe("oklch(0.5 0.1 200)")
+    expect(result.staged.candidate.colors.light.primary.$value).toBe("oklch(0.5 0.1 200)")
     expect(result.staged.css).toContain("--primary: oklch(0.5 0.1 200);")
     expect(status(result.session, "p-1")).toBe("staged")
     expect(JSON.stringify(theme)).toBe(before)
@@ -150,7 +150,7 @@ describe("atomic multi-operation transaction", () => {
     const result = stage(proposal(operations))
     if (!result.ok) throw new Error("expected staged")
     expect(result.staged.candidate.revision).toBe(theme.revision + 1)
-    expect(result.staged.candidate.modes.light.color.primary.$value).toBe("oklch(0.5 0.1 200)")
+    expect(result.staged.candidate.colors.light.primary.$value).toBe("oklch(0.5 0.1 200)")
     expect(result.staged.candidate.radius.md.$value).toBe("1rem")
     expect(result.staged.candidate.space.density.$value).toBe(1.25)
   })
@@ -343,7 +343,7 @@ describe("serializable records with retained provenance", () => {
       activeRevision: theme.revision,
       candidateRevision: theme.revision + 1,
       diff: [
-        { path: "modes.light.color.primary", before: theme.modes.light.color.primary.$value, after: "oklch(0.5 0.1 200)" },
+        { path: "colors.light.primary", before: theme.colors.light.primary.$value, after: "oklch(0.5 0.1 200)" },
         { path: "radius.md", before: theme.radius.md.$value, after: "1rem" },
         { path: "space.density", before: theme.space.density.$value, after: 1.25 },
       ],
@@ -382,7 +382,7 @@ describe("serializable records with retained provenance", () => {
     expect(record.proposal).toMatchObject(validated)
     expect(record.proposal.provenance).toEqual(provenance)
     expect(record.evaluation.evaluatedAt).toBe(NOW)
-    expect(record.evaluation.diff.map((entry) => entry.path)).toEqual(["modes.light.color.primary", "radius.md", "space.density"])
+    expect(record.evaluation.diff.map((entry) => entry.path)).toEqual(["colors.light.primary", "radius.md", "space.density"])
     expect(record.resolution).toEqual(resolution)
     expect(session.staged).toBeNull()
     expect(roundTrip(session)).toEqual(session)

@@ -22,8 +22,8 @@ describe("setColor mutation", () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.theme.revision).toBe(theme.revision + 1)
-    expect(result.theme.modes.light.color.primary.$value).toBe("oklch(0.5 0.1 200)")
-    expect(result.theme.modes.dark.color.primary.$value).toBe(theme.modes.dark.color.primary.$value)
+    expect(result.theme.colors.light.primary.$value).toBe("oklch(0.5 0.1 200)")
+    expect(result.theme.colors.dark.primary.$value).toBe(theme.colors.dark.primary.$value)
     expect(result.css).toContain("--primary: oklch(0.5 0.1 200);")
     expect(JSON.stringify(theme)).toBe(before)
   })
@@ -43,9 +43,9 @@ const categoryOperations = [
   {
     category: "shadow",
     operation: { op: "setShadowBlur", value: "12px" },
-    css: "--shadow-layers-md: 0px 4px 12px -2px oklch(0 0 0 / 10%);",
+    css: "--shadow-layers-md: 0px 4px 12px -2px oklch(0 0 0 / 0.1);",
     path: ["shadow", "md"],
-    expected: [{ offsetX: "0px", offsetY: "4px", blur: "12px", spread: "-2px", color: "oklch(0 0 0 / 10%)" }],
+    expected: [{ inset: false, offsetX: "0px", offsetY: "4px", blur: "12px", spread: "-2px", color: "oklch(0 0 0 / 0.1)" }],
   },
   { category: "motion", operation: { op: "setMotionDuration", value: "320ms" }, css: "--motion-duration-base: 320ms;", path: ["motion", "durationBase"], expected: "320ms" },
 ] as const
@@ -165,13 +165,9 @@ describe("mutation rejection", () => {
     }
   })
 
-  it("reports a shadow with no layer to edit as missing-target and yields no candidate", () => {
+  it("has no shadow without a layer to edit: v2 tiers are non-empty, so missing-target cannot arise from a valid theme", () => {
     const noLayers = structuredClone(theme)
     noLayers.shadow.md.$value = []
-    expect(validateTheme(noLayers).ok).toBe(true)
-    expect(applyMutation(noLayers, request([{ op: "setShadowBlur", value: "4px" }]))).toEqual({
-      ok: false,
-      errors: [{ ruleId: "mutation.missing-target", path: "operations[0]" }],
-    })
+    expect(validateTheme(noLayers).ok).toBe(false)
   })
 })

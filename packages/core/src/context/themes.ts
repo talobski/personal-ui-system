@@ -1,17 +1,19 @@
 import { validateTheme } from "../theme/schema"
 import type { Theme } from "../theme/schema"
-import canonicalFixture from "../theme/fixtures/valid.json" with { type: "json" }
+import defaultFixture from "../theme/fixtures/default.json" with { type: "json" }
+import quietEditorialFixture from "../theme/fixtures/valid.json" with { type: "json" }
 import { compareCodeUnits } from "./ordering"
 
 export type ThemeSummary = { id: string; name: string; revision: number }
 
 /**
- * The catalog of themes the retrieval surface will validate and serve. V1 has exactly one: the committed canonical
- * fixture also used as the workbench's starting theme. Adding a theme here does not change `registry.json` or any
- * pilot component/contract catalog.
+ * The catalog of built-in themes the retrieval surface will validate and serve: the built-in Default (a v2 fixture,
+ * the Workbench's fresh-state theme) and Quiet Editorial (the accepted v1 fixture, served migrated to v2). Adding a
+ * theme here does not change `registry.json` or any component/contract catalog.
  */
 const loaders = {
-  "quiet-editorial": () => canonicalFixture,
+  default: () => defaultFixture,
+  "quiet-editorial": () => quietEditorialFixture,
 } as const satisfies Record<string, () => unknown>
 
 export type ThemeId = keyof typeof loaders

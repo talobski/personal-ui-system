@@ -31,7 +31,7 @@ describe("context get (ACR-03)", () => {
     expect(result.capabilitiesSummary).toEqual({
       mutationSchemaVersion: "1.0",
       proposalSchemaVersion: "1.0",
-      operationCount: 6,
+      operationCount: 11,
       maxProposalOperations: 8,
     })
   })
@@ -84,5 +84,18 @@ describe("context get (ACR-03)", () => {
     expect(serialized).not.toContain('"id":"responsive-dialog"')
     expect(serialized).not.toContain('"id":"field"')
     expect(serialized).not.toContain('"id":"native-select"')
+  })
+})
+
+describe("context get serves Theme v2 (TSV2-01)", () => {
+  it.each(["default", "quiet-editorial"])("returns canonical v2 %s with v2 identity and fixture provenance", async (theme) => {
+    const result = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "get", theme, resource: "responsive-dialog" })
+    if (!result.ok || result.operation !== "get") throw new Error("expected get")
+    expect(result.identity.themeSchemaVersion).toBe("2.0")
+    expect(result.theme.schemaVersion).toBe("2.0")
+    expect(result.theme.id).toBe(theme)
+    expect(validateTheme(result.theme)).toEqual({ ok: true, theme: result.theme })
+    expect(result.provenance.theme.sourceId).toBe(theme === "default" ? "packages/core/src/theme/fixtures/default.json" : "packages/core/src/theme/fixtures/valid.json")
+    expect(new TextEncoder().encode(toCanonicalJson(result)).length).toBeLessThanOrEqual(OPERATION_MAX_BYTES.get)
   })
 })

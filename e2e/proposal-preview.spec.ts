@@ -112,7 +112,7 @@ for (const mode of ["light", "dark"] as const) {
 
       // Structured diff, sorted by path.
       const paths = await page.getByTestId("proposal-diff-list").locator("li").evaluateAll((items) => items.map((li) => li.getAttribute("data-path")))
-      expect(paths).toEqual(["modes.dark.color.primary", "modes.light.color.primary", "motion.durationBase", "radius.md"])
+      expect(paths).toEqual(["colors.dark.primary", "colors.light.primary", "motion.durationBase", "radius.md"])
       await expect(page.getByTestId("proposal-diff-list").locator('[data-path="radius.md"]')).toContainText('"0.5rem" → "1rem"')
       expect(await storedThemes(page)).toBe(storageBefore)
       await workspaceMode(page, "Preview")
@@ -192,8 +192,8 @@ for (const mode of ["light", "dark"] as const) {
       expect(await previewFrame(page).locator("html").evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true)
       const paths = await page.getByTestId("proposal-diff-list").locator("li").evaluateAll((items) => items.map((li) => li.getAttribute("data-path")))
       expect(paths).toEqual([
-        "modes.dark.color.primary",
-        "modes.light.color.primary",
+        "colors.dark.primary",
+        "colors.light.primary",
         "motion.durationBase",
         "radius.md",
         "shadow.md",

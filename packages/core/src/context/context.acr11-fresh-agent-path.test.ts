@@ -89,7 +89,7 @@ describe("fresh-agent-verifiable path (ACR-11)", () => {
       "2026-01-01T00:00:00Z"
     )
     expect(result.ok).toBe(true)
-    if (result.ok) expect(result.staged.candidate.modes.light.color.primary.$value).toBe("oklch(0.4 0.05 260)")
+    if (result.ok) expect(result.staged.candidate.colors.light.primary.$value).toBe("oklch(0.4 0.05 260)")
   })
 
   it("rejects an arbitrary CSS/path operation, exactly as capabilities documents as unsupported", async () => {

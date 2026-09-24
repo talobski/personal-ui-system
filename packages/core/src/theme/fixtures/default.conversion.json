@@ -1,0 +1,512 @@
+{
+  "kind": "personal-ui-theme-conversion-report",
+  "version": 1,
+  "theme": {
+    "id": "default",
+    "name": "Default",
+    "schemaVersion": "2.0"
+  },
+  "source": {
+    "description": "Owner-supplied theme export as transcribed, already in OKLCH, in docs/THEME_SYSTEM_V2_IMPLEMENTATION_CONTRACT.md, section 'Exact built-in Default values'. The raw export file itself is not committed; the contract tables are the authoritative source.",
+    "document": "docs/THEME_SYSTEM_V2_IMPLEMENTATION_CONTRACT.md"
+  },
+  "precisionPolicy": {
+    "color": "Canonical oklch(L C H) / oklch(L C H / A); L, C, H, A rounded half-up to 6 decimal places; trailing zeros and -0 removed; hue normalized to [0, 360) and 0 when chroma rounds to 0; alpha omitted when 1; must be inside the Display P3 gamut (per-channel tolerance 1e-4). OKLCH input is validated and rounded only, never converted through another space. Implemented by packages/core/src/theme/color.ts normalizeColor.",
+    "length": "Canonical <number><unit>, number rounded to 4 decimal places, trailing zeros and -0 removed. Implemented by packages/core/src/theme/color.ts normalizeLength.",
+    "idempotence": "Every normalized value below is a fixed point of the normalizer (asserted by packages/core/src/theme/default.test.ts)."
+  },
+  "values": {
+    "colors.light.background": {
+      "source": "oklch(1 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.foreground": {
+      "source": "oklch(0.144788 0 0)",
+      "normalized": "oklch(0.144788 0 0)"
+    },
+    "colors.light.card": {
+      "source": "oklch(1 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.card-foreground": {
+      "source": "oklch(0.144788 0 0)",
+      "normalized": "oklch(0.144788 0 0)"
+    },
+    "colors.light.popover": {
+      "source": "oklch(1 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.popover-foreground": {
+      "source": "oklch(0.144788 0 0)",
+      "normalized": "oklch(0.144788 0 0)"
+    },
+    "colors.light.primary": {
+      "source": "oklch(0.204627 0 0)",
+      "normalized": "oklch(0.204627 0 0)"
+    },
+    "colors.light.primary-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.light.secondary": {
+      "source": "oklch(0.970151 0 0)",
+      "normalized": "oklch(0.970151 0 0)"
+    },
+    "colors.light.secondary-foreground": {
+      "source": "oklch(0.204627 0 0)",
+      "normalized": "oklch(0.204627 0 0)"
+    },
+    "colors.light.muted": {
+      "source": "oklch(0.970151 0 0)",
+      "normalized": "oklch(0.970151 0 0)"
+    },
+    "colors.light.muted-foreground": {
+      "source": "oklch(0.555527 0 0)",
+      "normalized": "oklch(0.555527 0 0)"
+    },
+    "colors.light.accent": {
+      "source": "oklch(0.970151 0 0)",
+      "normalized": "oklch(0.970151 0 0)"
+    },
+    "colors.light.accent-foreground": {
+      "source": "oklch(0.204627 0 0)",
+      "normalized": "oklch(0.204627 0 0)"
+    },
+    "colors.light.destructive": {
+      "source": "oklch(0.583043 0.238666 28.47648)",
+      "normalized": "oklch(0.583043 0.238666 28.47648)"
+    },
+    "colors.light.destructive-foreground": {
+      "source": "oklch(1 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.border": {
+      "source": "oklch(0.921906 0 0)",
+      "normalized": "oklch(0.921906 0 0)"
+    },
+    "colors.light.input": {
+      "source": "oklch(0.921906 0 0)",
+      "normalized": "oklch(0.921906 0 0)"
+    },
+    "colors.light.ring": {
+      "source": "oklch(0.709 0 0)",
+      "normalized": "oklch(0.709 0 0)"
+    },
+    "colors.light.chart-1": {
+      "source": "oklch(0.808777 0.09905 251.753276)",
+      "normalized": "oklch(0.808777 0.09905 251.753276)"
+    },
+    "colors.light.chart-2": {
+      "source": "oklch(0.620689 0.189427 259.935809)",
+      "normalized": "oklch(0.620689 0.189427 259.935809)"
+    },
+    "colors.light.chart-3": {
+      "source": "oklch(0.549483 0.220236 263.091662)",
+      "normalized": "oklch(0.549483 0.220236 263.091662)"
+    },
+    "colors.light.chart-4": {
+      "source": "oklch(0.48933 0.220186 264.040459)",
+      "normalized": "oklch(0.48933 0.220186 264.040459)"
+    },
+    "colors.light.chart-5": {
+      "source": "oklch(0.421042 0.179192 266.009449)",
+      "normalized": "oklch(0.421042 0.179192 266.009449)"
+    },
+    "colors.dark.background": {
+      "source": "oklch(0.144788 0 0)",
+      "normalized": "oklch(0.144788 0 0)"
+    },
+    "colors.dark.foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.card": {
+      "source": "oklch(0.204627 0 0)",
+      "normalized": "oklch(0.204627 0 0)"
+    },
+    "colors.dark.card-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.popover": {
+      "source": "oklch(0.268618 0 0)",
+      "normalized": "oklch(0.268618 0 0)"
+    },
+    "colors.dark.popover-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.primary": {
+      "source": "oklch(0.921906 0 0)",
+      "normalized": "oklch(0.921906 0 0)"
+    },
+    "colors.dark.primary-foreground": {
+      "source": "oklch(0.204627 0 0)",
+      "normalized": "oklch(0.204627 0 0)"
+    },
+    "colors.dark.secondary": {
+      "source": "oklch(0.268618 0 0)",
+      "normalized": "oklch(0.268618 0 0)"
+    },
+    "colors.dark.secondary-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.muted": {
+      "source": "oklch(0.268618 0 0)",
+      "normalized": "oklch(0.268618 0 0)"
+    },
+    "colors.dark.muted-foreground": {
+      "source": "oklch(0.709 0 0)",
+      "normalized": "oklch(0.709 0 0)"
+    },
+    "colors.dark.accent": {
+      "source": "oklch(0.371495 0 0)",
+      "normalized": "oklch(0.371495 0 0)"
+    },
+    "colors.dark.accent-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.destructive": {
+      "source": "oklch(0.702184 0.189226 22.227873)",
+      "normalized": "oklch(0.702184 0.189226 22.227873)"
+    },
+    "colors.dark.destructive-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.border": {
+      "source": "oklch(0.276848 0 0)",
+      "normalized": "oklch(0.276848 0 0)"
+    },
+    "colors.dark.input": {
+      "source": "oklch(0.325037 0 0)",
+      "normalized": "oklch(0.325037 0 0)"
+    },
+    "colors.dark.ring": {
+      "source": "oklch(0.555527 0 0)",
+      "normalized": "oklch(0.555527 0 0)"
+    },
+    "colors.dark.chart-1": {
+      "source": "oklch(0.808777 0.09905 251.753276)",
+      "normalized": "oklch(0.808777 0.09905 251.753276)"
+    },
+    "colors.dark.chart-2": {
+      "source": "oklch(0.620689 0.189427 259.935809)",
+      "normalized": "oklch(0.620689 0.189427 259.935809)"
+    },
+    "colors.dark.chart-3": {
+      "source": "oklch(0.549483 0.220236 263.091662)",
+      "normalized": "oklch(0.549483 0.220236 263.091662)"
+    },
+    "colors.dark.chart-4": {
+      "source": "oklch(0.48933 0.220186 264.040459)",
+      "normalized": "oklch(0.48933 0.220186 264.040459)"
+    },
+    "colors.dark.chart-5": {
+      "source": "oklch(0.421042 0.179192 266.009449)",
+      "normalized": "oklch(0.421042 0.179192 266.009449)"
+    },
+    "typography.sans": {
+      "source": [
+        "ui-sans-serif",
+        "system-ui",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "Roboto",
+        "Helvetica Neue",
+        "Arial",
+        "Noto Sans",
+        "sans-serif",
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        "Noto Color Emoji"
+      ],
+      "normalized": [
+        "ui-sans-serif",
+        "system-ui",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "Roboto",
+        "Helvetica Neue",
+        "Arial",
+        "Noto Sans",
+        "sans-serif",
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        "Noto Color Emoji"
+      ]
+    },
+    "typography.serif": {
+      "source": [
+        "ui-serif",
+        "Georgia",
+        "Cambria",
+        "Times New Roman",
+        "Times",
+        "serif"
+      ],
+      "normalized": [
+        "ui-serif",
+        "Georgia",
+        "Cambria",
+        "Times New Roman",
+        "Times",
+        "serif"
+      ]
+    },
+    "typography.mono": {
+      "source": [
+        "ui-monospace",
+        "SFMono-Regular",
+        "Menlo",
+        "Monaco",
+        "Consolas",
+        "Liberation Mono",
+        "Courier New",
+        "monospace"
+      ],
+      "normalized": [
+        "ui-monospace",
+        "SFMono-Regular",
+        "Menlo",
+        "Monaco",
+        "Consolas",
+        "Liberation Mono",
+        "Courier New",
+        "monospace"
+      ]
+    },
+    "typography.tracking": {
+      "source": "0em",
+      "normalized": "0em"
+    },
+    "radius.base": {
+      "source": "1.475rem",
+      "normalized": "1.475rem"
+    },
+    "radius.sm": {
+      "source": "1.225rem",
+      "normalized": "1.225rem"
+    },
+    "radius.md": {
+      "source": "1.35rem",
+      "normalized": "1.35rem"
+    },
+    "radius.lg": {
+      "source": "1.475rem",
+      "normalized": "1.475rem"
+    },
+    "radius.xl": {
+      "source": "1.725rem",
+      "normalized": "1.725rem"
+    },
+    "space.base": {
+      "source": "0.3rem",
+      "normalized": "0.3rem"
+    },
+    "shadow.profile": {
+      "source": {
+        "color": "black",
+        "opacity": 0.1,
+        "blur": "3px",
+        "spread": "0px",
+        "offsetX": "0px",
+        "offsetY": "1px"
+      },
+      "normalized": {
+        "color": "oklch(0 0 0)",
+        "opacity": 0.1,
+        "blur": "3px",
+        "spread": "0px",
+        "offsetX": "0px",
+        "offsetY": "1px"
+      }
+    },
+    "shadow.2xs": {
+      "source": "derived from shadow.profile (packages/core/src/theme/derive.ts deriveShadowTiers)",
+      "normalized": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.05)"
+        }
+      ]
+    },
+    "shadow.xs": {
+      "source": "derived from shadow.profile (packages/core/src/theme/derive.ts deriveShadowTiers)",
+      "normalized": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.05)"
+        }
+      ]
+    },
+    "shadow.sm": {
+      "source": "derived from shadow.profile (packages/core/src/theme/derive.ts deriveShadowTiers)",
+      "normalized": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.1)"
+        },
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "2px",
+          "spread": "-1px",
+          "color": "oklch(0 0 0 / 0.1)"
+        }
+      ]
+    },
+    "shadow.default": {
+      "source": "derived from shadow.profile (packages/core/src/theme/derive.ts deriveShadowTiers)",
+      "normalized": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.1)"
+        },
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "2px",
+          "spread": "-1px",
+          "color": "oklch(0 0 0 / 0.1)"
+        }
+      ]
+    },
+    "shadow.md": {
+      "source": "derived from shadow.profile (packages/core/src/theme/derive.ts deriveShadowTiers)",
+      "normalized": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.1)"
+        },
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "2px",
+          "blur": "4px",
+          "spread": "-1px",
+          "color": "oklch(0 0 0 / 0.1)"
+        }
+      ]
+    },
+    "shadow.lg": {
+      "source": "derived from shadow.profile (packages/core/src/theme/derive.ts deriveShadowTiers)",
+      "normalized": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.1)"
+        },
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "4px",
+          "blur": "6px",
+          "spread": "-1px",
+          "color": "oklch(0 0 0 / 0.1)"
+        }
+      ]
+    },
+    "shadow.xl": {
+      "source": "derived from shadow.profile (packages/core/src/theme/derive.ts deriveShadowTiers)",
+      "normalized": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.1)"
+        },
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "8px",
+          "blur": "10px",
+          "spread": "-1px",
+          "color": "oklch(0 0 0 / 0.1)"
+        }
+      ]
+    },
+    "shadow.2xl": {
+      "source": "derived from shadow.profile (packages/core/src/theme/derive.ts deriveShadowTiers)",
+      "normalized": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.25)"
+        }
+      ]
+    }
+  },
+  "declaredDefaults": {
+    "space.density": {
+      "value": 1,
+      "reason": "The source supplies a spacing base only; the existing density multiplier default 1 is kept."
+    },
+    "motion.durationFast": {
+      "value": "150ms",
+      "reason": "The source supplied no motion values; accepted canonical default."
+    },
+    "motion.durationBase": {
+      "value": "200ms",
+      "reason": "The source supplied no motion values; accepted canonical default."
+    },
+    "motion.reducedMotion": {
+      "value": "reduce",
+      "reason": "Accepted reduced-motion policy preserved."
+    },
+    "shadow.*.inset": {
+      "value": false,
+      "reason": "Every listed source layer is an outer shadow."
+    }
+  },
+  "unsupported": [
+    {
+      "field": "sidebar, sidebar-foreground, sidebar-primary, sidebar-primary-foreground, sidebar-accent, sidebar-accent-foreground, sidebar-border, sidebar-ring (light and dark)",
+      "disposition": "omitted: sidebar tokens are outside Theme v2"
+    },
+    {
+      "field": "font sizes, weights, line heights",
+      "disposition": "omitted: not part of Theme v2"
+    },
+    {
+      "field": "export boilerplate (@theme inline block, :root/.dark wrappers, derived --tracking-* and --shadow-* CSS text)",
+      "disposition": "omitted: CSS is generated from canonical data by renderShadcnTailwindCss, never stored"
+    }
+  ]
+}

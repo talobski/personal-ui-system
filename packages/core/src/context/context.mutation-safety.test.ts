@@ -50,7 +50,7 @@ describe("adversarial caller mutation cannot alter later output or core validati
       /* frozen: expected */
     }
     try {
-      (firstGet.theme.modes.light.color.primary as { $value: string }).$value = "oklch(0 0 0)"
+      (firstGet.theme.colors.light.primary as { $value: string }).$value = "oklch(0 0 0)"
     } catch {
       /* frozen: expected */
     }

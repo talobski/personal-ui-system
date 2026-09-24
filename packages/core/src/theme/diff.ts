@@ -13,7 +13,7 @@ const leaves = (node: unknown, path: string, out: Map<string, unknown>) => {
 
 const tokenValues = (theme: Theme) => {
   const out = new Map<string, unknown>()
-  for (const group of ["modes", "typography", "radius", "space", "shadow", "motion"] as const) leaves(theme[group], group, out)
+  for (const group of ["colors", "typography", "radius", "space", "shadow", "motion"] as const) leaves(theme[group], group, out)
   return out
 }
 

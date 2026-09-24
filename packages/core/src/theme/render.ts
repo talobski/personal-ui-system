@@ -1,39 +1,59 @@
-import { COLOR_TOKENS, MOTION_DURATION_TOKENS, RADIUS_TOKENS, SHADOW_TOKENS, TYPOGRAPHY_TOKENS, themeSchema } from "./schema"
-import type { Theme } from "./schema"
+import { COLOR_TOKENS, FONT_FAMILY_TOKENS, MOTION_DURATION_TOKENS, RADIUS_SCALE_TOKENS, SHADOW_TOKENS, themeSchema } from "./schema"
+import type { ShadowLayer, ShadowToken, Theme } from "./schema"
 
-const GENERIC_FAMILIES = new Set(["sans-serif", "serif", "monospace", "system-ui", "ui-sans-serif", "ui-monospace"])
+/** CSS generic families and system-font keywords, emitted unquoted; every other family name is quoted. */
+const KEYWORD_FAMILIES = new Set([
+  "serif",
+  "sans-serif",
+  "monospace",
+  "cursive",
+  "fantasy",
+  "system-ui",
+  "ui-serif",
+  "ui-sans-serif",
+  "ui-monospace",
+  "ui-rounded",
+  "emoji",
+  "math",
+  "fangsong",
+  "-apple-system",
+  "BlinkMacSystemFont",
+])
 
 const cssFamily = (families: readonly string[]) =>
-  families.map((name) => (GENERIC_FAMILIES.has(name) ? name : `"${name}"`)).join(", ")
+  families.map((name) => (KEYWORD_FAMILIES.has(name) ? name : `"${name}"`)).join(", ")
 
-const cssShadow = (layers: Theme["shadow"]["sm"]["$value"]) =>
-  layers.length === 0
-    ? "none"
-    : layers.map((l) => `${l.offsetX} ${l.offsetY} ${l.blur} ${l.spread} ${l.color}`).join(", ")
+const cssShadow = (layers: readonly ShadowLayer[]) =>
+  layers.map((l) => `${l.inset ? "inset " : ""}${l.offsetX} ${l.offsetY} ${l.blur} ${l.spread} ${l.color}`).join(", ")
 
 const decl = (name: string, value: string) => `  ${name}: ${value};`
 
 const motionVar = (name: (typeof MOTION_DURATION_TOKENS)[number]) =>
   `--motion-${name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`
 
+/** Tailwind's bare `shadow` utility reads `--shadow`; every other tier is `--shadow-<tier>`. */
+const shadowThemeVar = (tier: ShadowToken) => (tier === "default" ? "--shadow" : `--shadow-${tier}`)
+
 /**
  * The sole theme -> shadcn/Tailwind v4 mapping. `@theme inline` values are substituted literally into utilities at
  * build time, so every category that must change at runtime keeps its value in a plain `:root` custom property and the
- * inline entry only references it, as colour does. Output order comes from the
- * closed token tables above, never from input key order, and the input is
- * re-validated so only schema-conforming values reach the CSS text.
+ * inline entry only references it, as colour does. Output order comes from the closed token tables above, never from
+ * input key order, and the input is re-validated so only schema-conforming canonical values reach the CSS text. The
+ * trailing base-layer rule applies the theme's tracking to the document, so a consumer of this CSS alone gets every
+ * typography value without any Workbench-specific stylesheet.
  */
 export function renderShadcnTailwindCss(input: Theme): string {
   const theme = themeSchema.parse(input)
-  const light = theme.modes.light.color
-  const dark = theme.modes.dark.color
+  const light = theme.colors.light
+  const dark = theme.colors.dark
 
   const root = [
     ...COLOR_TOKENS.map((name) => decl(`--${name}`, light[name].$value)),
-    ...TYPOGRAPHY_TOKENS.map((name) => decl(`--font-family-${name}`, cssFamily(theme.typography[name].$value))),
+    ...FONT_FAMILY_TOKENS.map((name) => decl(`--font-family-${name}`, cssFamily(theme.typography[name].$value))),
+    decl("--tracking-base", theme.typography.tracking.$value),
     ...SHADOW_TOKENS.map((name) => decl(`--shadow-layers-${name}`, cssShadow(theme.shadow[name].$value))),
-    decl("--radius", theme.radius.md.$value),
-    ...RADIUS_TOKENS.map((name) => decl(`--radius-scale-${name}`, theme.radius[name].$value)),
+    decl("--radius", theme.radius.base.$value),
+    ...RADIUS_SCALE_TOKENS.map((name) => decl(`--radius-scale-${name}`, theme.radius[name].$value)),
     decl("--space-base", theme.space.base.$value),
     decl("--density", String(theme.space.density.$value)),
     ...MOTION_DURATION_TOKENS.map((name) => decl(motionVar(name), theme.motion[name].$value)),
@@ -41,9 +61,10 @@ export function renderShadcnTailwindCss(input: Theme): string {
 
   const inline = [
     ...COLOR_TOKENS.map((name) => decl(`--color-${name}`, `var(--${name})`)),
-    ...TYPOGRAPHY_TOKENS.map((name) => decl(`--font-${name}`, `var(--font-family-${name})`)),
-    ...RADIUS_TOKENS.map((name) => decl(`--radius-${name}`, `var(--radius-scale-${name})`)),
-    ...SHADOW_TOKENS.map((name) => decl(`--shadow-${name}`, `var(--shadow-layers-${name})`)),
+    ...FONT_FAMILY_TOKENS.map((name) => decl(`--font-${name}`, `var(--font-family-${name})`)),
+    decl("--tracking-normal", "var(--tracking-base)"),
+    ...RADIUS_SCALE_TOKENS.map((name) => decl(`--radius-${name}`, `var(--radius-scale-${name})`)),
+    ...SHADOW_TOKENS.map((name) => decl(shadowThemeVar(name), `var(--shadow-layers-${name})`)),
     decl("--spacing", "calc(var(--space-base) * var(--density))"),
     decl("--default-transition-duration", "var(--motion-duration-base)"),
   ]
@@ -62,6 +83,12 @@ export function renderShadcnTailwindCss(input: Theme): string {
     "",
     "@theme inline {",
     ...inline,
+    "}",
+    "",
+    "@layer base {",
+    "  body {",
+    "    letter-spacing: var(--tracking-base);",
+    "  }",
     "}",
     "",
     "@media (prefers-reduced-motion: reduce) {",
