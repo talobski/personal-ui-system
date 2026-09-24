@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs"
 import { expect, test } from "@playwright/test"
 import type { Page, TestInfo } from "@playwright/test"
 
-import { editorCategory, openFork, previewStates, selectTheme, workspaceMode } from "./workbench-navigation"
+import { colorInput, editorCategory, previewStates, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * TSV2 Workbench evidence (runs under playwright.workbench.config.ts at 390x844 and 1440x900): Default fresh state and
@@ -23,8 +23,7 @@ async function openWorkbench(page: Page, mode: Mode = "light") {
   await page.goto("/")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
   await previewStates(page)
-  await workspaceMode(page, "Preview")
-  await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
+  await setColorMode(page, mode)
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-mode", mode)
 }
 
@@ -75,7 +74,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
   test("fresh state is Default; a valid selection survives reload; invalid state falls back to Default", async ({ page }) => {
     await openWorkbench(page)
     await expect(page.getByTestId("theme-id")).toHaveText("default")
-    await expect(page.getByTestId("theme-name")).toHaveText("Default")
+    await expect(page.getByLabel("Active theme").locator("option:checked")).toHaveText("Default")
     await expect(page.getByTestId("theme-status")).toHaveText("built-in")
     await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-theme-id", "default")
     // Default's canonical values reach the preview: radius base 1.475rem, md 1.35rem, spacing base 0.3rem.
@@ -84,8 +83,9 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await expect.poll(() => previewStyle(page, "elevation-sample", "paddingLeft")).toBe("14.4px")
     expect(await previewStyle(page, null, "fontFamily")).toMatch(/^ui-sans-serif, system-ui, -apple-system/)
     await workspaceMode(page, "Controls")
-    const options = await page.getByLabel("Active theme").locator("option").allTextContents()
-    expect(options).toEqual(["Default (built-in)", "Quiet Editorial (built-in)"])
+    // Compact selector (WTEP-09): built-ins are grouped as built-in; no custom group until one is saved.
+    const options = await page.getByLabel("Active theme").locator("optgroup").evaluateAll((groups) => groups.map((g) => [g.getAttribute("label"), Array.from(g.querySelectorAll("option"), (o) => o.textContent)]))
+    expect(options).toEqual([["Built-in", ["Default", "Quiet Editorial"]]])
 
     // Quiet Editorial stays selectable and the selection persists without saving any theme data.
     await selectTheme(page, "quiet-editorial")
@@ -116,7 +116,8 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     )
     await page.reload()
     await expect(page.getByTestId("theme-id")).toHaveText("legacy-fork")
-    await expect(page.getByTestId("theme-status")).toHaveText("saved")
+    await expect(page.getByTestId("theme-status")).toHaveText("custom, saved")
+    await expect(page.getByLabel("Active theme").locator('optgroup[label="Custom"] option:checked')).toHaveText("Legacy Fork")
     await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-theme-id", "legacy-fork")
     const download = page.waitForEvent("download")
     await workspaceMode(page, "Preview")
@@ -126,29 +127,65 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     expect(exported.colors.dark.border.$value).toBe("oklch(1 0 0 / 0.1)")
   })
 
-  test("built-ins are never silently saved; forks save, reload, and keep their baseline (TSV2-12)", async ({ page }) => {
+  test("built-ins are immutable: Save opens Save As, which saves and selects one custom copy that reloads (WTEP-08)", async ({ page }, testInfo) => {
     await openWorkbench(page)
     await editorCategory(page, "Other")
     await setNumber(page, "Radius", "0.5")
-    await expect(page.getByTestId("theme-status")).toHaveText("edited built-in, fork to save")
-    await workspaceMode(page, "Preview")
-    await page.getByRole("button", { name: "Save theme" }).click()
-    await expect(page.getByTestId("notice")).toContainText("workbench.save.reserved-id")
-    expect(JSON.parse((await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY)) ?? "{}").themes ?? {}).toEqual({})
+    await expect(page.getByTestId("theme-status")).toHaveText("built-in, edited")
 
-    await openFork(page)
-    await page.getByLabel("Fork id").fill("rounder")
-    await page.getByLabel("Fork name").fill("Rounder")
-    await page.getByRole("dialog").getByRole("button", { name: "Fork theme", exact: true }).click()
-    await workspaceMode(page, "Preview")
-    await page.getByRole("button", { name: "Save theme" }).click()
-    await expect(page.getByTestId("theme-status")).toHaveText("saved")
+    // Cancelling Save As saves nothing and returns focus to Save.
+    await saveTheme(page)
+    const dialog = page.getByRole("dialog", { name: "Save as a custom theme" })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByLabel("Theme name")).toHaveValue("Default Custom")
+    await expectNoSeriousViolations(page, "save-as-open", testInfo)
+    await page.keyboard.press("Escape")
+    await expect(dialog).toHaveCount(0)
+    await expect(page.getByRole("button", { name: "Save", exact: true })).toBeFocused()
+    expect(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY)).toBeNull()
+
+    // An invalid name is rejected in place; nothing is saved.
+    await saveTheme(page, "Bad-Name!")
+    await expect(dialog.getByTestId("save-as-error")).toContainText("letters, digits, and spaces")
+    await expect(dialog.getByLabel("Theme name")).toHaveAttribute("aria-invalid", "true")
+    await expectNoSeriousViolations(page, "save-as-error", testInfo)
+    expect(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY)).toBeNull()
+
+    // A valid name (submitted with Enter) creates, saves, and selects exactly one custom theme.
+    await dialog.getByLabel("Theme name").fill("Rounder")
+    await dialog.getByLabel("Theme name").press("Enter")
+    await expect(dialog).toHaveCount(0)
+    await expect(page.getByTestId("theme-id")).toHaveText("rounder")
+    await expect(page.getByTestId("theme-status")).toHaveText("custom, saved")
+    await expect(page.getByTestId("theme-revision")).toHaveText("1")
+    await expect(page.getByLabel("Active theme").locator('optgroup[label="Custom"] option')).toHaveText(["Rounder"])
+    const stored = JSON.parse((await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY))!)
+    expect(Object.keys(stored.themes)).toEqual(["rounder"])
+    expect(stored).toMatchObject({ activeId: "rounder", themes: { rounder: { id: "rounder", name: "Rounder", revision: 1, radius: { base: { $value: "0.5rem" } } } } })
+
+    // The built-in itself never changed.
+    await selectTheme(page, "default")
+    await expect(page.getByTestId("theme-status")).toHaveText("built-in")
+    await editorCategory(page, "Other")
+    await expect(numberField(page, "Radius")).toHaveValue("1.475")
+    await selectTheme(page, "rounder")
+
+    // Saving an existing custom theme updates it in place, without Save As.
+    await editorCategory(page, "Other")
+    await setNumber(page, "Radius", "0.75")
+    await expect(page.getByTestId("theme-status")).toHaveText("custom, unsaved changes")
+    await saveTheme(page)
+    await expect(page.getByRole("dialog")).toHaveCount(0)
+    await expect(page.getByTestId("theme-status")).toHaveText("custom, saved")
+    const updated = JSON.parse((await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY))!)
+    expect(Object.keys(updated.themes)).toEqual(["rounder"])
+    expect(updated.themes.rounder).toMatchObject({ revision: 2, radius: { base: { $value: "0.75rem" } } })
+
     await page.reload()
     await expect(page.getByTestId("theme-id")).toHaveText("rounder")
     await editorCategory(page, "Other")
-    await expect(page.getByTestId("diff-count")).toHaveText("5")
-    await expect(numberField(page, "Radius")).toHaveValue("0.5")
-    await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("6px")
+    await expect(numberField(page, "Radius")).toHaveValue("0.75")
+    await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("10px")
   })
 })
 
@@ -280,15 +317,37 @@ for (const mode of MODES) {
       await page.getByRole("button", { name: "Motion", exact: true }).click()
       await expect(numberField(page, "Base motion duration")).toHaveValue("320")
 
-      // Every change landed in the canonical active theme and its baseline diff.
-      await expect(page.getByTestId("diff-count")).not.toHaveText("0")
+      // Every change landed in the canonical active theme (no baseline-diff panel remains).
+      await expect(page.getByTestId("theme-status")).toHaveText("built-in, edited")
+      await expect(page.getByTestId("diff-count")).toHaveCount(0)
       expect(await previewFrame(page).locator("html").evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true)
     })
 
-    test("colour input accepts HEX, RGB(A), HSL(A), and OKLCH, stores canonical OKLCH, and previews it (TSV2-05)", async ({ page }) => {
+    test("grouped colour rows: every token once; picker and text enter through setColor, store canonical OKLCH, and theme the chrome (WTEP-03/05/06)", async ({ page }, testInfo) => {
       await openWorkbench(page, mode)
       await editorCategory(page, "Colors")
-      await page.getByLabel("Token").selectOption("primary")
+      // Approved groups, using the existing section/header pattern, each listing its tokens once.
+      const groups = { surfaces: ["background", "foreground", "card", "card-foreground", "popover", "popover-foreground"], primary: ["primary", "primary-foreground"], secondary: ["secondary", "secondary-foreground"], muted: ["muted", "muted-foreground"], accent: ["accent", "accent-foreground"], destructive: ["destructive", "destructive-foreground"], border: ["border", "input", "ring"], charts: ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] }
+      for (const title of ["Surfaces", "Primary", "Secondary", "Muted", "Accent", "Destructive", "Border, Input & Ring", "Charts"]) {
+        await expect(page.getByRole("heading", { level: 3, name: title, exact: true })).toBeVisible()
+        await expect(page.getByRole("button", { name: title, exact: true })).toHaveAttribute("aria-expanded", "true")
+      }
+      await expect(page.locator('.quiet-editor [data-testid^="control-color-"]')).toHaveCount(24)
+      for (const [group, tokens] of Object.entries(groups)) {
+        const rows = await page.getByTestId(`section-colors-${group}`).locator('[data-testid^="control-color-"]').evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")!.slice("control-color-".length)))
+        expect(rows).toEqual(tokens)
+        for (const token of tokens) {
+          await expect(colorInput(page, token)).toHaveCount(1)
+          await expect(page.getByLabel(`${token} picker`, { exact: true })).toHaveCount(1)
+        }
+      }
+      await expect(page.getByLabel("Token", { exact: true })).toHaveCount(0)
+      await expectNoSeriousViolations(page, `${mode}-color-groups`, testInfo)
+      await expectContained(page)
+
+      // Text input: every accepted format applies live, is stored as canonical OKLCH, and reaches preview and chrome.
+      const chromeVar = (name: string) => page.evaluate((n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), name)
+      const primary = colorInput(page, "primary")
       for (const [input, canonical] of [
         ["#336699", "oklch(0.499314 0.098664 250.433057)"],
         ["rgb(51 102 153)", "oklch(0.499314 0.098664 250.433057)"],
@@ -296,17 +355,55 @@ for (const mode of MODES) {
         ["rgba(0, 0, 0, 0.5)", "oklch(0 0 0 / 0.5)"],
         ["oklch(0.4 0.1 150)", "oklch(0.4 0.1 150)"],
       ] as const) {
-        await page.getByLabel("Color value").fill(input)
-        await expect(page.getByTestId("color-value-canonical")).toContainText(canonical)
+        await primary.fill(input)
         await expect.poll(() => previewVar(page, "--primary")).toBe(canonical)
+        await expect.poll(() => chromeVar("--primary")).toBe(canonical)
       }
-      await page.getByLabel("Color value").fill("oklch(0.7 0.4 150)")
-      await expect(page.getByTestId("color-value-error")).toContainText("mutation.invalid-value")
-      expect(await previewVar(page, "--primary")).toBe("oklch(0.4 0.1 150)")
-      // Leaving the field restores the canonical spelling only when the draft was valid.
-      await page.getByLabel("Color value").fill("#336699")
-      await page.getByLabel("Token").focus()
-      await expect(page.getByLabel("Color value")).toHaveValue("oklch(0.499314 0.098664 250.433057)")
+      // Leaving the field shows the canonical spelling.
+      await primary.fill("#336699")
+      await colorInput(page, "primary-foreground").focus()
+      await expect(primary).toHaveValue("oklch(0.499314 0.098664 250.433057)")
+      await expect(page.getByLabel("primary picker", { exact: true })).toHaveValue("#336699")
+
+      // Invalid draft: visible, rule-coded, never active; the section cannot collapse over it. The active value is a
+      // contrast-safe primary for this mode, so the axe check below measures the product, not a low-contrast edit.
+      const safe = mode === "light" ? "oklch(0.4 0.1 150)" : "oklch(0.8 0.1 150)"
+      await primary.fill(safe)
+      await expect.poll(() => previewVar(page, "--primary")).toBe(safe)
+      const at = await revisionNumber(page)
+      await primary.fill("oklch(0.7 0.4 150)")
+      await expect(page.getByTestId("color-primary-error")).toContainText("mutation.invalid-value at operations[0].value")
+      await expect(primary).toHaveAttribute("aria-invalid", "true")
+      await expect(revision(page)).toHaveText(String(at))
+      expect(await previewVar(page, "--primary")).toBe(safe)
+      await expect(page.getByTestId("section-colors-primary")).toHaveAttribute("data-has-error", "true")
+      await page.getByRole("button", { name: "Primary", exact: true }).click()
+      await expect(primary).toHaveValue("oklch(0.7 0.4 150)")
+      await expectNoSeriousViolations(page, `${mode}-color-invalid`, testInfo)
+
+      // Native picker: the sRGB pick normalizes through setColor to canonical OKLCH, clears the draft, one revision.
+      await page.getByLabel("primary picker", { exact: true }).fill("#ff0000")
+      await expect(revision(page)).toHaveText(String(at + 1))
+      await expect(page.getByTestId("color-primary-error")).toHaveCount(0)
+      await expect(primary).toHaveValue("oklch(0.627955 0.257683 29.23388)")
+      await expect.poll(() => previewVar(page, "--primary")).toBe("oklch(0.627955 0.257683 29.23388)")
+      await expect.poll(() => chromeVar("--primary")).toBe("oklch(0.627955 0.257683 29.23388)")
+      // The chrome actually renders with the active theme (Save uses the primary button variant).
+      await workspaceMode(page, "Preview")
+      await expect.poll(() => page.getByRole("button", { name: "Save", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)).toMatch(/^oklch\(0\.627955 0\.257683 29\.23/)
+      // A translucent token keeps its alpha when picked.
+      await editorCategory(page, "Colors")
+      await colorInput(page, "border").fill("oklch(0.5 0 0 / 0.4)")
+      await page.getByLabel("border picker", { exact: true }).fill("#336699")
+      await expect(colorInput(page, "border")).toHaveValue("oklch(0.499314 0.098664 250.433057 / 0.4)")
+
+      // Export carries the canonical OKLCH values, never picker hex.
+      await setColorMode(page, mode)
+      const download = page.waitForEvent("download")
+      await page.getByRole("button", { name: "Export JSON" }).click()
+      const exported = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
+      expect(exported.colors[mode].primary.$value).toBe("oklch(0.627955 0.257683 29.23388)")
+      expect(exported.colors[mode].border.$value).toBe("oklch(0.499314 0.098664 250.433057 / 0.4)")
     })
   })
 }
@@ -390,7 +487,13 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await editorCategory(page, "Typography")
       await expect(page.getByLabel("Sans font stack")).toBeDisabled()
       await editorCategory(page, "Colors")
-      await expect(page.getByLabel("Color value")).toBeDisabled()
+      await expect(colorInput(page, "primary")).toBeDisabled()
+      await expect(page.getByLabel("primary picker", { exact: true })).toBeDisabled()
+      // WTEP-04: the candidate is confined to the preview; the Workbench chrome stays on the active theme.
+      expect(await previewVar(page, "--radius")).toBe("0.5rem")
+      expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--radius").trim())).toBe("1.475rem")
+      await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "2")
+      await expect(page.getByTestId("staged-status")).toContainText("not yet active")
       await expectNoSeriousViolations(page, `${mode}-manual-locked`, testInfo)
 
       // Discard: nothing applied, controls resume, a manual edit is direct again.

@@ -1,4 +1,4 @@
-import { workspaceMode, editorCategory, previewStates, openFork, assertActiveControls } from "./workbench-navigation"
+import { workspaceMode, editorCategory, previewStates, assertActiveControls } from "./workbench-navigation"
 import { expect, test } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
