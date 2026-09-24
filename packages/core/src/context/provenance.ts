@@ -70,6 +70,18 @@ const RAW_PROVENANCE_MANIFEST = {
     sourceId: "packages/core/src/contracts/data/collapsible.ts",
     sha256: "35b1c3f91d64d2c11435402fb6abe9f032e32693049d54e26e14c67a83eb687f",
   },
+  "resource:select": {
+    sourceId: "packages/core/src/contracts/data/select.ts",
+    sha256: "75ae41ac95d672d91de268b815885ba28ad3a0321ede38518dfa38e18a6d4918",
+  },
+  "resource:combobox": {
+    sourceId: "packages/core/src/contracts/data/combobox.ts",
+    sha256: "b054496aa01928f8a83bbb9cc1ed91dfb70fd13923cf3cf0e5f01eb513c33a3b",
+  },
+  "resource:chart": {
+    sourceId: "packages/core/src/contracts/data/chart.ts",
+    sha256: "a06e9027d87589e4e7c6c32df94b72e7058eeb25f640f3a3749cf9baaf892fb1",
+  },
 } as const satisfies Record<string, ProvenanceEntry>
 
 export const PROVENANCE_MANIFEST = Object.freeze(

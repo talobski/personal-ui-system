@@ -113,7 +113,24 @@ describe("Slider and Collapsible retrieval (TSV2-08, TSV2-09, TSV2-14)", () => {
     expect(toCanonicalJson(first.resource)).not.toContain(`"id":"${other}"`)
     const list = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "list" })
     if (!list.ok || list.operation !== "list") throw new Error("expected list")
-    expect(list.resources).toHaveLength(13)
+    expect(list.resources).toHaveLength(16)
+    expect(list.resources.find((r) => r.id === resource)?.kind).toBe("component")
+  })
+})
+
+describe("Select, Combobox, and Chart retrieval (WCPR-04, WCPR-05, WCPR-11, WCPR-15)", () => {
+  it.each(["select", "combobox", "chart"])("retrieves %s alone, deterministically, with its kind, constraints, and provenance", async (resource) => {
+    const request = { version: "personal-ui-context/1", operation: "get", theme: "default", resource }
+    const [first, second] = [await evaluateContextRequest(request), await evaluateContextRequest(request)]
+    expect(toCanonicalJson(first)).toBe(toCanonicalJson(second))
+    if (!first.ok || first.operation !== "get") throw new Error("expected get")
+    expect(first.resource.id).toBe(resource)
+    expect(first.provenance.resource.sourceId).toBe(`packages/core/src/contracts/data/${resource}.ts`)
+    expect(first.resource.constraints.map((c) => c.id.split(".")[0])).toEqual(first.resource.constraints.map(() => resource))
+    for (const other of ["select", "combobox", "chart"].filter((id) => id !== resource)) expect(toCanonicalJson(first.resource)).not.toContain(`"id":"${other}"`)
+    const list = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "list" })
+    if (!list.ok || list.operation !== "list") throw new Error("expected list")
+    expect(list.resources).toHaveLength(16)
     expect(list.resources.find((r) => r.id === resource)?.kind).toBe("component")
   })
 })

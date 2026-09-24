@@ -130,6 +130,32 @@ const collapsibleStateSchema = z.strictObject({
   contentHasError: z.boolean(),
 })
 
+const choiceOptionSchema = z.strictObject({ value: z.string().max(200), label: z.string().min(1).max(200), disabled: z.boolean() })
+
+const selectStateSchema = z.strictObject({
+  kind: z.literal("select"),
+  accessibleName: z.string().min(1).max(200).nullable(),
+  groups: z.array(z.strictObject({ label: z.string().max(200).nullable(), options: z.array(choiceOptionSchema).min(1).max(50) })).min(1).max(12),
+  value: z.string().max(200).nullable(),
+  disabled: z.boolean(),
+})
+
+const comboboxStateSchema = z.strictObject({
+  kind: z.literal("combobox"),
+  accessibleName: z.string().min(1).max(200).nullable(),
+  options: z.array(choiceOptionSchema).min(1).max(200),
+  value: z.string().max(200).nullable(),
+  emptyMessage: z.string().max(200).nullable(),
+  disabled: z.boolean(),
+})
+
+const chartStateSchema = z.strictObject({
+  kind: z.literal("chart"),
+  textSummary: z.string().max(1000).nullable(),
+  accessibilityLayer: z.boolean(),
+  series: z.array(z.strictObject({ key: z.string().min(1).max(80), label: z.string().max(200), color: z.string().min(1).max(80) })).min(1).max(12),
+})
+
 export const componentStateSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     kind: z.literal("resizable-panel"),
@@ -150,6 +176,9 @@ export const componentStateSchema = z.discriminatedUnion("kind", [
   cardStateSchema,
   sliderStateSchema,
   collapsibleStateSchema,
+  selectStateSchema,
+  comboboxStateSchema,
+  chartStateSchema,
 ])
 
 export type ComponentState = z.infer<typeof componentStateSchema>
@@ -189,6 +218,17 @@ export type ComponentConstraintRuleId =
   | "collapsible.trigger-name"
   | "collapsible.controls"
   | "collapsible.hidden-error"
+  | "select.accessible-name"
+  | "select.option-values"
+  | "select.group-label"
+  | "combobox.accessible-name"
+  | "combobox.option-values"
+  | "combobox.empty-state"
+  | "combobox.searchable-size"
+  | "chart.text-summary"
+  | "chart.accessibility-layer"
+  | "chart.theme-colors"
+  | "chart.series-labels"
 
 export type ComponentConstraintIssue = { ruleId: ComponentConstraintRuleId; path: string }
 
@@ -316,6 +356,29 @@ export function validateComponentState(input: unknown): ComponentStateValidation
     if (state.contentHasError && !state.open) issues.push({ ruleId: "collapsible.hidden-error", path: "open" })
   }
 
+  if (state.kind === "select") {
+    if (state.accessibleName === null || !state.accessibleName.trim()) issues.push({ ruleId: "select.accessible-name", path: "accessibleName" })
+    const options = state.groups.flatMap((group) => group.options)
+    if (!choiceValuesAdmissible(options, state.value, true)) issues.push({ ruleId: "select.option-values", path: "groups" })
+    // A lone ungrouped list needs no heading; once options are grouped, every group is named.
+    if (state.groups.length > 1 && state.groups.some((group) => group.label === null || !group.label.trim())) issues.push({ ruleId: "select.group-label", path: "groups" })
+  }
+
+  if (state.kind === "combobox") {
+    if (state.accessibleName === null || !state.accessibleName.trim()) issues.push({ ruleId: "combobox.accessible-name", path: "accessibleName" })
+    if (!choiceValuesAdmissible(state.options, state.value, false)) issues.push({ ruleId: "combobox.option-values", path: "options" })
+    if (state.emptyMessage === null || !state.emptyMessage.trim()) issues.push({ ruleId: "combobox.empty-state", path: "emptyMessage" })
+    if (state.options.length < 5) issues.push({ ruleId: "combobox.searchable-size", path: "options" })
+  }
+
+  if (state.kind === "chart") {
+    if (state.textSummary === null || !state.textSummary.trim()) issues.push({ ruleId: "chart.text-summary", path: "textSummary" })
+    if (!state.accessibilityLayer) issues.push({ ruleId: "chart.accessibility-layer", path: "accessibilityLayer" })
+    if (state.series.some((series) => !/^var\(--chart-[1-5]\)$/.test(series.color))) issues.push({ ruleId: "chart.theme-colors", path: "series" })
+    const keys = state.series.map((series) => series.key)
+    if (state.series.length > 5 || new Set(keys).size !== keys.length || state.series.some((series) => !series.label.trim())) issues.push({ ruleId: "chart.series-labels", path: "series" })
+  }
+
   if (state.kind === "responsive-dialog") {
     const expected = state.viewportWidth <= 640 ? "drawer" : "dialog"
     if (state.rendered !== expected) issues.push({ ruleId: "responsive-dialog.breakpoint", path: "rendered" })
@@ -334,3 +397,11 @@ const isSupportedFieldControl = (control: unknown): boolean =>
   control !== null &&
   !Array.isArray(control) &&
   ["input", "native-select", "textarea", "switch"].includes((control as Record<string, unknown>).kind as string)
+
+/** Unique non-empty option values; a selected value (required when `valueRequired`) must be an enabled option. */
+function choiceValuesAdmissible(options: readonly { value: string; disabled: boolean }[], value: string | null, valueRequired: boolean): boolean {
+  const values = options.map((option) => option.value)
+  if (values.some((entry) => entry.length === 0) || new Set(values).size !== values.length) return false
+  if (value === null) return !valueRequired
+  return options.some((option) => option.value === value && !option.disabled)
+}

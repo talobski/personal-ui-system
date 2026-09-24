@@ -22,9 +22,12 @@ accepts v1 input and returns migrated v2; `normalizeColor` turns HEX, rgb(a), hs
 The operation union adds `setFontFamily`, `setTracking`, `setRadiusBase` (derives the radius scale),
 `setSpacingBase`, and `setShadowProfile` (derives all shadow tiers); `setColor` accepts the same four colour families.
 
-The catalog contains thirteen resources. `slider` (single-thumb, forwards its name and value text to the Radix
+The catalog contains sixteen resources. `slider` (single-thumb, forwards its name and value text to the Radix
 thumb) and `collapsible` (one named disclosure region) are components; retrieve either with
-`get --version personal-ui-context/1 --theme default --resource slider`. `resizable-panel` is the desktop layout
+`get --version personal-ui-context/1 --theme default --resource slider`. `select` (grouped rich single choice over
+Base UI Select), `combobox` (searchable single choice over `@base-ui/react@1.8.0`), and `chart` (Recharts 3 with theme
+chart tokens, the accessibility layer, and a required text summary) are components with deterministic
+`select.*`, `combobox.*`, and `chart.*` state constraints; NativeSelect remains for native single choice. `resizable-panel` is the desktop layout
 pattern backed by `react-resizable-panels@4.13.2`; retrieve it with
 `get --version personal-ui-context/1 --theme quiet-editorial --resource resizable-panel`.
 Its UI entry point exports `ResizablePanelGroup`, `ResizablePanel`, and

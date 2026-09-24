@@ -25,9 +25,19 @@ describe("context list (ACR-02)", () => {
       { id: "button", kind: "component", purpose: "Trigger a single, clearly named action or navigation." },
       { id: "card", kind: "component", purpose: "Group related panel content — a title, description, body, and actions — inside one bordered surface." },
       {
+        id: "chart",
+        kind: "component",
+        purpose: "Show a small quantitative series as a themed Recharts chart with an equivalent text summary and keyboard-reachable values.",
+      },
+      {
         id: "collapsible",
         kind: "component",
         purpose: "Show or hide one secondary region of related controls or content behind a single named disclosure trigger, keeping a dense panel scannable.",
+      },
+      {
+        id: "combobox",
+        kind: "component",
+        purpose: "Choose one value from a longer fixed list by typing to filter it, with full keyboard and pointer selection.",
       },
       { id: "field", kind: "pattern", purpose: "Compose a label, control, description, and validation message as one accessible form field." },
       { id: "input", kind: "component", purpose: "Capture a single line of user-entered text or a native input type." },
@@ -37,6 +47,11 @@ describe("context list (ACR-02)", () => {
         id: "responsive-dialog",
         kind: "pattern",
         purpose: "Present focused, blocking content as a centered Dialog on wide viewports and a bottom Drawer on narrow ones.",
+      },
+      {
+        id: "select",
+        kind: "component",
+        purpose: "Choose one value from a short, fixed set when options need richer presentation or grouping than a native select allows.",
       },
       { id: "single-toggle-group", kind: "pattern", purpose: "Choose exactly one option from a small, bounded, always-visible set." },
       {

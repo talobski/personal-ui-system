@@ -27,6 +27,10 @@ describe("component-state constraints", () => {
       { kind: "slider", accessibleName: "X", min: 0, max: 1, step: 0.1, value: [0.2, 0.5], disabled: false, valueText: "0.5" },
       { kind: "slider", accessibleName: "X", min: 0, max: Infinity, step: 0.1, value: 0.5, disabled: false, valueText: "0.5" },
       { kind: "collapsible", triggerName: "X", open: true, disabled: false, contentId: "c", triggerControls: "c", contentHasError: false, accordion: true },
+      { kind: "select", accessibleName: "X", groups: [{ label: null, options: [{ value: "a", label: "A", disabled: false }] }], value: "a", disabled: false, multiple: true },
+      { kind: "combobox", accessibleName: "X", options: [{ value: "a", label: "A", disabled: false }], value: "a", emptyMessage: "None", disabled: false, url: "https://fonts.example" },
+      { kind: "combobox", accessibleName: "X", options: [{ value: "a", label: "A", disabled: false }], value: ["a"], emptyMessage: "None", disabled: false },
+      { kind: "chart", textSummary: "x", accessibilityLayer: true, series: [{ key: "a", label: "A", color: "var(--chart-1)" }], css: "svg{}" },
     ]) {
       const result = validateComponentState(state)
       expect(result.ok).toBe(false)

@@ -111,6 +111,31 @@ describe("shadcn foundation", () => {
     expect(pkg.dependencies["@radix-ui/react-collapsible"]).toBe("1.1.20")
   })
 
+  it("keeps Select, Combobox, and Chart as thin shadcn-derived compositions over pinned primitives (WCPR-04, WCPR-05, WCPR-11)", () => {
+    const select = source("select.tsx")
+    const combobox = source("combobox.tsx")
+    const chart = source("chart.tsx")
+    expect(select).toContain('Select as SelectPrimitive } from "@base-ui/react/select"')
+    expect(select).toContain('data-slot="select-trigger"')
+    expect(select).toContain('data-slot="select-item"')
+    expect(combobox).toContain('from "@base-ui/react/combobox"')
+    expect(combobox).toContain('data-slot="combobox-input"')
+    expect(combobox).toContain('data-slot="combobox-item"')
+    expect(chart).toContain('import * as RechartsPrimitive from "recharts"')
+    expect(chart).toContain('data-slot="chart"')
+    expect(chart).toContain("--color-${key}")
+    for (const implementation of [select, combobox, chart]) {
+      expect(implementation).not.toMatch(/onKeyDown|onPointer|addEventListener/)
+      expect(implementation).not.toMatch(/focusTrap|trapFocus|dismissOnEscape/i)
+      expect(implementation).not.toMatch(/https?:\/\//)
+    }
+    const pkg = JSON.parse(readFileSync(join(components, "../package.json"), "utf8")) as { dependencies: Record<string, string> }
+    expect(pkg.dependencies["@base-ui/react"]).toBe("1.8.0")
+    expect(pkg.dependencies.recharts).toBe("3.10.1")
+    // The native select stays in place where native behavior is intended.
+    expect(readdirSync(root)).toContain("native-select.tsx")
+  })
+
   it("declares the pilot dependency provenance in the shadcn registry", () => {
     const registry = JSON.parse(readFileSync(join(components, "../../../registry.json"), "utf8")) as {
       items: Array<{ name: string; dependencies?: string[]; registryDependencies?: string[] }>
@@ -129,15 +154,21 @@ describe("shadcn foundation", () => {
     expect(item("single-toggle-group")?.registryDependencies).toEqual(expect.arrayContaining(["toggle-group", "toggle"]))
     expect(item("slider")?.dependencies).toEqual(["cn", "@radix-ui/react-slider@1.4.7"])
     expect(item("collapsible")?.dependencies).toEqual(["@radix-ui/react-collapsible@1.1.20"])
+    expect(item("select")?.dependencies).toEqual(["cn", "lucide-react", "@base-ui/react@1.8.0"])
+    expect(item("combobox")?.dependencies).toEqual(["cn", "lucide-react", "@base-ui/react@1.8.0"])
+    expect(item("chart")?.dependencies).toEqual(["cn", "recharts@3.10.1"])
     expect(registry.items.map((entry) => entry.name).sort()).toEqual([
       "button",
       "card",
+      "chart",
       "collapsible",
+      "combobox",
       "field",
       "input",
       "native-select",
       "resizable-panel",
       "responsive-dialog",
+      "select",
       "single-toggle-group",
       "slider",
       "switch",

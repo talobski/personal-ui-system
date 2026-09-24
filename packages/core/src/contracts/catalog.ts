@@ -19,6 +19,9 @@ const loaders = {
   "single-toggle-group": () => import("./data/single-toggle-group").then((m) => m.singleToggleGroup),
   slider: () => import("./data/slider").then((m) => m.slider),
   collapsible: () => import("./data/collapsible").then((m) => m.collapsible),
+  select: () => import("./data/select").then((m) => m.select),
+  combobox: () => import("./data/combobox").then((m) => m.combobox),
+  chart: () => import("./data/chart").then((m) => m.chart),
 } as const satisfies Record<string, () => Promise<unknown>>
 
 export type ContractId = keyof typeof loaders

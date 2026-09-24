@@ -130,6 +130,56 @@
           "type": "registry:ui"
         }
       ]
+    },
+    {
+      "name": "select",
+      "type": "registry:ui",
+      "title": "Select",
+      "description": "Shadcn Select over the Base UI select primitive for rich, grouped single choice; the popup renders in place instead of in a portal.",
+      "dependencies": [
+        "cn",
+        "lucide-react",
+        "@base-ui/react@1.8.0"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/select.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "combobox",
+      "type": "registry:ui",
+      "title": "Combobox",
+      "description": "Shadcn Combobox over the Base UI combobox primitive for searchable single choice; the input group uses Base UI's own InputGroup.",
+      "dependencies": [
+        "cn",
+        "lucide-react",
+        "@base-ui/react@1.8.0"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/combobox.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "chart",
+      "type": "registry:ui",
+      "title": "Chart",
+      "description": "Shadcn Chart over Recharts 3 with theme chart tokens and the Recharts accessibility layer.",
+      "dependencies": [
+        "cn",
+        "recharts@3.10.1"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/chart.tsx",
+          "type": "registry:ui"
+        }
+      ]
     }
   ]
 }
