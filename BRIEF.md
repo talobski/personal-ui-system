@@ -1,15 +1,16 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `theme-system-v2-default-live-controls-001` is accepted at
-product commit `e8ddddc8883327b70f0528cfe1bcb3d7538b8216`. The owner approved
-the visual implementation, the protected fresh verifier passed, and the exact
-candidate was promoted through accepted-state-before-main. The earlier
+Status: ACTIVE — `workbench-theme-editor-polish-v1-001` is accepted at product
+commit `d1db3ab3af931aa66b02119dfe37c2b6dcce7736`. The owner approved the
+visual implementation, protected fresh verification passed after bounded
+control-document and verifier-harness corrections, and the exact candidate was
+promoted through accepted-state-before-main. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
-Last updated: 2026-09-24
+Last updated: 2026-09-25
 
 ## Goal
 
@@ -26,6 +27,16 @@ validated live manual Typography and Other controls. Generated Design Command
 changes remain staged behind Preview, Apply, and Discard. Slider and
 Collapsible are the only public resources added by this phase, bringing the
 registry to 13 resources.
+
+The accepted Workbench polish phase makes the preview fill its actual right
+panel, applies the active Theme v2 to Workbench chrome while keeping staged
+candidate styling confined to preview, and replaces the single color editor
+with eight collapsible token groups containing all 24 canonical color tokens.
+It removes the visible fixed-device, Fork, and baseline-diff workflows; adds
+immutable-built-in Save As semantics; compacts the theme selector; uses a
+subtle accessible resize divider; and simplifies the toolbar around Dark mode,
+Proposal, Export JSON, and Save. No public resource, schema, token, mutation,
+Design Command, Jev, credential, or network boundary changed.
 
 ## V1 product contract
 
@@ -911,3 +922,28 @@ expected mobile skip for a desktop-only check, Storybook 40/40, Design Command
 1/1, the exact eleven-resource registry, and frozen/bundle/credential/network
 scans. No schema, token, mutation, proposal, Jev, LLM, MCP, credential, network,
 deployment, or publishing boundary changed.
+
+## Phase 11 result: Workbench Theme Editor Polish v1
+
+Accepted on 2026-09-25 at product commit
+`d1db3ab3af931aa66b02119dfe37c2b6dcce7736`. PUI-11 through PUI-17 were
+delivered as one coordinated batch under WTEP-01 through WTEP-15.
+
+The right preview now fills the available panel and follows the real browser
+viewport; the fixed Mobile 390/Desktop 1024 selector is gone. Workbench chrome
+uses the active canonical Theme v2 while staged proposal variables remain
+confined to preview. Eight existing-pattern collapsible color groups expose all
+24 canonical tokens through native pickers and normalized text fields. The
+normal UI no longer exposes Fork or baseline diff. Saving an edited built-in
+opens a minimal Save As flow, while saved custom themes update normally. The
+theme selector, divider, and preview toolbar use the accepted compact,
+design-system-native treatment.
+
+Owner visual review passed. Lead evidence passed 597 unit tests, all
+typechecks/builds, Storybook 58/58, Workbench 73 passed with one expected
+mobile skip, Design Command 1/1, the exact 13-resource registry, and frozen,
+bundle, credential, and network scans. Protected verification passed on the
+exact candidate after two bounded non-product corrections: removing one
+trailing blank line from the phase contract and admitting that contract path
+to the phase verifier. No product/runtime/test behavior changed during those
+recoveries.
