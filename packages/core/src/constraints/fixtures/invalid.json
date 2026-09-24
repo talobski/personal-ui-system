@@ -252,5 +252,14 @@
     "name": "untitled card",
     "state": { "kind": "card", "hasTitle": false, "actionCount": 0 },
     "expected": { "ruleId": "card.titled", "path": "hasTitle" }
-  }
+  },
+  {"name": "unnamed slider", "state": {"kind": "slider", "accessibleName": null, "min": 0.1, "max": 0.5, "step": 0.005, "value": 0.3, "disabled": false, "valueText": "0.3 rem"}, "expected": {"ruleId": "slider.accessible-name", "path": "accessibleName"}},
+  {"name": "slider min above max", "state": {"kind": "slider", "accessibleName": "Spacing base", "min": 1, "max": 0, "step": 0.005, "value": 0.3, "disabled": false, "valueText": "0.3 rem"}, "expected": {"ruleId": "slider.range", "path": "step"}},
+  {"name": "slider zero step", "state": {"kind": "slider", "accessibleName": "Spacing base", "min": 0.1, "max": 0.5, "step": 0, "value": 0.3, "disabled": false, "valueText": "0.3 rem"}, "expected": {"ruleId": "slider.range", "path": "step"}},
+  {"name": "slider value out of range", "state": {"kind": "slider", "accessibleName": "Spacing base", "min": 0.1, "max": 0.5, "step": 0.005, "value": 0.6, "disabled": false, "valueText": "0.3 rem"}, "expected": {"ruleId": "slider.range", "path": "value"}},
+  {"name": "slider value off the step grid", "state": {"kind": "slider", "accessibleName": "Spacing base", "min": 0.1, "max": 0.5, "step": 0.005, "value": 0.3021, "disabled": false, "valueText": "0.3 rem"}, "expected": {"ruleId": "slider.range", "path": "value"}},
+  {"name": "slider without visible value", "state": {"kind": "slider", "accessibleName": "Spacing base", "min": 0.1, "max": 0.5, "step": 0.005, "value": 0.3, "disabled": false, "valueText": null}, "expected": {"ruleId": "slider.visible-value", "path": "valueText"}},
+  {"name": "unnamed collapsible trigger", "state": {"kind": "collapsible", "triggerName": null, "open": true, "disabled": false, "contentId": "shadow-content", "triggerControls": "shadow-content", "contentHasError": false}, "expected": {"ruleId": "collapsible.trigger-name", "path": "triggerName"}},
+  {"name": "open collapsible without aria-controls", "state": {"kind": "collapsible", "triggerName": "Shadow", "open": true, "disabled": false, "contentId": "shadow-content", "triggerControls": null, "contentHasError": false}, "expected": {"ruleId": "collapsible.controls", "path": "triggerControls"}},
+  {"name": "collapsed section hiding an error", "state": {"kind": "collapsible", "triggerName": "Shadow", "open": false, "disabled": false, "contentId": "shadow-content", "triggerControls": null, "contentHasError": true}, "expected": {"ruleId": "collapsible.hidden-error", "path": "open"}}
 ]

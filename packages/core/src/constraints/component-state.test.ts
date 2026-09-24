@@ -23,6 +23,10 @@ describe("component-state constraints", () => {
       { kind: "single-toggle-group", label: "Plan", options: [{ label: "A", value: "a", disabled: false }], value: "a", file: "/tmp/x" },
       { kind: "card", hasTitle: true, actionCount: 1, css: "body{}" },
       { kind: "switch", id: "x", accessibleName: "X", checked: false, disabled: false, path: "/etc/passwd" },
+      { kind: "slider", accessibleName: "X", min: 0, max: 1, step: 0.1, value: 0.5, disabled: false, valueText: "0.5", css: "x" },
+      { kind: "slider", accessibleName: "X", min: 0, max: 1, step: 0.1, value: [0.2, 0.5], disabled: false, valueText: "0.5" },
+      { kind: "slider", accessibleName: "X", min: 0, max: Infinity, step: 0.1, value: 0.5, disabled: false, valueText: "0.5" },
+      { kind: "collapsible", triggerName: "X", open: true, disabled: false, contentId: "c", triggerControls: "c", contentHasError: false, accordion: true },
     ]) {
       const result = validateComponentState(state)
       expect(result.ok).toBe(false)

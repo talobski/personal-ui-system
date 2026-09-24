@@ -28,6 +28,8 @@ const RESOURCE_KINDS = Object.freeze({
   switch: "component",
   textarea: "component",
   "single-toggle-group": "pattern",
+  slider: "component",
+  collapsible: "component",
 } as const)
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value)

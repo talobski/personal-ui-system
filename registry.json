@@ -99,6 +99,37 @@
           "type": "registry:ui"
         }
       ]
+    },
+    {
+      "name": "slider",
+      "type": "registry:ui",
+      "title": "Slider",
+      "description": "Shadcn Slider over the Radix slider primitive; forwards the accessible name and value text to the thumb.",
+      "dependencies": [
+        "cn",
+        "@radix-ui/react-slider@1.4.7"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/slider.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "collapsible",
+      "type": "registry:ui",
+      "title": "Collapsible",
+      "description": "Shadcn Collapsible over the Radix collapsible primitive, preserved as generated.",
+      "dependencies": [
+        "@radix-ui/react-collapsible@1.1.20"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/collapsible.tsx",
+          "type": "registry:ui"
+        }
+      ]
     }
   ]
 }

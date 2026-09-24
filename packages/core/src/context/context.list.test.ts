@@ -24,6 +24,11 @@ describe("context list (ACR-02)", () => {
     expect(result.resources).toEqual([
       { id: "button", kind: "component", purpose: "Trigger a single, clearly named action or navigation." },
       { id: "card", kind: "component", purpose: "Group related panel content — a title, description, body, and actions — inside one bordered surface." },
+      {
+        id: "collapsible",
+        kind: "component",
+        purpose: "Show or hide one secondary region of related controls or content behind a single named disclosure trigger, keeping a dense panel scannable.",
+      },
       { id: "field", kind: "pattern", purpose: "Compose a label, control, description, and validation message as one accessible form field." },
       { id: "input", kind: "component", purpose: "Capture a single line of user-entered text or a native input type." },
       { id: "native-select", kind: "component", purpose: "Choose one value from a small, fixed set with the platform native select control." },
@@ -34,6 +39,11 @@ describe("context list (ACR-02)", () => {
         purpose: "Present focused, blocking content as a centered Dialog on wide viewports and a bottom Drawer on narrow ones.",
       },
       { id: "single-toggle-group", kind: "pattern", purpose: "Choose exactly one option from a small, bounded, always-visible set." },
+      {
+        id: "slider",
+        kind: "component",
+        purpose: "Adjust one bounded numeric value by dragging or with the keyboard, when the relative position within a known range matters more than typing an exact figure.",
+      },
       {
         id: "switch",
         kind: "component",

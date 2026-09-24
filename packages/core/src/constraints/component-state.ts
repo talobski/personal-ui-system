@@ -109,6 +109,27 @@ const cardStateSchema = z.strictObject({
   actionCount: z.number().int().nonnegative().max(12),
 })
 
+const sliderStateSchema = z.strictObject({
+  kind: z.literal("slider"),
+  accessibleName: z.string().min(1).max(200).nullable(),
+  min: z.number().finite(),
+  max: z.number().finite(),
+  step: z.number().finite(),
+  value: z.number().finite(),
+  disabled: z.boolean(),
+  valueText: z.string().min(1).max(80).nullable(),
+})
+
+const collapsibleStateSchema = z.strictObject({
+  kind: z.literal("collapsible"),
+  triggerName: z.string().min(1).max(200).nullable(),
+  open: z.boolean(),
+  disabled: z.boolean(),
+  contentId: z.string().min(1).max(80),
+  triggerControls: z.string().min(1).max(80).nullable(),
+  contentHasError: z.boolean(),
+})
+
 export const componentStateSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     kind: z.literal("resizable-panel"),
@@ -127,6 +148,8 @@ export const componentStateSchema = z.discriminatedUnion("kind", [
   switchStateSchema,
   singleToggleGroupStateSchema,
   cardStateSchema,
+  sliderStateSchema,
+  collapsibleStateSchema,
 ])
 
 export type ComponentState = z.infer<typeof componentStateSchema>
@@ -160,6 +183,12 @@ export type ComponentConstraintRuleId =
   | "responsive-dialog.breakpoint"
   | "responsive-dialog.no-custom-focus"
   | "responsive-dialog.titled"
+  | "slider.accessible-name"
+  | "slider.range"
+  | "slider.visible-value"
+  | "collapsible.trigger-name"
+  | "collapsible.controls"
+  | "collapsible.hidden-error"
 
 export type ComponentConstraintIssue = { ruleId: ComponentConstraintRuleId; path: string }
 
@@ -269,6 +298,22 @@ export function validateComponentState(input: unknown): ComponentStateValidation
   if (state.kind === "card") {
     if (!state.hasTitle) issues.push({ ruleId: "card.titled", path: "hasTitle" })
     if (state.actionCount > 1) issues.push({ ruleId: "card.single-action", path: "actionCount" })
+  }
+
+  if (state.kind === "slider") {
+    if (state.accessibleName === null || !state.accessibleName.trim()) issues.push({ ruleId: "slider.accessible-name", path: "accessibleName" })
+    const span = state.max - state.min
+    const steps = (state.value - state.min) / state.step
+    const onGrid = Math.abs(steps - Math.round(steps)) < 1e-6
+    if (span <= 0 || state.step <= 0 || state.step > span) issues.push({ ruleId: "slider.range", path: "step" })
+    else if (state.value < state.min || state.value > state.max || !onGrid) issues.push({ ruleId: "slider.range", path: "value" })
+    if (state.valueText === null || !state.valueText.trim()) issues.push({ ruleId: "slider.visible-value", path: "valueText" })
+  }
+
+  if (state.kind === "collapsible") {
+    if (state.triggerName === null || !state.triggerName.trim()) issues.push({ ruleId: "collapsible.trigger-name", path: "triggerName" })
+    if (state.open && state.triggerControls !== state.contentId) issues.push({ ruleId: "collapsible.controls", path: "triggerControls" })
+    if (state.contentHasError && !state.open) issues.push({ ruleId: "collapsible.hidden-error", path: "open" })
   }
 
   if (state.kind === "responsive-dialog") {

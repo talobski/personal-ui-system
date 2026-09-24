@@ -99,3 +99,21 @@ describe("context get serves Theme v2 (TSV2-01)", () => {
     expect(new TextEncoder().encode(toCanonicalJson(result)).length).toBeLessThanOrEqual(OPERATION_MAX_BYTES.get)
   })
 })
+
+describe("Slider and Collapsible retrieval (TSV2-08, TSV2-09, TSV2-14)", () => {
+  it.each(["slider", "collapsible"])("retrieves %s alone, deterministically, with its kind and provenance", async (resource) => {
+    const request = { version: "personal-ui-context/1", operation: "get", theme: "default", resource }
+    const [first, second] = [await evaluateContextRequest(request), await evaluateContextRequest(request)]
+    expect(toCanonicalJson(first)).toBe(toCanonicalJson(second))
+    if (!first.ok || first.operation !== "get") throw new Error("expected get")
+    expect(first.resource.id).toBe(resource)
+    expect(first.provenance.resource.sourceId).toBe(`packages/core/src/contracts/data/${resource}.ts`)
+    expect(first.resource.constraints.map((c) => c.id.split(".")[0])).toContain(resource)
+    const other = resource === "slider" ? "collapsible" : "slider"
+    expect(toCanonicalJson(first.resource)).not.toContain(`"id":"${other}"`)
+    const list = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "list" })
+    if (!list.ok || list.operation !== "list") throw new Error("expected list")
+    expect(list.resources).toHaveLength(13)
+    expect(list.resources.find((r) => r.id === resource)?.kind).toBe("component")
+  })
+})

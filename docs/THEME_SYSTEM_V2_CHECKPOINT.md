@@ -10,15 +10,15 @@ not replayed.
 
 - HEAD: see `git log -1` (this file is committed with each unit; the unit table records each unit's commit).
 - Unit in progress: none between units.
-- Next safe action: Unit 2 — Slider and Collapsible public resources.
+- Next safe action: Unit 3 — Workbench (Default fresh state, selection persistence, live controls, proposal lock).
 
 ## Units
 
 | Unit | Scope | Status | Commit |
 | --- | --- | --- | --- |
-| 1 | Core Theme v2: colour normalization, strict v2 schema, v1 migration, Default fixture + conversion report, renderer, five new operations, context/provenance | done | unit-1 commit (`git log --grep "theme v2 core"`) |
-| 2 | Slider + Collapsible public resources (component, contract, constraints, retrieval kind, provenance, registry, stories, Storybook e2e) | next | — |
-| 3 | Workbench: Default fresh state, built-in selection persistence, live Typography/Other controls, live colour input, staged-proposal lock | pending | — |
+| 1 | Core Theme v2: colour normalization, strict v2 schema, v1 migration, Default fixture + conversion report, renderer, five new operations, context/provenance | done | `a358417` |
+| 2 | Slider + Collapsible public resources (component, contract, constraints, retrieval kind, provenance, registry, stories, Storybook e2e) | done | `git log --grep "slider and collapsible"` |
+| 3 | Workbench: Default fresh state, built-in selection persistence, live Typography/Other controls, live colour input, staged-proposal lock | next | — |
 | 4 | Workbench/browser specs (both viewports, light/dark, keyboard/pointer, reduced motion, containment, decoded axe), docs, full regression | pending | — |
 
 ## Criteria
@@ -32,13 +32,13 @@ not replayed.
 | TSV2-05 four colour families -> canonical OKLCH | done | `color.test.ts`, `mutation.v2.test.ts` |
 | TSV2-06 sans/serif/mono + tracking render/export | core done | `theme.test.ts` render tests |
 | TSV2-07 radius/spacing/shadow tiers + profile derivation | core done | `default.test.ts`, `mutation.v2.test.ts` |
-| TSV2-08 Slider | pending (unit 2) | |
-| TSV2-09 Collapsible | pending (unit 2) | |
+| TSV2-08 Slider | resource done; Workbench use in unit 3 | `e2e/slider.spec.ts` 10/10 (both viewports), `foundation.test.ts`, `component-state` fixtures, `context.get.test.ts` |
+| TSV2-09 Collapsible | resource done; Workbench use in unit 3 | `e2e/collapsible.spec.ts` 8/8, same unit tests |
 | TSV2-10 Workbench controls, no manual Apply | pending (unit 3) | |
 | TSV2-11 live computed styles; invalid drafts inert | pending (units 3-4) | |
 | TSV2-12 persistence/fork/save/export/reload/v1 migration | pending (unit 3) | |
 | TSV2-13 proposal lifecycle unchanged alongside manual editing | pending (unit 3) | |
-| TSV2-14 catalog exactly 13 | pending (unit 2) | |
+| TSV2-14 catalog exactly 13 | done (catalog); scans in unit 4 | `contracts.test.ts`, `context.list.test.ts`, `foundation.test.ts` registry names, `shadcn build` 13 items |
 | TSV2-15 full regression + browser matrix | pending (unit 4) | |
 
 ## Design decisions (unit 1)
@@ -74,6 +74,17 @@ not replayed.
 - **Context.** `personal-ui-context/1` unchanged; identity reports theme schema `2.0`; themes are `default` and
   `quiet-editorial`; `theme:default` provenance entry added.
 
+## Design decisions (unit 2)
+
+- Components import the pinned standalone packages `@radix-ui/react-slider` / `@radix-ui/react-collapsible` (as the
+  prepared base linked them), not the `radix-ui` umbrella. Registry items declare `@radix-ui/react-slider@1.4.7` and
+  `@radix-ui/react-collapsible@1.1.20`.
+- Slider's single adaptation of the shadcn source: `aria-label`/`aria-labelledby`/`aria-describedby`/`aria-valuetext`
+  are forwarded to the Radix thumb (the `role="slider"` element) so the focusable control is named.
+- Both are retrieval kind `component`. Constraint rules: `slider.accessible-name`, `slider.range`,
+  `slider.visible-value`, `collapsible.trigger-name`, `collapsible.controls`, `collapsible.hidden-error`.
+- Radix Collapsible unmounts closed content (no `forceMount`), so collapsed controls leave the tab order and tree.
+
 ## Environment / dependency provenance
 
 - No install and no network. This worktree had no `node_modules`; it links the main checkout's already-installed
@@ -92,6 +103,10 @@ not replayed.
 | 1 | `vitest run packages/core` | 474 passed |
 | 1 | `vitest run` (all) | 503 passed, 2 failed — both in `apps/workbench/src/lifecycle.test.ts` (old `#fff` rejection and v1 shadow shape); rewritten in unit 3 |
 | 1 | `tsc --noEmit` core, ui, workbench; `tsc -p e2e`; `tsc -p tools/loop/jev` | pass |
+| 2 | `vitest run packages` | 505 passed |
+| 2 | `shadcn build` | 13 items built (`public/r`, gitignored) |
+| 2 | `storybook build -c packages/ui/.storybook -o storybook-static` | success |
+| 2 | `playwright test` (Storybook config, 390x844 + 1440x900) | 58 passed (40 existing + 18 new Slider/Collapsible) |
 
 ## Unresolved defects / open items
 

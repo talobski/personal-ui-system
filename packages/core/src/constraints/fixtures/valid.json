@@ -113,5 +113,9 @@
     "kind": "card",
     "hasTitle": true,
     "actionCount": 1
-  }
+  },
+  {"kind": "slider", "accessibleName": "Spacing base", "min": 0.1, "max": 0.5, "step": 0.005, "value": 0.3, "disabled": false, "valueText": "0.3 rem"},
+  {"kind": "slider", "accessibleName": "Spacing base", "min": 0.1, "max": 0.5, "step": 0.005, "value": 0.5, "disabled": true, "valueText": "0.3 rem"},
+  {"kind": "collapsible", "triggerName": "Shadow", "open": true, "disabled": false, "contentId": "shadow-content", "triggerControls": "shadow-content", "contentHasError": false},
+  {"kind": "collapsible", "triggerName": "Shadow", "open": false, "disabled": false, "contentId": "shadow-content", "triggerControls": null, "contentHasError": false}
 ]

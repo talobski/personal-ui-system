@@ -17,6 +17,8 @@ const loaders = {
   switch: () => import("./data/switch").then((m) => m.switchContract),
   textarea: () => import("./data/textarea").then((m) => m.textarea),
   "single-toggle-group": () => import("./data/single-toggle-group").then((m) => m.singleToggleGroup),
+  slider: () => import("./data/slider").then((m) => m.slider),
+  collapsible: () => import("./data/collapsible").then((m) => m.collapsible),
 } as const satisfies Record<string, () => Promise<unknown>>
 
 export type ContractId = keyof typeof loaders
