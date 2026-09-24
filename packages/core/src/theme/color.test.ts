@@ -47,8 +47,8 @@ describe("normalizeColor: four input families to canonical OKLCH", () => {
   })
 
   it("round-trips HEX through OKLCH within 8-bit precision", async () => {
-    const { converter } = await import("culori")
-    const toRgb = converter("rgb")
+    const { useMode, modeRgb } = await import("culori/fn")
+    const toRgb = useMode(modeRgb) as (c: Record<string, unknown>) => { r: number; g: number; b: number }
     for (const hex of ["#e7000b", "#0a7cff", "#123456", "#fefefe", "#808080"]) {
       const [, l, c, h] = /^oklch\((\S+) (\S+) (\S+)\)$/.exec(ok(hex))!.map(Number) as number[]
       const rgb = toRgb({ mode: "oklch", l, c, h })

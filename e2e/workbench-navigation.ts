@@ -24,13 +24,24 @@ export async function showBaseline(page: Page) {
   if (await details.count() && !await details.evaluate(el => (el as HTMLDetailsElement).open)) await details.locator("summary").click()
 }
 
+/** Selects a theme through the Active theme select (a built-in id or a saved id). */
+export async function selectTheme(page: Page, id: string) {
+  await workspaceMode(page, "Controls")
+  await page.getByLabel("Active theme").selectOption(id)
+  await expect(page.getByTestId("theme-id")).toHaveText(id)
+}
+
 /** Check every active-state surface in its real navigation context, including the new modal gate. */
 export async function assertActiveControls(page: Page, disabled: boolean) {
   const check = async (control: ReturnType<Page["getByLabel"]>) => disabled ? expect(control).toBeDisabled() : expect(control).toBeEnabled()
   await editorCategory(page, "Colors")
-  for (const c of [page.getByLabel("Token"), page.getByLabel("Value (oklch)"), page.getByRole("button", { name: "Apply edit" }), page.getByLabel("Active theme")]) await check(c)
+  for (const c of [page.getByLabel("Token"), page.getByLabel("Color value"), page.getByLabel("Active theme")]) await check(c)
+  await editorCategory(page, "Typography")
+  for (const c of [page.getByLabel("Sans font stack"), page.getByRole("textbox", { name: "Letter spacing" }), page.getByRole("slider", { name: "Letter spacing" })]) await check(c)
   await editorCategory(page, "Other")
-  for (const c of [page.getByLabel("Setting", { exact: true }), page.getByLabel("Setting value"), page.getByRole("button", { name: "Apply setting" })]) await check(c)
+  for (const c of [page.getByRole("textbox", { name: "Radius" }), page.getByRole("slider", { name: "Radius" }), page.getByLabel("Shadow color"), page.getByRole("slider", { name: "Shadow blur" })]) await check(c)
+  // Active-versus-staged clarity: the manual panel says why its controls are paused.
+  await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toHaveCount(disabled ? 1 : 0)
   await check(page.getByRole("button", { name: "Fork theme", exact: true }))
   if (!disabled) {
     await openFork(page)

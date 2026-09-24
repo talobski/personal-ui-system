@@ -1,4 +1,4 @@
-import { workspaceMode, editorCategory, previewStates, openFork, assertActiveControls } from "./workbench-navigation"
+import { workspaceMode, previewStates, selectTheme } from "./workbench-navigation"
 import { readFileSync, writeFileSync } from "node:fs"
 import { expect, test } from "@playwright/test"
 import type { Locator, Page } from "@playwright/test"
@@ -32,9 +32,11 @@ const sample = (locator: Locator) =>
 async function collect(page: Page) {
   const frame = previewFrame(page)
   await page.goto("/")
+  // Fresh state is now the built-in Default; the guardrail stays pinned to the accepted Quiet Editorial theme.
+  await selectTheme(page, "quiet-editorial")
   await previewStates(page)
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
-  await expect(page.getByTestId("theme-id")).toHaveText("quiet-editorial")
+  await expect(frame.getByTestId("preview")).toHaveAttribute("data-theme-id", "quiet-editorial")
   await workspaceMode(page, "Preview")
   await page.getByRole("radio", { name: "Light", exact: true }).click()
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-mode", "light")
@@ -54,11 +56,19 @@ async function collect(page: Page) {
   return result
 }
 
-test("default theme resolves to the pre-indirection computed font, shadow, and radius", async ({ page }) => {
-  const actual = await collect(page)
+/**
+ * Theme v2 themes the `shadow-xs` tier that v1 left to Tailwind's default, using the identical colour (black at 5%,
+ * `rgb(0 0 0 / 0.05)` in tailwindcss 4.3.3) written as canonical OKLCH. The browser serializes computed colours in the
+ * space they were authored in, so this exact achromatic-black spelling is mapped to its identical sRGB form on both
+ * sides (the committed fixture already mixes the two spellings) before comparison; any other difference still fails.
+ */
+const sameBlack = (value: string) => value.replace(/oklch\(0 0 0 \/ ([\d.]+)\)/g, "rgba(0, 0, 0, $1)")
+
+test("Quiet Editorial resolves to the pre-indirection computed font, shadow, and radius", async ({ page }) => {
+  const actual = JSON.parse(sameBlack(JSON.stringify(await collect(page))))
   if (process.env.CAPTURE_DEFAULT_STYLES) {
     writeFileSync(FIXTURE, `${JSON.stringify(actual, null, 2)}\n`)
     return
   }
-  expect(actual).toEqual(JSON.parse(readFileSync(FIXTURE, "utf8")))
+  expect(actual).toEqual(JSON.parse(sameBlack(readFileSync(FIXTURE, "utf8"))))
 })

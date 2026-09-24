@@ -1,4 +1,4 @@
-import { workspaceMode, editorCategory, previewStates, openFork, assertActiveControls, showBaseline } from "./workbench-navigation"
+import { workspaceMode, editorCategory, previewStates, openFork } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { FrameLocator, Page, TestInfo } from "@playwright/test"
@@ -67,8 +67,8 @@ test.describe("workbench theme lifecycle", () => {
       await expect(frame.getByTestId("preview")).toHaveAttribute("data-mode", mode)
       await expect(page.locator("html")).toHaveClass(mode === "dark" ? /dark/ : /^(?!.*dark).*$/)
 
-      // Baseline: canonical theme loaded, no differences.
-      await expect(page.getByTestId("theme-id")).toHaveText("quiet-editorial")
+      // Fresh state: the built-in Default, no differences from its baseline.
+      await expect(page.getByTestId("theme-id")).toHaveText("default")
       await workspaceMode(page, "Controls")
       await expect(page.getByTestId("diff-empty")).toBeVisible()
       const baselinePrimary = await previewVar(page, "--primary")
@@ -109,27 +109,26 @@ test.describe("workbench theme lifecycle", () => {
         await expect(trigger).toBeFocused()
       }
 
-      // Valid edit: applied, previewed, revision bumped, shown in the baseline diff.
+      // Valid edit: applied live (no Apply step), previewed, revision bumped, shown in the baseline diff.
       await editorCategory(page, "Colors")
       await page.getByLabel("Token").selectOption("primary")
       await editorCategory(page, "Colors")
-      await page.getByLabel("Value (oklch)").fill(EDIT[mode])
-      await page.getByRole("button", { name: "Apply edit" }).click()
+      await expect(page.getByRole("button", { name: /^Apply/ })).toHaveCount(0)
+      await page.getByLabel("Color value").fill(EDIT[mode])
       await expect(page.getByTestId("theme-revision")).toHaveText("2")
       await expect.poll(() => previewVar(page, "--primary")).toBe(EDIT[mode])
       await expect(page.getByTestId("diff-count")).toHaveText("1")
       await expect(page.getByTestId("diff-list").locator(`[data-path="colors.${mode}.primary"]`)).toContainText(EDIT[mode])
-      await expect(page.getByTestId("edit-error")).toHaveCount(0)
+      await expect(page.getByTestId("color-value-error")).toHaveCount(0)
 
       // Invalid edit: rejected with a stable rule, nothing activates.
       await editorCategory(page, "Colors")
-      await page.getByLabel("Value (oklch)").fill("red")
-      await page.getByRole("button", { name: "Apply edit" }).click()
-      await expect(page.getByTestId("edit-error")).toContainText("mutation.invalid-value at operations[0].value")
+      await page.getByLabel("Color value").fill("red")
+      await expect(page.getByTestId("color-value-error")).toContainText("mutation.invalid-value at operations[0].value")
       await expect(page.getByTestId("theme-revision")).toHaveText("2")
       expect(await previewVar(page, "--primary")).toBe(EDIT[mode])
       await expect(page.getByTestId("diff-count")).toHaveText("1")
-      await expect(page.getByLabel("Value (oklch)")).toHaveAttribute("aria-invalid", "true")
+      await expect(page.getByLabel("Color value")).toHaveAttribute("aria-invalid", "true")
       await expectNoSeriousViolations(page, `${mode}-edit-error`, testInfo)
 
       // Fork: invalid id rejected, valid id/name accepted.
@@ -138,7 +137,7 @@ test.describe("workbench theme lifecycle", () => {
       await page.getByLabel("Fork name").fill("My Fork")
       await page.getByRole("dialog").getByRole("button", { name: "Fork theme", exact: true }).click()
       await expect(page.getByTestId("fork-error")).toContainText("workbench.fork.invalid at id")
-      await expect(page.getByTestId("theme-id")).toHaveText("quiet-editorial")
+      await expect(page.getByTestId("theme-id")).toHaveText("default")
       await expect(page.getByLabel("Fork id")).toHaveAttribute("aria-invalid", "true")
       await expectNoSeriousViolations(page, `${mode}-fork-error`, testInfo)
       await openFork(page)
@@ -168,162 +167,10 @@ test.describe("workbench theme lifecycle", () => {
       const file = await download
       expect(file.suggestedFilename()).toBe("my-fork.theme.json")
       const exported = JSON.parse(await (await import("node:fs/promises")).readFile((await file.path())!, "utf8"))
-      expect(exported).toMatchObject({ id: "my-fork", name: "My Fork", kind: "personal-ui-theme", revision: 1 })
+      expect(exported).toMatchObject({ id: "my-fork", name: "My Fork", kind: "personal-ui-theme", revision: 1, schemaVersion: "2.0" })
       expect(exported.colors[mode].primary.$value).toBe(EDIT[mode])
 
       await expectNoSeriousViolations(page, `${mode}-after-reload`, testInfo)
-    })
-  }
-})
-
-/** One representative edit per non-color category, as the Edit theme settings panel exposes them. */
-const SETTING_EDITS = [
-  { option: "Radius (md)", value: "1rem", invalid: "1rem; } body { display: none", diffPath: "radius.md", previewVar: "--radius" },
-  { option: "Spacing density", value: "1.25", invalid: "9", diffPath: "space.density", previewVar: "--density" },
-  { option: "Sans font family", value: "Source Serif", invalid: 'x"; } a{', diffPath: "typography.sans" },
-  { option: "Shadow blur (md)", value: "12px", invalid: "-3px", diffPath: "shadow.md" },
-  { option: "Base motion duration", value: "320ms", invalid: "fast", diffPath: "motion.durationBase", previewVar: "--motion-duration-base" },
-] as const
-
-test.describe("workbench non-color settings", () => {
-  for (const mode of ["light", "dark"] as const) {
-    test(`edit one token per new category, block invalid values, survive reload — ${mode}`, async ({ page }, testInfo) => {
-      await openWorkbench(page)
-      await workspaceMode(page, "Preview")
-      await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
-      await workspaceMode(page, "Controls")
-      await expect(page.getByTestId("diff-empty")).toBeVisible()
-
-      const apply = page.getByRole("button", { name: "Apply setting" })
-      let revision = 1
-      for (const [index, edit] of SETTING_EDITS.entries()) {
-        await editorCategory(page, edit.option === "Sans font family" ? "Typography" : "Other")
-        await page.getByLabel("Setting", { exact: true }).selectOption({ label: edit.option })
-
-        // Invalid value: blocked with a visible, stable-rule error; nothing activates.
-        await page.getByLabel("Setting value").fill(edit.invalid)
-        await apply.click()
-        await expect(page.getByTestId("setting-error")).toBeVisible()
-        await expect(page.getByTestId("setting-error")).toContainText("mutation.invalid-value at operations[0].value")
-        await expect(page.getByLabel("Setting value")).toHaveAttribute("aria-invalid", "true")
-        await expect(page.getByTestId("theme-revision")).toHaveText(String(revision))
-        await expect(page.getByTestId("diff-count")).toHaveText(String(index))
-        if (index === 0) await expectNoSeriousViolations(page, `${mode}-setting-error`, testInfo)
-
-        // Valid value: applied through the mutation boundary, revision bumped, path listed in the diff.
-        // The last edit uses the keyboard alone (focus, type, Tab to the button, Enter).
-        await page.getByLabel("Setting value").fill(edit.value)
-        if (index === SETTING_EDITS.length - 1) {
-          await page.getByLabel("Setting value").focus()
-          await page.keyboard.press("Tab")
-          await expect(apply).toBeFocused()
-          await page.keyboard.press("Enter")
-        } else {
-          await apply.click()
-        }
-        revision += 1
-        await expect(page.getByTestId("theme-revision")).toHaveText(String(revision))
-        await expect(page.getByTestId("setting-error")).toHaveCount(0)
-        await expect(page.getByTestId("diff-count")).toHaveText(String(index + 1))
-        await showBaseline(page)
-        await expect(page.getByTestId("diff-list").locator(`[data-path="${edit.diffPath}"]`)).toBeVisible()
-        if ("previewVar" in edit) await expect.poll(() => previewVar(page, edit.previewVar)).toBe(edit.value)
-      }
-      await expectNoSeriousViolations(page, `${mode}-settings-edited`, testInfo)
-
-      // Fork, save, and survive a browser refresh with every edit intact.
-      await openFork(page)
-      await page.getByLabel("Fork id").fill("settings-fork")
-      await page.getByLabel("Fork name").fill("Settings Fork")
-      await page.getByRole("dialog").getByRole("button", { name: "Fork theme", exact: true }).click()
-      await workspaceMode(page, "Preview")
-      await page.getByRole("button", { name: "Save theme" }).click()
-      await expect(page.getByTestId("theme-status")).toHaveText("saved")
-      await page.reload()
-      await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
-      await expect(page.getByTestId("theme-id")).toHaveText("settings-fork")
-      await expect(page.getByTestId("theme-status")).toHaveText("saved")
-      await expect(page.getByTestId("diff-count")).toHaveText(String(SETTING_EDITS.length))
-      for (const edit of SETTING_EDITS) {
-        await showBaseline(page)
-        await expect(page.getByTestId("diff-list").locator(`[data-path="${edit.diffPath}"]`)).toBeVisible()
-        await editorCategory(page, edit.option === "Sans font family" ? "Typography" : "Other")
-        await page.getByLabel("Setting", { exact: true }).selectOption({ label: edit.option })
-        await expect(page.getByLabel("Setting value")).toHaveValue(edit.value)
-      }
-      await expect.poll(() => previewVar(page, "--motion-duration-base")).toBe("320ms")
-      await expectNoSeriousViolations(page, `${mode}-settings-after-reload`, testInfo)
-    })
-  }
-})
-
-/** Computed style of a preview element, as the iframe document resolves it (never a variable's mere presence). */
-const previewStyle = (page: Page, testId: string | null, prop: keyof CSSStyleDeclaration) =>
-  (testId === null ? previewFrame(page).locator("body") : previewFrame(page).getByTestId(testId)).evaluate(
-    (el, p) => String(getComputedStyle(el)[p]),
-    prop,
-  )
-
-test.describe("preview feedback: all six categories change computed styles live", () => {
-  for (const mode of ["light", "dark"] as const) {
-    test(`edits change resolved styles in the iframe without a reload — ${mode}`, async ({ page }) => {
-      await openWorkbench(page)
-      await workspaceMode(page, "Preview")
-      await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
-      await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-mode", mode)
-
-      // A marker on the iframe window proves the document is never reloaded or replaced.
-      await previewFrame(page).locator("html").evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true))
-      const button = previewFrame(page).getByRole("button", { name: "default", exact: true, includeHidden: true })
-
-      const before = {
-        color: await button.evaluate((el) => getComputedStyle(el).backgroundColor),
-        radius: await previewStyle(page, "elevation-sample", "borderRadius"),
-        density: await previewStyle(page, "elevation-sample", "paddingLeft"),
-        font: await previewStyle(page, null, "fontFamily"),
-        shadow: await previewStyle(page, "elevation-sample", "boxShadow"),
-        motion: await button.evaluate((el) => getComputedStyle(el).transitionDuration),
-      }
-      expect(before.radius).toBe("8px")
-      expect(before.density).toBe("12px")
-      expect(before.motion).toBe("0.2s")
-
-      // Colour, through the token editor.
-      await editorCategory(page, "Colors")
-      await page.getByLabel("Token").selectOption("primary")
-      await editorCategory(page, "Colors")
-      await page.getByLabel("Value (oklch)").fill(EDIT[mode])
-      await page.getByRole("button", { name: "Apply edit" }).click()
-      await expect(page.getByTestId("theme-revision")).toHaveText("2")
-      await expect.poll(() => button.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(before.color)
-
-      // The other five, through the settings panel.
-      const setting = async (option: string, value: string) => {
-        await editorCategory(page, option === "Sans font family" ? "Typography" : "Other")
-        await page.getByLabel("Setting", { exact: true }).selectOption({ label: option })
-        await page.getByLabel("Setting value").fill(value)
-        await page.getByRole("button", { name: "Apply setting" }).click()
-        await expect(page.getByTestId("setting-error")).toHaveCount(0)
-      }
-      await setting("Radius (md)", "1rem")
-      await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("16px")
-      await expect.poll(() => button.evaluate((el) => getComputedStyle(el).borderRadius)).toBe("16px")
-
-      await setting("Spacing density", "1.25")
-      await expect.poll(() => previewStyle(page, "elevation-sample", "paddingLeft")).toBe("15px")
-
-      await setting("Sans font family", "Source Serif")
-      await expect.poll(() => previewStyle(page, null, "fontFamily")).toContain("Source Serif")
-      expect(await previewStyle(page, null, "fontFamily")).not.toBe(before.font)
-
-      await setting("Shadow blur (md)", "12px")
-      await expect.poll(() => previewStyle(page, "elevation-sample", "boxShadow")).not.toBe(before.shadow)
-      expect(await previewStyle(page, "elevation-sample", "boxShadow")).toContain("12px")
-
-      await setting("Base motion duration", "320ms")
-      await expect.poll(() => button.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0.32s")
-
-      expect(await previewFrame(page).locator("html").evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true)
     })
   }
 })

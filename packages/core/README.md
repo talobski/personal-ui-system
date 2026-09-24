@@ -14,7 +14,17 @@ node packages/core/src/context/bootstrap.mjs capabilities --version personal-ui-
 
 `list` discovers the closed theme and resource ids. `get` returns the selected theme and resource contract. `capabilities` describes the closed theme-token operation union; it does not add operations. In a package-manager workspace, the equivalent public script is `pnpm context -- <same arguments>`.
 
-The catalog contains eleven resources. `resizable-panel` is the desktop layout
+Two built-in themes are served: `default` (the fresh-state theme) and `quiet-editorial` (the accepted v1 theme,
+served migrated). Every theme is canonical `personal-ui-theme` v2 (`schemaVersion: "2.0"`): colours live at
+`colors.{light,dark}.<token>` as canonical OKLCH, typography has `sans`/`serif`/`mono` stacks and an em `tracking`,
+radius has `base`/`sm`/`md`/`lg`/`xl`, and shadows have eight layered tiers (`2xs` to `2xl`). `validateTheme` also
+accepts v1 input and returns migrated v2; `normalizeColor` turns HEX, rgb(a), hsl(a), or oklch into canonical OKLCH.
+The operation union adds `setFontFamily`, `setTracking`, `setRadiusBase` (derives the radius scale),
+`setSpacingBase`, and `setShadowProfile` (derives all shadow tiers); `setColor` accepts the same four colour families.
+
+The catalog contains thirteen resources. `slider` (single-thumb, forwards its name and value text to the Radix
+thumb) and `collapsible` (one named disclosure region) are components; retrieve either with
+`get --version personal-ui-context/1 --theme default --resource slider`. `resizable-panel` is the desktop layout
 pattern backed by `react-resizable-panels@4.13.2`; retrieve it with
 `get --version personal-ui-context/1 --theme quiet-editorial --resource resizable-panel`.
 Its UI entry point exports `ResizablePanelGroup`, `ResizablePanel`, and

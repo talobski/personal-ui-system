@@ -103,6 +103,15 @@ export function PreviewFrame() {
         </div>
       </section>
 
+      <section aria-labelledby="pv-typography" className="grid gap-1">
+        <h2 id="pv-typography" className="text-sm font-semibold">
+          Typography
+        </h2>
+        <p data-testid="type-sans" className="font-sans text-sm">Sans: a calm, readable paragraph.</p>
+        <p data-testid="type-serif" className="font-serif text-sm">Serif: a calm, readable paragraph.</p>
+        <p data-testid="type-mono" className="font-mono text-sm">Mono: const revision = 1</p>
+      </section>
+
       <section aria-labelledby="pv-dialog" className="grid gap-2">
         <h2 id="pv-dialog" className="text-sm font-semibold">
           Responsive dialog

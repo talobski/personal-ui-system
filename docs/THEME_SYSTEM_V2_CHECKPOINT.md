@@ -6,40 +6,46 @@ Branch: `loop/theme-system-v2-default-live-controls-001` · prepared base `f3f18
 Provider-neutral. A continuation reads this file, the contract, and `git log f3f1812..HEAD`; completed units are
 not replayed.
 
-## Current state
+## Current state (handoff checkpoint, 2026-09-24)
 
-- HEAD: see `git log -1` (this file is committed with each unit; the unit table records each unit's commit).
-- Unit in progress: none between units.
-- Next safe action: Unit 4 — write `e2e/theme-v2-live-controls.spec.ts` (already registered in `playwright.workbench.config.ts` and ignored by `playwright.config.ts`) and update the Workbench specs that still drive the removed Apply-edit/Apply-setting controls or assume a fresh `quiet-editorial`.
+- Owner reported low Claude capacity; the producer stopped after the already-started final regression rerun.
+  This is a provider-neutral Claude -> (owner-approved) continuation handoff. No acceptance is claimed.
+- Candidate: the commit that adds this revision of the file (`git log -1 -- docs/THEME_SYSTEM_V2_CHECKPOINT.md`).
+  The working tree was clean after that commit. Previous unit commits: `a358417`, `812ef48`, `f94de3a`.
+- Unit in progress: none. All four planned units are implemented; the regression below ran on the final tree.
+- **Single next safe action:** the Lead runs the protected Codex STANDARD verifier and its own browser matrix on the
+  candidate commit (`corepack pnpm test`, `typecheck`, `registry:build`, `build:workbench`, `build:storybook`,
+  `WORKBENCH_PORT=5199 corepack pnpm test:browser`, `node tools/verify-theme-system-v2.mjs`), then gets owner
+  visual review of grouping/density/units/drag feedback/active-vs-staged clarity. No producer work is pending.
 
 ## Units
 
 | Unit | Scope | Status | Commit |
 | --- | --- | --- | --- |
 | 1 | Core Theme v2: colour normalization, strict v2 schema, v1 migration, Default fixture + conversion report, renderer, five new operations, context/provenance | done | `a358417` |
-| 2 | Slider + Collapsible public resources (component, contract, constraints, retrieval kind, provenance, registry, stories, Storybook e2e) | done | `812ef48` |
-| 3 | Workbench: Default fresh state, built-in selection persistence, live Typography/Other controls, live colour input, staged-proposal lock | done (code + unit tests; browser specs in unit 4) | `git log --grep "live manual controls"` |
-| 4 | Workbench/browser specs (both viewports, light/dark, keyboard/pointer, reduced motion, containment, decoded axe), docs, full regression | next | — |
+| 2 | Slider + Collapsible public resources | done | `812ef48` |
+| 3 | Workbench: Default fresh state, selection persistence, live controls, proposal lock | done | `f94de3a` |
+| 4 | Browser specs, preview Typography observation sample, culori/fn bundle correction, docs, phase scan, full regression | done | handoff commit |
 
-## Criteria
+## Criteria (producer evidence only; Lead/verifier/owner evidence is separate)
 
-| Criterion | Status | Evidence so far |
+| Criterion | Producer status | Evidence |
 | --- | --- | --- |
-| TSV2-01 strict canonical v2, v1 migration | core done | `theme.test.ts`, `migrate.test.ts`, `context.get.test.ts` |
-| TSV2-02 Default exact + conversion report | done | `default.test.ts` (contract values typed independently), `fixtures/default.conversion.json` |
-| TSV2-03 Quiet Editorial selectable, migrates, character preserved | core done; Workbench selection in unit 3 | `migrate.test.ts`; golden `quiet-editorial.css` |
-| TSV2-04 fresh = Default, persisted selection kept | pending (unit 3) | |
-| TSV2-05 four colour families -> canonical OKLCH | done | `color.test.ts`, `mutation.v2.test.ts` |
-| TSV2-06 sans/serif/mono + tracking render/export | core done | `theme.test.ts` render tests |
-| TSV2-07 radius/spacing/shadow tiers + profile derivation | core done | `default.test.ts`, `mutation.v2.test.ts` |
-| TSV2-08 Slider | resource done; Workbench use in unit 3 | `e2e/slider.spec.ts` 10/10 (both viewports), `foundation.test.ts`, `component-state` fixtures, `context.get.test.ts` |
-| TSV2-09 Collapsible | resource done; Workbench use in unit 3 | `e2e/collapsible.spec.ts` 8/8, same unit tests |
-| TSV2-10 Workbench controls, no manual Apply | pending (unit 3) | |
-| TSV2-11 live computed styles; invalid drafts inert | pending (units 3-4) | |
-| TSV2-12 persistence/fork/save/export/reload/v1 migration | pending (unit 3) | |
-| TSV2-13 proposal lifecycle unchanged alongside manual editing | pending (unit 3) | |
-| TSV2-14 catalog exactly 13 | done (catalog); scans in unit 4 | `contracts.test.ts`, `context.list.test.ts`, `foundation.test.ts` registry names, `shadcn build` 13 items |
-| TSV2-15 full regression + browser matrix | pending (unit 4) | |
+| TSV2-01 strict canonical v2, v1 migration | met | `theme.test.ts`, `migrate.test.ts`, `context.get.test.ts`; v1 storage migration in `lifecycle.test.ts` and browser spec |
+| TSV2-02 Default exact + conversion report | met | `default.test.ts` (contract values typed independently), `fixtures/default.conversion.json` |
+| TSV2-03 Quiet Editorial selectable, migrates, character preserved | met | `migrate.test.ts`; `default-equivalence.spec.ts` (pinned to QE, computed styles equal pre-change fixture modulo identical black spelling) |
+| TSV2-04 fresh = Default, persisted selection kept, invalid falls back | met | `theme-v2-live-controls.spec.ts` TSV2-04 block; `lifecycle.test.ts` persistence |
+| TSV2-05 four colour families -> canonical OKLCH | met | `color.test.ts`, `mutation.v2.test.ts`, browser colour test |
+| TSV2-06 sans/serif/mono + tracking render/export | met | render tests; browser computed `fontFamily`/`letterSpacing`; export test |
+| TSV2-07 radius/spacing/shadow tiers + profile derivation | met | `default.test.ts`, `mutation.v2.test.ts`, browser computed radius/padding/box-shadow |
+| TSV2-08 Slider | met (producer) | `e2e/slider.spec.ts`; Workbench keyboard/pointer slider test; constraints/retrieval tests |
+| TSV2-09 Collapsible | met (producer) | `e2e/collapsible.spec.ts`; Workbench forced-open-on-error and collapse tests |
+| TSV2-10 controls, slider + numeric + unit, no manual Apply | met (producer); owner visual review pending | browser tests assert no `Apply*` button, units visible |
+| TSV2-11 live computed styles; invalid drafts inert | met | browser typography/other tests; `__noReload` marker |
+| TSV2-12 persistence/fork/save/export/reload/v1 migration | met | `workbench.spec.ts` lifecycle; TSV2-04/12 browser tests; unit persistence tests |
+| TSV2-13 proposal lifecycle unchanged alongside manual editing | met | `proposal-preview.spec.ts` (unchanged flows on QE), `design-command.spec.ts`, TSV2-13 browser block; `proposal.ts` byte-identical |
+| TSV2-14 catalog exactly 13, no other expansion | met | contracts/list/foundation tests; `tools/verify-theme-system-v2.mjs` |
+| TSV2-15 full regression + browser matrix | met by producer run below; Lead/verifier rerun required | see Commands |
 
 ## Design decisions (unit 1)
 
@@ -133,10 +139,37 @@ not replayed.
 | 2 | `shadcn build` | 13 items built (`public/r`, gitignored) |
 | 2 | `storybook build -c packages/ui/.storybook -o storybook-static` | success |
 | 2 | `playwright test` (Storybook config, 390x844 + 1440x900) | 58 passed (40 existing + 18 new Slider/Collapsible) |
-| 3 | `vitest run` (all) | 34 files, 544 passed |
+| 3 | `vitest run` (all) | 35 files, 593 passed |
 | 3 | `tsc --noEmit` workbench; `vite build` workbench | pass; build ok (pre-existing >500 kB chunk warning) |
+| 4 (final tree) | `vitest run` | 35 files, 593 passed |
+| 4 | `tsc --noEmit` core/ui/workbench, `tsc -p e2e`, `tsc -p tools/loop/jev` | all pass |
+| 4 | `shadcn build` | 13 items |
+| 4 | `vite build` workbench | ok; JS 609,971 B (accepted main build 550,653 B; +59 KB = Radix slider/collapsible + controls; culori via tree-shakeable `culori/fn`) |
+| 4 | `storybook build` | ok |
+| 4 | `playwright test` (Storybook, 390x844 + 1440x900) | 58 passed; 104 axe attachments decoded, 0 critical/serious |
+| 4 | `WORKBENCH_PORT=5199 playwright test -c playwright.workbench.config.ts` | 73 passed, 1 skipped (desktop-only separator test on mobile, pre-existing); 84 axe attachments decoded, 0 critical/serious |
+| 4 | `WORKBENCH_PORT=5198 playwright test -c playwright.designcommand.config.ts` (vite dev) | 1 passed |
+| 4 | `node tools/verify-theme-system-v2.mjs` | pass: 55 frozen files, 27 accepted component files unchanged, registry 13, 11 operations, bundle credential/network scan pass |
+| 4 | `node tools/verify-quiet-workspace.mjs` (previous phase) | fails by design at `apps/workbench/src/lifecycle.ts` — it freezes files this contract changes; kept unmodified as historical evidence |
+
+## Design decisions (unit 4)
+
+- Browser coverage: new `e2e/theme-v2-live-controls.spec.ts` (Workbench config only; ignored by the Storybook
+  config). Old Apply-edit/Apply-setting tests in `workbench.spec.ts` were replaced by it; lifecycle test updated to
+  fresh Default + live colour field. `proposal-preview.spec.ts` and `default-equivalence.spec.ts` now select
+  Quiet Editorial first (their baselines are QE values); `selectTheme` helper added to `workbench-navigation.ts`.
+- `default-equivalence.spec.ts` maps only `oklch(0 0 0 / A)` to `rgba(0, 0, 0, A)` on both sides: v2 themes
+  `shadow-xs` with the identical colour that Tailwind's default used; the committed fixture is unchanged.
+- Preview gained a Typography observation sample (`type-sans`/`type-serif`/`type-mono`) in the States tab, following
+  the Phase 3 Elevation-sample precedent, because no preview element consumed serif/mono.
+- `tools/verify-theme-system-v2.mjs` is this phase's frozen-boundary/catalog/dependency/bundle/credential scan.
 
 ## Unresolved defects / open items
 
-- e2e specs still reference the v1 Workbench flow (Apply buttons, fresh `quiet-editorial`); updated in units 3-4.
-- `packages/core/README.md` / `docs/AGENT_CONTEXT_RETRIEVAL.md` theme-format prose to refresh in unit 4.
+- No known failing test or defect.
+- Owner-subjective (not verified by producer): section titles repeat the control label (e.g. "Radius" section and
+  "Radius" field); all sections default open; slider drags create one revision per step (each valid change is a
+  canonical update by contract); Workbench chrome and Storybook still use the Quiet Editorial golden.
+- Environment: `node_modules` here are symlinks into the main checkout's installed store (see provenance). A verifier
+  in a fresh worktree needs an equivalent offline link or the Lead's normal install; no network was used.
+- BRIEF.md was not edited (phase result recording is the Lead's).

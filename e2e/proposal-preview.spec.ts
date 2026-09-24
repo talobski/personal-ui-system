@@ -1,4 +1,4 @@
-import { workspaceMode, editorCategory, previewStates, openFork, assertActiveControls } from "./workbench-navigation"
+import { workspaceMode, editorCategory, previewStates, openFork, assertActiveControls, selectTheme } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { Page, TestInfo } from "@playwright/test"
@@ -21,10 +21,17 @@ const proposal = (id: string, revision: number, overrides: Record<string, unknow
     ...overrides,
   })
 
+/**
+ * These lifecycle checks exercise Quiet Editorial (the accepted v1 theme, now a migrated built-in) so every resolved
+ * baseline value below is unchanged from the accepted phase; fresh state itself is Default (theme-v2 spec).
+ */
 async function openWorkbench(page: Page, mode: "light" | "dark") {
   await page.goto("/")
+  await expect(page.getByTestId("theme-id")).toHaveText("default")
+  await selectTheme(page, "quiet-editorial")
   await previewStates(page)
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
+  await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-theme-id", "quiet-editorial")
   await workspaceMode(page, "Preview")
   await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-mode", mode)
@@ -101,7 +108,7 @@ for (const mode of ["light", "dark"] as const) {
       // Four operations produce exactly one candidate revision; the active theme is untouched.
       await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("2")
       await expect(revision(page)).toHaveText("1")
-      await expect(page.getByTestId("theme-status")).toHaveText("unsaved")
+      await expect(page.getByTestId("theme-status")).toHaveText("built-in")
       await workspaceMode(page, "Controls")
       await expect(page.getByTestId("diff-empty")).toBeVisible()
 
@@ -185,7 +192,7 @@ for (const mode of ["light", "dark"] as const) {
       expect(candidate.shadow).not.toContain("0px 4px 8px -2px")
 
       // Active theme, persistence, and the iframe document are untouched.
-      await expect(page.getByTestId("theme-status")).toHaveText("unsaved")
+      await expect(page.getByTestId("theme-status")).toHaveText("built-in")
       await workspaceMode(page, "Controls")
       await expect(page.getByTestId("diff-empty")).toBeVisible()
       expect(await storedThemes(page)).toBe(storageBefore)
@@ -291,7 +298,7 @@ for (const mode of ["light", "dark"] as const) {
       await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-revision", "2")
       // Apply is in-memory only; Save stays a separate action.
       expect(await storedThemes(page)).toBe(storageBefore)
-      await expect(page.getByTestId("theme-status")).toHaveText("unsaved")
+      await expect(page.getByTestId("theme-status")).toHaveText("edited built-in, fork to save")
 
       // No second application, and the applied id cannot be replayed.
       await stageText(page, proposal("apply-1", 2))

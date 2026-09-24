@@ -1,5 +1,5 @@
 /// <reference path="./culori.d.ts" />
-import { converter } from "culori"
+import { modeHsl, modeLrgb, modeOklab, modeOklch, modeP3, modeRgb, modeXyz65, useMode } from "culori/fn"
 
 /**
  * Colour input normalization for Theme v2. Four input families are accepted — HEX, RGB/RGBA, HSL/HSLA, and OKLCH —
@@ -35,8 +35,10 @@ const FUNCTION_RE = /^(rgba?|hsla?|oklch)\(\s*([^()]*?)\s*\)$/i
 
 type Component = { value: number; percent: boolean }
 
-const toOklch = converter("oklch")
-const toP3 = converter("p3")
+// The tree-shakeable entry: register only the spaces on the conversion paths used here (rgb/hsl -> oklch, oklch -> p3).
+for (const mode of [modeRgb, modeLrgb, modeHsl, modeOklab, modeXyz65]) useMode(mode)
+const toOklch = useMode(modeOklch)
+const toP3 = useMode(modeP3)
 
 const round = (value: number, decimals = COLOR_PRECISION_DECIMALS) => {
   const factor = 10 ** decimals
