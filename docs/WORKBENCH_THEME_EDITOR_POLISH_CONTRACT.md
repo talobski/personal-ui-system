@@ -193,4 +193,3 @@ interactive divider.
   Design Command categories, Jev behavior, LLM behavior, MCP, or project
   extraction.
 - No literal recreation of unrelated tweakcn behavior or branding.
-
