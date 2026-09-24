@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client"
 
 import { App } from "./App"
 import { PreviewFrame } from "./PreviewFrame"
+import "@personal-ui/ui/lib/font-faces"
 import "./styles.css"
 
 // The preview is this same app loaded in an iframe, so its viewport (and thus the

@@ -127,36 +127,43 @@ export function parseNumericDraft(control: NumericControl, raw: string): number 
   return Number.isFinite(value) && value >= control.min && value <= control.max ? value : null
 }
 
+/** One searchable control per canonical stack; a choice writes the catalog option's full stack through `setFontFamily`. */
 export const FONT_CONTROLS: readonly { family: FontFamilyToken; label: string }[] = [
-  { family: "sans", label: "Sans font stack" },
-  { family: "serif", label: "Serif font stack" },
-  { family: "mono", label: "Mono font stack" },
+  { family: "sans", label: "Sans font" },
+  { family: "serif", label: "Serif font" },
+  { family: "mono", label: "Mono font" },
 ]
-
-/** Comma-separated family names; surrounding matching quotes on a name are removed. Core validates each name. */
-export function parseFontStack(raw: string): string[] {
-  return raw.split(",").map((part) => part.trim().replace(/^(["'])(.*)\1$/, "$2"))
-}
 
 export const formatFontStack = (families: readonly string[]) => families.join(", ")
 
-export const buildFontOperation = (family: FontFamilyToken, raw: string): ThemeOperation => ({ op: "setFontFamily", family, value: parseFontStack(raw) })
+export const buildFontOperation = (family: FontFamilyToken, stack: readonly string[]): ThemeOperation => ({ op: "setFontFamily", family, value: [...stack] })
 
 export const readShadowColor = (theme: Theme) => readShadowProfile(theme).color
 
 export const buildShadowColorOperation = (raw: string, theme: Theme): ThemeOperation => ({ op: "setShadowProfile", value: { ...pxProfile(theme), color: raw } })
 
-/** The grouped colour editor: every canonical colour token appears in exactly one group, in this order. */
+/**
+ * The grouped colour editor: every canonical colour token appears in exactly one group, in this order. `Base` is only a
+ * UI group for the page background and foreground pair; no token is added or renamed.
+ */
 export const COLOR_GROUPS: readonly { id: string; title: string; tokens: readonly ColorToken[] }[] = [
-  { id: "surfaces", title: "Surfaces", tokens: ["background", "foreground", "card", "card-foreground", "popover", "popover-foreground"] },
   { id: "primary", title: "Primary", tokens: ["primary", "primary-foreground"] },
   { id: "secondary", title: "Secondary", tokens: ["secondary", "secondary-foreground"] },
-  { id: "muted", title: "Muted", tokens: ["muted", "muted-foreground"] },
   { id: "accent", title: "Accent", tokens: ["accent", "accent-foreground"] },
+  { id: "base", title: "Base", tokens: ["background", "foreground"] },
+  { id: "card", title: "Card", tokens: ["card", "card-foreground"] },
+  { id: "popover", title: "Popover", tokens: ["popover", "popover-foreground"] },
+  { id: "muted", title: "Muted", tokens: ["muted", "muted-foreground"] },
   { id: "destructive", title: "Destructive", tokens: ["destructive", "destructive-foreground"] },
   { id: "border", title: "Border, Input & Ring", tokens: ["border", "input", "ring"] },
   { id: "charts", title: "Charts", tokens: ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] },
 ]
+
+/** A token's readable sentence-case field label: `card-foreground` -> `Card foreground`, `chart-1` -> `Chart 1`. */
+export const colorTokenLabel = (token: ColorToken) => {
+  const words = token.replace(/-/g, " ")
+  return words.charAt(0).toUpperCase() + words.slice(1)
+}
 
 const toSrgbChannel = (linear: number) => {
   const encoded = linear <= 0.0031308 ? 12.92 * linear : 1.055 * linear ** (1 / 2.4) - 0.055

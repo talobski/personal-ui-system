@@ -13,7 +13,7 @@ import {
   parseProposalJson,
   previewVariablesCss,
 } from "./lifecycle"
-import { buildFontOperation, buildShadowColorOperation, COLOR_GROUPS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseFontStack, parseNumericDraft, readShadowColor } from "./controls"
+import { buildFontOperation, buildShadowColorOperation, COLOR_GROUPS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
 import { emptySaved, loadSaved, saveSelection, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
@@ -112,15 +112,14 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
   })
 
   it("replaces whole font stacks for sans, serif, and mono and rejects unsafe names", () => {
-    expect(parseFontStack(' "Source Serif 4", Georgia ,serif')).toEqual(["Source Serif 4", "Georgia", "serif"])
     for (const family of ["sans", "serif", "mono"] as const) {
-      const result = editTheme(defaultTheme, buildFontOperation(family, "Inter, system-ui"))
+      const result = editTheme(defaultTheme, buildFontOperation(family, ["Inter Variable", "Inter", "system-ui"]))
       if (!result.ok) throw new Error("font edit failed")
-      expect(result.theme.typography[family].$value).toEqual(["Inter", "system-ui"])
+      expect(result.theme.typography[family].$value).toEqual(["Inter Variable", "Inter", "system-ui"])
       expect(diffThemeTokens(defaultTheme, result.theme).map((d) => d.path)).toEqual([`typography.${family}`])
     }
-    for (const raw of ["", "Inter,", 'x"; } a{', "Inter; color: red"]) {
-      expect(editTheme(defaultTheme, buildFontOperation("sans", raw))).toEqual({ ok: false, issues: [{ ruleId: "mutation.invalid-value", path: "operations[0].value" }] })
+    for (const stack of [[], [""], ['x"; } a{'], ["Inter; color: red"]]) {
+      expect(editTheme(defaultTheme, buildFontOperation("sans", stack))).toEqual({ ok: false, issues: [{ ruleId: "mutation.invalid-value", path: "operations[0].value" }] })
     }
   })
 
@@ -187,7 +186,8 @@ describe("Save As (WTEP-08)", () => {
 
 describe("grouped colour rows and native picker (WTEP-05, WTEP-06)", () => {
   it("lists every canonical colour token exactly once, in the approved groups", () => {
-    expect(COLOR_GROUPS.map((group) => group.title)).toEqual(["Surfaces", "Primary", "Secondary", "Muted", "Accent", "Destructive", "Border, Input & Ring", "Charts"])
+    expect(COLOR_GROUPS.map((group) => group.title)).toEqual(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts"])
+    expect(COLOR_GROUPS.find((group) => group.id === "base")?.tokens).toEqual(["background", "foreground"])
     const tokens = COLOR_GROUPS.flatMap((group) => group.tokens)
     expect([...tokens].sort()).toEqual([...COLOR_TOKENS].sort())
     expect(new Set(tokens).size).toBe(COLOR_TOKENS.length)

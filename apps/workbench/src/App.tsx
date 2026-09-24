@@ -32,9 +32,9 @@ import type { DesignCommandOutcome } from "@personal-ui/core"
 import type { PreviewState } from "./messages"
 import { loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
-import { buildFontOperation, buildShadowColorOperation, COLOR_GROUPS, FONT_CONTROLS, formatFontStack, NUMERIC_CONTROLS, readShadowColor } from "./controls"
+import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, FONT_CONTROLS, NUMERIC_CONTROLS, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
-import { ControlSection, LiveColorField, LiveNumberField, LiveTextField } from "./LiveControls"
+import { ControlSection, LiveColorField, LiveFontField, LiveNumberField, LiveTextField } from "./LiveControls"
 import type { ApplyManual } from "./LiveControls"
 
 const builtIns = loadBuiltInThemes()
@@ -314,7 +314,7 @@ export function App() {
                 <LiveColorField
                   key={`${current.id}-${mode}-${token}`}
                   id={`color-${token}`}
-                  label={token}
+                  label={colorTokenLabel(token)}
                   value={current.colors[mode][token].$value}
                   build={(raw) => ({ op: "setColor", mode, token, value: raw })}
                   disabled={locked}
@@ -329,13 +329,12 @@ export function App() {
           {manualLockNote}
           <ControlSection id="fonts" title="Font families">
             {FONT_CONTROLS.map(({ family, label }) => (
-              <LiveTextField
+              <LiveFontField
                 key={`${current.id}-${family}`}
                 id={`font-${family}`}
+                category={family}
                 label={label}
-                value={formatFontStack(current.typography[family].$value)}
-                build={(raw) => buildFontOperation(family, raw)}
-                hint="Expected 1 to 16 comma-separated names of letters, digits, spaces, and hyphens."
+                stack={current.typography[family].$value}
                 disabled={locked}
                 apply={applyManual}
               />

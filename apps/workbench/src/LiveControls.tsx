@@ -3,11 +3,14 @@ import * as React from "react"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@personal-ui/ui/components/collapsible"
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@personal-ui/ui/components/combobox"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
 import { Slider } from "@personal-ui/ui/components/slider"
+import { cssFontStack, findFontOption, FONT_OPTIONS } from "@personal-ui/ui/lib/fonts"
+import type { FontCategory, FontOption } from "@personal-ui/ui/lib/fonts"
 
-import { parseNumericDraft, pickedColorInput, pickerHex, roundToStep } from "./controls"
+import { buildFontOperation, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep } from "./controls"
 import type { NumericControl } from "./controls"
 import type { WorkbenchIssue } from "./lifecycle"
 
@@ -16,6 +19,9 @@ import type { WorkbenchIssue } from "./lifecycle"
  * Manual controls have no Apply step: a valid value becomes active state immediately, an invalid one changes nothing.
  */
 export type ApplyManual = (build: (theme: Theme) => ThemeOperation) => WorkbenchIssue[]
+
+/** The one ordinary field-label style across every editor tab; group headings stay visually distinct. */
+export const FIELD_LABEL_CLASS = "text-xs font-normal text-muted-foreground"
 
 const describeIssues = (issues: WorkbenchIssue[]) => issues.map((i) => `${i.ruleId} at ${i.path || "(root)"}`).join("; ")
 
@@ -95,7 +101,7 @@ export function LiveNumberField({ id, control, theme, disabled, apply }: { id: s
   return (
     <Field data-invalid={error !== null} data-testid={`control-${id}`}>
       <div className="flex items-center justify-between gap-2">
-        <FieldLabel id={labelId} htmlFor={inputId}>
+        <FieldLabel id={labelId} htmlFor={inputId} className={FIELD_LABEL_CLASS}>
           {control.label}
         </FieldLabel>
         <div className="flex items-center gap-1.5">
@@ -188,7 +194,9 @@ export function LiveTextField({
 
   return (
     <Field data-invalid={error !== null} data-testid={`control-${id}`}>
-      <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+      <FieldLabel htmlFor={inputId} className={FIELD_LABEL_CLASS}>
+        {label}
+      </FieldLabel>
       <Input
         id={inputId}
         value={draft}
@@ -261,7 +269,7 @@ export function LiveColorField({
 
   return (
     <Field data-invalid={error !== null} data-testid={`control-${id}`} className="gap-1.5">
-      <FieldLabel htmlFor={inputId} className="font-mono text-xs font-normal text-muted-foreground">
+      <FieldLabel htmlFor={inputId} className={FIELD_LABEL_CLASS}>
         {label}
       </FieldLabel>
       <div className="flex items-center gap-2">
@@ -294,6 +302,79 @@ export function LiveColorField({
           }}
         />
       </div>
+      {error !== null && (
+        <FieldError id={errorId} data-testid={`${id}-error`}>
+          {error}
+        </FieldError>
+      )}
+    </Field>
+  )
+}
+
+/**
+ * A searchable font choice over the closed local catalog. Selecting an option writes that option's full canonical stack
+ * through `setFontFamily` immediately; typed search text is never a value. A theme whose stack is not a catalog option
+ * shows its stack as text instead of pretending to match one.
+ */
+export function LiveFontField({
+  id,
+  category,
+  label,
+  stack,
+  disabled,
+  apply,
+}: {
+  id: string
+  category: FontCategory
+  label: string
+  stack: readonly string[]
+  disabled: boolean
+  apply: ApplyManual
+}) {
+  const selected = findFontOption(category, stack) ?? null
+  const [error, setError] = React.useState<string | null>(null)
+  useReportInvalid(id, error !== null)
+
+  const inputId = `${id}-input`
+  const errorId = `${id}-error`
+  const noteId = `${id}-note`
+  const describedBy = [selected === null ? noteId : null, error !== null ? errorId : null].filter(Boolean).join(" ") || undefined
+
+  return (
+    <Field data-invalid={error !== null} data-testid={`control-${id}`} data-font={selected?.id ?? ""} className="gap-1.5">
+      <FieldLabel htmlFor={inputId} className={FIELD_LABEL_CLASS}>
+        {label}
+      </FieldLabel>
+      <Combobox
+        items={FONT_OPTIONS[category]}
+        value={selected}
+        disabled={disabled}
+        itemToStringLabel={(option: FontOption) => option.label}
+        itemToStringValue={(option: FontOption) => option.id}
+        isItemEqualToValue={(option: FontOption, value: FontOption) => option.id === value.id}
+        onValueChange={(next: FontOption | null) => {
+          if (next === null) return
+          const issues = apply(() => buildFontOperation(category, next.stack))
+          setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
+        }}
+      >
+        <ComboboxInput id={inputId} placeholder="Search fonts" disabled={disabled} aria-describedby={describedBy} aria-invalid={error !== null} className="h-8" />
+        <ComboboxContent>
+          <ComboboxEmpty>No fonts found.</ComboboxEmpty>
+          <ComboboxList>
+            {(option: FontOption) => (
+              <ComboboxItem key={option.id} value={option} style={{ fontFamily: cssFontStack(option.stack) }}>
+                {option.label}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+      {selected === null && (
+        <FieldDescription id={noteId} data-testid={`${id}-stack`} className="text-xs">
+          Current stack: <span className="break-all">{formatFontStack(stack)}</span>
+        </FieldDescription>
+      )}
       {error !== null && (
         <FieldError id={errorId} data-testid={`${id}-error`}>
           {error}
