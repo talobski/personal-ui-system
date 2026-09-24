@@ -260,6 +260,12 @@ export function App() {
       {commandEvaluating ? "Manual controls are paused while a design command is evaluated." : "Manual controls are paused until the staged proposal is applied or discarded. The preview shows the proposal, not your active theme."}
     </p>
   ) : null
+  const themeSelectItems = [
+    { label: "Built-in", items: builtIns.map((theme) => ({ value: theme.id, label: theme.name })) },
+    ...(savedIds.length > 0
+      ? [{ label: "Custom", items: savedIds.map((id) => ({ value: id, label: saved.themes[id]!.name })) }]
+      : []),
+  ]
 
   return (
     <div className="quiet-shell" data-theme-status={status}>
@@ -275,7 +281,7 @@ export function App() {
           <ResizablePanel id="editor-panel" style={{ overflow: "hidden" }} defaultSize={352} minSize={desktop ? bounds.min : 0} maxSize={desktop ? bounds.max : "100%"} groupResizeBehavior="preserve-pixel-size">
             <TabsContent value="controls" forceMount className="quiet-editor" hidden={!desktop && mobileMode !== "controls"}>
               <div className="quiet-theme">
-                <Select value={current.id} disabled={locked} onValueChange={(id) => { if (id) load(id) }}>
+                <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id) load(id) }}>
                   <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger">
                     <SelectValue>{current.name}</SelectValue>
                   </SelectTrigger>
@@ -449,7 +455,7 @@ export function App() {
               </Tabs>
             </TabsContent>
           </ResizablePanel>
-          <ResizableHandle aria-label="Resize editor" className="quiet-handle w-px bg-border hover:bg-ring/60 focus-visible:bg-ring data-[separator=active]:bg-ring data-[separator=hover]:bg-ring/60 [&>span]:hidden" disabled={!desktop} />
+          <ResizableHandle aria-label="Resize editor" className="quiet-handle [&>span]:hidden" disabled={!desktop} />
           <ResizablePanel id="preview-panel" style={{ overflow: "hidden" }} minSize={desktop ? 632 : 0}>
             <TabsContent value="preview" forceMount className="quiet-preview" hidden={!desktop && mobileMode !== "preview"}>
               <div className="quiet-toolbar">

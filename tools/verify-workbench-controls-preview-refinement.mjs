@@ -80,7 +80,7 @@ for (const file of presentationUi) {
 for (const file of ["apps/workbench/src/App.tsx", "apps/workbench/src/lifecycle.ts"]) {
   assert.doesNotMatch(readFileSync(file, "utf8"), /Mutation proposal|Proposal JSON|Stage proposal|Insert example|proposal-log|proposalText|parseProposalJson|exampleProposalJson|>Proposal<|theme-meta/)
 }
-assert.match(app, /<Select value=\{current.id\}/)
+assert.match(app, /<Select items=\{themeSelectItems\} value=\{current.id\}/)
 assert.match(app, /FIELD_LABEL_CLASS/)
 assert.match(app, /applyProposal\(session, current/)
 assert.match(app, /discardProposal\(session, current/)

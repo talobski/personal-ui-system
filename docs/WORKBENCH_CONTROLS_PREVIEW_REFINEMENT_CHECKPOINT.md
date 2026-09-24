@@ -1,14 +1,54 @@
-# Workbench Controls & Preview Refinement — Producer Checkpoint (provider handoff)
+# Workbench Controls & Preview Refinement — Candidate Checkpoint
 
 Phase: `workbench-controls-preview-refinement-v1-001`
 Branch: `loop/workbench-controls-preview-refinement-v1-001`
 Prepared base: `c68c8a2fd4eec0e78ba9e4a82c5fa4353a0413d9`
 Contract: `docs/WORKBENCH_CONTROLS_PREVIEW_REFINEMENT_CONTRACT.md`
-Status: PARTIAL — continuation implementation preserved; browser and Git-write
-capabilities blocked. Not accepted or promoted.
-Handoff/current HEAD: `628d1af11843ee661384b424585cdda6edaf515f`.
+Status: LEAD-GREEN — implementation and bounded corrections complete; awaiting
+protected fresh verification and owner visual review. Not accepted or promoted.
+Producer handoff HEAD: `628d1af11843ee661384b424585cdda6edaf515f`.
+Initial Astra candidate: `5c2041dd8bef8d55a20e1e2dedfcfbebbb42f592`.
 
-## Astra continuation — current state (2026-09-25 Asia/Manila)
+## Lead reconciliation — final candidate preparation (2026-09-25 Asia/Manila)
+
+The Lead preserved both producer commits, executed the complete browser workload,
+and corrected only defects demonstrated by that workload. The final implementation:
+
+- uses Base UI's native grouped item model for Select keyboard navigation, with no
+  bespoke event handling in the public primitive;
+- uses the supported trigger-outside/search-inside Combobox structure, eliminating
+  the open-state `aria-hidden-focus` violation;
+- keeps the full-region theme selector aligned after panel resizing;
+- gives the panel divider a real 9px hit target with a centered 1px visual rule and
+  suppresses iframe pointer capture only during an active drag;
+- removes shadows from all eight gallery roots, including form-wrapped Cards; and
+- preserves the approved edge-to-edge preview, 24 local fonts, Theme v2 mutation
+  path, and Design Command staging lifecycle.
+
+Final Lead evidence on the exact candidate tree:
+
+| Check | Result |
+| --- | --- |
+| `pnpm test` | 36 files / **630 tests passed** |
+| `pnpm typecheck` | pass (all packages, e2e, Jev) |
+| `pnpm registry:build` | pass; exactly **16 resources** |
+| `pnpm build:workbench` | pass; non-failing bundle-size advisory |
+| `pnpm build:storybook` | pass; non-failing directive/bundle advisories |
+| `pnpm test:browser:storybook` | **80/80 passed** |
+| `WORKBENCH_PORT=5199 pnpm test:browser:workbench` | **79 passed, 1 intentional mobile-only skip** |
+| `pnpm test:browser:design-command-live` | **1/1 passed**; missing credential fails closed |
+| `node tools/verify-workbench-controls-preview-refinement.mjs` | pass |
+| `git diff --check` | pass |
+
+The first unprivileged attempts to write linked dependency caches/build outputs
+were sandbox-denied; the same commands passed through the admitted local execution
+route. A parallel browser invocation briefly collided on port 5173; the Workbench
+matrix then passed on isolated local port 5199. Neither was an artifact failure.
+
+The candidate still requires the reserved fresh Codex STANDARD verifier and final
+owner desktop/mobile visual review. Lead browser evidence remains Lead-attributed.
+
+## Superseded Astra continuation handoff (2026-09-25 Asia/Manila)
 
 The exact handoff audit found HEAD `628d1af11843ee661384b424585cdda6edaf515f`,
 branch `loop/workbench-controls-preview-refinement-v1-001`, and a clean worktree.

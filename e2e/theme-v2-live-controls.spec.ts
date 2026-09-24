@@ -75,6 +75,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
   test("fresh state is Default; a valid selection survives reload; invalid state falls back to Default", async ({ page }) => {
     await openWorkbench(page)
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "default")
+    await workspaceMode(page, "Controls")
     await expect(page.getByRole("combobox", { name: "Active theme" })).toHaveText("Default")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "built-in")
     await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-theme-id", "default")
@@ -211,7 +212,8 @@ for (const mode of MODES) {
         ["Mono font", "type-mono", "Geist Mono"],
       ] as const) {
         const before = await revisionNumber(page)
-        await page.getByRole("combobox", { name: label, exact: true }).fill(name)
+        await page.getByRole("combobox", { name: label, exact: true }).click()
+        await page.getByRole("combobox", { name: `Search ${label}`, exact: true }).fill(name)
         await page.getByRole("option", { name, exact: true }).click()
         await expect(revision(page)).toHaveAttribute("data-revision", String(before + 1))
         await expect.poll(() => previewStyle(page, testId, "fontFamily")).toContain(name)
@@ -219,11 +221,13 @@ for (const mode of MODES) {
       // Search text is never a mutation. No match, Escape, and the selected canonical stack remains intact.
       const before = await revisionNumber(page)
       const sans = page.getByRole("combobox", { name: "Sans font", exact: true })
-      await sans.fill("not-a-local-font")
+      await sans.click()
+      const sansSearch = page.getByRole("combobox", { name: "Search Sans font", exact: true })
+      await sansSearch.fill("not-a-local-font")
       await expect(page.getByText("No fonts found.", { exact: true })).toBeVisible()
       await expect(revision(page)).toHaveAttribute("data-revision", String(before))
       await expect.poll(() => previewStyle(page, "type-sans", "fontFamily")).toContain("Lato")
-      await sans.press("Escape")
+      await sansSearch.press("Escape")
       await expectNoSeriousViolations(page, `${mode}-typography-search`, testInfo)
 
       // Tracking: numeric field, visible unit, keyboard slider.

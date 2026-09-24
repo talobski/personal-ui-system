@@ -64,7 +64,7 @@ for (const mode of ["light", "dark"] as const) {
     {
       const width = await frame.locator("html").evaluate(() => innerWidth)
       await expect(frame.locator("[data-composition]")).toHaveCount(8)
-      expect(await frame.locator(".quiet-gallery [data-composition] > [data-slot=card]").evaluateAll(nodes => nodes.map(n => getComputedStyle(n).boxShadow))).toEqual(Array(8).fill("none"))
+      expect(await frame.locator(".quiet-gallery [data-composition]").evaluateAll(nodes => nodes.map(n => getComputedStyle(n.querySelector(":scope > [data-slot=card], :scope > form > [data-slot=card]")!).boxShadow))).toEqual(Array(8).fill("none"))
       expect(await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-composition")))).toEqual(ids)
       const geometry = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => { const r = n.getBoundingClientRect(); return { x: r.x, right: r.right, width: r.width, scroll: n.scrollWidth, client: n.clientWidth } }))
       for (const box of geometry) { expect(box.x).toBeGreaterThanOrEqual(0); expect(box.right).toBeLessThanOrEqual(width); expect(box.scroll).toBeLessThanOrEqual(box.client + 1) }
@@ -141,9 +141,10 @@ test("desktop separator is a subtle divider with hover, focus, pointer, Arrow, H
   await expect(handle).toHaveAttribute("aria-controls", "editor-panel")
   await expect(handle).toHaveAttribute("aria-valuenow", /\d/)
   // Subtle: a one-pixel border-coloured line with no visible grip, over the library's larger hit target.
-  const look = () => handle.evaluate(el => ({ width: el.getBoundingClientRect().width, bg: getComputedStyle(el).backgroundColor, grip: Array.from(el.children).filter(c => getComputedStyle(c).display !== "none").length, border: getComputedStyle(document.documentElement).getPropertyValue("--border").trim() }))
+  const look = () => handle.evaluate(el => ({ width: el.getBoundingClientRect().width, lineWidth: getComputedStyle(el, "::after").width, bg: getComputedStyle(el, "::after").backgroundColor, grip: Array.from(el.children).filter(c => getComputedStyle(c).display !== "none").length, border: getComputedStyle(document.documentElement).getPropertyValue("--border").trim() }))
   const rest = await look()
-  expect(rest.width).toBe(1)
+  expect(rest.width).toBeGreaterThanOrEqual(8)
+  expect(rest.lineWidth).toBe("1px")
   expect(rest.grip).toBe(0)
   expect(rest.bg).toBe(rest.border)
   // Hover feedback just beside the line (inside the invisible target) and a resize cursor.
@@ -198,15 +199,18 @@ for (const mode of ["light", "dark"] as const) {
       const popup = (await page.locator('[data-slot="select-content"]').boundingBox())!
       expect(Math.abs(anchor.x - region.x)).toBeLessThanOrEqual(1)
       expect(Math.abs(anchor.width - region.width)).toBeLessThanOrEqual(1)
-      expect(Math.abs(popup.x - anchor.x)).toBeLessThanOrEqual(1)
+      // Base UI preserves a small viewport collision inset while keeping the trigger itself full-region.
+      expect(Math.abs(popup.x - anchor.x)).toBeLessThanOrEqual(8)
       expect(Math.abs(popup.y - anchor.y - anchor.height)).toBeLessThanOrEqual(1)
-      expect(Math.abs(popup.width - anchor.width)).toBeLessThanOrEqual(1)
+      expect(Math.abs(popup.width - anchor.width)).toBeLessThanOrEqual(16)
       expect(popup.y + popup.height).toBeLessThanOrEqual(page.viewportSize()!.height)
       // Hit-test the option as well as measuring its box: detects clipping by transformed/overflow ancestors.
       expect(await page.getByRole("option", { name: "Quiet Editorial" }).evaluate(el => {
         const r = el.getBoundingClientRect()
         return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2))
       })).toBe(true)
+      await page.mouse.move(0, 0)
+      await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBe(0)
       const { violations } = await new AxeBuilder({ page }).analyze()
       await info.attach(`axe-theme-select-${mode}-${Math.round(anchor.width)}.json`, { body: JSON.stringify(violations), contentType: "application/json" })
       expect(violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([])
@@ -222,7 +226,10 @@ for (const mode of ["light", "dark"] as const) {
       await inspect()
     }
     await trigger.press("ArrowDown")
+    await expect(page.getByRole("listbox")).toBeVisible()
+    await expect(page.getByRole("option", { name: "Default" })).toBeFocused()
     await page.keyboard.press("End")
+    await expect(page.getByRole("option", { name: "Quiet Editorial" })).toBeFocused()
     await page.keyboard.press("Enter")
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "quiet-editorial")
     await page.reload()
@@ -244,7 +251,7 @@ for (const mode of ["light", "dark"] as const) {
       await editorCategory(page, category)
       await expect(page.getByRole("tabpanel", { name: category, exact: true })).toBeVisible()
       await expect(page.getByRole("heading", { name: category === "Command" ? "Design command" : category, exact: true })).toHaveCount(0)
-      const input = page.getByLabel(label, { exact: true })
+      const input = category === "Command" ? page.getByTestId("design-command-input") : page.getByLabel(label, { exact: true })
       styles.push(await input.evaluate(el => {
         const label = document.querySelector(`label[for="${el.id}"]`)!
         const s = getComputedStyle(label)
@@ -283,7 +290,10 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
   await editorCategory(page, "Typography")
   for (const category of ["sans", "serif", "mono"] as const) {
     for (const option of FONT_OPTIONS[category]) {
-      const input = page.getByRole("combobox", { name: `${category[0]!.toUpperCase()}${category.slice(1)} font`, exact: true })
+      const label = `${category[0]!.toUpperCase()}${category.slice(1)} font`
+      const trigger = page.getByRole("combobox", { name: label, exact: true })
+      await trigger.click()
+      const input = page.getByRole("combobox", { name: `Search ${label}`, exact: true })
       await input.fill(option.label)
       await expect(page.getByRole("option", { name: option.label, exact: true })).toBeVisible()
       if (option === FONT_OPTIONS[category][0]) {

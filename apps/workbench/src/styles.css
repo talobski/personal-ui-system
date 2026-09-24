@@ -25,7 +25,11 @@
 .quiet-gallery { display: grid; grid-template-columns: 1fr; gap: 16px; }
 .quiet-stack { display: grid; align-content: start; gap: 16px; min-width: 0; }
 .quiet-gallery section { min-width: 0; }
-.quiet-gallery [data-composition] > [data-slot=card] { box-shadow: none; }
+.quiet-gallery [data-composition] > [data-slot=card], .quiet-gallery [data-composition] > form > [data-slot=card] { box-shadow: none; }
+.quiet-handle { width: 9px; background: transparent; cursor: col-resize; }
+.quiet-handle::after { content: ""; position: absolute; inset-block: 0; left: 4px; width: 1px; background: var(--border); }
+.quiet-handle:hover::after, .quiet-handle:focus-visible::after, .quiet-handle[data-separator=active]::after, .quiet-handle[data-separator=hover]::after { background: var(--ring); }
+.quiet-split:has(.quiet-handle[data-separator=active]) iframe { pointer-events: none; }
 @media (min-width: 1000px) { .quiet-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; } }
 @media (max-width: 1023px) {
   .quiet-header { padding: 0 16px; }

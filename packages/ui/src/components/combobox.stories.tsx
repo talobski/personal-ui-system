@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import * as React from "react"
 
-import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@personal-ui/ui/components/combobox"
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxTrigger } from "@personal-ui/ui/components/combobox"
 import { Field, FieldDescription, FieldLabel } from "@personal-ui/ui/components/field"
 
 type Option = { value: string; label: string }
@@ -23,8 +23,11 @@ function Example({ disabled = false }: { disabled?: boolean }) {
     <Field className="w-80">
       <FieldLabel htmlFor="sans-font">Sans font</FieldLabel>
       <Combobox items={options} value={value} onValueChange={setValue} disabled={disabled} isItemEqualToValue={(item, selected) => item.value === selected.value}>
-        <ComboboxInput id="sans-font" placeholder="Search fonts" disabled={disabled} />
+        <ComboboxTrigger id="sans-font" disabled={disabled} className="h-9 w-full justify-between rounded-md border border-input px-3 text-sm shadow-xs">
+          <span>{value?.label ?? "Select font"}</span>
+        </ComboboxTrigger>
         <ComboboxContent>
+          <div className="p-1"><ComboboxInput aria-label="Search Sans font" placeholder="Search fonts" showTrigger={false} /></div>
           <ComboboxEmpty>No fonts found.</ComboboxEmpty>
           <ComboboxList>
             {(option: Option) => (

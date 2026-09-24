@@ -4,7 +4,22 @@ import * as React from "react"
 import { Field, FieldDescription, FieldLabel } from "@personal-ui/ui/components/field"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@personal-ui/ui/components/select"
 
-const items = { default: "Default", "quiet-editorial": "Quiet Editorial", studio: "Studio", archive: "Archive" }
+const items = [
+  {
+    label: "Built-in",
+    items: [
+      { value: "default", label: "Default" },
+      { value: "quiet-editorial", label: "Quiet Editorial" },
+    ],
+  },
+  {
+    label: "Custom",
+    items: [
+      { value: "studio", label: "Studio" },
+      { value: "archive", label: "Archive" },
+    ],
+  },
+] as const
 
 function Example({ disabled = false }: { disabled?: boolean }) {
   const [value, setValue] = React.useState("default")

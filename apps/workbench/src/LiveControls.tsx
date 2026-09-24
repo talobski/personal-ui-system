@@ -3,7 +3,7 @@ import * as React from "react"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@personal-ui/ui/components/collapsible"
-import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@personal-ui/ui/components/combobox"
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxTrigger } from "@personal-ui/ui/components/combobox"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
 import { Slider } from "@personal-ui/ui/components/slider"
@@ -358,8 +358,19 @@ export function LiveFontField({
           setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
         }}
       >
-        <ComboboxInput id={inputId} placeholder="Search fonts" disabled={disabled} aria-describedby={describedBy} aria-invalid={error !== null} className="h-8" />
+        <ComboboxTrigger
+          id={inputId}
+          disabled={disabled}
+          aria-describedby={describedBy}
+          aria-invalid={error !== null}
+          className="h-8 w-full justify-between rounded-md border border-input px-3 text-sm shadow-xs"
+        >
+          <span>{selected?.label ?? "Custom stack"}</span>
+        </ComboboxTrigger>
         <ComboboxContent>
+          <div className="p-1">
+            <ComboboxInput id={`${inputId}-search`} aria-label={`Search ${label}`} placeholder="Search fonts" showTrigger={false} className="h-8" />
+          </div>
           <ComboboxEmpty>No fonts found.</ComboboxEmpty>
           <ComboboxList>
             {(option: FontOption) => (
