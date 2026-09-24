@@ -19,6 +19,7 @@ const admitted = [
   /^e2e\/[a-z0-9-]+\.(spec\.)?ts$/,
   /^packages\/ui\/src\/quiet-workspace\.test\.ts$/,
   /^docs\/WORKBENCH_THEME_EDITOR_POLISH_CHECKPOINT\.md$/,
+  /^docs\/WORKBENCH_THEME_EDITOR_POLISH_CONTRACT\.md$/,
   /^tools\/verify-workbench-theme-editor-polish\.mjs$/,
 ]
 for (const file of changed) assert.ok(admitted.some((pattern) => pattern.test(file)), `Outside admitted scope: ${file}`)
