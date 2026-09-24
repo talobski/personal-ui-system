@@ -1,3 +1,4 @@
+import { stageCommand } from "./design-command-fixture"
 import { workspaceMode, editorCategory, previewStates, assertActiveControls } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
@@ -28,8 +29,8 @@ async function expectNoSeriousViolations(page: Page, label: string, testInfo: Te
 test("the Design command panel is present with an accessible, keyboard-operable Evaluate control", async ({ page }, testInfo) => {
   await openWorkbench(page)
 
-  const heading = page.getByRole("heading", { name: "Design command" })
-  await expect(heading).toBeVisible()
+  await expect(page.getByRole("tabpanel", { name: "Command", exact: true })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Design command" })).toHaveCount(0)
 
   const input = page.getByTestId("design-command-input")
   const evaluate = page.getByTestId("design-command-evaluate")
@@ -58,7 +59,7 @@ test("the Design command panel is present with an accessible, keyboard-operable 
 
   // Fail-closed: no proposal was staged and the active theme did not change.
   await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
-  await expect(page.getByTestId("theme-revision")).toHaveText("1")
+  await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
 
   await expectNoSeriousViolations(page, "rejected", testInfo)
 })
@@ -66,8 +67,7 @@ test("the Design command panel is present with an accessible, keyboard-operable 
 test("Evaluate is disabled while a proposal is staged", async ({ page }) => {
   await openWorkbench(page)
   await editorCategory(page, "Command")
-  await page.getByRole("button", { name: "Insert example" }).click()
-  await page.getByRole("button", { name: "Stage proposal" }).click()
+  await stageCommand(page, [{ op: "setRadius", value: "1rem" }])
   await workspaceMode(page, "Preview")
   await expect(page.getByTestId("proposal-staged")).toBeVisible()
   await editorCategory(page, "Command")
@@ -129,7 +129,7 @@ test("locks every mutating/load/save/export control while a Design command evalu
 
   await assertActiveControls(page, true)
   await expect(page.getByTestId("design-command-input")).toBeDisabled()
-  await expect(page.getByRole("button", { name: "Stage proposal" })).toBeDisabled()
+  await expect(page.getByRole("button", { name: "Stage proposal" })).toHaveCount(0)
 
   releasePendingResponse?.()
 

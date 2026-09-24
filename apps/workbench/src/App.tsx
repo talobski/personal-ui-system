@@ -9,10 +9,11 @@ import { applyProposal, createProposalSession, diffThemeTokens, discardProposal,
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
-import { Field, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
 import { Label } from "@personal-ui/ui/components/label"
-import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from "@personal-ui/ui/components/native-select"
+import { NativeSelect, NativeSelectOption } from "@personal-ui/ui/components/native-select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@personal-ui/ui/components/select"
 import { Panel } from "@personal-ui/ui/components/panel"
 import { Switch } from "@personal-ui/ui/components/switch"
 
@@ -21,10 +22,8 @@ import {
   createCustomTheme,
   DEFAULT_THEME_ID,
   editTheme,
-  exampleProposalJson,
   exportThemeJson,
   loadBuiltInThemes,
-  parseProposalJson,
   previewVariablesCss,
 } from "./lifecycle"
 import type { Mode, WorkbenchIssue } from "./lifecycle"
@@ -34,7 +33,7 @@ import { loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
 import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, FONT_CONTROLS, NUMERIC_CONTROLS, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
-import { ControlSection, LiveColorField, LiveFontField, LiveNumberField, LiveTextField } from "./LiveControls"
+import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField, LiveTextField } from "./LiveControls"
 import type { ApplyManual } from "./LiveControls"
 
 const builtIns = loadBuiltInThemes()
@@ -74,7 +73,6 @@ export function App() {
   const bounds = editorBounds(viewportWidth)
   const saveAsNameId = React.useId()
   const saveAsFormId = React.useId()
-  const proposalTextId = React.useId()
   const commandTextId = React.useId()
   const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage, builtInIds))
   // Fresh state selects the built-in Default; a valid persisted selection (built-in or saved) is restored.
@@ -90,7 +88,6 @@ export function App() {
   const [notice, setNotice] = React.useState("")
   // Proposal ids are single-use for this workbench session only; a reload starts a fresh ledger.
   const [session, setSession] = React.useState<ProposalSession>(createProposalSession)
-  const [proposalText, setProposalText] = React.useState("")
   const [proposalIssues, setProposalIssues] = React.useState<WorkbenchIssue[]>([])
   const [proposalResult, setProposalResult] = React.useState("")
   const [commandText, setCommandText] = React.useState("")
@@ -163,17 +160,6 @@ export function App() {
   }
 
   const showProposalErrors = (errors: ProposalError[]) => setProposalIssues(errors.map(({ ruleId, path }) => ({ ruleId, path })))
-
-  const stage = () => {
-    setProposalResult("")
-    const parsed = parseProposalJson(proposalText)
-    if (!parsed.ok) return setProposalIssues(parsed.issues)
-    const result = stageProposal(session, current, parsed.value, new Date().toISOString())
-    setSession(result.session)
-    if (!result.ok) return showProposalErrors(result.errors)
-    setProposalIssues([])
-    setProposalResult(`Staged ${result.staged.proposal.proposalId}. Nothing is active until you apply it.`)
-  }
 
   const applyStaged = () => {
     if (!staged) return
@@ -276,7 +262,7 @@ export function App() {
   ) : null
 
   return (
-    <div className="quiet-shell">
+    <div className="quiet-shell" data-theme-status={status}>
       <style id="workbench-active-theme" data-theme-id={current.id} data-revision={current.revision}>{activeCss}</style>
       <header className="quiet-header"><h1 className="text-sm font-semibold">Personal UI Workbench</h1><Button asChild variant="ghost" size="sm"><a href="https://github.com/talobski/personal-ui-system">GitHub ↗</a></Button></header>
       {notice && <div className="px-4 py-2"><Notice>{notice}</Notice></div>}
@@ -289,24 +275,26 @@ export function App() {
           <ResizablePanel id="editor-panel" style={{ overflow: "hidden" }} defaultSize={352} minSize={desktop ? bounds.min : 0} maxSize={desktop ? bounds.max : "100%"} groupResizeBehavior="preserve-pixel-size">
             <TabsContent value="controls" forceMount className="quiet-editor" hidden={!desktop && mobileMode !== "controls"}>
               <div className="quiet-theme">
-                <NativeSelect id="theme-select" aria-label="Active theme" size="sm" value={current.id} disabled={locked} onChange={(e) => load(e.target.value)}>
-                  {!knownIds.includes(current.id) && <NativeSelectOption value={current.id}>{current.name}</NativeSelectOption>}
-                  <NativeSelectOptGroup label="Built-in">
-                    {builtIns.map((theme) => <NativeSelectOption key={theme.id} value={theme.id}>{theme.name}</NativeSelectOption>)}
-                  </NativeSelectOptGroup>
-                  {savedIds.length > 0 && <NativeSelectOptGroup label="Custom">
-                    {savedIds.map((id) => <NativeSelectOption key={id} value={id}>{saved.themes[id]!.name}</NativeSelectOption>)}
-                  </NativeSelectOptGroup>}
-                </NativeSelect>
-                <p className="quiet-theme-meta" data-testid="theme-meta">
-                  <span data-testid="theme-status">{status}</span> · <code data-testid="theme-id">{current.id}</code> · rev <span data-testid="theme-revision">{current.revision}</span>
-                </p>
+                <Select value={current.id} disabled={locked} onValueChange={(id) => { if (id) load(id) }}>
+                  <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger">
+                    <SelectValue>{current.name}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent align="start" alignItemWithTrigger={false} sideOffset={0}>
+                    <SelectGroup>
+                      <SelectLabel>Built-in</SelectLabel>
+                      {builtIns.map((theme) => <SelectItem key={theme.id} value={theme.id}>{theme.name}</SelectItem>)}
+                    </SelectGroup>
+                    {savedIds.length > 0 && <SelectGroup>
+                      <SelectLabel>Custom</SelectLabel>
+                      {savedIds.map((id) => <SelectItem key={id} value={id}>{saved.themes[id]!.name}</SelectItem>)}
+                    </SelectGroup>}
+                  </SelectContent>
+                </Select>
               </div>
               <Tabs value={category} onValueChange={setCategory}>
                 <div className="quiet-category-select"><Field><FieldLabel htmlFor="editor-category">Editor category</FieldLabel><NativeSelect id="editor-category" value={category} onChange={e => setCategory(e.target.value)}><NativeSelectOption value="colors">Colors</NativeSelectOption><NativeSelectOption value="typography">Typography</NativeSelectOption><NativeSelectOption value="other">Other</NativeSelectOption><NativeSelectOption value="command">Command</NativeSelectOption></NativeSelect></Field></div>
                 <TabsList className="quiet-categories" aria-label="Editor categories"><TabsTrigger value="colors">Colors</TabsTrigger><TabsTrigger value="typography">Typography</TabsTrigger><TabsTrigger value="other">Other</TabsTrigger><TabsTrigger value="command">Command</TabsTrigger></TabsList>
-                <TabsContent value="colors" forceMount className="data-[state=inactive]:hidden"><Panel title="Colors">
-          <p className="text-sm text-muted-foreground">Editing the {mode} palette. Pick a color or type HEX, rgb(a), hsl(a), or oklch; values are stored as oklch and valid values apply immediately.</p>
+                <TabsContent value="colors" forceMount className="data-[state=inactive]:hidden"><div className="grid gap-3 px-4 pb-4">
           {manualLockNote}
           {COLOR_GROUPS.map((group) => (
             <ControlSection key={group.id} id={`colors-${group.id}`} title={group.title}>
@@ -323,9 +311,8 @@ export function App() {
               ))}
             </ControlSection>
           ))}
-        </Panel></TabsContent>
-                <TabsContent value="typography" forceMount className="data-[state=inactive]:hidden"><Panel title="Typography">
-          <p className="text-sm text-muted-foreground">Changes apply immediately after validation. Font stacks are comma-separated, in fallback order.</p>
+        </div></TabsContent>
+                <TabsContent value="typography" forceMount className="data-[state=inactive]:hidden"><div className="grid gap-3 px-4 pb-4">
           {manualLockNote}
           <ControlSection id="fonts" title="Font families">
             {FONT_CONTROLS.map(({ family, label }) => (
@@ -343,9 +330,8 @@ export function App() {
           <ControlSection id="tracking" title="Letter spacing">
             {numeric("tracking")}
           </ControlSection>
-        </Panel></TabsContent>
-                <TabsContent value="other" forceMount className="data-[state=inactive]:hidden"><Panel title="Other">
-          <p className="text-sm text-muted-foreground">Changes apply immediately after validation. Radius and shadow controls derive their full scales.</p>
+        </div></TabsContent>
+                <TabsContent value="other" forceMount className="data-[state=inactive]:hidden"><div className="grid gap-3 px-4 pb-4">
           {manualLockNote}
           <ControlSection id="radius" title="Radius">
             {numeric("radius")}
@@ -375,17 +361,14 @@ export function App() {
           <ControlSection id="motion" title="Motion">
             {numeric("motion")}
           </ControlSection>
-        </Panel></TabsContent>
-                <TabsContent value="command" forceMount className="data-[state=inactive]:hidden"><Panel title="Design command">
-          <p className="text-sm text-muted-foreground">
-            Describe a directional change (e.g. "make it denser and warmer"). One evaluation sends the command to Jev through the
-            localhost product API; deterministic code composes any accepted judgments into a normal mutation proposal below. Nothing
-            applies automatically.
-          </p>
+        </div></TabsContent>
+                <TabsContent value="command" forceMount className="data-[state=inactive]:hidden"><div className="grid gap-3 px-4 pb-4">
           <Field>
-            <FieldLabel htmlFor={commandTextId}>Command</FieldLabel>
+            <FieldDescription id={`${commandTextId}-help`}>Changes are staged for review; nothing applies automatically.</FieldDescription>
+            <FieldLabel htmlFor={commandTextId} className={FIELD_LABEL_CLASS}>Command</FieldLabel>
             <Textarea
               id={commandTextId}
+              aria-describedby={`${commandTextId}-help`}
               value={commandText}
               disabled={locked}
               onChange={(e) => setCommandText(e.target.value)}
@@ -460,51 +443,9 @@ export function App() {
               )}
             </div>
           )}
-        </Panel><div id="proposal-editor"><Panel title="Mutation proposal">
-          <p className="text-sm text-muted-foreground">
-            Paste one MutationProposalV1 (1 to 8 existing operations against one base). Staging previews the candidate without changing the active theme.
-          </p>
-          <Field data-invalid={proposalIssues.length > 0}>
-            <FieldLabel htmlFor={proposalTextId}>Proposal JSON</FieldLabel>
-            <Textarea
-              id={proposalTextId}
-              value={proposalText}
-              onChange={(e) => setProposalText(e.target.value)}
-              aria-invalid={proposalIssues.length > 0}
-              aria-describedby={proposalIssues.length > 0 ? `${proposalTextId}-error` : undefined}
-              spellCheck={false}
-              rows={8}
-              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 font-mono text-base md:text-xs shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive"
-            />
-            {proposalIssues.length > 0 && (
-              <FieldError id={`${proposalTextId}-error`} data-testid="proposal-error">
-                Rejected, not staged: {describeIssues(proposalIssues)}.
-              </FieldError>
-            )}
-          </Field>
-          <div className="flex flex-wrap gap-2">
-            <Button disabled={locked} onClick={stage}>
-              Stage proposal
-            </Button>
-            <Button variant="outline" onClick={() => setProposalText(exampleProposalJson(current, `example-${session.records.length + 1}`))}>
-              Insert example
-            </Button>
-          </div>
-          {proposalResult && (
-            <p data-testid="proposal-result" role="status" className="text-sm text-muted-foreground">
-              {proposalResult}
-            </p>
-          )}
-          {session.records.length > 0 && (
-            <ul data-testid="proposal-log" className="grid gap-1 text-sm">
-              {session.records.map(({ proposalId: id, status }) => (
-                <li key={id} data-proposal-id={id} data-status={status}>
-                  <code>{id}</code>: {status}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel></div></TabsContent>
+          {proposalIssues.length > 0 && <FieldError data-testid="proposal-error">Proposal rejected: {describeIssues(proposalIssues)}.</FieldError>}
+          {proposalResult && <p data-testid="proposal-result" role="status" className="text-sm text-muted-foreground">{proposalResult}</p>}
+        </div></TabsContent>
               </Tabs>
             </TabsContent>
           </ResizablePanel>
@@ -517,7 +458,6 @@ export function App() {
                   <Label htmlFor="color-mode-switch">Dark mode</Label>
                 </div>
                 <div className="ml-auto flex flex-wrap items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => { setMobileMode("controls"); setCategory("command"); requestAnimationFrame(() => document.getElementById(proposalTextId)?.focus()) }}>Proposal</Button>
                   <Button variant="outline" size="sm" disabled={locked} onClick={() => download(exportThemeJson(current))}>
                     Export JSON
                   </Button>
@@ -602,7 +542,7 @@ export function App() {
 
 </div>
               <div className="quiet-preview-body">
-                <div role="region" aria-label="Preview viewport" tabIndex={0} className="quiet-viewport rounded-md border outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                <div role="region" aria-label="Preview viewport" tabIndex={0} className="quiet-viewport outline-none focus-visible:ring-inset focus-visible:ring-[3px] focus-visible:ring-ring/50">
                   <iframe ref={iframeRef} title="Component preview" src="/?preview=1" data-testid="preview-frame" className="block size-full border-0" />
                 </div>
               </div>

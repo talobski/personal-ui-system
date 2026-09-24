@@ -73,29 +73,3 @@ export function exportThemeJson(theme: Theme): { filename: string; json: string 
 export function previewVariablesCss(theme: Theme): string {
   return renderShadcnTailwindCss(theme).split("@theme inline")[0]!.trimEnd()
 }
-
-/** The proposal text box holds JSON only; anything unparsable is reported and never reaches the mutation boundary. */
-export function parseProposalJson(text: string): Outcome<{ value: unknown }> {
-  try {
-    return { ok: true, value: JSON.parse(text) }
-  } catch {
-    return { ok: false, issues: [{ ruleId: "workbench.proposal.invalid-json", path: "" }] }
-  }
-}
-
-/** A valid example proposal for the active theme, so a person can see the envelope and try Apply / Discard. */
-export const exampleProposalJson = (theme: Theme, proposalId: string): string =>
-  JSON.stringify(
-    {
-      schemaVersion: "1.0",
-      proposalId,
-      base: { themeId: theme.id, revision: theme.revision },
-      provenance: { source: "manual", sourceId: "workbench-example", createdAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"), intentSummary: "Softer corners, slightly denser." },
-      operations: [
-        { op: "setRadius", value: "1rem" },
-        { op: "setDensity", value: 0.9 },
-      ],
-    },
-    null,
-    2
-  )

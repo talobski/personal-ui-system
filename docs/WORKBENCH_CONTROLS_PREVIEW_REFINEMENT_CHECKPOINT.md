@@ -4,12 +4,139 @@ Phase: `workbench-controls-preview-refinement-v1-001`
 Branch: `loop/workbench-controls-preview-refinement-v1-001`
 Prepared base: `c68c8a2fd4eec0e78ba9e4a82c5fa4353a0413d9`
 Contract: `docs/WORKBENCH_CONTROLS_PREVIEW_REFINEMENT_CONTRACT.md`
-Status: PARTIAL, handed off because Claude capacity is low (owner-authorized). This is not a complete candidate. It is
-not accepted and not promoted.
+Status: PARTIAL — continuation implementation preserved; browser and Git-write
+capabilities blocked. Not accepted or promoted.
+Handoff/current HEAD: `628d1af11843ee661384b424585cdda6edaf515f`.
 
-HEAD: the commit that adds this file, which is the tip of the branch (`git log -1`). Its parent is `9daaea6` (unit 1).
-The worktree is clean after that commit.
+## Astra continuation — current state (2026-09-25 Asia/Manila)
 
+The exact handoff audit found HEAD `628d1af11843ee661384b424585cdda6edaf515f`,
+branch `loop/workbench-controls-preview-refinement-v1-001`, and a clean worktree.
+AGENTS, BRIEF, the Loop specification, local supplied task, contract, and this
+checkpoint were read before editing. The handoff diff was inspected. Baseline
+`pnpm typecheck` passed; `pnpm test` passed **632 tests / 36 files** after
+setting TMPDIR inside this writable worktree. Its first invocation failed before
+running tests because the system temporary directory is not writable.
+
+**Current status: implementation and test port preserved, browser execution and
+commit blocked by the worker sandbox. HEAD has NOT moved. The candidate is
+uncommitted and is NOT clean, accepted, or promoted.** No escalation was requested.
+
+### Continuation changes
+
+- `apps/workbench/src/App.tsx`: full-region grouped Base UI Select with Built-in
+  and Custom groups, canonical selection/persistence and disabled state retained;
+  nonvisual status hook on the shell; metadata row removed. Removed repeating
+  tab headings and intros. Command uses FIELD_LABEL_CLASS and an associated
+  safety description. Removed manual JSON authoring, toolbar Proposal action,
+  parser state, example insertion, and rendered proposal log. Retained session
+  records, Design Command staging, errors/result, candidate review, Apply/Discard,
+  stale handling, validation, locking, and active/candidate isolation.
+- `apps/workbench/src/styles.css`: zero preview-body padding, zero border/radius
+  on the viewport, flex fill with min-height zero, full selector-region styling,
+  inset focus indicator, and gallery-only eight-root shadow suppression.
+- `apps/workbench/src/lifecycle.ts` and `lifecycle.test.ts`: removed only the
+  unused manual JSON parser/example helper and their two tests. Remaining
+  proposal lifecycle tests still exercise duplicate IDs, mismatched bases,
+  stale Apply, atomic validation and persistence.
+- `e2e/design-command-fixture.ts`: deterministic intercepted product API
+  responses with no provider call; real client, proposal construction and gate.
+- Ported `design-command.spec.ts`, `design-command-live-boundary.spec.ts`,
+  `proposal-preview.spec.ts`, `theme-v2-live-controls.spec.ts`,
+  `workbench.spec.ts`, `workbench-navigation.ts`, and
+  `quiet-workspace.spec.ts`. Metadata assertions now use canonical style
+  attributes/shell status. Font search replaces free-text stacks. Removed
+  unreachable arbitrary-envelope browser cases; frozen core/lifecycle tests
+  retain those guarantees, and browser tests now reject invalid, oversized and
+  unknown command operations. Keyboard Evaluate/Discard/Evaluate/Apply and
+  computed changes in all six categories remain covered.
+- Added exact color-order, ordinary label style, removed UI, eight shadowless
+  roots and retained elevation-sample assertions. Added desktop/mobile flush
+  geometry, Select keyboard/persistence/groups and post-resize popup alignment
+  plus option hit-testing, and open-state axe checks. Added all 24 fonts'
+  registered local-face loading in shell/iframe, canonical export, Save/reload
+  per option, keyboard/pointer/search and same-origin font request audit.
+- `tools/verify-workbench-controls-preview-refinement.mjs`: scans committed and
+  uncommitted candidate paths against prepared base; freezes existing resources,
+  schemas/tokens/mutations/persistence/server/Jev, dependencies, lockfile and
+  handoff font catalog; checks 16 exact registry/catalog IDs, 11 operations,
+  absent manual authoring, preserved proposal calls and bundle/font/network/
+  credential boundaries. This is a producer scan, not protected verification.
+
+### Current producer evidence
+
+Local raw evidence is under `test-results/wcpr-evidence/` (gitignored; preserve
+it before a browser run cleans test-results). The final manifest records file
+SHA-256 values, environment, criterion coverage and limitations.
+
+| Command | Observed result | Raw evidence |
+| --- | --- | --- |
+| `TMPDIR="$PWD/test-results/tmp" pnpm test` | 36 files / **630 tests pass**; minus exactly 2 removed authoring-helper tests | unit.log |
+| `pnpm typecheck` | pass, includes e2e and Jev typechecks | typecheck.log |
+| `pnpm registry:build` | pass, 16 resources | registry.log |
+| `TMPDIR="$PWD/test-results/tmp" pnpm build:workbench` | pass; existing large-bundle warning | workbench-build.log |
+| `TMPDIR="$PWD/test-results/tmp" STORYBOOK_DISABLE_TELEMETRY=1 pnpm build:storybook` | pass; build directive warnings | storybook-build.log |
+| `pnpm test:browser:storybook --list` | 80 tests / 17 files collected | storybook-collection.log |
+| `pnpm test:browser:workbench --list` | 80 tests / 6 files collected (includes expected desktop-only mobile skip) | workbench-collection.log |
+| `pnpm test:browser:design-command-live --list` | 1 test collected | boundary-collection.log |
+| `node tools/verify-workbench-controls-preview-refinement.mjs` | pass on uncommitted candidate; frozen hashes in report | verifier.json |
+| `git diff --check` | pass | diff-check.log |
+
+Verifier correction: the added font URL scan initially rejected Vite's embedded
+`data:font/woff` fallback from pinned Lato. This was a verifier false positive:
+embedded local font bytes make no runtime request. The scan now allows local/
+embedded assets while rejecting HTTP/protocol-relative font URLs. Final scan passes.
+
+Recovery files: `test-results/wcpr-evidence/continuation.patch` contains the tracked
+diff plus both new files; `manifest.json` records source/report hashes and blockers.
+Do not apply that patch over this already-modified worktree.
+
+Browser attempt:
+`TMPDIR="$PWD/test-results/tmp" pnpm test:browser:workbench --grep 'fills' --workers=1`
+exited 1 before launching tests: `listen EPERM: operation not permitted
+127.0.0.1:5173` from Vite preview. Full browser matrices and real middleware
+execution were not retried through the same denied server capability.
+Collection is not execution; **no current runtime geometry, font request,
+screenshot, or decoded axe pass is claimed**.
+
+Commit attempt: `git diff --check && git add apps/workbench/src/App.tsx
+apps/workbench/src/styles.css apps/workbench/src/lifecycle.ts
+apps/workbench/src/lifecycle.test.ts && git commit -m
+'Refine Workbench controls and edge-to-edge preview'` stopped at git add:
+`Unable to create .../.git/worktrees/workbench-controls-preview-refinement-v1-001/index.lock:
+Operation not permitted`. The Git metadata directory is read-only in the supplied
+worker profile. No commit was created; no index lock or canonical runtime state
+was modified.
+
+### Remaining work and unresolved risks
+
+1. Lead must preserve/review the uncommitted files and commit from an authorized
+   Git-write environment; this worker cannot fulfill the clean-committed-candidate
+   requirement under the supplied profile.
+2. Execute all three collected browser suites in an authorized local renderer
+   environment, decode axe attachments, and retain desktop/mobile screenshots.
+   The added browser assertions are typechecked and collected but unexecuted.
+   Any test/product correction must be justified by concrete failing evidence.
+3. **Special Select risk remains unresolved:** the existing in-place fixed popup
+   implementation is unchanged. New tests compare its rect with the full trigger
+   before/after resizing and hit-test an option to detect clipping. No actual
+   browser geometry was available, so no portal/positioning correction was made.
+4. Runtime font loading, all-option persistence/export, gallery shadow scope,
+   reduced motion, responsive accessibility and edge-to-edge geometry still need
+   those browser measurements. Build/static/unit evidence does not substitute.
+5. Re-run the phase scan on the exact clean committed candidate, then hand it to
+   the Lead. WCPR-18 protected fresh verification and owner visual review remain
+   reserved, outside producer authority.
+
+No dependencies, font catalog, public resources, frozen product boundaries,
+credentials, external network, agents, canonical .loop runtime state, deployment,
+acceptance or promotion were added or invoked.
+
+---
+
+The sections below are the **historical Claude handoff at 628d1af**, retained for
+provenance. Their “remaining scope” and “next safe action” lists are superseded by
+the current continuation state above.
 ## Completed scope
 
 - **Unit 1: resources (commit `9daaea6`). Covers WCPR-04, WCPR-05 (resource side), WCPR-11, WCPR-15 (Storybook

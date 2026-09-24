@@ -26,7 +26,7 @@ test("the real localhost product API middleware (vite dev) fails closed with tra
   // Fail-closed: no proposal staged, no theme mutation, and the real product API never even attempted the one
   // outbound TypeSafe call this command would otherwise have made.
   await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
-  await expect(page.getByTestId("theme-revision")).toHaveText("1")
+  await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
   expect(outboundToTypeSafe).toEqual([])
 
   // The rejected outcome and page never contain a credential sentinel — including the Loop/generic sentinels this

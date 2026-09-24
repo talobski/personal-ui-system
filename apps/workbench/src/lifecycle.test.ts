@@ -6,11 +6,9 @@ import {
   customThemeId,
   editColor,
   editTheme,
-  exampleProposalJson,
   exportThemeJson,
   DEFAULT_THEME_ID,
   loadBuiltInThemes,
-  parseProposalJson,
   previewVariablesCss,
 } from "./lifecycle"
 import { buildFontOperation, buildShadowColorOperation, COLOR_GROUPS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readShadowColor } from "./controls"
@@ -409,14 +407,4 @@ describe("mutation proposal preview (non-committing)", () => {
     expect(JSON.stringify(storage.data)).not.toBe(before.storage)
   })
 
-  it("parses proposal JSON and reports unparsable text without reaching core", () => {
-    expect(parseProposalJson('{"a":1}')).toEqual({ ok: true, value: { a: 1 } })
-    expect(parseProposalJson("{nope")).toEqual({ ok: false, issues: [{ ruleId: "workbench.proposal.invalid-json", path: "" }] })
-  })
-
-  it("offers an example proposal that stages against the active theme", () => {
-    const example = parseProposalJson(exampleProposalJson(canonical, "example-1"))
-    if (!example.ok) throw new Error("example unparsable")
-    expect(stageProposal(createProposalSession(), canonical, example.value, NOW).ok).toBe(true)
-  })
 })

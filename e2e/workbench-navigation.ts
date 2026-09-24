@@ -21,7 +21,7 @@ export async function setColorMode(page: Page, mode: "light" | "dark") {
 }
 
 /** A colour row's canonical text input (labelled by its token name) in the grouped colour editor. */
-export const colorInput = (page: Page, token: string) => page.getByRole("textbox", { name: token, exact: true })
+export const colorInput = (page: Page, token: string) => page.getByRole("textbox", { name: token.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase()), exact: true })
 
 /** Save from the toolbar; for a built-in this opens Save As, which is completed with `name` when given. */
 export async function saveTheme(page: Page, name?: string) {
@@ -37,17 +37,19 @@ export async function saveTheme(page: Page, name?: string) {
 /** Selects a theme through the Active theme select (a built-in id or a saved id). */
 export async function selectTheme(page: Page, id: string) {
   await workspaceMode(page, "Controls")
-  await page.getByLabel("Active theme").selectOption(id)
-  await expect(page.getByTestId("theme-id")).toHaveText(id)
+  const name = id === "default" ? "Default" : id === "quiet-editorial" ? "Quiet Editorial" : await page.evaluate((id) => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes[id].name, id)
+  await page.getByRole("combobox", { name: "Active theme" }).click()
+  await page.getByRole("option", { name, exact: true }).click()
+  await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", id)
 }
 
 /** Check every active-state surface in its real navigation context, including the new modal gate. */
 export async function assertActiveControls(page: Page, disabled: boolean) {
   const check = async (control: ReturnType<Page["getByLabel"]>) => disabled ? expect(control).toBeDisabled() : expect(control).toBeEnabled()
   await editorCategory(page, "Colors")
-  for (const c of [colorInput(page, "primary"), page.getByLabel("primary picker", { exact: true }), colorInput(page, "chart-5"), page.getByLabel("Active theme")]) await check(c)
+  for (const c of [colorInput(page, "primary"), page.getByLabel("Primary picker", { exact: true }), colorInput(page, "chart-5"), page.getByLabel("Active theme")]) await check(c)
   await editorCategory(page, "Typography")
-  for (const c of [page.getByLabel("Sans font stack"), page.getByRole("textbox", { name: "Letter spacing" }), page.getByRole("slider", { name: "Letter spacing" })]) await check(c)
+  for (const c of [page.getByLabel("Sans font"), page.getByLabel("Serif font"), page.getByLabel("Mono font"), page.getByRole("textbox", { name: "Letter spacing" }), page.getByRole("slider", { name: "Letter spacing" })]) await check(c)
   await editorCategory(page, "Other")
   for (const c of [page.getByRole("textbox", { name: "Radius" }), page.getByRole("slider", { name: "Radius" }), page.getByLabel("Shadow color"), page.getByRole("slider", { name: "Shadow blur" })]) await check(c)
   // Active-versus-staged clarity: the manual panel says why its controls are paused.
