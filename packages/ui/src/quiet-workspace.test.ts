@@ -1,11 +1,14 @@
 import { readFileSync } from "node:fs"
 import { expect, it } from "vitest"
 import { validateComponentState, evaluateContextRequest, getContract } from "@personal-ui/core"
-import { editorBounds, initialPreviewWidth } from "../../../apps/workbench/src/layout"
+import * as layout from "../../../apps/workbench/src/layout"
 
-it("initializes preview width at the outer Workbench desktop breakpoint", () => {
-  for (const width of [320, 390, 1023]) expect(initialPreviewWidth(width)).toBe("mobile")
-  for (const width of [1024, 1440, 1600]) expect(initialPreviewWidth(width)).toBe("desktop")
+const { editorBounds } = layout
+
+it("has no fixed preview width: the preview fills the panel and follows the real viewport (WTEP-02)", () => {
+  expect(Object.keys(layout)).toEqual(["editorBounds"])
+  const app = readFileSync(new URL("../../../apps/workbench/src/App.tsx", import.meta.url), "utf8")
+  expect(app).not.toMatch(/WIDTHS|Preview width|Mobile 390|Desktop 1024|width: \d+px|height: 720/)
 })
 
 it("clamps editor bounds at desktop sizes without widening the theme", () => {

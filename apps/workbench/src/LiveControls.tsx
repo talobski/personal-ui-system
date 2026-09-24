@@ -7,7 +7,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui
 import { Input } from "@personal-ui/ui/components/input"
 import { Slider } from "@personal-ui/ui/components/slider"
 
-import { parseNumericDraft, roundToStep } from "./controls"
+import { parseNumericDraft, pickedColorInput, pickerHex, roundToStep } from "./controls"
 import type { NumericControl } from "./controls"
 import type { WorkbenchIssue } from "./lifecycle"
 
@@ -214,6 +214,86 @@ export function LiveTextField({
           Stored as <code className="break-all">{value}</code>
         </FieldDescription>
       )}
+      {error !== null && (
+        <FieldError id={errorId} data-testid={`${id}-error`}>
+          {error}
+        </FieldError>
+      )}
+    </Field>
+  )
+}
+
+/**
+ * One colour token row: a native colour picker (display sRGB) and the canonical text input, both entering through the
+ * same `setColor` path. Valid values apply immediately; a rejected text draft stays visible and never activates.
+ */
+export function LiveColorField({
+  id,
+  label,
+  value,
+  build,
+  disabled,
+  apply,
+}: {
+  id: string
+  label: string
+  value: string
+  build: (raw: string) => ThemeOperation
+  disabled: boolean
+  apply: ApplyManual
+}) {
+  const [draft, setDraft] = React.useState(value)
+  const [error, setError] = React.useState<string | null>(null)
+  const focused = React.useRef(false)
+  React.useEffect(() => {
+    if (focused.current) return
+    setDraft(value)
+    setError(null)
+  }, [value])
+  useReportInvalid(id, error !== null)
+
+  const inputId = `${id}-input`
+  const errorId = `${id}-error`
+  const commit = (raw: string) => {
+    const issues = apply(() => build(raw))
+    setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}. Expected HEX, rgb(a), hsl(a), or oklch inside the Display P3 gamut.` : null)
+  }
+
+  return (
+    <Field data-invalid={error !== null} data-testid={`control-${id}`} className="gap-1.5">
+      <FieldLabel htmlFor={inputId} className="font-mono text-xs font-normal text-muted-foreground">
+        {label}
+      </FieldLabel>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          aria-label={`${label} picker`}
+          data-testid={`${id}-picker`}
+          value={pickerHex(value)}
+          disabled={disabled}
+          onChange={(event) => commit(pickedColorInput(event.target.value, value))}
+          className="size-8 shrink-0 cursor-pointer appearance-none rounded-md border border-input bg-transparent p-0.5 outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 [&::-moz-color-swatch]:rounded-sm [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+        />
+        <Input
+          id={inputId}
+          value={draft}
+          disabled={disabled}
+          autoComplete="off"
+          spellCheck={false}
+          aria-invalid={error !== null}
+          aria-describedby={error !== null ? errorId : undefined}
+          className="h-8 font-mono md:text-xs"
+          onFocus={() => (focused.current = true)}
+          onBlur={() => {
+            focused.current = false
+            if (error === null) setDraft(value)
+          }}
+          onChange={(event) => {
+            setDraft(event.target.value)
+            commit(event.target.value.trim())
+          }}
+        />
+      </div>
       {error !== null && (
         <FieldError id={errorId} data-testid={`${id}-error`}>
           {error}

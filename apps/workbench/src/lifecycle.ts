@@ -1,4 +1,4 @@
-import { applyMutation, diffThemeTokens, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, themeSchema, validateTheme } from "@personal-ui/core"
+import { applyMutation, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, themeSchema, validateTheme } from "@personal-ui/core"
 import type { ColorToken, MutationError, Theme, ThemeOperation } from "@personal-ui/core"
 import defaultFixture from "@personal-ui/core/theme/fixtures/default.json"
 import quietEditorialFixture from "@personal-ui/core/theme/fixtures/valid.json"
@@ -38,24 +38,30 @@ export function editTheme(theme: Theme, operation: ThemeOperation): Outcome<{ th
 export const editColor = (theme: Theme, mode: Mode, token: ColorToken, value: string) =>
   editTheme(theme, { op: "setColor", mode, token, value })
 
-/** Fork validation reuses the theme schema for id/name and adds a collision rule against known (built-in and saved) ids. */
-export function forkTheme(theme: Theme, id: string, name: string, takenIds: readonly string[]): Outcome<{ theme: Theme }> {
-  const candidate = { ...structuredClone(theme), id, name, revision: 1 }
-  const checked = themeSchema.safeParse(candidate)
-  const issues: WorkbenchIssue[] = checked.success
-    ? []
-    : checked.error.issues
-        .filter((issue) => issue.path[0] === "id" || issue.path[0] === "name")
-        .map((issue) => ({ ruleId: "workbench.fork.invalid", path: String(issue.path[0]) }))
-  if (issues.length === 0 && takenIds.includes(id)) issues.push({ ruleId: "workbench.fork.duplicate-id", path: "id" })
-  return issues.length > 0 || !checked.success ? { ok: false, issues } : { ok: true, theme: checked.data }
+/**
+ * A local custom theme id derived deterministically from its name: lowercase words joined by hyphens, suffixed `-2`,
+ * `-3`, ... when that id is already taken by a built-in or a saved theme. Returns null for a name the schema rejects.
+ */
+export function customThemeId(name: string, takenIds: readonly string[]): string | null {
+  const words = name.trim().toLowerCase().split(/\s+/).filter(Boolean)
+  if (words.length === 0 || words.some((word) => !/^[a-z0-9]+$/.test(word))) return null
+  const base = words.join("-")
+  let id = base
+  for (let n = 2; takenIds.includes(id); n++) id = `${base}-${n}`
+  return id
 }
 
-export type DiffEntry = { path: string; baseline: unknown; current: unknown }
-
-/** Compact structured diff of token values (`$value` leaves), sorted by path; identity and revision are excluded. */
-export const diffThemes = (baseline: Theme, current: Theme): DiffEntry[] =>
-  diffThemeTokens(baseline, current).map(({ path, before, after }) => ({ path, baseline: before, current: after }))
+/**
+ * Save As: a schema-valid local custom copy of the theme under a new name, with a derived safe id and revision 1.
+ * The source (typically an immutable built-in) is never modified. Only the name is user input.
+ */
+export function createCustomTheme(theme: Theme, name: string, takenIds: readonly string[]): Outcome<{ theme: Theme }> {
+  const trimmed = name.trim()
+  const id = customThemeId(trimmed, takenIds)
+  const checked = themeSchema.safeParse({ ...structuredClone(theme), id: id ?? "", name: trimmed, revision: 1 })
+  if (id === null || !checked.success) return { ok: false, issues: [{ ruleId: "workbench.save-as.invalid-name", path: "name" }] }
+  return { ok: true, theme: checked.data }
+}
 
 /** Portable export: schema-validated theme JSON, deterministic key order from the schema parse. */
 export function exportThemeJson(theme: Theme): { filename: string; json: string } {

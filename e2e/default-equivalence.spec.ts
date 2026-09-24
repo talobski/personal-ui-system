@@ -1,4 +1,4 @@
-import { workspaceMode, previewStates, selectTheme } from "./workbench-navigation"
+import { previewStates, selectTheme, setColorMode } from "./workbench-navigation"
 import { readFileSync, writeFileSync } from "node:fs"
 import { expect, test } from "@playwright/test"
 import type { Locator, Page } from "@playwright/test"
@@ -13,7 +13,8 @@ import type { Locator, Page } from "@playwright/test"
  *   button "default"                  -> font-family, box-shadow, border-radius   (shadow-xs, rounded-md)
  *   input labelled "Default"          -> font-family, box-shadow, border-radius   (shadow-xs, rounded-md)
  *   [data-testid=elevation-sample]    -> font-family, box-shadow, border-radius   (shadow-md, rounded-md)
- *   [data-slot=dialog-content] at the 1024px preview width -> font-family, box-shadow, border-radius (shadow-lg, rounded-lg)
+ *   [data-slot=dialog-content] in the desktop preview panel -> font-family, box-shadow, border-radius (shadow-lg, rounded-lg)
+ *     (the preview follows the real viewport, so at 390x844 the pattern is a Drawer and this sample is desktop-only)
  * Not sampled: font-mono, and the sm radius/shadow tokens (no preview element consumes them).
  *
  * Recapture (only on the pre-indirection renderer): CAPTURE_DEFAULT_STYLES=1 pnpm test:browser:workbench.
@@ -37,11 +38,8 @@ async function collect(page: Page) {
   await previewStates(page)
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-theme-id", "quiet-editorial")
-  await workspaceMode(page, "Preview")
-  await page.getByRole("radio", { name: "Light", exact: true }).click()
+  await setColorMode(page, "light")
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-mode", "light")
-  await workspaceMode(page, "Preview")
-  await page.getByRole("radio", { name: "Desktop 1024" }).click()
 
   const result: Record<string, Record<string, string>> = {}
   result["body"] = { fontFamily: (await sample(frame.locator("body"))).fontFamily! }
@@ -49,6 +47,8 @@ async function collect(page: Page) {
   result["input-default"] = await sample(frame.getByRole("textbox", { name: "Default", exact: true }))
   result["elevation-sample"] = await sample(frame.getByTestId("elevation-sample"))
 
+  if (page.viewportSize()!.width < 1024) return result
+  expect(await frame.locator("html").evaluate(() => innerWidth)).toBeGreaterThan(640)
   await frame.getByRole("button", { name: "Open dialog" }).click()
   const dialog = frame.locator('[data-slot="dialog-content"]')
   await expect(dialog).toBeVisible()
@@ -70,5 +70,7 @@ test("Quiet Editorial resolves to the pre-indirection computed font, shadow, and
     writeFileSync(FIXTURE, `${JSON.stringify(actual, null, 2)}\n`)
     return
   }
-  expect(actual).toEqual(JSON.parse(sameBlack(readFileSync(FIXTURE, "utf8"))))
+  const expected = JSON.parse(sameBlack(readFileSync(FIXTURE, "utf8")))
+  if (!("dialog-content" in actual)) delete expected["dialog-content"]
+  expect(actual).toEqual(expected)
 })

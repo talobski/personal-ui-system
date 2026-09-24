@@ -1,4 +1,4 @@
-import { workspaceMode, editorCategory, previewStates, openFork } from "./workbench-navigation"
+import { colorInput, editorCategory, previewStates, saveTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { FrameLocator, Page, TestInfo } from "@playwright/test"
@@ -59,18 +59,18 @@ async function settled(frame: FrameLocator, selector: string) {
 
 test.describe("workbench theme lifecycle", () => {
   for (const mode of ["light", "dark"] as const) {
-    test(`preview, edit, fork, save, reload, diff, export — ${mode}`, async ({ page }, testInfo) => {
+    test(`preview, edit, Save As, reload, export — ${mode}`, async ({ page }, testInfo) => {
       const frame = previewFrame(page)
       await openWorkbench(page)
-      await workspaceMode(page, "Preview")
-      await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
+      await setColorMode(page, mode)
       await expect(frame.getByTestId("preview")).toHaveAttribute("data-mode", mode)
       await expect(page.locator("html")).toHaveClass(mode === "dark" ? /dark/ : /^(?!.*dark).*$/)
 
-      // Fresh state: the built-in Default, no differences from its baseline.
+      // Fresh state: the built-in Default; no baseline-diff UI or Fork terminology anywhere.
       await expect(page.getByTestId("theme-id")).toHaveText("default")
       await workspaceMode(page, "Controls")
-      await expect(page.getByTestId("diff-empty")).toBeVisible()
+      await expect(page.getByTestId("diff-empty")).toHaveCount(0)
+      await expect(page.getByText(/baseline|fork/i)).toHaveCount(0)
       const baselinePrimary = await previewVar(page, "--primary")
       expect(baselinePrimary).toMatch(/^oklch\(/)
 
@@ -88,86 +88,70 @@ test.describe("workbench theme lifecycle", () => {
       await page.keyboard.type("Keyboard input")
       await expect(defaultInput).toHaveValue("Keyboard input")
 
-      // Preview widths: Drawer at the mobile width, Dialog at the desktop width.
-      for (const [label, width, slot] of [
-        ["Mobile 390", 390, "drawer-content"],
-        ["Desktop 1024", 1024, "dialog-content"],
-      ] as const) {
-        await workspaceMode(page, "Preview")
-        await page.getByRole("radio", { name: label }).click()
-        await expect(page.getByTestId("preview-frame")).toHaveAttribute("style", new RegExp(`width: ${width}px`))
-        await expectNoSeriousViolations(page, `${mode}-${width}-closed`, testInfo)
-        const trigger = frame.getByRole("button", { name: OPEN_BUTTON })
-        await trigger.focus()
-        await page.keyboard.press("Enter")
-        await settled(frame, `[data-slot="${slot}"]`)
-        await page.keyboard.press("Tab")
-        await expect(frame.locator(`[data-slot="${slot}"]:focus, [data-slot="${slot}"] :focus`)).toHaveCount(1)
-        await expectNoSeriousViolations(page, `${mode}-${width}-dialog-open`, testInfo)
-        await page.keyboard.press("Escape")
-        await expect(frame.locator(`[data-slot="${slot}"]`)).toHaveCount(0)
-        await expect(trigger).toBeFocused()
-      }
+      // The preview follows the real viewport: Drawer in the 390px mobile Preview mode, Dialog in the desktop panel.
+      const width = page.viewportSize()!.width
+      const slot = width < 1024 ? "drawer-content" : "dialog-content"
+      await workspaceMode(page, "Preview")
+      await expectNoSeriousViolations(page, `${mode}-${width}-closed`, testInfo)
+      const trigger = frame.getByRole("button", { name: OPEN_BUTTON })
+      await trigger.focus()
+      await page.keyboard.press("Enter")
+      await settled(frame, `[data-slot="${slot}"]`)
+      await page.keyboard.press("Tab")
+      await expect(frame.locator(`[data-slot="${slot}"]:focus, [data-slot="${slot}"] :focus`)).toHaveCount(1)
+      await expectNoSeriousViolations(page, `${mode}-${width}-dialog-open`, testInfo)
+      await page.keyboard.press("Escape")
+      await expect(frame.locator(`[data-slot="${slot}"]`)).toHaveCount(0)
+      await expect(trigger).toBeFocused()
 
-      // Valid edit: applied live (no Apply step), previewed, revision bumped, shown in the baseline diff.
-      await editorCategory(page, "Colors")
-      await page.getByLabel("Token").selectOption("primary")
+      // Valid edit: applied live (no Apply step), previewed, revision bumped.
       await editorCategory(page, "Colors")
       await expect(page.getByRole("button", { name: /^Apply/ })).toHaveCount(0)
-      await page.getByLabel("Color value").fill(EDIT[mode])
+      await colorInput(page, "primary").fill(EDIT[mode])
       await expect(page.getByTestId("theme-revision")).toHaveText("2")
       await expect.poll(() => previewVar(page, "--primary")).toBe(EDIT[mode])
-      await expect(page.getByTestId("diff-count")).toHaveText("1")
-      await expect(page.getByTestId("diff-list").locator(`[data-path="colors.${mode}.primary"]`)).toContainText(EDIT[mode])
-      await expect(page.getByTestId("color-value-error")).toHaveCount(0)
+      await expect(page.getByTestId("theme-status")).toHaveText("built-in, edited")
+      await expect(page.getByTestId("color-primary-error")).toHaveCount(0)
 
       // Invalid edit: rejected with a stable rule, nothing activates.
       await editorCategory(page, "Colors")
-      await page.getByLabel("Color value").fill("red")
-      await expect(page.getByTestId("color-value-error")).toContainText("mutation.invalid-value at operations[0].value")
+      await colorInput(page, "primary").fill("red")
+      await expect(page.getByTestId("color-primary-error")).toContainText("mutation.invalid-value at operations[0].value")
       await expect(page.getByTestId("theme-revision")).toHaveText("2")
       expect(await previewVar(page, "--primary")).toBe(EDIT[mode])
-      await expect(page.getByTestId("diff-count")).toHaveText("1")
-      await expect(page.getByLabel("Color value")).toHaveAttribute("aria-invalid", "true")
+      await expect(colorInput(page, "primary")).toHaveAttribute("aria-invalid", "true")
       await expectNoSeriousViolations(page, `${mode}-edit-error`, testInfo)
 
-      // Fork: invalid id rejected, valid id/name accepted.
-      await openFork(page)
-      await page.getByLabel("Fork id").fill("Bad Id")
-      await page.getByLabel("Fork name").fill("My Fork")
-      await page.getByRole("dialog").getByRole("button", { name: "Fork theme", exact: true }).click()
-      await expect(page.getByTestId("fork-error")).toContainText("workbench.fork.invalid at id")
+      // Save As: invalid name rejected, valid name creates, saves, and selects a custom copy.
+      await saveTheme(page, "   ")
+      await expect(page.getByTestId("save-as-error")).toBeVisible()
       await expect(page.getByTestId("theme-id")).toHaveText("default")
-      await expect(page.getByLabel("Fork id")).toHaveAttribute("aria-invalid", "true")
-      await expectNoSeriousViolations(page, `${mode}-fork-error`, testInfo)
-      await openFork(page)
-      await page.getByLabel("Fork id").fill("my-fork")
-      await page.getByRole("dialog").getByRole("button", { name: "Fork theme", exact: true }).click()
-      await expect(page.getByTestId("theme-id")).toHaveText("my-fork")
-      await expect(page.getByTestId("theme-name")).toHaveText("My Fork")
-      await expect(page.getByTestId("theme-status")).toHaveText("unsaved")
+      await expectNoSeriousViolations(page, `${mode}-save-as-error`, testInfo)
+      await page.getByRole("dialog").getByLabel("Theme name").fill("My Theme")
+      await page.getByRole("dialog").getByRole("button", { name: "Save theme", exact: true }).click()
+      await expect(page.getByRole("dialog")).toHaveCount(0)
+      await expect(page.getByTestId("theme-id")).toHaveText("my-theme")
+      await expect(page.getByTestId("theme-status")).toHaveText("custom, saved")
+      await expect(page.getByTestId("notice")).toContainText('Saved "My Theme" as a custom theme')
 
-      // Save, then survive a browser refresh.
-      await workspaceMode(page, "Preview")
-      await page.getByRole("button", { name: "Save theme" }).click()
-      await expect(page.getByTestId("theme-status")).toHaveText("saved")
+      // Survive a browser refresh.
       await page.reload()
       await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
-      await expect(page.getByTestId("theme-id")).toHaveText("my-fork")
-      await expect(page.getByTestId("theme-status")).toHaveText("saved")
-      await expect(page.getByTestId("diff-list").locator(`[data-path="colors.${mode}.primary"]`)).toContainText(EDIT[mode])
-      await workspaceMode(page, "Preview")
-      await page.getByRole("radio", { name: mode === "light" ? "Light" : "Dark", exact: true }).click()
+      await expect(page.getByTestId("theme-id")).toHaveText("my-theme")
+      await expect(page.getByTestId("theme-status")).toHaveText("custom, saved")
+      await setColorMode(page, mode)
       await expect.poll(() => previewVar(page, "--primary")).toBe(EDIT[mode])
+      await editorCategory(page, "Colors")
+      await expect(colorInput(page, "primary")).toHaveValue(EDIT[mode])
 
       // Portable export.
       const download = page.waitForEvent("download")
       await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Export JSON" }).click()
       const file = await download
-      expect(file.suggestedFilename()).toBe("my-fork.theme.json")
+      expect(file.suggestedFilename()).toBe("my-theme.theme.json")
       const exported = JSON.parse(await (await import("node:fs/promises")).readFile((await file.path())!, "utf8"))
-      expect(exported).toMatchObject({ id: "my-fork", name: "My Fork", kind: "personal-ui-theme", revision: 1, schemaVersion: "2.0" })
+      expect(exported).toMatchObject({ id: "my-theme", name: "My Theme", kind: "personal-ui-theme", revision: 1, schemaVersion: "2.0" })
       expect(exported.colors[mode].primary.$value).toBe(EDIT[mode])
 
       await expectNoSeriousViolations(page, `${mode}-after-reload`, testInfo)
