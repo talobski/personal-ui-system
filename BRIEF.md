@@ -1,10 +1,12 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `workbench-theme-editor-polish-v1-001` is accepted at product
-commit `d1db3ab3af931aa66b02119dfe37c2b6dcce7736`. The owner approved the
-visual implementation, protected fresh verification passed after bounded
-control-document and verifier-harness corrections, and the exact candidate was
-promoted through accepted-state-before-main. The earlier
+Status: ACTIVE — `workbench-controls-preview-refinement-v1-001` is accepted at
+product commit `b2952d17f240abb2bf1e7e87f20f14281399015d`. The owner approved
+the final desktop/mobile result, WCPR-16 passed through separately attributed
+protected offline and Lead-owned browser evidence, and the exact candidate was
+promoted through accepted-state-before-main. The protected verifier's blocked
+localhost attempt remains recorded as capability evidence rather than browser
+PASS. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
@@ -37,6 +39,18 @@ immutable-built-in Save As semantics; compacts the theme selector; uses a
 subtle accessible resize divider; and simplifies the toolbar around Dark mode,
 Proposal, Export JSON, and Save. No public resource, schema, token, mutation,
 Design Command, Jev, credential, or network boundary changed.
+
+The accepted controls and preview refinement phase makes the preview truly
+edge-to-edge, replaces the active-theme field with a full-region rich Select,
+and adds searchable locally hosted typography controls for an exact 24-font
+catalog. Select, Combobox, and Chart are accepted public resources, bringing
+the registry to 16. Productive Week uses the accepted Chart implementation;
+the eight gallery roots are shadowless while dedicated elevation evidence is
+retained. Redundant tab copy and manual proposal-authoring UI are removed while
+the Design Command staging lifecycle remains intact. Color sections now use
+the approved ten-group order with every canonical token represented exactly
+once. Theme v2, mutation operations, persistence, Jev, credentials, and
+runtime-network boundaries remain unchanged.
 
 ## V1 product contract
 
