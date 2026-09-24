@@ -1,6 +1,7 @@
 import { applyMutation, diffThemeTokens, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, themeSchema, validateTheme } from "@personal-ui/core"
 import type { ColorToken, MutationError, Theme, ThemeOperation } from "@personal-ui/core"
-import canonicalFixture from "@personal-ui/core/theme/fixtures/valid.json"
+import defaultFixture from "@personal-ui/core/theme/fixtures/default.json"
+import quietEditorialFixture from "@personal-ui/core/theme/fixtures/valid.json"
 
 export type Mode = "light" | "dark"
 
@@ -8,11 +9,17 @@ export type WorkbenchIssue = { ruleId: string; path: string }
 
 export type Outcome<T> = ({ ok: true } & T) | { ok: false; issues: WorkbenchIssue[] }
 
-/** The committed canonical fixture, validated through core; never edited in place. */
-export function loadCanonicalTheme(): Theme {
-  const result = validateTheme(canonicalFixture)
-  if (!result.ok) throw new Error(`canonical theme fixture is invalid: ${JSON.stringify(result.issues)}`)
-  return result.theme
+/** Built-in themes in display order. Default is the fresh-state theme; Quiet Editorial is the migrated v1 fixture. */
+export const DEFAULT_THEME_ID = "default"
+const BUILT_IN_FIXTURES = [defaultFixture, quietEditorialFixture] as const
+
+/** The committed built-in fixtures, validated (and, for v1 input, migrated) through core; never edited in place. */
+export function loadBuiltInThemes(): Theme[] {
+  return BUILT_IN_FIXTURES.map((fixture) => {
+    const result = validateTheme(fixture)
+    if (!result.ok) throw new Error(`built-in theme fixture is invalid: ${JSON.stringify(result.issues)}`)
+    return result.theme
+  })
 }
 
 const fromMutation = (errors: MutationError[]): WorkbenchIssue[] => errors.map(({ ruleId, path }) => ({ ruleId, path }))
@@ -31,7 +38,7 @@ export function editTheme(theme: Theme, operation: ThemeOperation): Outcome<{ th
 export const editColor = (theme: Theme, mode: Mode, token: ColorToken, value: string) =>
   editTheme(theme, { op: "setColor", mode, token, value })
 
-/** Fork validation reuses the theme schema for id/name and adds a collision rule against known ids. */
+/** Fork validation reuses the theme schema for id/name and adds a collision rule against known (built-in and saved) ids. */
 export function forkTheme(theme: Theme, id: string, name: string, takenIds: readonly string[]): Outcome<{ theme: Theme }> {
   const candidate = { ...structuredClone(theme), id, name, revision: 1 }
   const checked = themeSchema.safeParse(candidate)

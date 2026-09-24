@@ -1,0 +1,224 @@
+import * as React from "react"
+
+import type { Theme, ThemeOperation } from "@personal-ui/core"
+import { Button } from "@personal-ui/ui/components/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@personal-ui/ui/components/collapsible"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
+import { Input } from "@personal-ui/ui/components/input"
+import { Slider } from "@personal-ui/ui/components/slider"
+
+import { parseNumericDraft, roundToStep } from "./controls"
+import type { NumericControl } from "./controls"
+import type { WorkbenchIssue } from "./lifecycle"
+
+/**
+ * Applies one operation built against the *latest* active theme and returns the rejection issues (empty when applied).
+ * Manual controls have no Apply step: a valid value becomes active state immediately, an invalid one changes nothing.
+ */
+export type ApplyManual = (build: (theme: Theme) => ThemeOperation) => WorkbenchIssue[]
+
+const describeIssues = (issues: WorkbenchIssue[]) => issues.map((i) => `${i.ruleId} at ${i.path || "(root)"}`).join("; ")
+
+/** Lets a section keep itself open while any control inside it holds a rejected draft (`collapsible.hidden-error`). */
+const InvalidReport = React.createContext<(id: string, invalid: boolean) => void>(() => {})
+
+function useReportInvalid(id: string, invalid: boolean) {
+  const report = React.useContext(InvalidReport)
+  React.useEffect(() => {
+    report(id, invalid)
+    return () => report(id, false)
+  }, [report, id, invalid])
+}
+
+export function ControlSection({ id, title, children, defaultOpen = true }: { id: string; title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = React.useState(defaultOpen)
+  const [invalid, setInvalid] = React.useState<ReadonlySet<string>>(new Set())
+  const report = React.useCallback((control: string, isInvalid: boolean) => {
+    setInvalid((previous) => {
+      if (previous.has(control) === isInvalid) return previous
+      const next = new Set(previous)
+      if (isInvalid) next.add(control)
+      else next.delete(control)
+      return next
+    })
+  }, [])
+  const hasError = invalid.size > 0
+  return (
+    <Collapsible open={open || hasError} onOpenChange={(next) => setOpen(next || hasError)} data-testid={`section-${id}`} data-has-error={hasError} className="grid gap-3 border-t pt-2 first:border-t-0 first:pt-0">
+      <h3 className="text-sm font-medium">
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm" className="w-full justify-between px-2 [&[data-state=open]>svg]:rotate-180">
+            {title}
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 transition-transform motion-reduce:transition-none">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </Button>
+        </CollapsibleTrigger>
+      </h3>
+      <CollapsibleContent className="grid gap-4 px-2 pb-2">
+        <InvalidReport.Provider value={report}>{children}</InvalidReport.Provider>
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}
+
+const formatNumber = (value: number, step: number) => (Number.isFinite(value) ? String(roundToStep(value, step)) : "")
+
+/** Slider + numeric field + visible unit, both bound to one canonical theme value. */
+export function LiveNumberField({ id, control, theme, disabled, apply }: { id: string; control: NumericControl; theme: Theme; disabled: boolean; apply: ApplyManual }) {
+  const value = control.read(theme)
+  const formatted = formatNumber(value, control.step)
+  const [draft, setDraft] = React.useState(formatted)
+  const [error, setError] = React.useState<string | null>(null)
+  const focused = React.useRef(false)
+  // The field follows the active value unless the person is typing in it; a rejected draft is never active state.
+  React.useEffect(() => {
+    if (focused.current) return
+    setDraft(formatted)
+    setError(null)
+  }, [formatted, theme.id])
+  useReportInvalid(id, error !== null)
+
+  const commit = (next: number) => {
+    const rounded = roundToStep(next, control.step)
+    const issues = apply((latest) => control.build(rounded, latest))
+    setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
+  }
+
+  const unitText = control.unit ? ` ${control.unit}` : ""
+  const range = `${control.min}${unitText} to ${control.max}${unitText}`
+  const labelId = `${id}-label`
+  const inputId = `${id}-input`
+  const errorId = `${id}-error`
+  const sliderValue = Number.isFinite(value) ? Math.min(control.max, Math.max(control.min, value)) : control.min
+
+  return (
+    <Field data-invalid={error !== null} data-testid={`control-${id}`}>
+      <div className="flex items-center justify-between gap-2">
+        <FieldLabel id={labelId} htmlFor={inputId}>
+          {control.label}
+        </FieldLabel>
+        <div className="flex items-center gap-1.5">
+          <Input
+            id={inputId}
+            inputMode="decimal"
+            autoComplete="off"
+            spellCheck={false}
+            value={draft}
+            disabled={disabled}
+            aria-invalid={error !== null}
+            aria-describedby={error !== null ? errorId : undefined}
+            className="h-8 w-20 text-right tabular-nums"
+            onFocus={() => (focused.current = true)}
+            onBlur={() => {
+              focused.current = false
+              if (error === null) setDraft(formatted)
+            }}
+            onChange={(event) => {
+              setDraft(event.target.value)
+              const parsed = parseNumericDraft(control, event.target.value)
+              if (parsed === null) return setError(`Enter a number from ${range}. Not applied.`)
+              commit(parsed)
+            }}
+          />
+          {control.unit && (
+            <span className="w-7 text-sm text-muted-foreground" data-testid={`${id}-unit`}>
+              {control.unit}
+            </span>
+          )}
+        </div>
+      </div>
+      <Slider
+        aria-labelledby={labelId}
+        aria-valuetext={`${formatted}${unitText}`}
+        min={control.min}
+        max={control.max}
+        step={control.step}
+        value={[sliderValue]}
+        disabled={disabled}
+        onValueChange={([next]) => {
+          if (next === undefined) return
+          setDraft(formatNumber(next, control.step))
+          commit(next)
+        }}
+      />
+      {error !== null && (
+        <FieldError id={errorId} data-testid={`${id}-error`}>
+          {error}
+        </FieldError>
+      )}
+    </Field>
+  )
+}
+
+/** A text field committed on every change that core admits; rejected text stays local with a visible error. */
+export function LiveTextField({
+  id,
+  label,
+  value,
+  build,
+  hint,
+  disabled,
+  apply,
+  canonicalNote,
+}: {
+  id: string
+  label: string
+  value: string
+  build: (raw: string, theme: Theme) => ThemeOperation
+  hint: string
+  disabled: boolean
+  apply: ApplyManual
+  canonicalNote?: boolean
+}) {
+  const [draft, setDraft] = React.useState(value)
+  const [error, setError] = React.useState<string | null>(null)
+  const focused = React.useRef(false)
+  React.useEffect(() => {
+    if (focused.current) return
+    setDraft(value)
+    setError(null)
+  }, [value])
+  useReportInvalid(id, error !== null)
+
+  const inputId = `${id}-input`
+  const errorId = `${id}-error`
+  const noteId = `${id}-note`
+  const describedBy = [error !== null ? errorId : null, canonicalNote ? noteId : null].filter(Boolean).join(" ") || undefined
+
+  return (
+    <Field data-invalid={error !== null} data-testid={`control-${id}`}>
+      <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+      <Input
+        id={inputId}
+        value={draft}
+        disabled={disabled}
+        autoComplete="off"
+        spellCheck={false}
+        aria-invalid={error !== null}
+        aria-describedby={describedBy}
+        onFocus={() => (focused.current = true)}
+        onBlur={() => {
+          focused.current = false
+          if (error === null) setDraft(value)
+        }}
+        onChange={(event) => {
+          const raw = event.target.value
+          setDraft(raw)
+          const issues = apply((latest) => build(raw.trim(), latest))
+          setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}. ${hint}` : null)
+        }}
+      />
+      {canonicalNote && (
+        <FieldDescription id={noteId} data-testid={`${id}-canonical`}>
+          Stored as <code className="break-all">{value}</code>
+        </FieldDescription>
+      )}
+      {error !== null && (
+        <FieldError id={errorId} data-testid={`${id}-error`}>
+          {error}
+        </FieldError>
+      )}
+    </Field>
+  )
+}

@@ -5,9 +5,9 @@ import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, Res
 import { editorBounds, initialPreviewWidth } from "./layout"
 import * as React from "react"
 
-import { applyProposal, COLOR_TOKENS, createProposalSession, discardProposal, stageProposal } from "@personal-ui/core"
+import { applyProposal, COLOR_TOKENS, createProposalSession, diffThemeTokens, discardProposal, stageProposal } from "@personal-ui/core"
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
-import type { ColorToken, Theme } from "@personal-ui/core"
+import type { ColorToken, Theme, ThemeOperation } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
@@ -17,28 +17,33 @@ import { SingleToggleGroup } from "@personal-ui/ui/components/single-toggle-grou
 
 import { buildDesignCommandProposal, evaluateDesignCommandClient } from "./designCommand"
 import {
+  DEFAULT_THEME_ID,
   diffThemes,
-  editColor,
   editTheme,
   exampleProposalJson,
   exportThemeJson,
   forkTheme,
-  loadCanonicalTheme,
+  loadBuiltInThemes,
   parseProposalJson,
   previewVariablesCss,
 } from "./lifecycle"
 import type { Mode, WorkbenchIssue } from "./lifecycle"
 import type { DesignCommandOutcome } from "@personal-ui/core"
 import type { PreviewState } from "./messages"
-import { loadSaved, saveTheme } from "./persistence"
+import { loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
-import { SETTING_IDS, SETTINGS } from "./settings"
-import type { SettingId } from "./settings"
+import { buildFontOperation, buildShadowColorOperation, FONT_CONTROLS, formatFontStack, NUMERIC_CONTROLS, readShadowColor } from "./controls"
+import type { NumericControlId } from "./controls"
+import { ControlSection, LiveNumberField, LiveTextField } from "./LiveControls"
+import type { ApplyManual } from "./LiveControls"
 
 const WIDTHS = { mobile: 390, desktop: 1024 } as const
 type Width = keyof typeof WIDTHS
 
-const canonical = loadCanonicalTheme()
+const builtIns = loadBuiltInThemes()
+const builtInIds = builtIns.map((theme) => theme.id)
+const builtInById = (id: string) => builtIns.find((theme) => theme.id === id)
+const defaultTheme = builtInById(DEFAULT_THEME_ID)!
 
 const describeIssues = (issues: WorkbenchIssue[]) => issues.map((i) => `${i.ruleId} at ${i.path || "(root)"}`).join("; ")
 
@@ -71,23 +76,23 @@ export function App() {
   }, [])
   const desktop = viewportWidth >= 1024
   const bounds = editorBounds(viewportWidth)
-  const editId = React.useId()
-  const settingValueId = React.useId()
   const forkIdId = React.useId()
   const forkNameId = React.useId()
   const proposalTextId = React.useId()
   const commandTextId = React.useId()
-  const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage))
-  const [current, setCurrent] = React.useState<Theme>(() => (saved.activeId ? saved.themes[saved.activeId]! : canonical))
+  const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage, builtInIds))
+  // Fresh state selects the built-in Default; a valid persisted selection (built-in or saved) is restored.
+  const [current, setCurrent] = React.useState<Theme>(() => (saved.activeId ? (builtInById(saved.activeId) ?? saved.themes[saved.activeId]!) : defaultTheme))
+  // The built-in a theme descends from: itself for a built-in, the recorded fork base for a saved theme.
+  const [baselineId, setBaselineId] = React.useState(() => (saved.activeId ? (builtInById(saved.activeId)?.id ?? saved.bases[saved.activeId] ?? DEFAULT_THEME_ID) : DEFAULT_THEME_ID))
+  const baseline = builtInById(baselineId) ?? defaultTheme
+  // Manual controls may fire faster than React re-renders (slider drags); each edit builds on the latest active theme.
+  const currentRef = React.useRef(current)
+  currentRef.current = current
   const [mode, setMode] = React.useState<Mode>("light")
   const [width, setWidth] = React.useState<Width>(() => initialPreviewWidth(viewportWidth))
 
   const [token, setToken] = React.useState<ColorToken>("primary")
-  const [draft, setDraft] = React.useState("")
-  const [editIssues, setEditIssues] = React.useState<WorkbenchIssue[]>([])
-  const [setting, setSetting] = React.useState<SettingId>("radius")
-  const [settingDraft, setSettingDraft] = React.useState("")
-  const [settingIssues, setSettingIssues] = React.useState<WorkbenchIssue[]>([])
   const [forkId, setForkId] = React.useState("")
   const [forkName, setForkName] = React.useState("")
   const [forkIssues, setForkIssues] = React.useState<WorkbenchIssue[]>([])
@@ -101,19 +106,6 @@ export function App() {
   const [commandEvaluating, setCommandEvaluating] = React.useState(false)
   const [commandOutcome, setCommandOutcome] = React.useState<DesignCommandOutcome | null>(null)
   const [commandSeq, setCommandSeq] = React.useState(0)
-
-  const currentValue = current.colors[mode][token].$value
-  // The draft follows the active theme/mode/token; a rejected draft is never active state.
-  React.useEffect(() => {
-    setDraft(currentValue)
-    setEditIssues([])
-  }, [currentValue, token, mode, current.id])
-
-  const settingValue = SETTINGS[setting].read(current)
-  React.useEffect(() => {
-    setSettingDraft(settingValue)
-    setSettingIssues([])
-  }, [settingValue, setting, current.id])
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", mode === "dark")
@@ -152,25 +144,28 @@ export function App() {
   }, [post])
   React.useEffect(post, [post, previewState])
 
-  const diff = React.useMemo(() => diffThemes(canonical, current), [current])
+  const diff = React.useMemo(() => diffThemes(baseline, current), [baseline, current])
   const savedCopy = saved.themes[current.id]
-  const dirty = savedCopy === undefined || JSON.stringify(savedCopy) !== JSON.stringify(current)
-  const knownIds = [canonical.id, ...Object.keys(saved.themes)]
+  const builtInCopy = builtInById(current.id)
+  const status = builtInCopy ? (JSON.stringify(builtInCopy) === JSON.stringify(current) ? "built-in" : "edited built-in, fork to save") : savedCopy !== undefined && JSON.stringify(savedCopy) === JSON.stringify(current) ? "saved" : "unsaved"
+  const knownIds = [...builtInIds, ...Object.keys(saved.themes)]
 
-  const applyEdit = () => {
-    const result = editColor(current, mode, token, draft.trim())
-    if (!result.ok) return setEditIssues(result.issues)
-    setEditIssues([])
+  /**
+   * The one manual-edit path: control value -> typed operation -> core validation -> active in-memory theme -> preview.
+   * No Apply step and no Save: a rejected value returns its issues and changes nothing; a value that changes no token
+   * creates no revision. Blocked while a proposal is staged or a command is evaluating, so manual edits can never race
+   * or blend into a proposal.
+   */
+  const applyManual: ApplyManual = (build: (theme: Theme) => ThemeOperation) => {
+    if (locked) return [{ ruleId: "workbench.manual.locked", path: "" }]
+    const latest = currentRef.current
+    const result = editTheme(latest, build(latest))
+    if (!result.ok) return result.issues
+    if (diffThemeTokens(latest, result.theme).length === 0) return []
+    currentRef.current = result.theme
     setCurrent(result.theme)
     setNotice("")
-  }
-
-  const applySetting = () => {
-    const result = editTheme(current, SETTINGS[setting].build(settingDraft.trim()))
-    if (!result.ok) return setSettingIssues(result.issues)
-    setSettingIssues([])
-    setCurrent(result.theme)
-    setNotice("")
+    return []
   }
 
   const showProposalErrors = (errors: ProposalError[]) => setProposalIssues(errors.map(({ ruleId, path }) => ({ ruleId, path })))
@@ -241,6 +236,7 @@ export function App() {
 
   const fork = () => {
     const result = forkTheme(current, forkId.trim(), forkName.trim(), knownIds)
+    // A fork keeps the built-in it descends from as its baseline.
     if (!result.ok) return setForkIssues(result.issues)
     setForkIssues([])
     setForkOpen(false)
@@ -251,17 +247,29 @@ export function App() {
   }
 
   const save = () => {
-    const result = saveTheme(window.localStorage, saved, current, [canonical.id])
+    const result = saveTheme(window.localStorage, saved, current, builtInIds, baselineId)
     if (!result.ok) return setNotice(`Not saved: ${describeIssues(result.issues)}${result.issues[0]?.ruleId === "workbench.save.reserved-id" ? " (fork first)" : ""}`)
     setSaved(result.saved)
     setNotice(`Saved "${current.name}" (${current.id}) locally.`)
   }
 
   const load = (id: string) => {
-    const next = id === canonical.id ? canonical : saved.themes[id]
-    if (next) setCurrent(next)
+    const builtIn = builtInById(id)
+    const next = builtIn ?? saved.themes[id]
+    if (!next) return
+    setCurrent(next)
+    setBaselineId(builtIn ? builtIn.id : (saved.bases[id] ?? DEFAULT_THEME_ID))
+    // Only the selection is persisted; selecting never saves theme data.
+    setSaved(saveSelection(window.localStorage, saved, id))
     setNotice("")
   }
+
+  const numeric = (id: NumericControlId) => <LiveNumberField key={`${current.id}-${id}`} id={id} control={NUMERIC_CONTROLS[id]} theme={current} disabled={locked} apply={applyManual} />
+  const manualLockNote = locked ? (
+    <p data-testid="manual-locked-note" className="text-sm text-muted-foreground">
+      {commandEvaluating ? "Manual controls are paused while a design command is evaluated." : "Manual controls are paused until the staged proposal is applied or discarded. The preview shows the proposal, not your active theme."}
+    </p>
+  ) : null
 
   return (
     <div className="quiet-shell">
@@ -281,7 +289,7 @@ export function App() {
               {!knownIds.includes(current.id) && <NativeSelectOption value="">{current.name} (unsaved fork)</NativeSelectOption>}
               {knownIds.map((id) => (
                 <NativeSelectOption key={id} value={id}>
-                  {id === canonical.id ? `${canonical.name} (baseline)` : (saved.themes[id]?.name ?? id)}
+                  {builtInById(id) ? `${builtInById(id)!.name} (built-in)` : (saved.themes[id]?.name ?? id)}
                 </NativeSelectOption>
               ))}
             </NativeSelect>
@@ -289,14 +297,15 @@ export function App() {
         <p className="text-sm text-muted-foreground">
           Editing <strong data-testid="theme-name">{current.name}</strong> (<code data-testid="theme-id">{current.id}</code>, revision{" "}
           <span data-testid="theme-revision">{current.revision}</span>) —{" "}
-          <span data-testid="theme-status">{dirty ? "unsaved" : "saved"}</span>
+          <span data-testid="theme-status">{status}</span>
         </p>
 </div>
-              <Tabs value={category} onValueChange={value => { setCategory(value); if (value === "typography") setSetting("font"); else if (value === "other" && setting === "font") setSetting("radius") }}>
-                <div className="quiet-category-select"><Field><FieldLabel htmlFor="editor-category">Editor category</FieldLabel><NativeSelect id="editor-category" value={category} onChange={e => { const value = e.target.value; setCategory(value); if (value === "typography") setSetting("font"); else if (value === "other" && setting === "font") setSetting("radius") }}><NativeSelectOption value="colors">Colors</NativeSelectOption><NativeSelectOption value="typography">Typography</NativeSelectOption><NativeSelectOption value="other">Other</NativeSelectOption><NativeSelectOption value="command">Command</NativeSelectOption></NativeSelect></Field></div>
+              <Tabs value={category} onValueChange={setCategory}>
+                <div className="quiet-category-select"><Field><FieldLabel htmlFor="editor-category">Editor category</FieldLabel><NativeSelect id="editor-category" value={category} onChange={e => setCategory(e.target.value)}><NativeSelectOption value="colors">Colors</NativeSelectOption><NativeSelectOption value="typography">Typography</NativeSelectOption><NativeSelectOption value="other">Other</NativeSelectOption><NativeSelectOption value="command">Command</NativeSelectOption></NativeSelect></Field></div>
                 <TabsList className="quiet-categories" aria-label="Editor categories"><TabsTrigger value="colors">Colors</TabsTrigger><TabsTrigger value="typography">Typography</TabsTrigger><TabsTrigger value="other">Other</TabsTrigger><TabsTrigger value="command">Command</TabsTrigger></TabsList>
                 <TabsContent value="colors" forceMount className="data-[state=inactive]:hidden"><Panel title="Edit color">
-          <p className="text-sm text-muted-foreground">Edit one token in the {mode} palette.</p>
+          <p className="text-sm text-muted-foreground">Edit one token in the {mode} palette. HEX, rgb(a), hsl(a), and oklch are accepted and stored as canonical oklch; valid values apply immediately.</p>
+          {manualLockNote}
           <div aria-hidden="true" className="flex gap-2">{["primary", "secondary", "accent", "muted", "background", "foreground"].map(name => <span key={name} className="h-7 flex-1 rounded-sm border" style={{ background: current.colors[mode][name as ColorToken].$value }} />)}</div>
           <Field>
             <FieldLabel htmlFor="token-select">Token</FieldLabel>
@@ -308,59 +317,70 @@ export function App() {
               ))}
             </NativeSelect>
           </Field>
-          <Field data-invalid={editIssues.length > 0}>
-            <FieldLabel htmlFor={editId}>Value (oklch)</FieldLabel>
-            <Input
-              id={editId}
-              value={draft}
-              disabled={locked}
-              onChange={(e) => setDraft(e.target.value)}
-              aria-invalid={editIssues.length > 0}
-              aria-describedby={editIssues.length > 0 ? `${editId}-error` : undefined}
-              spellCheck={false}
-            />
-            {editIssues.length > 0 && (
-              <FieldError id={`${editId}-error`} data-testid="edit-error">
-                Rejected, not applied: {describeIssues(editIssues)}. Expected oklch(L C H [/ A]).
-              </FieldError>
-            )}
-          </Field>
-          <Button disabled={locked} onClick={applyEdit}>
-            Apply edit
-          </Button>
+          <LiveTextField
+            key={`${current.id}-${mode}-${token}`}
+            id="color-value"
+            label="Color value"
+            value={current.colors[mode][token].$value}
+            build={(raw) => ({ op: "setColor", mode, token, value: raw })}
+            hint="Expected HEX, rgb(a), hsl(a), or oklch inside the Display P3 gamut."
+            disabled={locked}
+            apply={applyManual}
+            canonicalNote
+          />
         </Panel></TabsContent>
-                <TabsContent value={category === "typography" ? "typography" : "other"} forceMount hidden={category !== "typography" && category !== "other"}><Panel title={category === "typography" ? "Typography" : "Edit theme settings"}>
-          <p className="text-sm text-muted-foreground">One setting at a time. Changes apply after validation.</p>
-          <Field>
-            <FieldLabel htmlFor="setting-select">Setting</FieldLabel>
-            <NativeSelect id="setting-select" value={setting} disabled={locked} onChange={(e) => setSetting(e.target.value as SettingId)}>
-              {SETTING_IDS.filter(id => category === "typography" ? id === "font" : id !== "font").map((id) => (
-                <NativeSelectOption key={id} value={id}>
-                  {SETTINGS[id].label}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field data-invalid={settingIssues.length > 0}>
-            <FieldLabel htmlFor={settingValueId}>Setting value</FieldLabel>
-            <Input
-              id={settingValueId}
-              value={settingDraft}
+                <TabsContent value="typography" forceMount className="data-[state=inactive]:hidden"><Panel title="Typography">
+          <p className="text-sm text-muted-foreground">Changes apply immediately after validation. Font stacks are comma-separated, in fallback order.</p>
+          {manualLockNote}
+          <ControlSection id="fonts" title="Font families">
+            {FONT_CONTROLS.map(({ family, label }) => (
+              <LiveTextField
+                key={`${current.id}-${family}`}
+                id={`font-${family}`}
+                label={label}
+                value={formatFontStack(current.typography[family].$value)}
+                build={(raw) => buildFontOperation(family, raw)}
+                hint="Expected 1 to 16 comma-separated names of letters, digits, spaces, and hyphens."
+                disabled={locked}
+                apply={applyManual}
+              />
+            ))}
+          </ControlSection>
+          <ControlSection id="tracking" title="Letter spacing">
+            {numeric("tracking")}
+          </ControlSection>
+        </Panel></TabsContent>
+                <TabsContent value="other" forceMount className="data-[state=inactive]:hidden"><Panel title="Other">
+          <p className="text-sm text-muted-foreground">Changes apply immediately after validation. Radius and shadow controls derive their full scales.</p>
+          {manualLockNote}
+          <ControlSection id="radius" title="Radius">
+            {numeric("radius")}
+          </ControlSection>
+          <ControlSection id="spacing" title="Spacing">
+            {numeric("spacing")}
+            {numeric("density")}
+          </ControlSection>
+          <ControlSection id="shadow" title="Shadow">
+            <LiveTextField
+              key={`${current.id}-shadow-color`}
+              id="shadow-color"
+              label="Shadow color"
+              value={readShadowColor(current)}
+              build={buildShadowColorOperation}
+              hint="Expected an opaque HEX, rgb, hsl, or oklch color; opacity is set separately."
               disabled={locked}
-              onChange={(e) => setSettingDraft(e.target.value)}
-              aria-invalid={settingIssues.length > 0}
-              aria-describedby={settingIssues.length > 0 ? `${settingValueId}-error` : undefined}
-              spellCheck={false}
+              apply={applyManual}
+              canonicalNote
             />
-            {settingIssues.length > 0 && (
-              <FieldError id={`${settingValueId}-error`} data-testid="setting-error">
-                Rejected, not applied: {describeIssues(settingIssues)}. {SETTINGS[setting].hint}
-              </FieldError>
-            )}
-          </Field>
-          <Button disabled={locked} onClick={applySetting}>
-            Apply setting
-          </Button>
+            {numeric("shadowOpacity")}
+            {numeric("shadowBlur")}
+            {numeric("shadowSpread")}
+            {numeric("shadowOffsetX")}
+            {numeric("shadowOffsetY")}
+          </ControlSection>
+          <ControlSection id="motion" title="Motion">
+            {numeric("motion")}
+          </ControlSection>
         </Panel></TabsContent>
                 <TabsContent value="command" forceMount className="data-[state=inactive]:hidden"><Panel title="Design command">
           <p className="text-sm text-muted-foreground">
@@ -494,7 +514,7 @@ export function App() {
               </Tabs>
               <div className="quiet-baseline">        <Panel title="Diff vs baseline">
           <p className="text-sm text-muted-foreground">
-            Baseline: canonical <code>{canonical.id}</code> revision {canonical.revision}. <span data-testid="diff-count">{diff.length}</span> changed token
+            Baseline: built-in <code>{baseline.id}</code> revision {baseline.revision}. <span data-testid="diff-count">{diff.length}</span> changed token
             {diff.length === 1 ? "" : "s"}.
           </p>
           {diff.length === 0 ? (
@@ -594,7 +614,7 @@ export function App() {
                 <span data-testid="proposal-candidate-revision">{staged.candidate.revision}</span>. The preview below shows the candidate; the active theme is
                 unchanged.
               </p>
-              <p data-testid="proposal-locked-note">Editing, loading, forking, saving, and exporting the active theme are disabled until this proposal is applied or discarded.</p>
+              <p data-testid="proposal-locked-note">Manual controls, loading, forking, saving, and exporting the active theme are disabled until this proposal is applied or discarded.</p>
               <details><summary className="cursor-pointer">Candidate operations</summary><pre className="overflow-x-auto text-xs">{JSON.stringify(staged.proposal.operations, null, 2)}</pre></details>
               {(current.id !== staged.proposal.base.themeId || current.revision !== staged.proposal.base.revision) && (
                 <p data-testid="proposal-base-moved" role="status">
