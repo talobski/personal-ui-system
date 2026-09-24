@@ -1,9 +1,9 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `quiet-workspace-workbench-v1-001` is accepted at product
-commit `5320f55968c2eb25476a7c23ad20d377f0c56117`. The owner approved the visual
-implementation, the protected fresh verifier passed, and the exact promoted
-tree passed post-promotion regression. The earlier
+Status: ACTIVE — `theme-system-v2-default-live-controls-001` is accepted at
+product commit `e8ddddc8883327b70f0528cfe1bcb3d7538b8216`. The owner approved
+the visual implementation, the protected fresh verifier passed, and the exact
+candidate was promoted through accepted-state-before-main. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
@@ -16,6 +16,16 @@ Last updated: 2026-09-24
 Build a local-first, self-hostable, agent-first personal UI system on top of shadcn/ui. It will give Paseo Leads, Jev/TypeSafe, Codex, Claude Code, verifier agents, and the owner a compact source of truth for producing interfaces that follow the owner's preferences without forcing every project into one visual identity.
 
 V1 proves a narrow vertical slice: structured theme data and design-system rules can drive both reusable shadcn-based components and a local visual editor, while remaining directly consumable without running that editor.
+
+The accepted Theme v2 extension adds canonical OKLCH color storage with
+HEX/RGB/HSL/OKLCH boundary normalization; sans, serif, and mono stacks;
+tracking; spacing; a complete shadow scale; deterministic v1 migration; and a
+new built-in `Default` theme while preserving `Quiet Editorial`. The Workbench
+opens fresh state on `Default`, preserves valid saved selections, and provides
+validated live manual Typography and Other controls. Generated Design Command
+changes remain staged behind Preview, Apply, and Discard. Slider and
+Collapsible are the only public resources added by this phase, bringing the
+registry to 13 resources.
 
 ## V1 product contract
 
