@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright"
+import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { Locator } from "@playwright/test"
 import { getValidatedTheme } from "../packages/core/src/context/themes"
@@ -51,7 +52,8 @@ for (const mode of ["light", "dark"] as const) {
       expect(await preview.getByTestId("preview").evaluate(el => getComputedStyle(el).paddingLeft)).toBe("16px")
       await editorCategory(page, "Other")
       const header = page.locator('[data-slot="sidebar-header"]')
-      expect(await header.evaluate(el => getComputedStyle(el).borderBottomWidth)).toBe("0px")
+      // WSPF-04 supersedes the borderless header: exactly one semantic 1px bottom border.
+      expect(await header.evaluate(el => getComputedStyle(el).borderBottomWidth)).toBe("1px")
       const themeSelect = page.getByRole("combobox", { name: "Active theme" })
       const headerBox = await box(header)
       // WRCP-08: header px-2 plus selector px-2 resolve the selector content to the same 16px inner edge.
@@ -118,9 +120,9 @@ for (const mode of ["light", "dark"] as const) {
           expect(styles.border).toBe("0px"); expect(styles.shadow).not.toBe("none")
           expect(styles.transform).toBe("uppercase"); expect(parseFloat(styles.spacing)).toBeGreaterThan(0)
           expect(parseFloat(styles.radius)).toBeGreaterThan(0)
-          // WRCP-05 supersedes the half-strength muted treatment.
+          // WSPF-05 restores the semantic muted pair (WRCP-05's text-foreground/75 is superseded).
           await expect(trigger).toHaveClass(/(?:^| )bg-muted(?: |$)/)
-          await expect(trigger).toHaveClass(/(?:^| )text-foreground\/75(?: |$)/)
+          await expect(trigger).toHaveClass(/(?:^| )text-muted-foreground(?: |$)/)
           await expect(trigger).toHaveClass(/ring-1 ring-border(?: |$)/)
           expect(await section.evaluate(el => getComputedStyle(el).rowGap)).toBe("8px")
           expect(await section.evaluate(el => getComputedStyle(el.parentElement!).rowGap)).toBe("24px")
@@ -137,7 +139,7 @@ for (const mode of ["light", "dark"] as const) {
         await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBe(0)
         const axe = await new AxeBuilder({ page }).analyze()
         await info.attach(`axe-${category}-${mode}-${reducedMotion}.json`, { body: JSON.stringify(axe), contentType: "application/json" })
-        expect(axe.violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([])
+        expect(await seriousOutsideKnownDebt(page, axe.violations, info, `${category}-${mode}-${reducedMotion}`)).toEqual([])
         expect(await panel.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
       }
       await editorCategory(page, "Other")

@@ -1,5 +1,6 @@
 import { colorInput, editorCategory, previewStates, saveTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
+import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { FrameLocator, Page, TestInfo } from "@playwright/test"
 
@@ -29,15 +30,15 @@ async function settleVisuals(page: Page) {
   await expect.poll(running).toBe(0)
 }
 
-async function seriousViolations(page: Page) {
+async function seriousViolations(page: Page, label: string, testInfo: TestInfo) {
   await settleVisuals(page)
   // axe analyzes the page and its (same-origin) preview iframe.
   const { violations } = await new AxeBuilder({ page }).analyze()
-  return violations.filter((v) => v.impact === "critical" || v.impact === "serious")
+  return seriousOutsideKnownDebt(page, violations, testInfo, label)
 }
 
 async function expectNoSeriousViolations(page: Page, label: string, testInfo: TestInfo) {
-  const violations = await seriousViolations(page)
+  const violations = await seriousViolations(page, label, testInfo)
   await testInfo.attach(`axe-${label}.json`, { body: JSON.stringify(violations, null, 2), contentType: "application/json" })
   expect(violations, `${label}: ${JSON.stringify(violations.map((v) => [v.id, v.nodes.map((n) => n.target)]))}`).toEqual([])
 }

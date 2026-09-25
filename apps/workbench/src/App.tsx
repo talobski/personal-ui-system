@@ -73,6 +73,13 @@ function ThemeSwatches({ theme, mode }: { theme: Theme; mode: Mode }) {
   )
 }
 
+/**
+ * Content-width category Tabs: active uses the secondary pair without a shadow; inactive stays transparent with muted
+ * foreground and a text-only hover. The official trigger's radius, vertical padding, focus ring, and ARIA are unchanged.
+ */
+const CATEGORY_TRIGGER_CLASS =
+  "h-[calc(100%-7px)] w-auto flex-none shrink-0 cursor-pointer whitespace-nowrap px-3 text-sm text-muted-foreground dark:text-muted-foreground data-[state=inactive]:bg-transparent data-[state=inactive]:hover:text-muted-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-secondary dark:data-[state=active]:text-secondary-foreground"
+
 function TrashIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -329,7 +336,7 @@ export function App() {
       <style id="workbench-active-theme" data-theme-id={current.id} data-revision={current.revision}>{activeCss}</style>
       <Sidebar>
         {/* A fixed 64px row whose bottom edge meets the 64px preview toolbar; header px-2 plus selector px-2 = 16px inset. */}
-        <SidebarHeader className="h-16 shrink-0 flex-row items-center px-2 py-0">
+        <SidebarHeader className="h-16 shrink-0 flex-row items-center border-b px-2 py-0">
           <SidebarMenu>
             <SidebarMenuItem>
               <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id && id !== current.id) load(id) }}>
@@ -388,14 +395,18 @@ export function App() {
         </SidebarHeader>
         <SidebarContent className="quiet-editor overflow-hidden" data-testid="sidebar-content">
           <Tabs value={category} onValueChange={setCategory} className="min-h-0 w-full min-w-0 flex-1 gap-0">
-            <SidebarGroup className="shrink-0 bg-card p-4">
+            {/* The horizontal owner spans the full sidebar width; the 16px inset lives inside its scrollable content. */}
+            <SidebarGroup className="shrink-0 bg-card p-0">
               <ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden" viewportProps={{ role: "region", "aria-label": "Editor category navigation", tabIndex: 0 }}>
-                <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent" aria-label="Editor categories">
-                  <TabsTrigger value="colors" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Colors</TabsTrigger>
-                  <TabsTrigger value="typography" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Typography</TabsTrigger>
-                  <TabsTrigger value="other" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Other</TabsTrigger>
-                  <TabsTrigger value="command" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Command</TabsTrigger>
-                </TabsList>
+                <div data-testid="category-inset" className="w-max p-4">
+                  {/* Triggers keep the accepted 29px height (the former 3px-padded 36px list, less 1px), radius, py-1 and type. */}
+                  <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" aria-label="Editor categories">
+                    <TabsTrigger value="colors" className={CATEGORY_TRIGGER_CLASS}>Colors</TabsTrigger>
+                    <TabsTrigger value="typography" className={CATEGORY_TRIGGER_CLASS}>Typography</TabsTrigger>
+                    <TabsTrigger value="other" className={CATEGORY_TRIGGER_CLASS}>Other</TabsTrigger>
+                    <TabsTrigger value="command" className={CATEGORY_TRIGGER_CLASS}>Command</TabsTrigger>
+                  </TabsList>
+                </div>
               </ScrollArea>
             </SidebarGroup>
             <ScrollArea type="auto" className="quiet-scroll-area min-h-0 flex-1" data-testid="editor-scroll" viewportProps={{ role: "region", "aria-label": "Theme editor", tabIndex: 0 }}>

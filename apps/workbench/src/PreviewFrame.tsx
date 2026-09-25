@@ -14,6 +14,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@personal-ui/ui/components/responsive-dialog"
+import { ScrollArea } from "@personal-ui/ui/components/scroll-area"
 
 import type { PreviewReady, PreviewState } from "./messages"
 
@@ -39,9 +40,16 @@ export function PreviewFrame() {
     document.documentElement.classList.toggle("dark", state?.mode === "dark")
   }, [state?.mode])
 
+  // The root ScrollArea is this document's only scroll owner; the document root itself must never scroll.
+  React.useLayoutEffect(() => {
+    document.documentElement.classList.add("quiet-preview-document")
+    return () => document.documentElement.classList.remove("quiet-preview-document")
+  }, [])
+
   return (
+    <ScrollArea type="auto" className="quiet-scroll-area h-dvh w-full" data-testid="preview-scroll" viewportProps={{ role: "group", "aria-label": "Preview document", tabIndex: 0 }}>
     <main
-      className="grid gap-6 p-4"
+      className="grid gap-4 p-4"
       data-testid="preview"
       data-ready={state ? "true" : "false"}
       data-mode={state?.mode}
@@ -51,7 +59,8 @@ export function PreviewFrame() {
       <style id="workbench-theme">{state?.css ?? ""}</style>
       <div className="flex justify-center">
         <Select value={view} onValueChange={(next) => { if (next) setView(next) }} items={[{ value: "cards", label: "Cards" }, { value: "states", label: "States" }]}>
-          <SelectTrigger size="sm" aria-label="Preview views" className="quiet-control min-w-[6rem]"><SelectValue /></SelectTrigger>
+          {/* Ghost trigger: no resting border, fill, or shadow; semantic accent hover and the primitive focus ring remain. */}
+          <SelectTrigger size="sm" aria-label="Preview views" className="quiet-control min-w-[6rem] cursor-pointer border-transparent bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent/50"><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value="cards">Cards</SelectItem><SelectItem value="states">States</SelectItem></SelectContent>
         </Select>
       </div>
@@ -150,5 +159,6 @@ export function PreviewFrame() {
       </section>
       </div>
     </main>
+    </ScrollArea>
   )
 }

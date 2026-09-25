@@ -1,6 +1,7 @@
 import { stageCommand } from "./design-command-fixture"
 import { workspaceMode, editorCategory, previewStates, assertActiveControls } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
+import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { Page, TestInfo } from "@playwright/test"
 
@@ -21,7 +22,7 @@ async function settleVisuals(page: Page) {
 async function expectNoSeriousViolations(page: Page, label: string, testInfo: TestInfo) {
   await settleVisuals(page)
   const { violations } = await new AxeBuilder({ page }).analyze()
-  const serious = violations.filter((v) => v.impact === "critical" || v.impact === "serious")
+  const serious = await seriousOutsideKnownDebt(page, violations, testInfo, `design-command-${label}`)
   await testInfo.attach(`axe-design-command-${label}.json`, { body: JSON.stringify(violations, null, 2), contentType: "application/json" })
   expect(serious, JSON.stringify(serious.map((v) => [v.id, v.nodes.map((n) => n.target)]))).toEqual([])
 }

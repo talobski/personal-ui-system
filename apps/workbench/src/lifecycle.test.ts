@@ -25,29 +25,76 @@ const defaultTheme = builtIns[0]!
 const canonical = builtIns[1]!
 const VALID = "oklch(0.4 0.1 150)"
 
-it("WRCP-05 section triggers use the minimum foreground step stronger than muted-foreground that passes 4.5:1", () => {
+it("WSPF-05/06 section triggers use the semantic muted pair; only the known Default light debt falls below 4.5:1", () => {
   const rgb = (color: string) => pickerHex(color).slice(1).match(/../g)!.map(channel => parseInt(channel, 16) / 255)
   const luminance = (channels: number[]) => channels.reduce((sum, c, i) => sum + [0.2126, 0.7152, 0.0722][i]! * (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4), 0)
   const ratio = (a: number[], b: number[]) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05)
-  const over = (top: number[], alpha: number, bottom: number[]) => top.map((c, i) => c * alpha + bottom[i]! * (1 - alpha))
-  // Admissible: at rest (bg-muted over the card sidebar) and on hover (bg-muted/80), stronger than muted-foreground on
-  // the same surface, and at least 4.5:1, in both built-ins and both modes.
-  const admissible = (alpha: number) => builtIns.every(theme => (["light", "dark"] as const).every(mode => {
-    const colors = theme.colors[mode]
-    const card = rgb(colors.card.$value), muted = rgb(colors.muted.$value), foreground = rgb(colors.foreground.$value)
-    return [muted, over(muted, 0.8, card)].every(surface => {
-      const label = ratio(over(foreground, alpha, surface), surface)
-      return label >= 4.5 && label > ratio(rgb(colors["muted-foreground"].$value), surface)
-    })
-  }))
-  // The prior muted-foreground label fails normal-text contrast on full-strength muted in Default light.
-  expect(ratio(rgb(defaultTheme.colors.light["muted-foreground"].$value), rgb(defaultTheme.colors.light.muted.$value))).toBeLessThan(4.5)
-  const steps = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
-  expect(steps.find(step => admissible(step / 100))).toBe(75)
+  // bg-muted is opaque, so the resting label pair is exactly muted-foreground on muted.
+  const pairs = builtIns.flatMap(theme => (["light", "dark"] as const).map(mode => ({
+    id: `${theme.id}/${mode}`,
+    ratio: ratio(rgb(theme.colors[mode]["muted-foreground"].$value), rgb(theme.colors[mode].muted.$value)),
+  })))
+  // Measured, not hidden: the pre-approved deferred Default-theme debt is exactly one pairing at about 4.35:1.
+  const below = pairs.filter(pair => pair.ratio < 4.5)
+  expect(below.map(pair => pair.id)).toEqual(["default/light"])
+  expect(below[0]!.ratio).toBeGreaterThan(4.3)
+  expect(below[0]!.ratio).toBeLessThan(4.4)
+  // Default-theme tokens are frozen in this phase.
+  expect([defaultTheme.colors.light["muted-foreground"].$value, defaultTheme.colors.light.muted.$value]).toEqual(["oklch(0.555527 0 0)", "oklch(0.970151 0 0)"])
+  expect([pickerHex(defaultTheme.colors.light["muted-foreground"].$value), pickerHex(defaultTheme.colors.light.muted.$value)]).toEqual(["#737373", "#f5f5f5"])
   const source = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
-  expect(source).toContain("h-auto w-fit rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-foreground/75 ring-1 ring-border hover:bg-muted/80 hover:text-foreground/75 dark:hover:bg-muted/80 has-[>svg]:px-2")
+  expect(source).toContain("h-auto w-fit rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180")
   const trigger = source.match(/<CollapsibleTrigger asChild>[\s\S]*?<Button [^>]*className="([^"]+)"/)![1]!
-  expect(trigger).not.toMatch(/bg-muted\/50|ring-border\/50|accent|muted-foreground|\[#|oklch|rgb|hsl/i)
+  // No stronger local foreground workaround, raw colour, or accent treatment.
+  expect(trigger).not.toMatch(/text-foreground|bg-muted\/50|ring-border\/50|accent|\[#|oklch|rgb|hsl/i)
+  expect(source).toMatch(/className="size-3 transition-transform motion-reduce:transition-none"/)
+})
+
+describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract", () => {
+  const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8")
+  const preview = readFileSync(new URL("./PreviewFrame.tsx", import.meta.url), "utf8")
+  const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8")
+
+  it("gives the category ScrollArea the full sidebar width with its 16px inset inside the scrolling content", () => {
+    expect(app).toContain('<SidebarGroup className="shrink-0 bg-card p-0">')
+    expect(app).toMatch(/<ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden"[^>]*>\s*<div data-testid="category-inset" className="w-max p-4">\s*(?:\{\/\*[^*]*\*\/\}\s*)?<TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0"/)
+    expect(app.match(/orientation="horizontal"/g)).toHaveLength(1)
+    expect(app).toContain('<ScrollArea type="auto" className="quiet-scroll-area min-h-0 flex-1" data-testid="editor-scroll"')
+  })
+
+  it("styles category tabs with the approved state tokens while keeping the official trigger", () => {
+    const tabClass = app.match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!
+    for (const token of ["w-auto", "flex-none", "shrink-0", "whitespace-nowrap", "px-3", "cursor-pointer", "text-sm", "text-muted-foreground", "data-[state=inactive]:bg-transparent", "data-[state=inactive]:hover:text-muted-foreground/80", "data-[state=active]:bg-secondary", "data-[state=active]:text-secondary-foreground", "data-[state=active]:shadow-none", "h-[calc(100%-7px)]"]) {
+      expect(tabClass.split(" ")).toContain(token)
+    }
+    expect(tabClass).not.toMatch(/(?:^| )(?:flex-1|flex-wrap|hover:bg-|rounded-|py-|font-)/)
+    expect(app.match(/className=\{CATEGORY_TRIGGER_CLASS\}/g)).toHaveLength(4)
+  })
+
+  it("adds only a semantic bottom border to the 64px sidebar header", () => {
+    expect(app).toContain('<SidebarHeader className="h-16 shrink-0 flex-row items-center border-b px-2 py-0">')
+  })
+
+  it("keeps the official preview Select, ghosts only its preview trigger, and tightens the preview root", () => {
+    expect(preview).toMatch(/<Select value=\{view\}/)
+    const trigger = preview.match(/<SelectTrigger size="sm" aria-label="Preview views" className="([^"]+)"/)![1]!
+    for (const token of ["border-transparent", "bg-transparent", "shadow-none", "hover:bg-accent", "hover:text-accent-foreground", "dark:bg-transparent"]) expect(trigger.split(" ")).toContain(token)
+    expect(trigger).not.toMatch(/focus-visible:|ring-0|outline-none|border-0/)
+    expect(preview).toContain('className="grid gap-4 p-4"')
+    expect(preview).toContain('<div hidden={view !== "states"} className={view === "states" ? "grid gap-6" : "hidden"}>')
+  })
+
+  it("gives the embedded document exactly one vertical root ScrollArea and suppresses document-root overflow", () => {
+    expect(preview.match(/<ScrollArea /g)).toHaveLength(1)
+    expect(preview).toMatch(/return \(\s*<ScrollArea type="auto" className="quiet-scroll-area h-dvh w-full" data-testid="preview-scroll"/)
+    expect(preview).not.toMatch(/orientation=/)
+    expect(preview).toContain('document.documentElement.classList.add("quiet-preview-document")')
+    expect(styles).toContain(".quiet-preview-document, .quiet-preview-document body { height: 100%; overflow: hidden; }")
+    // The Workbench never wraps the iframe in an outer ScrollArea.
+    const viewport = app.slice(app.indexOf('<div className="quiet-preview-body">'), app.indexOf("</SidebarInset>"))
+    expect(viewport).not.toContain("ScrollArea")
+    expect(viewport).toContain('<iframe ref={iframeRef} title="Component preview" src="/?preview=1"')
+  })
 })
 
 describe("WRCP-03/04 Other-tab labels and shared shadow colour interaction", () => {

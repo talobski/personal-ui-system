@@ -2,6 +2,7 @@ import { expectEditorContainment } from "./workbench-navigation"
 import { readFileSync } from "node:fs"
 import { FONT_OPTIONS } from "../packages/ui/src/lib/fonts"
 import AxeBuilder from "@axe-core/playwright"
+import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import { colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
@@ -125,7 +126,7 @@ for (const mode of ["light", "dark"] as const) {
     for (const surface of ["Preview", "Controls"] as const) {
       await workspaceMode(page, surface)
       const { violations } = await new AxeBuilder({ page }).analyze()
-      const decoded = violations.filter(v => v.impact === "serious" || v.impact === "critical")
+      const decoded = await seriousOutsideKnownDebt(page, violations, info, `quiet-${mode}-${surface}`)
       await info.attach(`axe-quiet-${mode}-${surface}.json`, { body: JSON.stringify(decoded), contentType: "application/json" })
       expect(decoded).toEqual([])
     }
@@ -234,7 +235,7 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
   const { violations } = await new AxeBuilder({ page }).analyze()
-  const decoded = violations.filter(v => v.impact === "serious" || v.impact === "critical")
+  const decoded = await seriousOutsideKnownDebt(page, violations, info, "mobile-sidebar-open")
   await info.attach("axe-mobile-sidebar-open.json", { body: JSON.stringify(decoded), contentType: "application/json" })
   expect(decoded).toEqual([])
   await page.keyboard.press("Escape")
@@ -258,7 +259,7 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
   await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
 })
 
-test("overlay sidebar scrollbar and native preview scrolling (WCN-04/05 supersedes WSSP-07)", async ({ page }) => {
+test("overlay sidebar scrollbar and one preview-document ScrollArea (WSPF-09 supersedes WCN-04 native preview scrolling)", async ({ page }) => {
   await page.goto("/")
   await workspaceMode(page, "Controls")
   const content = page.getByRole("region", { name: "Theme editor", exact: true })
@@ -283,10 +284,13 @@ test("overlay sidebar scrollbar and native preview scrolling (WCN-04/05 supersed
   }
   await workspaceMode(page, "Preview")
   const doc = page.frameLocator('[data-testid="preview-frame"]').locator("html")
-  await expect(doc).not.toHaveClass(/quiet-scroll/)
+  await expect(doc).toHaveClass(/(?:^| )quiet-preview-document(?: |$)/)
   expect((await read(doc)).width).toBe("auto")
+  // The document root cannot be scrolled even programmatically; the root ScrollArea viewport can.
   const scrolled = await doc.evaluate(async el => { window.scrollTo(0, 400); await new Promise(r => requestAnimationFrame(r)); return document.scrollingElement!.scrollTop })
-  expect(scrolled).toBeGreaterThan(0)
+  expect(scrolled).toBe(0)
+  const viewport = page.frameLocator('[data-testid="preview-frame"]').getByRole("group", { name: "Preview document", exact: true })
+  expect(await viewport.evaluate(async el => { el.scrollTop = 400; await new Promise(r => requestAnimationFrame(r)); return el.scrollTop })).toBeGreaterThan(0)
   // The preview document's own content (compositions, dialogs) keeps default scrollbars.
   expect(await page.frameLocator('[data-testid="preview-frame"]').locator('[data-slot="card"]').first().evaluate(el => getComputedStyle(el).scrollbarWidth)).toBe("auto")
 })
@@ -322,7 +326,7 @@ for (const mode of ["light", "dark"] as const) {
       await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBe(0)
       const { violations } = await new AxeBuilder({ page }).analyze()
       await info.attach(`axe-theme-select-${mode}-${Math.round(anchor.width)}.json`, { body: JSON.stringify(violations), contentType: "application/json" })
-      expect(violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([])
+      expect(await seriousOutsideKnownDebt(page, violations, info, `theme-select-${mode}-${Math.round(anchor.width)}`)).toEqual([])
       await page.keyboard.press("Escape")
       await expect(trigger).toBeFocused()
     }
@@ -396,7 +400,7 @@ for (const mode of ["light", "dark"] as const) {
     await rows.nth(1).hover()
     await expect(rows.nth(1)).toHaveAttribute("data-highlighted", "")
     const { violations } = await new AxeBuilder({ page }).analyze()
-    const decoded = violations.filter(v => v.impact === "serious" || v.impact === "critical")
+    const decoded = await seriousOutsideKnownDebt(page, violations, info, `theme-swatches-${mode}`)
     await info.attach(`axe-theme-swatches-${mode}.json`, { body: JSON.stringify(decoded), contentType: "application/json" })
     expect(decoded).toEqual([])
     await page.keyboard.press("Escape")
@@ -428,7 +432,7 @@ for (const mode of ["light", "dark"] as const) {
     await expect(page.getByRole("listbox")).toHaveCount(0)
     await expect(dialog).toContainText("Temporary")
     const { violations } = await new AxeBuilder({ page }).analyze()
-    const decoded = violations.filter(v => v.impact === "serious" || v.impact === "critical")
+    const decoded = await seriousOutsideKnownDebt(page, violations, info, `delete-dialog-${mode}`)
     await info.attach(`axe-delete-dialog-${mode}.json`, { body: JSON.stringify(decoded), contentType: "application/json" })
     expect(decoded).toEqual([])
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click()
@@ -516,7 +520,7 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
         expect(await input.evaluate(el => el.matches(":focus-visible"))).toBe(true)
         const { violations } = await new AxeBuilder({ page }).analyze()
         await info.attach(`axe-font-${category}-open.json`, { body: JSON.stringify(violations), contentType: "application/json" })
-        expect(violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([])
+        expect(await seriousOutsideKnownDebt(page, violations, info, `font-${category}-open`)).toEqual([])
         await input.press("Enter")
       } else await page.getByRole("option", { name: option.label, exact: true }).click()
       await expect(page.getByTestId(`control-font-${category}`)).toHaveAttribute("data-font", option.id)

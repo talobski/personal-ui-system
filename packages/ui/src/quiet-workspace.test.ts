@@ -23,7 +23,7 @@ it("renders the Workbench as one Sidebar shell with no header, resizable split, 
   expect(existsSync(new URL("./components/resizable-panel.tsx", import.meta.url))).toBe(true)
 })
 
-it("uses ScrollArea only for persistent app regions and leaves preview scrolling native (WCN-04/05)", () => {
+it("uses ScrollArea for persistent app regions and exactly one embedded preview-document root (WCN-04/05, WSPF-09)", () => {
   const styles = workbench("styles.css")
   const app = workbench("App.tsx")
   const preview = workbench("PreviewFrame.tsx")
@@ -35,7 +35,9 @@ it("uses ScrollArea only for persistent app regions and leaves preview scrolling
   expect(globalCss()).not.toMatch(/scrollbar/)
   expect(app.match(/<ScrollArea /g)).toHaveLength(3)
   expect(app).toMatch(/<SidebarContent className="quiet-editor overflow-hidden"/)
-  expect(preview).not.toMatch(/quiet-scroll|ScrollArea/)
+  // WSPF-09 supersedes native preview scrolling: one vertical root ScrollArea inside the iframe document, none outside it.
+  expect(preview.match(/<ScrollArea /g)).toHaveLength(1)
+  expect(app.slice(app.indexOf('<div className="quiet-preview-body">'))).not.toContain("<ScrollArea")
   expect(app).toContain('orientation="horizontal"')
   expect(app).toContain('aria-label": "Theme editor", tabIndex: 0')
   expect(app).toContain('aria-label": "Workbench status and proposal", tabIndex: 0')

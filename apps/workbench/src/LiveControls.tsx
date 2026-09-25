@@ -59,12 +59,11 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
       <h3 className="text-sm font-medium">
         <CollapsibleTrigger asChild>
           {/*
-            muted-foreground on full-strength muted falls below 4.5:1 in Default light, so the label uses the weakest
-            foreground step that is stronger than muted-foreground and clears normal-text contrast, at rest and on
-            hover, in both built-ins and both modes (lower steps are weaker than muted-foreground in Quiet light).
+            The semantic muted/muted-foreground pair. In Default light it measures about 4.35:1 for this small text:
+            known, pre-approved Default-theme debt that is measured and reported, not locally worked around.
             The explicit hover and dark-hover overrides replace the ghost variant's accent hover.
           */}
-          <Button variant="ghost" size="sm" className="h-auto w-fit rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-foreground/75 ring-1 ring-border hover:bg-muted/80 hover:text-foreground/75 dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
+          <Button variant="ghost" size="sm" className="h-auto w-fit rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
             {title}
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-3 transition-transform motion-reduce:transition-none">
               <path d="m6 9 6 6 6-6" />

@@ -5,7 +5,7 @@
 /* One full-height Sidebar shell: the sidebar owns the controls, the inset owns the toolbar and preview. */
 .quiet-shell { height: 100dvh; min-height: 0; overflow: hidden; }
 .quiet-preview { height: 100dvh; min-width: 0; overflow: hidden; }
-/* The preview viewport fills the rest of the inset; the iframe scrolls its own document. */
+/* The preview viewport fills the rest of the inset; the embedded document's root ScrollArea owns all its scrolling. */
 .quiet-preview-body { flex: 1 1 0; display: flex; min-height: 0; padding: 0; }
 .quiet-viewport { flex: 1; min-width: 0; overflow: hidden; }
 .quiet-status { display: flex; flex-shrink: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 16px; background: var(--secondary); color: var(--secondary-foreground); font-size: 14px; }
@@ -22,6 +22,8 @@
 .quiet-scroll-area:focus-within [data-slot=scroll-area-thumb] { background: color-mix(in oklch, var(--muted-foreground) 70%, transparent); }
 /* Radix's measurement wrapper defaults to display:table. Vertical app panels must stay width constrained. */
 .quiet-scroll-area [data-slot=scroll-area-viewport] > div { display: block !important; }
+/* Preview document only: the root is exactly the iframe viewport and never scrolls, so no second scroll chain exists. */
+.quiet-preview-document, .quiet-preview-document body { height: 100%; overflow: hidden; }
 .quiet-review { flex: 0 0 auto; min-height: 0; }
 .quiet-review > [data-slot=scroll-area-viewport] { height: auto; max-height: 40dvh; }
 

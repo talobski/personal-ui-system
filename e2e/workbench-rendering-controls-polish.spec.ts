@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright"
+import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { Locator, Page } from "@playwright/test"
 import { editorCategory, isMobileShell, setColorMode, sidebarSheet, workspaceMode } from "./workbench-navigation"
@@ -27,7 +28,7 @@ async function axe(page: Page, name: string, info: import("@playwright/test").Te
   await settle(page)
   const result = await new AxeBuilder({ page }).analyze()
   await info.attach(`axe-${name}.json`, { body: JSON.stringify(result), contentType: "application/json" })
-  expect(result.violations.filter(v => v.impact === "serious" || v.impact === "critical"), name).toEqual([])
+  expect(await seriousOutsideKnownDebt(page, result.violations, info, name), name).toEqual([])
 }
 
 for (const mode of ["light", "dark"] as const) {
@@ -128,8 +129,9 @@ for (const mode of ["light", "dark"] as const) {
           await expect(trigger).toHaveClass(/(?:^| )bg-muted(?: |$)/)
           await expect(trigger).toHaveClass(/(?:^| )ring-1 ring-border(?: |$)/)
           await expect(trigger).toHaveClass(/(?:^| )hover:bg-muted\/80(?: |$)/)
-          await expect(trigger).toHaveClass(/(?:^| )text-foreground\/75(?: |$)/)
-          await expect(trigger).not.toHaveClass(/accent|bg-muted\/50|ring-border\/50|muted-foreground/)
+          // WSPF-05 supersedes text-foreground/75 with the semantic muted pair; no local foreground workaround.
+          await expect(trigger).toHaveClass(/(?:^| )text-muted-foreground(?: |$)/)
+          await expect(trigger).not.toHaveClass(/accent|bg-muted\/50|ring-border\/50|text-foreground/)
           const s = await trigger.evaluate(el => { const c = getComputedStyle(el); return { pl: c.paddingLeft, pr: c.paddingRight, pt: c.paddingTop, pb: c.paddingBottom, size: parseFloat(c.fontSize), transform: c.textTransform, spacing: parseFloat(c.letterSpacing), radius: parseFloat(c.borderRadius), shadow: c.boxShadow, bg: c.backgroundColor } })
           expect([s.pl, s.pr, s.pt, s.pb]).toEqual(["8px", "8px", "2px", "2px"])
           expect(s.size).toBeLessThan(12)
@@ -186,17 +188,19 @@ for (const mode of ["light", "dark"] as const) {
       await page.keyboard.press("Escape")
       await expect(dialog).toHaveCount(0)
 
-      // WCN-04: preview document stays native with stable platform geometry and no app scrollbar styling.
+      // WSPF-09 supersedes WCN-04's native preview document: its root ScrollArea scrolls; the document root never does.
       const doc = preview(page).locator("html")
+      const previewViewport = preview(page).getByRole("group", { name: "Preview document", exact: true })
       expect(await style(doc, "scrollbar-width")).toBe("auto")
-      expect(await style(doc, "scrollbar-color")).toBe("auto")
+      expect(await style(doc, "overflow-y")).toBe("hidden")
       const docRest = await box(doc)
       const frame = await box(page.getByTestId("preview-frame"))
       await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 2)
-      expect(await style(doc, "scrollbar-color")).toBe("auto")
       expect(await box(doc)).toEqual(docRest)
       await page.mouse.wheel(0, 400)
-      await expect.poll(() => doc.evaluate(() => document.scrollingElement!.scrollTop)).toBeGreaterThan(0)
+      await expect.poll(() => previewViewport.evaluate(el => el.scrollTop)).toBeGreaterThan(0)
+      expect(await doc.evaluate(() => document.scrollingElement!.scrollTop)).toBe(0)
+      await previewViewport.evaluate(el => { el.scrollTop = 0 })
 
       // WCN-11: official Select keeps keyboard selection.
       await previewTabs.focus()

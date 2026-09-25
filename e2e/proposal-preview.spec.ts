@@ -1,6 +1,7 @@
 import { stageCommand } from "./design-command-fixture"
 import { workspaceMode, editorCategory, previewStates, assertActiveControls, saveTheme, selectTheme, setColorMode } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
+import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { Page, TestInfo } from "@playwright/test"
 
@@ -82,7 +83,7 @@ async function expectNoSeriousViolations(page: Page, label: string, testInfo: Te
     .poll(async () => (await page.evaluate(() => document.getAnimations().length)) + (await previewFrame(page).locator("html").evaluate(() => document.getAnimations().length)))
     .toBe(0)
   const { violations } = await new AxeBuilder({ page }).analyze()
-  const serious = violations.filter((v) => v.impact === "critical" || v.impact === "serious")
+  const serious = await seriousOutsideKnownDebt(page, violations, testInfo, label)
   await testInfo.attach(`axe-${label}.json`, { body: JSON.stringify(serious, null, 2), contentType: "application/json" })
   expect(serious, `${label}: ${JSON.stringify(serious.map((v) => [v.id, v.nodes.map((n) => n.target)]))}`).toEqual([])
 }

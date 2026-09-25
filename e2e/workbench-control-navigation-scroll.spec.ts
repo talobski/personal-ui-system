@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright"
+import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { Locator } from "@playwright/test"
 import { stageCommand } from "./design-command-fixture"
@@ -144,11 +145,12 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
     const v = await geometry(view), main = await geometry(frame.getByTestId("preview"))
     expect(Math.abs(v.x + v.width / 2 - main.x - main.width / 2)).toBeLessThanOrEqual(1)
     expect(v.height).toBe(32)
-    expect(await frame.locator('[data-slot="scroll-area"]').count()).toBe(0)
+    // WSPF-09 supersedes WCN-04 here: the embedded document has exactly one root ScrollArea.
+    expect(await frame.locator('[data-slot="scroll-area"]').count()).toBe(1)
     expect(await frame.getByPlaceholder("Placeholder text").evaluate(el => getComputedStyle(el).fontSize)).toBe((page.viewportSize()!.width < 768) ? "16px" : "14px")
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     const axe = await new AxeBuilder({ page }).analyze()
-    expect(axe.violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([])
+    expect(await seriousOutsideKnownDebt(page, axe.violations, info, `wcn-${mode}-${reducedMotion}`)).toEqual([])
     await info.attach("axe-wcn.json", { body: JSON.stringify(axe), contentType: "application/json" })
     await info.attach("wcn-preview.png", { body: await page.screenshot(), contentType: "image/png" })
   })

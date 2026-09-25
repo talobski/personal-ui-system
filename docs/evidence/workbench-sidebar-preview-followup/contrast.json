@@ -1,0 +1,141 @@
+{
+  "method": "Offline WCAG 2.x relative-luminance contrast from the frozen Theme v2 fixture CSS (culori). Not a browser measurement; the Lead's browser run records renderer and axe values.",
+  "pairs": [
+    {
+      "theme": "default",
+      "mode": "light",
+      "tokens": {
+        "mf": "oklch(0.555527 0 0)",
+        "m": "oklch(0.970151 0 0)",
+        "card": "oklch(1 0 0)",
+        "s": "oklch(0.970151 0 0)",
+        "sf": "oklch(0.204627 0 0)"
+      },
+      "sectionTriggerRest": {
+        "fg": "#737373",
+        "bg": "#f5f5f5",
+        "ratio": 4.349
+      },
+      "sectionTriggerHover": {
+        "ratio": 4.426
+      },
+      "categoryTabInactive": {
+        "ratio": 4.742
+      },
+      "categoryTabInactiveHover": {
+        "ratio": 3.234
+      },
+      "categoryTabActive": {
+        "ratio": 16.444
+      }
+    },
+    {
+      "theme": "default",
+      "mode": "dark",
+      "tokens": {
+        "mf": "oklch(0.709 0 0)",
+        "m": "oklch(0.268618 0 0)",
+        "card": "oklch(0.204627 0 0)",
+        "s": "oklch(0.268618 0 0)",
+        "sf": "oklch(0.985104 0 0)"
+      },
+      "sectionTriggerRest": {
+        "fg": "#a1a1a1",
+        "bg": "#262626",
+        "ratio": 5.857
+      },
+      "sectionTriggerHover": {
+        "ratio": 6.083
+      },
+      "categoryTabInactive": {
+        "ratio": 6.939
+      },
+      "categoryTabInactiveHover": {
+        "ratio": 4.885
+      },
+      "categoryTabActive": {
+        "ratio": 14.499
+      }
+    },
+    {
+      "theme": "quiet-editorial",
+      "mode": "light",
+      "tokens": {
+        "mf": "oklch(0.45 0.02 250)",
+        "m": "oklch(0.96 0.005 250)",
+        "card": "oklch(1 0 0)",
+        "s": "oklch(0.95 0.01 250)",
+        "sf": "oklch(0.25 0.02 250)"
+      },
+      "sectionTriggerRest": {
+        "fg": "#4d5660",
+        "bg": "#eff2f5",
+        "ratio": 6.611
+      },
+      "sectionTriggerHover": {
+        "ratio": 6.769
+      },
+      "categoryTabInactive": {
+        "ratio": 7.423
+      },
+      "categoryTabInactiveHover": {
+        "ratio": 4.468
+      },
+      "categoryTabActive": {
+        "ratio": 13.821
+      }
+    },
+    {
+      "theme": "quiet-editorial",
+      "mode": "dark",
+      "tokens": {
+        "mf": "oklch(0.75 0.02 250)",
+        "m": "oklch(0.27 0.015 250)",
+        "card": "oklch(0.2 0.01 250)",
+        "s": "oklch(0.27 0.015 250)",
+        "sf": "oklch(0.96 0.005 250)"
+      },
+      "sectionTriggerRest": {
+        "fg": "#a5afba",
+        "bg": "#21272e",
+        "ratio": 6.777
+      },
+      "sectionTriggerHover": {
+        "ratio": 7.065
+      },
+      "categoryTabInactive": {
+        "ratio": 8.148
+      },
+      "categoryTabInactiveHover": {
+        "ratio": 5.634
+      },
+      "categoryTabActive": {
+        "ratio": 13.404
+      }
+    }
+  ],
+  "knownDebt": [
+    {
+      "theme": "default",
+      "mode": "light",
+      "fg": "#737373",
+      "bg": "#f5f5f5",
+      "ratio": 4.349,
+      "disposition": "pre-approved deferred Default-theme debt (WSPF-06)"
+    }
+  ],
+  "observedOther": [
+    {
+      "theme": "default",
+      "mode": "light",
+      "state": "category tab inactive hover (text-muted-foreground/80, owner-specified transient state)",
+      "ratio": 3.234
+    },
+    {
+      "theme": "quiet-editorial",
+      "mode": "light",
+      "state": "category tab inactive hover (text-muted-foreground/80, owner-specified transient state)",
+      "ratio": 4.468
+    }
+  ]
+}
