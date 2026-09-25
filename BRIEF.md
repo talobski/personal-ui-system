@@ -1059,6 +1059,31 @@ No owner visual gate was admitted. No Theme v2 schema, mutation operation,
 persistence format, Jev behavior, credential path, network boundary, or paid
 capacity changed.
 
+## Phase: Workbench Sidebar Preview Follow-up v1
+
+Owner-approved on 2026-09-26 as
+`workbench-sidebar-preview-followup-v1-001`, covering PUI-51 through PUI-55
+under WSPF-01 through WSPF-13. The phase is one bounded follow-up to the
+accepted Workbench navigation and ScrollArea work.
+
+It gives the category-navigation ScrollArea the full sidebar width, corrects
+tab state styling, adds the semantic sidebar-header divider, restores the
+shared collapsible trigger's `muted`/`muted-foreground` pairing, ghosts the
+preview Select, tightens the preview root to `gap-4 p-4`, and gives the embedded
+PreviewFrame document exactly one vertical shadcn ScrollArea without creating
+an outer iframe scroll owner.
+
+The Default muted-pair contrast is known to be approximately 4.35:1 for the
+small trigger text. That exact issue is pre-approved deferred Default-theme
+debt: it must be measured and reported, not hidden or locally worked around.
+All other new serious/critical accessibility findings remain disallowed.
+
+No owner visual-review gate is admitted. The Lead owns executable browser
+evidence; a fresh Codex STANDARD verifier owns exact-candidate offline, source,
+contract, boundary, and evidence-integrity review. The phase ceiling is three
+agent runs (two expected), 240 minutes, concurrency one, and paid spend zero;
+the project lifetime ceiling is 60.
+
 ## Phase result: Workbench Rendering Controls Polish v1
 
 Accepted on 2026-09-25 at product commit
