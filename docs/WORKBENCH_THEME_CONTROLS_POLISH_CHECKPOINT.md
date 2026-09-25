@@ -111,3 +111,31 @@ Verification:
 
 Next safe action: Lead reruns the exact corrected candidate's browser matrix in its
 authorized localhost environment. Collection success is not browser acceptance or promotion.
+
+## Bounded Storybook routing correction
+
+Correction base: `2f7b99bbd3b0f6b25bb4856ddbd860d6eff37a49`.
+Lead reported 88 existing Storybook cases passed, but the Workbench-only phase spec
+was also collected by Storybook because its `testIgnore` entry was missing.
+
+Added only `workbench-theme-controls-polish.spec.ts` to `playwright.config.ts`
+`testIgnore`. Workbench inclusion remains unchanged. This correction changes only
+that config and this checkpoint; product code, test assertions, acceptance criteria,
+and dependencies are untouched.
+
+Verification (all exit 0):
+
+- `TMPDIR="$PWD/dist/tmp" pnpm exec playwright test -c playwright.config.ts --list`:
+  88 tests in 19 files; zero cases from the phase spec.
+- `TMPDIR="$PWD/dist/tmp" pnpm exec playwright test -c playwright.workbench.config.ts --list`:
+  102 tests in 7 files; all 10 phase-spec cases retained across both viewports.
+- Collection counts independently checked with Node assertions against the output files
+  `dist/wtcp-storybook-collection.txt` and `dist/wtcp-workbench-collection.txt` (local, ignored evidence).
+- `pnpm exec tsc -p e2e`: PASS.
+- `git diff --check`: PASS.
+
+No browser execution or acceptance/promotion claim in this correction. Next safe action:
+Lead reruns the corrected exact-candidate matrix. The existing phase verifier still
+freezes `playwright.config.ts` and will reject this newly authorized config change;
+its allowlist/assertions were not edited under this config-only correction envelope.
+Lead must reconcile that explicit boundary-check mismatch before protected verification.

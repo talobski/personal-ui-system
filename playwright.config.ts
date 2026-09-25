@@ -13,6 +13,7 @@ export default defineConfig({
     "design-command.spec.ts",
     "design-command-live-boundary.spec.ts",
     "theme-v2-live-controls.spec.ts",
+    "workbench-theme-controls-polish.spec.ts",
   ],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },
