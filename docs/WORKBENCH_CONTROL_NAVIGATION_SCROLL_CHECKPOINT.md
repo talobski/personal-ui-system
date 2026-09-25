@@ -188,6 +188,26 @@ Raw correction logs live beside the initial producer logs with correction- prefi
 Correction geometry, semantic computed styles and keyboard results remain pending
 the Lead renderer; fresh protected verification remains pending as well.
 
+### Lead deterministic follow-up
+
+The first Lead correction rerun reduced 19 failures to nine and exposed two
+unambiguous residual causes. Chromium geometry showed that the accessible custom
+font-stack description inherited the vertical Field selector's `w-auto`, widening
+an otherwise visually hidden element to 1,270px. `LiveControls.tsx` now keeps that
+description at the canonical one-pixel screen-reader-only width with `!w-px`; the
+original editor `scrollWidth <= clientWidth` assertion remains intact and passes.
+
+The WCN color-state test also restored the exact original canonical Primary value
+after exercising rejected/empty/valid drafts. Previously it left Primary black and
+then ran axe against a deliberately invalid dark palette. All mutation, revision,
+placeholder, foreground, destructive-state and recovery assertions remain.
+
+Lead reran the exact affected scenarios after rebuilding the Workbench: 13 passed
+with one expected desktop skip. This includes both viewports, both color modes,
+both motion settings, the mobile sheet, typography containment, semantic color
+states and zero serious/critical axe findings in the WCN matrix. Full browser
+matrices and protected verification remain pending at this checkpoint.
+
 Correction closeout: phase boundary verification and git diff --check passed.
 The commit attempt failed before staging because Git could not create
 /Users/emmantalob/dev/personal-ui-system/.git/worktrees/workbench-control-navigation-scroll-v1-001/index.lock

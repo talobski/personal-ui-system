@@ -85,6 +85,7 @@ for (const property of ["font-family", "font-size", "font-weight", "line-height"
 assert.doesNotMatch(typography, /color|background|opacity|border/)
 assert.match(css, /\.quiet-control::placeholder, \.quiet-control-group \[data-slot=combobox-input\]::placeholder \{\s+color: var\(--muted-foreground\);\s+opacity: 1;\s+\}/)
 assert.match(app, /orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden"/)
+assert.match(controls, /data-testid=\{`\$\{id\}-stack`\} className="sr-only !w-px"/)
 assert.match(controls, /grid-cols-\[6rem_minmax\(0,1fr\)_max-content\]/)
 for (const fixed of ["w-[3.5rem]", "w-[1.5rem]", "gap-[0.375rem]"]) assert.ok(controls.includes(fixed))
 assert.doesNotMatch(controls, /w-24|w-14|w-6\b|font-mono/)

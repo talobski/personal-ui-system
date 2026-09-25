@@ -329,7 +329,7 @@ export function LiveFontField({
         </ComboboxContent>
       </Combobox>
       {selected === null && (
-        <FieldDescription id={noteId} data-testid={`${id}-stack`} className="sr-only">
+        <FieldDescription id={noteId} data-testid={`${id}-stack`} className="sr-only !w-px">
           <span className="break-all">{formatFontStack(stack)}</span>
         </FieldDescription>
       )}
