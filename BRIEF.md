@@ -1,7 +1,9 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `workbench-controls-preview-refinement-v1-001` is accepted at
-product commit `b2952d17f240abb2bf1e7e87f20f14281399015d`. The owner approved
+Status: ACTIVE — `workbench-sidebar-system-polish-v1-001` is admitted from the
+accepted product commit `b2952d17f240abb2bf1e7e87f20f14281399015d` to deliver
+PUI-25 through PUI-30 as one bounded phase. The previously accepted
+`workbench-controls-preview-refinement-v1-001` owner approved
 the final desktop/mobile result, WCPR-16 passed through separately attributed
 protected offline and Lead-owned browser evidence, and the exact candidate was
 promoted through accepted-state-before-main. The protected verifier's blocked
