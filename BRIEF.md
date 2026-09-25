@@ -1024,3 +1024,31 @@ contract, boundary, and evidence-integrity review without repair authority.
 No owner visual gate was admitted. No public resource, Theme v2 schema,
 mutation operation, persistence format, Jev behavior, credential path, or
 network boundary changed.
+
+## Phase result: Workbench Rendering Controls Polish v1
+
+Accepted on 2026-09-25 at product commit
+`b70c6df8b5286eb0f1141bf92066d8d93b763f4e`. PUI-38 through PUI-43 were
+delivered as one coordinated batch under WRCP-01 through WRCP-16.
+
+Workbench and preview roots now use consistent antialiased rendering. Shadow
+color editing reuses the canonical OKLCH color field, while Other-tab labels
+and shared collapsible triggers use the approved compact semantic treatment.
+Scoped native scrollbars reveal on container interaction without changing
+overflow geometry. The sidebar header and preview toolbar align at exactly
+64px, preview and sidebar tab typography match, and affected Workbench form
+controls remain 14px across desktop and mobile as explicitly required.
+
+Lead evidence passed 674 unit tests, all typechecks and builds, Storybook
+88/88, Workbench 110 passed with two established viewport-specific skips,
+Design Command 1/1, the exact 18-resource registry, 11 mutation operations,
+and zero serious/critical axe findings. The fresh Codex Terra STANDARD
+verifier independently passed the exact-candidate offline, source, contract,
+boundary, and integrity review without browser or repair authority.
+
+The initial verifier found two control-document trailing blank lines. Bounded
+recovery removed exactly those bytes and added a verifier guard that admits
+only those exact EOF cleanups; product, runtime, and test bytes were unchanged.
+No owner visual gate was admitted. No public resource, Theme v2 schema,
+mutation operation, persistence format, Jev behavior, credential path, or
+network boundary changed.
