@@ -1,12 +1,11 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `workbench-theme-controls-polish-v1-001` is admitted from
-accepted product commit `aac8372cb646ac2a89bb3f7bd17e9e408fc19c0d`
-for PUI-31 through PUI-37. The phase has no owner visual-review gate. Browser
-execution is Lead-owned; the fresh cross-provider verifier owns exact-candidate
-offline, source, contract, and evidence-integrity review. The preceding
-`workbench-sidebar-system-polish-v1-001` phase completed PUI-25 through PUI-30
-and is the accepted implementation base. The earlier
+Status: ACTIVE — `workbench-theme-controls-polish-v1-001` completed PUI-31
+through PUI-37 and is accepted at product commit
+`473372c92ad23478c41cc151a79fb8274fea7d9f`. Browser execution remains
+Lead-attributed and the fresh cross-provider verifier independently passed the
+exact-candidate offline, source, contract, boundary, and evidence-integrity
+review. No owner visual-review gate was admitted. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
@@ -66,8 +65,8 @@ supported but is no longer manually editable in the Workbench. Theme v2,
 mutation operations, persistence format, proposal safety, credentials, and
 network boundaries remain unchanged.
 
-The admitted Workbench theme controls polish phase is a bounded refinement of
-the accepted sidebar editor. It covers PUI-31 through PUI-37 in one batch:
+The accepted Workbench theme controls polish phase is a bounded refinement of
+the sidebar editor. It delivers PUI-31 through PUI-37 in one batch:
 compact non-overlapping theme swatches, owner-selected Default radius and
 spacing baselines, a theme-neutral shadcn toolbar, single-row numeric controls,
 shared collapsible-group polish, aligned 16px sidebar/preview insets, and
@@ -1000,3 +999,28 @@ exact candidate after two bounded non-product corrections: removing one
 trailing blank line from the phase contract and admitting that contract path
 to the phase verifier. No product/runtime/test behavior changed during those
 recoveries.
+
+## Phase result: Workbench Theme Controls Polish v1
+
+Accepted on 2026-09-25 at product commit
+`473372c92ad23478c41cc151a79fb8274fea7d9f`. PUI-31 through PUI-37 were
+delivered as one coordinated batch under WTCP-01 through WTCP-14.
+
+Theme swatches now use the approved compact geometry and token order. The
+built-in Default theme uses a 0.7rem radius baseline and 0.25rem spacing
+baseline without altering custom themes or Quiet Editorial. The preview
+toolbar uses theme-neutral structure, 16px padding, ghost shadcn Buttons, and
+Lucide Export/Save icons. Applicable numeric controls share a single-row
+label/slider/input/unit layout; collapsible groups use accessible compact
+semantic styling; sidebar and preview insets align at 16px; and font controls
+show concise category copy while retaining exact canonical custom stacks.
+
+Lead evidence passed 672 unit tests, all typechecks and builds, Storybook
+88/88, Workbench 100 passed with two intentional cross-viewport skips, Design
+Command 1/1, the exact 18-resource registry, 11 mutation operations, and the
+phase frozen/bundle/credential/network scan. The fresh Claude Sonnet 5
+STANDARD verifier independently passed the exact-candidate offline, source,
+contract, boundary, and evidence-integrity review without repair authority.
+No owner visual gate was admitted. No public resource, Theme v2 schema,
+mutation operation, persistence format, Jev behavior, credential path, or
+network boundary changed.
