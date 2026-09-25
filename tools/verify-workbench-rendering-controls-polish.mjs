@@ -22,6 +22,12 @@ assert.deepEqual(lines(git("diff", "--name-only", productBase, base)).sort(), [
   "BRIEF.md", "docs/WORKBENCH_RENDERING_CONTROLS_POLISH_CONTRACT.md",
 ].sort())
 
+// Lead-authorized recovery: these control files may differ from the control commit only by one removed EOF blank line.
+const eofOnly = [".loop/runs/workbench-rendering-controls-polish-v1-001/task.md", "docs/WORKBENCH_RENDERING_CONTROLS_POLISH_CONTRACT.md"]
+for (const path of eofOnly) {
+  const before = prior(path), after = read(path)
+  assert.ok(before.endsWith("\n\n") && after === before.slice(0, -1) && !after.endsWith("\n\n"), `Only one EOF blank-line removal admitted: ${path}`)
+}
 const admitted = new Set([
   "apps/workbench/src/App.tsx", "apps/workbench/src/LiveControls.tsx", "apps/workbench/src/PreviewFrame.tsx",
   "apps/workbench/src/controls.ts", "apps/workbench/src/main.tsx", "apps/workbench/src/styles.css",
@@ -29,6 +35,7 @@ const admitted = new Set([
   "e2e/theme-v2-live-controls.spec.ts", "e2e/workbench-navigation.ts", "e2e/workbench-theme-controls-polish.spec.ts",
   "e2e/workbench-rendering-controls-polish.spec.ts", "playwright.workbench.config.ts", "playwright.config.ts",
   "tools/verify-workbench-rendering-controls-polish.mjs", "docs/WORKBENCH_RENDERING_CONTROLS_POLISH_CHECKPOINT.md",
+  ...eofOnly,
 ])
 const changed = [...new Set([...lines(git("diff", "--name-only", base)), ...lines(git("ls-files", "--others", "--exclude-standard"))])].sort()
 for (const path of changed) assert.ok(admitted.has(path), `Outside admitted scope: ${path}`)
