@@ -7,4 +7,3 @@ The producer may change only the bounded Workbench, focused tests, phase evidenc
 Use no network, credentials, paid capacity, external actions, Paseo/native subagents, canonical `.loop` access, permission escalation, deployment, acceptance, or promotion. Read `BRIEF.md` and the contract before acting. Work in the isolated Paseo worktree, keep the implementation provider-neutral, checkpoint clean commits, and report exact files, commands, evidence, and blockers.
 
 Browser execution is Lead-owned. Add or update executable browser definitions, but do not claim browser PASS unless actually executed in the worker environment. The protected verifier remains fresh, offline/source/contract/evidence-integrity only, and has no repair authority.
-

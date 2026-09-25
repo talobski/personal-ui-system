@@ -49,4 +49,3 @@ No public resource, Theme v2 schema, mutation operation, persistence format, dep
 - Verifier: fresh Codex STANDARD / GPT-5.6 Terra / medium, logically read-only and no-repair, with fail-closed pre/post integrity checks if native read-only enforcement is unavailable.
 - Lifetime ceiling: 56; phase ceiling: 3 runs; expected: 2; concurrency: 1; execution time: 14,400,000 ms; paid spend: $0.
 - Third run is reserved for bounded recovery or re-verification. No STRONG-to-MAX fallback is admitted.
-
