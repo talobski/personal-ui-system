@@ -57,6 +57,7 @@ test("vertical Field label-to-control spacing defaults to gap-2 while horizontal
     await test.step(mode, async () => {
       await page.goto(story("spacing"))
       await setColorMode(page, mode)
+      await expect(page.getByRole("textbox", { name: "Display name" })).toBeVisible()
       const gaps = await page.evaluate(() => {
         const read = (selector: string) => getComputedStyle(document.querySelector(selector)!)
         const spacing = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--space-base")) * parseFloat(getComputedStyle(document.documentElement).fontSize) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--density"))
