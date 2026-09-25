@@ -156,6 +156,38 @@ const chartStateSchema = z.strictObject({
   series: z.array(z.strictObject({ key: z.string().min(1).max(80), label: z.string().max(200), color: z.string().min(1).max(80) })).min(1).max(12),
 })
 
+const sidebarStateSchema = z.strictObject({
+  kind: z.literal("sidebar"),
+  providerCount: z.number().int().nonnegative().max(12),
+  sidebarCount: z.number().int().nonnegative().max(12),
+  insetPresent: z.boolean(),
+  triggerName: z.string().max(200).nullable(),
+  mobilePresentation: z.enum(["off-canvas-sheet", "inline", "hidden"]),
+  menuActions: z.array(z.strictObject({ accessibleName: z.string().max(200).nullable(), insidePrimaryControl: z.boolean() })).max(50),
+  colorTokens: z.array(z.string().min(1).max(80)).max(24),
+})
+
+const avatarStateSchema = z.strictObject({
+  kind: z.literal("avatar"),
+  displayName: z.string().min(1).max(200),
+  fallbackText: z.string().max(40),
+  fallbackBackground: z.string().min(1).max(80),
+  fallbackForeground: z.string().min(1).max(80),
+  decorative: z.boolean(),
+  accessibleName: z.string().max(200).nullable(),
+})
+
+/** Semantic theme colour tokens a sidebar may use; sidebar-specific tokens and literal colours are not admitted. */
+const SIDEBAR_COLOR_TOKENS = new Set(["background", "foreground", "card", "card-foreground", "accent", "accent-foreground", "border", "ring", "primary", "primary-foreground", "muted", "muted-foreground"])
+
+/** The one-character avatar initial: the first letter or digit, upper-cased when that stays one character. */
+export function avatarInitial(name: string): string {
+  const first = name.match(/[\p{L}\p{N}]/u)?.[0]
+  if (!first) return "?"
+  const upper = first.toLocaleUpperCase()
+  return [...upper].length === 1 ? upper : first
+}
+
 export const componentStateSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     kind: z.literal("resizable-panel"),
@@ -179,6 +211,8 @@ export const componentStateSchema = z.discriminatedUnion("kind", [
   selectStateSchema,
   comboboxStateSchema,
   chartStateSchema,
+  sidebarStateSchema,
+  avatarStateSchema,
 ])
 
 export type ComponentState = z.infer<typeof componentStateSchema>
@@ -229,6 +263,15 @@ export type ComponentConstraintRuleId =
   | "chart.accessibility-layer"
   | "chart.theme-colors"
   | "chart.series-labels"
+  | "sidebar.single-shell"
+  | "sidebar.inset-required"
+  | "sidebar.trigger-name"
+  | "sidebar.mobile-sheet"
+  | "sidebar.action-sibling"
+  | "sidebar.semantic-tokens"
+  | "avatar.single-initial"
+  | "avatar.semantic-colors"
+  | "avatar.accessible-name"
 
 export type ComponentConstraintIssue = { ruleId: ComponentConstraintRuleId; path: string }
 
@@ -377,6 +420,21 @@ export function validateComponentState(input: unknown): ComponentStateValidation
     if (state.series.some((series) => !/^var\(--chart-[1-5]\)$/.test(series.color))) issues.push({ ruleId: "chart.theme-colors", path: "series" })
     const keys = state.series.map((series) => series.key)
     if (state.series.length > 5 || new Set(keys).size !== keys.length || state.series.some((series) => !series.label.trim())) issues.push({ ruleId: "chart.series-labels", path: "series" })
+  }
+
+  if (state.kind === "sidebar") {
+    if (state.providerCount !== 1 || state.sidebarCount !== 1) issues.push({ ruleId: "sidebar.single-shell", path: state.providerCount !== 1 ? "providerCount" : "sidebarCount" })
+    if (!state.insetPresent) issues.push({ ruleId: "sidebar.inset-required", path: "insetPresent" })
+    if (state.triggerName === null || !state.triggerName.trim()) issues.push({ ruleId: "sidebar.trigger-name", path: "triggerName" })
+    if (state.mobilePresentation !== "off-canvas-sheet") issues.push({ ruleId: "sidebar.mobile-sheet", path: "mobilePresentation" })
+    if (state.menuActions.some((action) => action.insidePrimaryControl || action.accessibleName === null || !action.accessibleName.trim())) issues.push({ ruleId: "sidebar.action-sibling", path: "menuActions" })
+    if (state.colorTokens.some((token) => !SIDEBAR_COLOR_TOKENS.has(token))) issues.push({ ruleId: "sidebar.semantic-tokens", path: "colorTokens" })
+  }
+
+  if (state.kind === "avatar") {
+    if ([...state.fallbackText].length !== 1 || state.fallbackText !== avatarInitial(state.displayName)) issues.push({ ruleId: "avatar.single-initial", path: "fallbackText" })
+    if (state.fallbackBackground !== "muted" || state.fallbackForeground !== "muted-foreground") issues.push({ ruleId: "avatar.semantic-colors", path: state.fallbackBackground !== "muted" ? "fallbackBackground" : "fallbackForeground" })
+    if (!state.decorative && (state.accessibleName === null || !state.accessibleName.trim())) issues.push({ ruleId: "avatar.accessible-name", path: "accessibleName" })
   }
 
   if (state.kind === "responsive-dialog") {

@@ -180,6 +180,41 @@
           "type": "registry:ui"
         }
       ]
+    },
+    {
+      "name": "sidebar",
+      "type": "registry:ui",
+      "title": "Sidebar",
+      "description": "Shadcn Sidebar application shell on semantic theme tokens; the mobile off-canvas sheet uses the Radix Dialog primitive.",
+      "dependencies": [
+        "cn",
+        "class-variance-authority",
+        "lucide-react",
+        "radix-ui"
+      ],
+      "registryDependencies": ["button", "input", "separator"],
+      "files": [
+        {
+          "path": "packages/ui/src/components/sidebar.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "avatar",
+      "type": "registry:ui",
+      "title": "Avatar",
+      "description": "Shadcn Avatar over the Radix avatar primitive with a one-character initial on the muted tokens.",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/avatar.tsx",
+          "type": "registry:ui"
+        }
+      ]
     }
   ]
 }

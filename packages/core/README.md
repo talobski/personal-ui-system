@@ -22,12 +22,16 @@ accepts v1 input and returns migrated v2; `normalizeColor` turns HEX, rgb(a), hs
 The operation union adds `setFontFamily`, `setTracking`, `setRadiusBase` (derives the radius scale),
 `setSpacingBase`, and `setShadowProfile` (derives all shadow tiers); `setColor` accepts the same four colour families.
 
-The catalog contains sixteen resources. `slider` (single-thumb, forwards its name and value text to the Radix
+The catalog contains eighteen resources. `slider` (single-thumb, forwards its name and value text to the Radix
 thumb) and `collapsible` (one named disclosure region) are components; retrieve either with
 `get --version personal-ui-context/1 --theme default --resource slider`. `select` (grouped rich single choice over
 Base UI Select), `combobox` (searchable single choice over `@base-ui/react@1.8.0`), and `chart` (Recharts 3 with theme
 chart tokens, the accessibility layer, and a required text summary) are components with deterministic
-`select.*`, `combobox.*`, and `chart.*` state constraints; NativeSelect remains for native single choice. `resizable-panel` is the desktop layout
+`select.*`, `combobox.*`, and `chart.*` state constraints; NativeSelect remains for native single choice. `sidebar`
+is the application-shell pattern (one `SidebarProvider` / `Sidebar` / `SidebarInset`, an off-canvas sheet below 768px,
+semantic theme tokens only) and `avatar` is a component whose fallback is exactly one initial from `avatarInitial(name)`
+on the muted tokens; both have deterministic `sidebar.*` and `avatar.*` state constraints, for example
+`get --version personal-ui-context/1 --theme default --resource sidebar`. `resizable-panel` is the desktop layout
 pattern backed by `react-resizable-panels@4.13.2`; retrieve it with
 `get --version personal-ui-context/1 --theme quiet-editorial --resource resizable-panel`.
 Its UI entry point exports `ResizablePanelGroup`, `ResizablePanel`, and

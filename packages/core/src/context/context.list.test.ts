@@ -22,6 +22,11 @@ describe("context list (ACR-02)", () => {
     ])
 
     expect(result.resources).toEqual([
+      {
+        id: "avatar",
+        kind: "component",
+        purpose: "Represent a person or account with an optional image and a one-character initial fallback on a muted surface.",
+      },
       { id: "button", kind: "component", purpose: "Trigger a single, clearly named action or navigation." },
       { id: "card", kind: "component", purpose: "Group related panel content — a title, description, body, and actions — inside one bordered surface." },
       {
@@ -52,6 +57,11 @@ describe("context list (ACR-02)", () => {
         id: "select",
         kind: "component",
         purpose: "Choose one value from a short, fixed set when options need richer presentation or grouping than a native select allows.",
+      },
+      {
+        id: "sidebar",
+        kind: "pattern",
+        purpose: "Frame one application as a full-height shell: a collapsible side region for navigation and controls beside a main inset.",
       },
       { id: "single-toggle-group", kind: "pattern", purpose: "Choose exactly one option from a small, bounded, always-visible set." },
       {

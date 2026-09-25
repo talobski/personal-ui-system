@@ -18,7 +18,7 @@ import { Separator } from "@personal-ui/ui/components/separator"
  *   separate sheet resource is introduced.
  * - no cookie is written: sidebar open state is session UI state, never persisted.
  * - the tooltip prop and Tooltip provider are omitted (no Tooltip resource); icon-collapse labels stay visible text.
- * - the menu skeleton width is a deterministic prop instead of Math.random().
+ * - the menu skeleton width is a deterministic prop instead of a random value.
  * - useIsMobile reads the media query through useSyncExternalStore, so the first render already matches the viewport.
  */
 

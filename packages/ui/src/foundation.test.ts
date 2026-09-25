@@ -136,6 +136,27 @@ describe("shadcn foundation", () => {
     expect(readdirSync(root)).toContain("native-select.tsx")
   })
 
+  it("keeps Sidebar and Avatar as thin shadcn-derived compositions on semantic tokens (WSSP-02)", () => {
+    const sidebar = source("sidebar.tsx")
+    const avatar = source("avatar.tsx")
+    expect(sidebar).toContain('import { Dialog as SheetPrimitive, Slot } from "radix-ui"')
+    expect(sidebar).toContain('from "class-variance-authority"')
+    for (const slot of ["sidebar-wrapper", "sidebar-gap", "sidebar-container", "sidebar-inset", "sidebar-header", "sidebar-content", "sidebar-footer", "sidebar-menu-button", "sidebar-menu-action", "sidebar-trigger"]) expect(sidebar).toContain(`data-slot="${slot}"`)
+    expect(sidebar).toContain('const SIDEBAR_WIDTH_MOBILE = "18rem"')
+    expect(sidebar).toContain('<span className="sr-only">Toggle Sidebar</span>')
+    // Adapted to the existing semantic tokens: no sidebar-specific colour utilities, no literal colours, no cookie.
+    expect(sidebar).not.toMatch(/(?:bg|text|border|ring|outline|shadow)-sidebar|--sidebar-(?:background|foreground|accent|border|ring|primary)|hsl\(|#[0-9a-f]{3,8}\b/i)
+    expect(sidebar).not.toMatch(/document\.cookie|localStorage|sessionStorage|Math\.random/)
+    expect(avatar).toContain('import { Avatar as AvatarPrimitive } from "radix-ui"')
+    expect(avatar).toContain('data-slot="avatar-fallback"')
+    expect(avatar).toMatch(/bg-muted text-muted-foreground/)
+    expect(avatar).not.toMatch(/bg-(?!muted\b)[a-z]+-\d|#[0-9a-f]{3,8}\b/i)
+    for (const implementation of [sidebar, avatar]) {
+      expect(implementation).not.toMatch(/focusTrap|trapFocus|dismissOnEscape|onPointer/i)
+      expect(implementation).not.toMatch(/https?:\/\//)
+    }
+  })
+
   it("declares the pilot dependency provenance in the shadcn registry", () => {
     const registry = JSON.parse(readFileSync(join(components, "../../../registry.json"), "utf8")) as {
       items: Array<{ name: string; dependencies?: string[]; registryDependencies?: string[] }>
@@ -157,7 +178,11 @@ describe("shadcn foundation", () => {
     expect(item("select")?.dependencies).toEqual(["cn", "lucide-react", "@base-ui/react@1.8.0"])
     expect(item("combobox")?.dependencies).toEqual(["cn", "lucide-react", "@base-ui/react@1.8.0"])
     expect(item("chart")?.dependencies).toEqual(["cn", "recharts@3.10.1"])
+    expect(item("sidebar")?.dependencies).toEqual(["cn", "class-variance-authority", "lucide-react", "radix-ui"])
+    expect(item("sidebar")?.registryDependencies).toEqual(["button", "input", "separator"])
+    expect(item("avatar")?.dependencies).toEqual(["cn", "radix-ui"])
     expect(registry.items.map((entry) => entry.name).sort()).toEqual([
+      "avatar",
       "button",
       "card",
       "chart",
@@ -169,6 +194,7 @@ describe("shadcn foundation", () => {
       "resizable-panel",
       "responsive-dialog",
       "select",
+      "sidebar",
       "single-toggle-group",
       "slider",
       "switch",

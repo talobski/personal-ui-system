@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 import { applyProposal, COLOR_TOKENS, createProposalSession, diffThemeTokens, discardProposal, normalizeColor, renderShadcnTailwindCss, stageProposal, validateTheme } from "@personal-ui/core"
 
@@ -13,7 +14,7 @@ import {
 } from "./lifecycle"
 import { buildFontOperation, buildShadowColorOperation, COLOR_GROUPS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
-import { emptySaved, loadSaved, saveSelection, saveTheme, STORAGE_KEY } from "./persistence"
+import { deleteTheme, emptySaved, loadSaved, saveSelection, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
 import v1QuietEditorial from "@personal-ui/core/theme/fixtures/valid.json"
 
@@ -407,4 +408,85 @@ describe("mutation proposal preview (non-committing)", () => {
     expect(JSON.stringify(storage.data)).not.toBe(before.storage)
   })
 
+})
+
+describe("custom theme deletion (WSSP-06)", () => {
+  const twoCustom = () => {
+    const storage = memoryStorage()
+    const studio = createCustomTheme(defaultTheme, "Studio", BUILT_IN_IDS)
+    const archive = createCustomTheme(canonical, "Archive", BUILT_IN_IDS)
+    if (!studio.ok || !archive.ok) throw new Error("expected valid copies")
+    const first = saveTheme(storage, emptySaved(), archive.theme, BUILT_IN_IDS, canonical.id)
+    if (!first.ok) throw new Error("expected save")
+    const second = saveTheme(storage, first.saved, studio.theme, BUILT_IN_IDS, defaultTheme.id)
+    if (!second.ok) throw new Error("expected save")
+    return { storage, saved: second.saved, studio: studio.theme, archive: archive.theme }
+  }
+
+  it("removes the saved theme and its base record, persists Default as active, and keeps other custom themes", () => {
+    const { storage, saved, studio, archive } = twoCustom()
+    expect(saved.activeId).toBe(studio.id)
+    const result = deleteTheme(storage, saved, studio.id, DEFAULT_THEME_ID)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.saved).toEqual({ themes: { [archive.id]: archive }, activeId: DEFAULT_THEME_ID, bases: { [archive.id]: canonical.id } })
+    // The persisted format is unchanged and survives a reload: Default is restored, the deleted theme is gone.
+    const reloaded = loadSaved(storage, BUILT_IN_IDS)
+    expect(reloaded).toEqual(result.saved)
+    expect(Object.keys(JSON.parse(storage.data[STORAGE_KEY]!)).sort()).toEqual(["activeId", "bases", "themes"])
+  })
+
+  it("never deletes a built-in or an unknown id, and writes nothing when rejected", () => {
+    const { storage, saved } = twoCustom()
+    const before = storage.data[STORAGE_KEY]
+    for (const id of [...BUILT_IN_IDS, "missing"]) {
+      expect(deleteTheme(storage, saved, id, DEFAULT_THEME_ID)).toEqual({ ok: false, issues: [{ ruleId: "workbench.delete.not-custom", path: "id" }] })
+    }
+    expect(storage.data[STORAGE_KEY]).toBe(before)
+  })
+
+  it("reports unavailable storage without changing the in-memory record", () => {
+    const { saved, studio } = twoCustom()
+    const broken: StorageLike = { getItem: () => null, setItem: () => { throw new Error("quota") } }
+    expect(deleteTheme(broken, saved, studio.id, DEFAULT_THEME_ID)).toEqual({ ok: false, issues: [{ ruleId: "workbench.save.storage-unavailable", path: "" }] })
+    expect(Object.hasOwn(saved.themes, studio.id)).toBe(true)
+  })
+
+  it("exposes the delete action only for the active custom theme, confirmed through ResponsiveDialog", () => {
+    const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8")
+    expect(app).toContain("const activeCustom = !builtInCopy && Object.hasOwn(saved.themes, current.id)")
+    expect(app).toMatch(/\{activeCustom && \(\s*<ResponsiveDialog open=\{deleteOpen\}/)
+    expect(app).toMatch(/<ResponsiveDialogTrigger asChild>\s*<SidebarMenuAction aria-label=\{`Delete \$\{current.name\}`\}/)
+    expect(app).toMatch(/if \(locked \|\| builtInCopy \|\| !Object.hasOwn\(saved.themes, current.id\)\) return/)
+    // The action is a sibling of the Select, never inside its trigger or rows.
+    const trigger = app.slice(app.indexOf("<SelectTrigger"), app.indexOf("</Select>"))
+    expect(trigger).not.toContain("SidebarMenuAction")
+  })
+})
+
+describe("density boundary (WSSP-10)", () => {
+  it("removes only the manual Density control; schema, renderer, mutation, persistence, and proposals keep density", () => {
+    const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8")
+    expect(app).not.toMatch(/numeric\("density"\)|NUMERIC_CONTROLS\.density|"Density"/)
+    // Programmatic density is intact.
+    const edited = editTheme(canonical, { op: "setDensity", value: 1.25 })
+    expect(edited.ok).toBe(true)
+    if (!edited.ok) return
+    expect(edited.theme.space.density.$value).toBe(1.25)
+    expect(renderShadcnTailwindCss(edited.theme)).toContain("--density: 1.25;")
+    expect(editTheme(canonical, { op: "setDensity", value: 99 }).ok).toBe(false)
+    const storage = memoryStorage()
+    const copy = createCustomTheme(edited.theme, "Dense", BUILT_IN_IDS)
+    if (!copy.ok) throw new Error("expected copy")
+    const saved = saveTheme(storage, emptySaved(), copy.theme, BUILT_IN_IDS, canonical.id)
+    expect(saved.ok).toBe(true)
+    expect(loadSaved(storage, BUILT_IN_IDS).themes[copy.theme.id]!.space.density.$value).toBe(1.25)
+    const v1 = validateTheme(v1QuietEditorial)
+    expect(v1.ok && v1.theme.space.density.$value).toBeTypeOf("number")
+    const proposal = { schemaVersion: "1.0", proposalId: "density-1", base: { themeId: canonical.id, revision: canonical.revision }, provenance: { source: "agent", sourceId: "density", createdAt: "2026-09-25T00:00:00Z" }, operations: [{ op: "setDensity", value: 1.5 }] }
+    const staged = stageProposal(createProposalSession(), canonical, proposal, "2026-09-25T00:00:01Z")
+    expect(staged.ok).toBe(true)
+    if (staged.ok) expect(staged.staged.candidate.space.density.$value).toBe(1.5)
+    expect(NUMERIC_CONTROLS.density.read(canonical)).toBe(canonical.space.density.$value)
+  })
 })

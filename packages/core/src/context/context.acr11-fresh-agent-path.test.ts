@@ -40,6 +40,7 @@ describe("fresh-agent-verifiable path (ACR-11)", () => {
     const list = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "list" })
     if (!list.ok || list.operation !== "list") throw new Error("expected list")
     expect(list.resources.map((resource) => resource.id)).toEqual([
+      "avatar",
       "button",
       "card",
       "chart",
@@ -51,6 +52,7 @@ describe("fresh-agent-verifiable path (ACR-11)", () => {
       "resizable-panel",
       "responsive-dialog",
       "select",
+      "sidebar",
       "single-toggle-group",
       "slider",
       "switch",

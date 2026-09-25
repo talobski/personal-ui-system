@@ -22,6 +22,8 @@ const loaders = {
   select: () => import("./data/select").then((m) => m.select),
   combobox: () => import("./data/combobox").then((m) => m.combobox),
   chart: () => import("./data/chart").then((m) => m.chart),
+  sidebar: () => import("./data/sidebar").then((m) => m.sidebar),
+  avatar: () => import("./data/avatar").then((m) => m.avatar),
 } as const satisfies Record<string, () => Promise<unknown>>
 
 export type ContractId = keyof typeof loaders

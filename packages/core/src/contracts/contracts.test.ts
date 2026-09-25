@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import { contractByteLength, contractSchema, CONTRACT_MAX_BYTES, getContract, listContractIds } from "../index"
 
 const ALL_RESOURCE_IDS = [
+  "avatar",
   "button",
   "card",
   "chart",
@@ -13,6 +14,7 @@ const ALL_RESOURCE_IDS = [
   "resizable-panel",
   "responsive-dialog",
   "select",
+  "sidebar",
   "single-toggle-group",
   "slider",
   "switch",
@@ -21,7 +23,7 @@ const ALL_RESOURCE_IDS = [
 ]
 
 describe("contract lookup", () => {
-  it("lists exactly the sixteen public resources", () => {
+  it("lists exactly the eighteen public resources", () => {
     expect(listContractIds().sort()).toEqual([...ALL_RESOURCE_IDS].sort())
   })
 
