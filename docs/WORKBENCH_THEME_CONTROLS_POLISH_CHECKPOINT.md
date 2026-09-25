@@ -86,3 +86,28 @@ responsive toolbar wrapping and narrow numeric rows require Lead's exact-candida
 Run all three browser suites (Workbench, Storybook, Design Command live boundary),
 attribute decoded reports/screenshots to the candidate commit, then obtain protected
 cross-provider verification. No acceptance or promotion is authorized by this checkpoint.
+
+## Bounded harness correction after Lead collection failure
+
+Correction base: `e3f62dbd5a2d5fb98967ea15f63fd5f5d0af64bd`.
+Lead reported that the phase spec's direct JSON import failed under Playwright/Node
+before any browser case executed (missing JSON import attribute).
+
+The spec now obtains Default through the existing typed `getValidatedTheme("default")`
+export in `packages/core/src/context/themes.ts`. That boundary already uses JSON import
+attributes and validates the canonical fixture. No product code, fixture, assertions,
+acceptance criteria, dependency, or configuration changed. Only the phase spec and this
+checkpoint changed in this correction.
+
+Verification:
+
+- `pnpm exec tsc -p e2e`: PASS, exit 0.
+- `TMPDIR="$PWD/dist/tmp" pnpm exec playwright test -c playwright.workbench.config.ts e2e/workbench-theme-controls-polish.spec.ts`:
+  BLOCKED, exit 1; preview server could not bind `127.0.0.1:5173` (`listen EPERM`).
+  No browser case executed; no permission expansion attempted.
+- Same Playwright command with `--list`: PASS, exit 0; all 10 cases collected
+  across 390x844 and 1440x900, proving config/spec loading and the corrected import.
+- `git diff --check`: PASS, exit 0.
+
+Next safe action: Lead reruns the exact corrected candidate's browser matrix in its
+authorized localhost environment. Collection success is not browser acceptance or promotion.

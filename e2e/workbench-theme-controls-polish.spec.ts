@@ -1,8 +1,10 @@
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { Locator } from "@playwright/test"
-import defaultTheme from "../packages/core/src/theme/fixtures/default.json"
+import { getValidatedTheme } from "../packages/core/src/context/themes"
 import { editorCategory, setColorMode, workspaceMode } from "./workbench-navigation"
+
+const defaultTheme = getValidatedTheme("default")!
 
 // Lead-owned execution, in both projects of playwright.workbench.config.ts. No viewport skips.
 const box = async (el: Locator) => {
