@@ -1,3 +1,4 @@
+import { expectEditorContainment } from "./workbench-navigation"
 import { readFileSync } from "node:fs"
 import { FONT_OPTIONS } from "../packages/ui/src/lib/fonts"
 import AxeBuilder from "@axe-core/playwright"
@@ -227,8 +228,9 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
     const panel = sheet.getByRole("tabpanel", { name: category, exact: true })
     await expect(panel).toBeVisible()
     await expect(panel.getByLabel(probe, { exact: true }).first()).toBeVisible()
-    // Tabs fit the 18rem sheet: nothing overflows horizontally.
-    expect(await sheet.evaluate(el => el.querySelector('[data-slot="sidebar-content"]')!.scrollWidth <= el.querySelector('[data-slot="sidebar-content"]')!.clientWidth)).toBe(true)
+    // Content-width tabs may scroll inside their viewport; neither editor nor sheet may overflow.
+    await expectEditorContainment(page)
+    await expect(sheet.getByRole("tab", { name: category, exact: true })).toBeInViewport()
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
   const { violations } = await new AxeBuilder({ page }).analyze()

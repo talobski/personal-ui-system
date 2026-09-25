@@ -387,9 +387,9 @@ export function App() {
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent className="quiet-editor overflow-hidden" data-testid="sidebar-content">
-          <Tabs value={category} onValueChange={setCategory} className="min-h-0 flex-1 gap-0">
+          <Tabs value={category} onValueChange={setCategory} className="min-h-0 w-full min-w-0 flex-1 gap-0">
             <SidebarGroup className="shrink-0 bg-card p-4">
-              <ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full" viewportProps={{ role: "region", "aria-label": "Editor category navigation", tabIndex: 0 }}>
+              <ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden" viewportProps={{ role: "region", "aria-label": "Editor category navigation", tabIndex: 0 }}>
                 <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent" aria-label="Editor categories">
                   <TabsTrigger value="colors" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Colors</TabsTrigger>
                   <TabsTrigger value="typography" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Typography</TabsTrigger>

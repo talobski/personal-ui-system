@@ -1,0 +1,80 @@
+Listing tests:
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:21:1 › preview fills the real right panel, with no device selector or fixed width, and follows the browser viewport (WTEP-02)
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:56:3 › quiet workspace layout, cards, mobile preservation and accessibility — light
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:56:3 › quiet workspace layout, cards, mobile preservation and accessibility — dark
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:140:1 › one full-height Sidebar shell: 22rem desktop sidebar, preview fills the inset, trigger and Ctrl+B collapse it (WSSP-03, WSSP-12)
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:199:1 › mobile off-canvas sidebar opens, traps focus, exposes every editor section, and dismisses by Escape, overlay, and touch-sized trigger (WSSP-04)
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:261:1 › overlay sidebar scrollbar and native preview scrolling (WCN-04/05 supersedes WSSP-07)
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:295:3 › full-region grouped theme Select stays anchored after resize, supports keyboard and persists — light
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:358:3 › theme Select shows primary, accent, secondary, and border swatches in the trigger and every row, with pointer and accent hover — light
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:405:3 › only the active custom theme exposes a sibling delete action; confirmed deletion removes it and persists Default — light
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:459:3 › removed copy and manual authoring stay absent; ordinary labels match — light
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:295:3 › full-region grouped theme Select stays anchored after resize, supports keyboard and persists — dark
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:358:3 › theme Select shows primary, accent, secondary, and border swatches in the trigger and every row, with pointer and accent hover — dark
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:405:3 › only the active custom theme exposes a sibling delete action; confirmed deletion removes it and persists Default — dark
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:459:3 › removed copy and manual authoring stay absent; ordinary labels match — dark
+  [workbench-mobile-390x844] › quiet-workspace.spec.ts:488:1 › all 24 local fonts load, render, write canonical stacks, export, persist and reload without external requests
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:63:3 › TSV2-04 fresh state, built-in selection, persistence › fresh state is Default; a valid selection survives reload; invalid state falls back to Default
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:102:3 › TSV2-04 fresh state, built-in selection, persistence › a stored v1 theme migrates on load, stays selected, and exports as v2 (TSV2-12)
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:123:3 › TSV2-04 fresh state, built-in selection, persistence › built-ins are immutable: Save opens Save As, which saves and selects one custom copy that reloads (WTEP-08)
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:190:5 › TSV2-10/11 live manual controls — light › typography: sans/serif/mono stacks and tracking change computed styles immediately; invalid drafts are inert
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:245:5 › TSV2-10/11 live manual controls — light › other: radius, spacing, shadow profile, and motion change computed styles immediately; no manual Density control (WSSP-10)
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:325:5 › TSV2-10/11 live manual controls — light › grouped colour rows: every token once; picker and text enter through setColor, store canonical OKLCH, and theme the chrome (WTEP-03/05/06)
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:190:5 › TSV2-10/11 live manual controls — dark › typography: sans/serif/mono stacks and tracking change computed styles immediately; invalid drafts are inert
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:245:5 › TSV2-10/11 live manual controls — dark › other: radius, spacing, shadow profile, and motion change computed styles immediately; no manual Density control (WSSP-10)
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:325:5 › TSV2-10/11 live manual controls — dark › grouped colour rows: every token once; picker and text enter through setColor, store canonical OKLCH, and theme the chrome (WTEP-03/05/06)
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:412:1 › sliders respond to keyboard (Tab, Home, End, Page keys) with visible focus, and to pointer click and drag
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:461:5 › TSV2-13 staged proposals stay authoritative alongside manual editing › manual controls pause while a proposal is staged; Discard and Apply resume them — light
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:461:5 › TSV2-13 staged proposals stay authoritative alongside manual editing › manual controls pause while a proposal is staged; Discard and Apply resume them — dark
+  [workbench-mobile-390x844] › theme-v2-live-controls.spec.ts:520:1 › reduced motion: controls stay operable and preview transitions collapse to 0s
+  [workbench-mobile-390x844] › workbench-control-navigation-scroll.spec.ts:17:3 › WCN-05–12/14 overlay input, navigation, controls: light, reduce
+  [workbench-mobile-390x844] › workbench-control-navigation-scroll.spec.ts:17:3 › WCN-05–12/14 overlay input, navigation, controls: light, no-preference
+  [workbench-mobile-390x844] › workbench-control-navigation-scroll.spec.ts:17:3 › WCN-05–12/14 overlay input, navigation, controls: dark, reduce
+  [workbench-mobile-390x844] › workbench-control-navigation-scroll.spec.ts:17:3 › WCN-05–12/14 overlay input, navigation, controls: dark, no-preference
+  [workbench-mobile-390x844] › workbench-control-navigation-scroll.spec.ts:156:1 › WCN-06 touch-equivalent scrolling and mobile sheet focus remain primitive-owned
+  [workbench-mobile-390x844] › workbench-control-navigation-scroll.spec.ts:172:1 › WCN-06/13 bounded proposal scroll keeps toolbar and native nested code usable
+  [workbench-mobile-390x844] › workbench-rendering-controls-polish.spec.ts:35:5 › WRCP-02/05–12 rendering, geometry, triggers, scrollbars, tabs, controls, axe: light, no-preference
+  [workbench-mobile-390x844] › workbench-rendering-controls-polish.spec.ts:35:5 › WRCP-02/05–12 rendering, geometry, triggers, scrollbars, tabs, controls, axe: light, reduce
+  [workbench-mobile-390x844] › workbench-rendering-controls-polish.spec.ts:35:5 › WRCP-02/05–12 rendering, geometry, triggers, scrollbars, tabs, controls, axe: dark, no-preference
+  [workbench-mobile-390x844] › workbench-rendering-controls-polish.spec.ts:35:5 › WRCP-02/05–12 rendering, geometry, triggers, scrollbars, tabs, controls, axe: dark, reduce
+  [workbench-mobile-390x844] › workbench-rendering-controls-polish.spec.ts:227:1 › WRCP-03/04 Shadow color reuses the picker/text interaction; approved Other labels; no stored-value helper
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:21:1 › preview fills the real right panel, with no device selector or fixed width, and follows the browser viewport (WTEP-02)
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:56:3 › quiet workspace layout, cards, mobile preservation and accessibility — light
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:56:3 › quiet workspace layout, cards, mobile preservation and accessibility — dark
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:140:1 › one full-height Sidebar shell: 22rem desktop sidebar, preview fills the inset, trigger and Ctrl+B collapse it (WSSP-03, WSSP-12)
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:199:1 › mobile off-canvas sidebar opens, traps focus, exposes every editor section, and dismisses by Escape, overlay, and touch-sized trigger (WSSP-04)
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:261:1 › overlay sidebar scrollbar and native preview scrolling (WCN-04/05 supersedes WSSP-07)
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:295:3 › full-region grouped theme Select stays anchored after resize, supports keyboard and persists — light
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:358:3 › theme Select shows primary, accent, secondary, and border swatches in the trigger and every row, with pointer and accent hover — light
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:405:3 › only the active custom theme exposes a sibling delete action; confirmed deletion removes it and persists Default — light
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:459:3 › removed copy and manual authoring stay absent; ordinary labels match — light
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:295:3 › full-region grouped theme Select stays anchored after resize, supports keyboard and persists — dark
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:358:3 › theme Select shows primary, accent, secondary, and border swatches in the trigger and every row, with pointer and accent hover — dark
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:405:3 › only the active custom theme exposes a sibling delete action; confirmed deletion removes it and persists Default — dark
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:459:3 › removed copy and manual authoring stay absent; ordinary labels match — dark
+  [workbench-desktop-1440x900] › quiet-workspace.spec.ts:488:1 › all 24 local fonts load, render, write canonical stacks, export, persist and reload without external requests
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:63:3 › TSV2-04 fresh state, built-in selection, persistence › fresh state is Default; a valid selection survives reload; invalid state falls back to Default
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:102:3 › TSV2-04 fresh state, built-in selection, persistence › a stored v1 theme migrates on load, stays selected, and exports as v2 (TSV2-12)
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:123:3 › TSV2-04 fresh state, built-in selection, persistence › built-ins are immutable: Save opens Save As, which saves and selects one custom copy that reloads (WTEP-08)
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:190:5 › TSV2-10/11 live manual controls — light › typography: sans/serif/mono stacks and tracking change computed styles immediately; invalid drafts are inert
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:245:5 › TSV2-10/11 live manual controls — light › other: radius, spacing, shadow profile, and motion change computed styles immediately; no manual Density control (WSSP-10)
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:325:5 › TSV2-10/11 live manual controls — light › grouped colour rows: every token once; picker and text enter through setColor, store canonical OKLCH, and theme the chrome (WTEP-03/05/06)
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:190:5 › TSV2-10/11 live manual controls — dark › typography: sans/serif/mono stacks and tracking change computed styles immediately; invalid drafts are inert
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:245:5 › TSV2-10/11 live manual controls — dark › other: radius, spacing, shadow profile, and motion change computed styles immediately; no manual Density control (WSSP-10)
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:325:5 › TSV2-10/11 live manual controls — dark › grouped colour rows: every token once; picker and text enter through setColor, store canonical OKLCH, and theme the chrome (WTEP-03/05/06)
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:412:1 › sliders respond to keyboard (Tab, Home, End, Page keys) with visible focus, and to pointer click and drag
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:461:5 › TSV2-13 staged proposals stay authoritative alongside manual editing › manual controls pause while a proposal is staged; Discard and Apply resume them — light
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:461:5 › TSV2-13 staged proposals stay authoritative alongside manual editing › manual controls pause while a proposal is staged; Discard and Apply resume them — dark
+  [workbench-desktop-1440x900] › theme-v2-live-controls.spec.ts:520:1 › reduced motion: controls stay operable and preview transitions collapse to 0s
+  [workbench-desktop-1440x900] › workbench-control-navigation-scroll.spec.ts:17:3 › WCN-05–12/14 overlay input, navigation, controls: light, reduce
+  [workbench-desktop-1440x900] › workbench-control-navigation-scroll.spec.ts:17:3 › WCN-05–12/14 overlay input, navigation, controls: light, no-preference
+  [workbench-desktop-1440x900] › workbench-control-navigation-scroll.spec.ts:17:3 › WCN-05–12/14 overlay input, navigation, controls: dark, reduce
+  [workbench-desktop-1440x900] › workbench-control-navigation-scroll.spec.ts:17:3 › WCN-05–12/14 overlay input, navigation, controls: dark, no-preference
+  [workbench-desktop-1440x900] › workbench-control-navigation-scroll.spec.ts:156:1 › WCN-06 touch-equivalent scrolling and mobile sheet focus remain primitive-owned
+  [workbench-desktop-1440x900] › workbench-control-navigation-scroll.spec.ts:172:1 › WCN-06/13 bounded proposal scroll keeps toolbar and native nested code usable
+  [workbench-desktop-1440x900] › workbench-rendering-controls-polish.spec.ts:35:5 › WRCP-02/05–12 rendering, geometry, triggers, scrollbars, tabs, controls, axe: light, no-preference
+  [workbench-desktop-1440x900] › workbench-rendering-controls-polish.spec.ts:35:5 › WRCP-02/05–12 rendering, geometry, triggers, scrollbars, tabs, controls, axe: light, reduce
+  [workbench-desktop-1440x900] › workbench-rendering-controls-polish.spec.ts:35:5 › WRCP-02/05–12 rendering, geometry, triggers, scrollbars, tabs, controls, axe: dark, no-preference
+  [workbench-desktop-1440x900] › workbench-rendering-controls-polish.spec.ts:35:5 › WRCP-02/05–12 rendering, geometry, triggers, scrollbars, tabs, controls, axe: dark, reduce
+  [workbench-desktop-1440x900] › workbench-rendering-controls-polish.spec.ts:227:1 › WRCP-03/04 Shadow color reuses the picker/text interaction; approved Other labels; no stored-value helper
+Total: 78 tests in 4 files

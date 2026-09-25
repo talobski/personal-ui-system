@@ -34,6 +34,12 @@
   letter-spacing: normal;
 }
 
+/* Workbench text entry keeps muted placeholders independently of filled/invalid inherited foreground. */
+.quiet-control::placeholder, .quiet-control-group [data-slot=combobox-input]::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; }
 }

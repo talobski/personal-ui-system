@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs"
 import { expect, test } from "@playwright/test"
 import type { Page, TestInfo } from "@playwright/test"
 
-import { colorInput, editorCategory, previewStates, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { expectEditorContainment, colorInput, editorCategory, previewStates, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * TSV2 Workbench evidence (runs under playwright.workbench.config.ts at 390x844 and 1440x900): Default fresh state and
@@ -57,19 +57,7 @@ async function setNumber(page: Page, name: string, value: string) {
   await expect(page.locator('[role="alert"], [data-slot="field-error"]').filter({ visible: true })).toHaveCount(0)
 }
 
-async function expectContained(page: Page) {
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width)
-  const editor = page.locator(".quiet-editor")
-  const overflow = await editor.evaluate((el) => {
-    const box = el.getBoundingClientRect()
-    const escaping = Array.from(el.querySelectorAll("input, [role=slider], button, label")).filter((child) => {
-      const r = child.getBoundingClientRect()
-      return r.width > 0 && (r.left < box.left - 1 || r.right > box.right + 1)
-    })
-    return escaping.map((child) => child.outerHTML.slice(0, 80))
-  })
-  expect(overflow).toEqual([])
-}
+const expectContained = expectEditorContainment
 
 test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
   test("fresh state is Default; a valid selection survives reload; invalid state falls back to Default", async ({ page }) => {

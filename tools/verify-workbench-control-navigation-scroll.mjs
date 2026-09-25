@@ -20,7 +20,7 @@ const admitted = new Set([
   "packages/core/src/context/evaluator.ts", "packages/core/src/context/provenance.ts",
   "packages/core/src/context/context.acr11-fresh-agent-path.test.ts", "packages/core/src/context/context.get.test.ts",
   "packages/core/src/context/context.list.test.ts", "registry.json",
-  "e2e/workbench-navigation.ts", "e2e/quiet-workspace.spec.ts", "e2e/workbench-theme-controls-polish.spec.ts",
+  "e2e/theme-v2-live-controls.spec.ts", "e2e/workbench-navigation.ts", "e2e/quiet-workspace.spec.ts", "e2e/workbench-theme-controls-polish.spec.ts",
   "e2e/workbench-rendering-controls-polish.spec.ts", "e2e/workbench-control-navigation-scroll.spec.ts",
   "e2e/scroll-area.spec.ts", "playwright.config.ts", "playwright.workbench.config.ts",
   "tools/verify-workbench-control-navigation-scroll.mjs",
@@ -28,7 +28,7 @@ const admitted = new Set([
 ])
 // Only explicitly named producer evidence may accompany the candidate.
 const evidence = new Set(["unit.log", "typecheck.log", "workbench-build.log", "storybook-build.log",
-  "registry-build.log", "registry-determinism.json", "browser-workbench.log", "browser-definitions.log", "boundary.json", "diff-check.log"])
+  "registry-build.log", "registry-determinism.json", "browser-workbench.log", "browser-definitions.log", "boundary.json", "diff-check.log", "correction-unit.log", "correction-typecheck.log", "correction-build.log", "correction-browser.log", "correction-collection.log", "correction-boundary.json"])
 const allowed = path => admitted.has(path) || (path.startsWith("docs/evidence/workbench-control-navigation-scroll/") && evidence.has(path.split("/").at(-1)))
 const changed = [...new Set([...lines(git("diff", "--name-only", base)), ...lines(git("ls-files", "--others", "--exclude-standard"))])].filter(path => !path.startsWith(".tmp/")).sort()
 for (const path of changed) {
@@ -39,6 +39,19 @@ for (const path of changed) {
   }
 }
 assert.equal(git("diff", "--name-only", "--diff-filter=D", base), "", "No file deletions")
+// This continuation is restricted further to the Lead-reported failure clusters.
+const correctionBase = "a88f20a68f917500bdf48794ba63785de6a7af2c"
+const correctionPaths = new Set([
+  "apps/workbench/src/App.tsx", "apps/workbench/src/LiveControls.tsx", "apps/workbench/src/styles.css",
+  "e2e/quiet-workspace.spec.ts", "e2e/theme-v2-live-controls.spec.ts", "e2e/workbench-navigation.ts",
+  "e2e/workbench-control-navigation-scroll.spec.ts", "e2e/workbench-rendering-controls-polish.spec.ts",
+  "tools/verify-workbench-control-navigation-scroll.mjs", "docs/WORKBENCH_CONTROL_NAVIGATION_SCROLL_CHECKPOINT.md",
+])
+const correctionChangedFiles = [...new Set([...lines(git("diff", "--name-only", correctionBase)), ...lines(git("ls-files", "--others", "--exclude-standard"))])].filter(path => !path.startsWith(".tmp/")).sort()
+for (const path of correctionChangedFiles) {
+  assert.ok(correctionPaths.has(path) || (path.startsWith("docs/evidence/workbench-control-navigation-scroll/correction-") && allowed(path)), "Outside bounded correction: " + path)
+}
+
 const tracked = lines(git("ls-tree", "-r", "--name-only", base))
 // Never open tracked runtime records. Everything else outside the bounded allowlist is byte-frozen.
 const frozen = tracked.filter(path => !admitted.has(path) && !path.startsWith(".loop/"))
@@ -70,6 +83,8 @@ assert.match(css, /quiet-scroll-area:focus-within/)
 const typography = css.match(/\.quiet-control, \.quiet-control-group[^{]+\{([^}]+)\}/)[1]
 for (const property of ["font-family", "font-size", "font-weight", "line-height", "letter-spacing"]) assert.ok(typography.includes(property))
 assert.doesNotMatch(typography, /color|background|opacity|border/)
+assert.match(css, /\.quiet-control::placeholder, \.quiet-control-group \[data-slot=combobox-input\]::placeholder \{\s+color: var\(--muted-foreground\);\s+opacity: 1;\s+\}/)
+assert.match(app, /orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden"/)
 assert.match(controls, /grid-cols-\[6rem_minmax\(0,1fr\)_max-content\]/)
 for (const fixed of ["w-[3.5rem]", "w-[1.5rem]", "gap-[0.375rem]"]) assert.ok(controls.includes(fixed))
 assert.doesNotMatch(controls, /w-24|w-14|w-6\b|font-mono/)
@@ -105,6 +120,7 @@ for (const file of bundles) {
 console.log(JSON.stringify({
   phase: "workbench-control-navigation-scroll-v1-001", base, head: git("rev-parse", "HEAD"),
   candidateState: git("status", "--porcelain") ? "uncommitted" : "clean", result: "pass",
+  correctionBase, correctionChangedFiles,
   changedFiles: changed, sourceSha256: hash(changed.filter(path => !path.startsWith("docs/evidence/")).map(path => path + "\0" + hash(readFileSync(path))).join("\0")),
   frozenFileCount: frozen.length, registryCount: registry.items.length, operationCount: operations.length,
   clientBundlesScanned: bundles,

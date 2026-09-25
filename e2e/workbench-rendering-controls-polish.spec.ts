@@ -200,10 +200,20 @@ for (const mode of ["light", "dark"] as const) {
 
       // WCN-11: official Select keeps keyboard selection.
       await previewTabs.focus()
+      await expect(previewTabs).toBeFocused()
       await previewTabs.press("Enter")
+      await expect(previewTabs).toHaveAttribute("aria-expanded", "true")
+      const cardsOption = preview(page).getByRole("option", { name: "Cards", exact: true })
+      const statesOption = preview(page).getByRole("option", { name: "States", exact: true })
+      await expect(cardsOption).toBeVisible()
+      await expect(cardsOption).toBeFocused()
       await page.keyboard.press("End")
+      await expect(statesOption).toBeFocused()
+      await expect(statesOption).toHaveAttribute("data-highlighted")
       await page.keyboard.press("Enter")
+      await expect(previewTabs).toHaveAttribute("aria-expanded", "false")
       await expect(previewTabs).toHaveText("States")
+      await expect(previewTabs).toBeFocused()
 
       // WRCP-11 containment at both viewports.
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)

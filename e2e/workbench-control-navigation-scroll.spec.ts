@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { Locator } from "@playwright/test"
 import { stageCommand } from "./design-command-fixture"
-import { editorCategory, previewStates, setColorMode, workspaceMode } from "./workbench-navigation"
+import { expectEditorContainment, editorCategory, previewStates, setColorMode, workspaceMode } from "./workbench-navigation"
 
 const geometry = (el: Locator) => el.evaluate(node => {
   const r = node.getBoundingClientRect()
@@ -64,18 +64,38 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
     }))
     expect(new Set(tabBoxes.map(b => b.y)).size).toBe(1)
     for (const b of tabBoxes) expect([b.shrink, b.wrap, b.size]).toEqual(["0", "nowrap", "14px"])
+    await expectEditorContainment(page)
     const commandType = await typography(page.getByTestId("design-command-input"))
     await editorCategory(page, "Colors")
     const color = page.getByLabel("Primary", { exact: true })
     expect(await typography(color)).toEqual(commandType)
     expect(await typography(page.getByRole("combobox", { name: "Active theme" }))).toEqual(commandType)
     const filled = await color.evaluate(el => getComputedStyle(el).color)
-    expect(await color.evaluate(el => getComputedStyle(el, "::placeholder").color)).not.toBe(filled)
+    const placeholder = await color.evaluate(el => getComputedStyle(el, "::placeholder").color)
+    expect(placeholder).not.toBe(filled)
+    // Resolve semantic tokens through the renderer, rather than compare unrelated CSS serializations.
+    const semantic = await color.evaluate(el => {
+      const probe = document.createElement("span")
+      el.parentElement!.append(probe)
+      const resolve = (token: string) => { probe.style.color = "var(--" + token + ")"; return getComputedStyle(probe).color }
+      const result = { foreground: resolve("foreground"), muted: resolve("muted-foreground"), invalid: resolve("destructive") }
+      probe.remove()
+      return result
+    })
+    expect(filled).toBe(semantic.foreground)
+    expect(placeholder).toBe(semantic.muted)
+    const beforeInvalid = await page.locator("#workbench-active-theme").getAttribute("data-revision")
     await color.fill("invalid color")
     await expect(color).toHaveAttribute("aria-invalid", "true")
-    expect(await color.evaluate(el => getComputedStyle(el).color)).toBe(filled)
+    await expect.poll(() => color.evaluate(el => getComputedStyle(el).color)).toBe(semantic.invalid)
+    expect(await color.evaluate(el => getComputedStyle(el, "::placeholder").color)).toBe(semantic.muted)
     await expect(page.getByTestId("color-primary-error")).toBeVisible()
+    await color.fill("")
+    expect(await color.evaluate(el => el.matches(":placeholder-shown"))).toBe(true)
+    expect(await color.evaluate(el => getComputedStyle(el, "::placeholder").color)).toBe(semantic.muted)
+    await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", beforeInvalid!)
     await color.fill("#000000")
+    await expect.poll(() => color.evaluate(el => getComputedStyle(el).color)).toBe(filled)
     await editorCategory(page, "Typography")
     expect(await typography(page.getByLabel("Sans font", { exact: true }))).toEqual(commandType)
     await page.getByLabel("Sans font", { exact: true }).click()

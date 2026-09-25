@@ -229,6 +229,7 @@ export function LiveColorField({
         <Input
           id={inputId}
           value={draft}
+          placeholder="HEX, rgb, hsl, or oklch"
           disabled={disabled}
           autoComplete="off"
           spellCheck={false}

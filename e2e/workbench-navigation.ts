@@ -95,3 +95,43 @@ export async function assertActiveControls(page: Page, disabled: boolean) {
   await expect(page.getByRole("switch", { name: "Dark mode" })).toBeEnabled()
   await editorCategory(page, "Command")
 }
+
+/** Offscreen category tabs belong only to their bounded horizontal viewport; editor controls must still fit. */
+export async function expectEditorContainment(page: Page) {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width)
+  const editor = page.locator(".quiet-editor")
+  const navigation = page.getByRole("region", { name: "Editor category navigation", exact: true })
+  await expect(navigation).toBeVisible()
+  const bounds = await editor.evaluate(el => {
+    const r = el.getBoundingClientRect()
+    return { left: r.left, right: r.right, client: el.clientWidth, scroll: el.scrollWidth }
+  })
+  expect(bounds.scroll).toBeLessThanOrEqual(bounds.client)
+  const owner = await navigation.evaluate(el => {
+    const r = el.getBoundingClientRect(), root = el.closest('[data-slot="scroll-area"]')!
+    const b = root.getBoundingClientRect()
+    return { left: r.left, right: r.right, rootLeft: b.left, rootRight: b.right, overflow: getComputedStyle(el).overflowX }
+  })
+  expect(owner.left).toBeGreaterThanOrEqual(bounds.left - 1)
+  expect(owner.right).toBeLessThanOrEqual(bounds.right + 1)
+  expect(owner.rootLeft).toBeGreaterThanOrEqual(bounds.left - 1)
+  expect(owner.rootRight).toBeLessThanOrEqual(bounds.right + 1)
+  expect(owner.overflow).toBe("scroll")
+  const escaping = await editor.evaluate(el => {
+    const box = el.getBoundingClientRect()
+    return Array.from(el.querySelectorAll("input, [role=slider], button, label")).filter(child => {
+      // Only tab triggers in this exact horizontal owner may extend beyond the editor.
+      if (child.matches('[role="tab"]') && child.closest('[data-slot="scroll-area-viewport"][aria-label="Editor category navigation"]')) return false
+      const r = child.getBoundingClientRect()
+      return r.width > 0 && (r.left < box.left - 1 || r.right > box.right + 1)
+    }).map(child => child.outerHTML.slice(0, 80))
+  })
+  expect(escaping).toEqual([])
+  if (isMobileShell(page)) {
+    const sheet = sidebarSheet(page)
+    expect(await sheet.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
+    const b = (await sheet.boundingBox())!
+    expect(b.x).toBeGreaterThanOrEqual(-1)
+    expect(b.x + b.width).toBeLessThanOrEqual(page.viewportSize()!.width + 1)
+  }
+}

@@ -1,0 +1,22 @@
+$ vitest run
+
+ RUN  v5.0.1 /Users/emmantalob/.paseo/worktrees/2ys6frsa/workbench-control-navigation-scroll-v1-001
+
+{"ok":false,"errors":[{"ruleId":"context.unknown-resource","path":"resource"}]}
+{"ok":false,"errors":[{"ruleId":"context.invalid-request","path":"argv.operation"}]}
+{"ok":false,"errors":[{"ruleId":"context.invalid-request","path":"argv.flags.unsupported"}]}
+{"ok":false,"errors":[{"ruleId":"context.invalid-request","path":"argv.flags.missing-value"}]}
+{"ok":false,"errors":[{"ruleId":"context.invalid-request","path":"argv.positional"}]}
+{"ok":false,"errors":[{"ruleId":"context.invalid-request","path":"argv.flags.duplicate"}]}
+{"ok":false,"errors":[{"ruleId":"context.unknown-field","path":"theme"}]}
+{"ok":false,"errors":[{"ruleId":"context.unknown-field","path":"resource"}]}
+{"ok":false,"errors":[{"ruleId":"context.invalid-request","path":"resource"}]}
+
+ Test Files  38 passed (38)
+      Tests  679 passed (679)
+   Start at  01:16:26
+   Duration  5.09s (tests 48%, import 33%, transform 19%, worker 1%)
+
+    Isolate  38 workers spawned · ~136ms startup each (spawn + environment, per file)
+             at least ~333ms faster with isolate: false — reuses workers across files instead of one per file
+

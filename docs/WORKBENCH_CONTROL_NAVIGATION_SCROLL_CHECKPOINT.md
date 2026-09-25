@@ -2,7 +2,7 @@
 
 Phase: workbench-control-navigation-scroll-v1-001.
 Prepared base: b6f1371f20374c2b77383f82baba874db986f5c7.
-Status: implementation and offline checks complete; commit and browser execution are capability-blocked. No acceptance or promotion claimed.
+Status: bounded correction resumed from clean a88f20a68f917500bdf48794ba63785de6a7af2c. Current results are in the correction section below; the initial handoff record is historical. No acceptance or promotion claimed.
 
 ## Implementation checkpoint
 
@@ -124,3 +124,75 @@ Initial pnpm test could not create its temporary SSR directory outside the
 worktree. Retrying with TMPDIR inside this worktree requires no permission or
 network expansion. Shell heredoc temporary files were also blocked; edits use
 ordinary worktree writes. No escalation was requested.
+
+## Bounded correction after Lead browser run
+
+Continuation base: a88f20a68f917500bdf48794ba63785de6a7af2c, verified clean
+before edits. This is the same admitted producer run.
+
+Lead-reported evidence for that base: Storybook 94/94 passed; Workbench
+103 passed, 2 intentional skips, 19 failed. These are Lead results, not worker
+executions. The retained test-results error contexts confirm the mobile
+WRCP dark/reduce failure also stopped at Preview Select returning Cards;
+it is not an additional axe failure.
+
+Correction rationale and exact source changes:
+
+- App.tsx bounds the existing Tabs flex item and the horizontal ScrollArea root
+  with width/min-width/max-width and overflow containment. Content-width tabs
+  still overflow and scroll inside the Radix viewport. No other scroll owner changes.
+- styles.css explicitly assigns muted-foreground only to Workbench placeholder
+  pseudo-elements. LiveControls.tsx gives the shared color field a meaningful
+  format placeholder, so empty drafts render a real placeholder. Filled foreground,
+  Field's destructive invalid foreground, selected colors, disabled opacity, and
+  public primitive defaults are not overridden.
+- workbench-navigation.ts introduces one shared containment assertion. It excludes
+  only tab triggers inside the specifically named horizontal viewport from the
+  legacy descendant-box check. It still rejects overflowing editor controls and
+  asserts the document, sidebar-content, sheet, ScrollArea root and viewport bounds.
+  theme-v2-live-controls.spec.ts and quiet-workspace.spec.ts use that assertion;
+  mobile selected tabs must also remain in the viewport.
+- workbench-control-navigation-scroll.spec.ts retains the placeholder/filled
+  distinction and adds exact semantic-token checks, the real empty placeholder
+  state, unchanged revision for rejected drafts, and recovery to filled foreground.
+  Its old invalid-text-equals-filled assertion was inconsistent with the unchanged
+  public Field destructive state; it now checks the actual destructive token and
+  waits for the existing color transition.
+- workbench-rendering-controls-polish.spec.ts waits for the Select to open and the
+  Cards option to receive focus before End; it asserts States focus/highlight before
+  Enter and then checks selection, closure and returned trigger focus. The original
+  sequence sent End/Enter while asynchronous popup focus could still be settling.
+  This is a synchronization diagnosis from source and retained failures, not a claim
+  of measured browser recovery. No primitive or product keyboard handler changed.
+- The phase verifier admits the directly affected legacy test file, checks the new
+  placeholder/containment rules, and additionally restricts all changes from the
+  correction base to this ten-file source/test/verifier/checkpoint set and named
+  correction logs. No axe thresholds, test exclusions or acceptance criteria change.
+
+Offline results: pnpm test passed 679/679 in 38 files; pnpm typecheck passed;
+pnpm build:workbench passed with the existing chunk warning. Focused Playwright
+collection passed with 78 tests across the four affected files. Browser execution
+again failed before launching tests: listen EPERM at 127.0.0.1:5173. Retained
+Lead browser artifacts were not overwritten; the attempted worker run used
+.tmp/correction-browser. Initial registry and Storybook checks were not replayed:
+their sources are untouched by this correction.
+
+Exact Lead rerun commands (both admitted viewport projects remain enabled):
+
+    pnpm build:workbench
+    pnpm exec playwright test -c playwright.workbench.config.ts workbench-control-navigation-scroll.spec.ts workbench-rendering-controls-polish.spec.ts theme-v2-live-controls.spec.ts quiet-workspace.spec.ts
+    pnpm test:browser:workbench
+    node tools/verify-workbench-control-navigation-scroll.mjs
+
+Raw correction logs live beside the initial producer logs with correction- prefixes.
+Correction geometry, semantic computed styles and keyboard results remain pending
+the Lead renderer; fresh protected verification remains pending as well.
+
+Correction closeout: phase boundary verification and git diff --check passed.
+The commit attempt failed before staging because Git could not create
+/Users/emmantalob/dev/personal-ui-system/.git/worktrees/workbench-control-navigation-scroll-v1-001/index.lock
+(EPERM). The index remains unchanged. HEAD is still
+a88f20a68f917500bdf48794ba63785de6a7af2c; no correction commit SHA exists and
+clean status cannot be claimed. No escalation or alternate Git metadata path
+was used. The Lead must commit the preserved correction in an authorized
+environment before exact-candidate browser/fresh verification.
