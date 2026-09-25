@@ -81,3 +81,19 @@ export function saveSelection(storage: StorageLike, saved: SavedThemes, id: stri
   const result = write(storage, { ...saved, activeId: id })
   return result.ok ? result.saved : saved
 }
+
+/**
+ * Deletes one saved custom theme and its base record, then persists the built-in fallback as the selection. Built-ins
+ * are never stored, so a built-in id (or any id without a saved theme) is rejected and nothing is written.
+ */
+export function deleteTheme(
+  storage: StorageLike,
+  saved: SavedThemes,
+  id: string,
+  fallbackId: string
+): { ok: true; saved: SavedThemes } | { ok: false; issues: WorkbenchIssue[] } {
+  if (!Object.hasOwn(saved.themes, id)) return { ok: false, issues: [{ ruleId: "workbench.delete.not-custom", path: "id" }] }
+  const themes = Object.fromEntries(Object.entries(saved.themes).filter(([key]) => key !== id))
+  const bases = Object.fromEntries(Object.entries(saved.bases).filter(([key]) => key !== id))
+  return write(storage, { themes, activeId: fallbackId, bases })
+}

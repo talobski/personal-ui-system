@@ -1,5 +1,6 @@
 import { useId, useState } from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../components/card"
+import { Avatar, AvatarFallback, avatarInitial } from "../components/avatar"
 import { Button } from "../components/button"
 import { Field, FieldLabel } from "../components/field"
 import { NativeSelect, NativeSelectOption } from "../components/native-select"
@@ -10,7 +11,7 @@ export function TeamAccess() {
   const [role, setRole] = useState("Editor")
   const [draft, setDraft] = useState(role)
   return <Card><CardHeader><CardTitle className="text-lg"><h2>Team access</h2></CardTitle><CardDescription>The right people, the right access.</CardDescription></CardHeader>
-    <CardContent><ul className="grid gap-4">{[["AL", "Ada Lovelace", "Owner"], ["GH", "Grace Hopper", role]].map(([initials, name, access]) => <li key={name} className="flex items-center gap-3 text-sm"><span aria-hidden="true" className="rounded-full bg-secondary p-2 text-xs">{initials}</span><span className="flex-1">{name}</span><span className="text-xs text-muted-foreground">{access}</span></li>)}</ul></CardContent>
+    <CardContent><ul className="grid gap-4">{[["Ada Lovelace", "Owner"], ["Grace Hopper", role]].map(([name, access]) => <li key={name} className="flex items-center gap-3 text-sm"><Avatar aria-hidden="true" data-avatar-name={name}><AvatarFallback className="text-xs font-medium">{avatarInitial(name!)}</AvatarFallback></Avatar><span className="flex-1">{name}</span><span className="text-xs text-muted-foreground">{access}</span></li>)}</ul></CardContent>
     <CardFooter><ResponsiveDialog><ResponsiveDialogTrigger asChild><Button className="w-full" variant="outline" onClick={() => setDraft(role)}>Manage access</Button></ResponsiveDialogTrigger>
       <ResponsiveDialogContent><ResponsiveDialogHeader><ResponsiveDialogTitle>Manage team access</ResponsiveDialogTitle><ResponsiveDialogDescription>Fictional workspace preview. Changes stay in this example.</ResponsiveDialogDescription></ResponsiveDialogHeader>
         <Field className="px-4 sm:px-0"><FieldLabel htmlFor={id}>Grace Hopper’s role</FieldLabel><NativeSelect id={id} value={draft} onChange={e => setDraft(e.target.value)}><NativeSelectOption>Editor</NativeSelectOption><NativeSelectOption>Viewer</NativeSelectOption></NativeSelect></Field>

@@ -1,8 +1,3 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
-import { Textarea } from "@personal-ui/ui/components/textarea"
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@personal-ui/ui/components/resizable-panel"
-import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogClose } from "@personal-ui/ui/components/responsive-dialog"
-import { editorBounds } from "./layout"
 import * as React from "react"
 
 import { applyProposal, createProposalSession, diffThemeTokens, discardProposal, stageProposal } from "@personal-ui/core"
@@ -12,10 +7,13 @@ import { Button } from "@personal-ui/ui/components/button"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
 import { Label } from "@personal-ui/ui/components/label"
-import { NativeSelect, NativeSelectOption } from "@personal-ui/ui/components/native-select"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@personal-ui/ui/components/select"
 import { Panel } from "@personal-ui/ui/components/panel"
+import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogClose } from "@personal-ui/ui/components/responsive-dialog"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@personal-ui/ui/components/select"
+import { Sidebar, SidebarContent, SidebarGroup, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuAction, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from "@personal-ui/ui/components/sidebar"
 import { Switch } from "@personal-ui/ui/components/switch"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
+import { Textarea } from "@personal-ui/ui/components/textarea"
 
 import { buildDesignCommandProposal, evaluateDesignCommandClient } from "./designCommand"
 import {
@@ -29,7 +27,7 @@ import {
 import type { Mode, WorkbenchIssue } from "./lifecycle"
 import type { DesignCommandOutcome } from "@personal-ui/core"
 import type { PreviewState } from "./messages"
-import { loadSaved, saveSelection, saveTheme } from "./persistence"
+import { deleteTheme, loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
 import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, FONT_CONTROLS, NUMERIC_CONTROLS, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
@@ -60,17 +58,54 @@ function Notice({ children }: { children: React.ReactNode }) {
   )
 }
 
+/** The four identifying colours of a theme, in the current colour mode. Decorative: the theme name is the label. */
+const SWATCH_TOKENS = ["primary", "accent", "secondary", "border"] as const
+
+function ThemeSwatches({ theme, mode }: { theme: Theme; mode: Mode }) {
+  return (
+    <span aria-hidden="true" data-testid="theme-swatches" data-theme-id={theme.id} className="flex shrink-0 items-center -space-x-1">
+      {SWATCH_TOKENS.map((token) => (
+        <span key={token} data-token={token} className="size-3.5 rounded-full ring-1 ring-foreground/20" style={{ backgroundColor: theme.colors[mode][token].$value }} />
+      ))}
+    </span>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  )
+}
+
+/** Opens the command editor while a command evaluates, otherwise closes the mobile sidebar and shows the staged review. */
+function ReviewChangesButton({ evaluating, showCommand }: { evaluating: boolean; showCommand: () => void }) {
+  const { isMobile, setOpen, setOpenMobile } = useSidebar()
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={() => {
+        if (evaluating) {
+          showCommand()
+          if (isMobile) setOpenMobile(true)
+          else setOpen(true)
+          return
+        }
+        setOpenMobile(false)
+        requestAnimationFrame(() => document.getElementById("candidate-review")?.scrollIntoView())
+      }}
+    >
+      Review changes
+    </Button>
+  )
+}
+
 export function App() {
-  const [viewportWidth, setViewportWidth] = React.useState(window.innerWidth)
-  const [mobileMode, setMobileMode] = React.useState("controls")
   const [category, setCategory] = React.useState("colors")
-  React.useEffect(() => {
-    const resize = () => setViewportWidth(window.innerWidth)
-    window.addEventListener("resize", resize)
-    return () => window.removeEventListener("resize", resize)
-  }, [])
-  const desktop = viewportWidth >= 1024
-  const bounds = editorBounds(viewportWidth)
   const saveAsNameId = React.useId()
   const saveAsFormId = React.useId()
   const commandTextId = React.useId()
@@ -85,6 +120,7 @@ export function App() {
   const [saveAsOpen, setSaveAsOpen] = React.useState(false)
   const [saveAsName, setSaveAsName] = React.useState("")
   const [saveAsIssues, setSaveAsIssues] = React.useState<WorkbenchIssue[]>([])
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
   const [notice, setNotice] = React.useState("")
   // Proposal ids are single-use for this workbench session only; a reload starts a fresh ledger.
   const [session, setSession] = React.useState<ProposalSession>(createProposalSession)
@@ -245,6 +281,22 @@ export function App() {
     setNotice(`Saved "${copy.theme.name}" as a custom theme. ${builtInCopy.name} is unchanged.`)
   }
 
+  /**
+   * Deletes the active custom theme after confirmation: its saved theme and base record are removed and the built-in
+   * Default becomes (and is persisted as) the active theme. Built-ins never reach this path.
+   */
+  const deleteActive = () => {
+    if (locked || builtInCopy || !Object.hasOwn(saved.themes, current.id)) return
+    const name = current.name
+    const result = deleteTheme(window.localStorage, saved, current.id, DEFAULT_THEME_ID)
+    if (!result.ok) return setNotice(`Not deleted: ${describeIssues(result.issues)}`)
+    setSaved(result.saved)
+    currentRef.current = defaultTheme
+    setCurrent(defaultTheme)
+    setDeleteOpen(false)
+    setNotice(`Deleted "${name}". ${defaultTheme.name} is now active.`)
+  }
+
   const load = (id: string) => {
     const next = builtInById(id) ?? saved.themes[id]
     if (!next) return
@@ -266,41 +318,77 @@ export function App() {
       ? [{ label: "Custom", items: savedIds.map((id) => ({ value: id, label: saved.themes[id]!.name })) }]
       : []),
   ]
+  // A row shows each theme's own colours; the active row and trigger follow the live (possibly edited) active theme.
+  const rowTheme = (id: string) => (id === current.id ? current : (builtInById(id) ?? saved.themes[id]!))
+  const activeCustom = !builtInCopy && Object.hasOwn(saved.themes, current.id)
 
   return (
-    <div className="quiet-shell" data-theme-status={status}>
+    <SidebarProvider className="quiet-shell" data-theme-status={status} style={{ "--sidebar-width": "22rem" } as React.CSSProperties}>
       <style id="workbench-active-theme" data-theme-id={current.id} data-revision={current.revision}>{activeCss}</style>
-      <header className="quiet-header"><h1 className="text-sm font-semibold">Personal UI Workbench</h1><Button asChild variant="ghost" size="sm"><a href="https://github.com/talobski/personal-ui-system">GitHub ↗</a></Button></header>
-      {notice && <div className="px-4 py-2"><Notice>{notice}</Notice></div>}
-      <Tabs value={mobileMode} onValueChange={setMobileMode} className="quiet-modes" data-mode={mobileMode}>
-        <TabsList className="quiet-mobile-tabs" aria-label="Workspace mode"><TabsTrigger value="controls">Controls</TabsTrigger><TabsTrigger value="preview">Preview</TabsTrigger></TabsList>
-        {(staged || commandEvaluating) && <div className="quiet-status" role="status" data-testid="staged-status">{commandEvaluating ? "Evaluating design command…" : "Preview shows a staged proposal, not yet active · Workbench shows your active theme"}
-          <Button size="sm" variant="outline" onClick={() => { if (commandEvaluating) { setMobileMode("controls"); setCategory("command") } else { setMobileMode("preview"); requestAnimationFrame(() => document.getElementById("candidate-review")?.scrollIntoView()) } }}>Review changes</Button>
-        </div>}
-        <ResizablePanelGroup orientation="horizontal" disabled={!desktop} className="quiet-split">
-          <ResizablePanel id="editor-panel" style={{ overflow: "hidden" }} defaultSize={352} minSize={desktop ? bounds.min : 0} maxSize={desktop ? bounds.max : "100%"} groupResizeBehavior="preserve-pixel-size">
-            <TabsContent value="controls" forceMount className="quiet-editor" hidden={!desktop && mobileMode !== "controls"}>
-              <div className="quiet-theme">
-                <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id) load(id) }}>
-                  <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger">
-                    <SelectValue>{current.name}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent align="start" alignItemWithTrigger={false} sideOffset={0}>
+      <Sidebar>
+        <SidebarHeader className="border-b">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id) load(id) }}>
+                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
+                  <SelectValue>
+                    <ThemeSwatches theme={current} mode={mode} />
+                    <span className="truncate">{current.name}</span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent align="start" alignItemWithTrigger={false}>
+                  <SelectGroup>
+                    <SelectLabel>Built-in</SelectLabel>
+                    {builtIns.map((theme) => (
+                      <SelectItem key={theme.id} value={theme.id} className="cursor-pointer">
+                        <ThemeSwatches theme={rowTheme(theme.id)} mode={mode} />
+                        {theme.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  {savedIds.length > 0 && (
                     <SelectGroup>
-                      <SelectLabel>Built-in</SelectLabel>
-                      {builtIns.map((theme) => <SelectItem key={theme.id} value={theme.id}>{theme.name}</SelectItem>)}
-                    </SelectGroup>
-                    {savedIds.length > 0 && <SelectGroup>
                       <SelectLabel>Custom</SelectLabel>
-                      {savedIds.map((id) => <SelectItem key={id} value={id}>{saved.themes[id]!.name}</SelectItem>)}
-                    </SelectGroup>}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Tabs value={category} onValueChange={setCategory}>
-                <div className="quiet-category-select"><Field><FieldLabel htmlFor="editor-category">Editor category</FieldLabel><NativeSelect id="editor-category" value={category} onChange={e => setCategory(e.target.value)}><NativeSelectOption value="colors">Colors</NativeSelectOption><NativeSelectOption value="typography">Typography</NativeSelectOption><NativeSelectOption value="other">Other</NativeSelectOption><NativeSelectOption value="command">Command</NativeSelectOption></NativeSelect></Field></div>
-                <TabsList className="quiet-categories" aria-label="Editor categories"><TabsTrigger value="colors">Colors</TabsTrigger><TabsTrigger value="typography">Typography</TabsTrigger><TabsTrigger value="other">Other</TabsTrigger><TabsTrigger value="command">Command</TabsTrigger></TabsList>
-                <TabsContent value="colors" forceMount className="data-[state=inactive]:hidden"><div className="grid gap-3 px-4 pb-4">
+                      {savedIds.map((id) => (
+                        <SelectItem key={id} value={id} className="cursor-pointer">
+                          <ThemeSwatches theme={rowTheme(id)} mode={mode} />
+                          {saved.themes[id]!.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                </SelectContent>
+              </Select>
+              {activeCustom && (
+                <ResponsiveDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                  <ResponsiveDialogTrigger asChild>
+                    <SidebarMenuAction aria-label={`Delete ${current.name}`} data-testid="delete-theme" disabled={locked} className="top-1/2 right-2 size-8 -translate-y-1/2 cursor-pointer disabled:pointer-events-none disabled:opacity-50">
+                      <TrashIcon />
+                    </SidebarMenuAction>
+                  </ResponsiveDialogTrigger>
+                  <ResponsiveDialogContent>
+                    <ResponsiveDialogHeader>
+                      <ResponsiveDialogTitle>Delete custom theme?</ResponsiveDialogTitle>
+                      <ResponsiveDialogDescription>
+                        “{current.name}” is removed from this browser, including unsaved edits. {defaultTheme.name} becomes the active theme. This cannot be undone.
+                      </ResponsiveDialogDescription>
+                    </ResponsiveDialogHeader>
+                    <ResponsiveDialogFooter>
+                      <Button variant="destructive" onClick={deleteActive}>Delete theme</Button>
+                      <ResponsiveDialogClose asChild><Button variant="outline">Cancel</Button></ResponsiveDialogClose>
+                    </ResponsiveDialogFooter>
+                  </ResponsiveDialogContent>
+                </ResponsiveDialog>
+              )}
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent className="quiet-editor quiet-scroll" data-testid="sidebar-content">
+          <Tabs value={category} onValueChange={setCategory} className="gap-0">
+            <SidebarGroup className="sticky top-0 z-10 bg-card">
+              <TabsList className="quiet-categories w-full" aria-label="Editor categories"><TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger><TabsTrigger value="typography" className="text-xs">Typography</TabsTrigger><TabsTrigger value="other" className="text-xs">Other</TabsTrigger><TabsTrigger value="command" className="text-xs">Command</TabsTrigger></TabsList>
+            </SidebarGroup>
+                <TabsContent className="data-[state=inactive]:hidden" value="colors" forceMount><div className="grid gap-3 px-2 pb-4">
           {manualLockNote}
           {COLOR_GROUPS.map((group) => (
             <ControlSection key={group.id} id={`colors-${group.id}`} title={group.title}>
@@ -318,7 +406,7 @@ export function App() {
             </ControlSection>
           ))}
         </div></TabsContent>
-                <TabsContent value="typography" forceMount className="data-[state=inactive]:hidden"><div className="grid gap-3 px-4 pb-4">
+                <TabsContent className="data-[state=inactive]:hidden" value="typography" forceMount><div className="grid gap-3 px-2 pb-4">
           {manualLockNote}
           <ControlSection id="fonts" title="Font families">
             {FONT_CONTROLS.map(({ family, label }) => (
@@ -337,14 +425,13 @@ export function App() {
             {numeric("tracking")}
           </ControlSection>
         </div></TabsContent>
-                <TabsContent value="other" forceMount className="data-[state=inactive]:hidden"><div className="grid gap-3 px-4 pb-4">
+                <TabsContent className="data-[state=inactive]:hidden" value="other" forceMount><div className="grid gap-3 px-2 pb-4">
           {manualLockNote}
           <ControlSection id="radius" title="Radius">
             {numeric("radius")}
           </ControlSection>
           <ControlSection id="spacing" title="Spacing">
             {numeric("spacing")}
-            {numeric("density")}
           </ControlSection>
           <ControlSection id="shadow" title="Shadow">
             <LiveTextField
@@ -368,7 +455,7 @@ export function App() {
             {numeric("motion")}
           </ControlSection>
         </div></TabsContent>
-                <TabsContent value="command" forceMount className="data-[state=inactive]:hidden"><div className="grid gap-3 px-4 pb-4">
+                <TabsContent className="data-[state=inactive]:hidden" value="command" forceMount><div className="grid gap-3 px-2 pb-4">
           <Field>
             <FieldDescription id={`${commandTextId}-help`}>Changes are staged for review; nothing applies automatically.</FieldDescription>
             <FieldLabel htmlFor={commandTextId} className={FIELD_LABEL_CLASS}>Command</FieldLabel>
@@ -452,21 +539,21 @@ export function App() {
           {proposalIssues.length > 0 && <FieldError data-testid="proposal-error">Proposal rejected: {describeIssues(proposalIssues)}.</FieldError>}
           {proposalResult && <p data-testid="proposal-result" role="status" className="text-sm text-muted-foreground">{proposalResult}</p>}
         </div></TabsContent>
-              </Tabs>
-            </TabsContent>
-          </ResizablePanel>
-          <ResizableHandle aria-label="Resize editor" className="quiet-handle [&>span]:hidden" disabled={!desktop} />
-          <ResizablePanel id="preview-panel" style={{ overflow: "hidden" }} minSize={desktop ? 632 : 0}>
-            <TabsContent value="preview" forceMount className="quiet-preview" hidden={!desktop && mobileMode !== "preview"}>
-              <div className="quiet-toolbar">
-                <div className="flex items-center gap-2">
-                  <Switch id="color-mode-switch" checked={mode === "dark"} onCheckedChange={(checked) => setMode(checked ? "dark" : "light")} />
-                  <Label htmlFor="color-mode-switch">Dark mode</Label>
-                </div>
-                <div className="ml-auto flex flex-wrap items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={locked} onClick={() => download(exportThemeJson(current))}>
-                    Export JSON
-                  </Button>
+          </Tabs>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset className="quiet-preview">
+        <h1 className="sr-only">Personal UI Workbench</h1>
+        <div className="quiet-toolbar">
+          <SidebarTrigger className="-ml-1 size-8" />
+          <div className="flex items-center gap-2">
+            <Switch id="color-mode-switch" checked={mode === "dark"} onCheckedChange={(checked) => setMode(checked ? "dark" : "light")} />
+            <Label htmlFor="color-mode-switch">Dark mode</Label>
+          </div>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" disabled={locked} onClick={() => download(exportThemeJson(current))}>
+              Export JSON
+            </Button>
                   <ResponsiveDialog open={saveAsOpen} onOpenChange={setSaveAsOpen}>
                     <ResponsiveDialogTrigger asChild>
                       <Button size="sm" disabled={locked} onClick={save}>
@@ -505,10 +592,17 @@ export function App() {
                       </ResponsiveDialogFooter>
                     </ResponsiveDialogContent>
                   </ResponsiveDialog>
-                </div>
-              </div>
-
-              <div id="candidate-review">        {staged && (
+          </div>
+        </div>
+        {notice && <div className="px-4 py-2"><Notice>{notice}</Notice></div>}
+        {(staged || commandEvaluating) && (
+          <div className="quiet-status" role="status" data-testid="staged-status">
+            {commandEvaluating ? "Evaluating design command…" : "Preview shows a staged proposal, not yet active · Workbench shows your active theme"}
+            <ReviewChangesButton evaluating={commandEvaluating} showCommand={() => setCategory("command")} />
+          </div>
+        )}
+        <div id="candidate-review">
+        {staged && (
           <Panel title="Staged proposal">
             <div data-testid="proposal-staged" data-proposal-id={staged.proposal.proposalId} className="grid gap-3 text-sm">
               <p>
@@ -546,16 +640,13 @@ export function App() {
           </Panel>
         )}
 
-</div>
-              <div className="quiet-preview-body">
-                <div role="region" aria-label="Preview viewport" tabIndex={0} className="quiet-viewport outline-none focus-visible:ring-inset focus-visible:ring-[3px] focus-visible:ring-ring/50">
-                  <iframe ref={iframeRef} title="Component preview" src="/?preview=1" data-testid="preview-frame" className="block size-full border-0" />
-                </div>
-              </div>
-            </TabsContent>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </Tabs>
-    </div>
+        </div>
+        <div className="quiet-preview-body">
+          <div role="region" aria-label="Preview viewport" tabIndex={0} className="quiet-viewport outline-none focus-visible:ring-inset focus-visible:ring-[3px] focus-visible:ring-ring/50">
+            <iframe ref={iframeRef} title="Component preview" src="/?preview=1" data-testid="preview-frame" className="block size-full border-0" />
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

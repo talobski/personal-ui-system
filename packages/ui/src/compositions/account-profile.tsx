@@ -1,5 +1,6 @@
 import { useState } from "react"
 
+import { Avatar, AvatarFallback, avatarInitial } from "@personal-ui/ui/components/avatar"
 import { Button } from "@personal-ui/ui/components/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@personal-ui/ui/components/card"
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@personal-ui/ui/components/field"
@@ -20,7 +21,7 @@ export function AccountProfile({ invalidEmail = false, compact = false }: { inva
       </CardHeader>
       <CardContent>
         <FieldGroup className={compact ? "gap-4" : undefined} onChange={() => setSaved(false)}>
-          {compact && <p className="text-sm"><span aria-hidden="true" className="mr-3 rounded-full bg-secondary p-3">AL</span>Ada Lovelace</p>}
+          {compact && <p className="flex items-center gap-3 text-sm"><Avatar aria-hidden="true" className="size-10" data-avatar-name="Ada Lovelace"><AvatarFallback className="font-medium">{avatarInitial("Ada Lovelace")}</AvatarFallback></Avatar>Ada Lovelace</p>}
           <Field>
             <FieldLabel htmlFor="profile-name">Display name</FieldLabel>
             <FieldContent>

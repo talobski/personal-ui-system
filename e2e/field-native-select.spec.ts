@@ -51,3 +51,33 @@ test("invalid and disabled Field states retain native associations", async ({ pa
     })
   }
 })
+
+test("vertical Field label-to-control spacing defaults to gap-2 while horizontal, responsive, and group spacing stay unchanged (WSSP-09)", async ({ page }, testInfo) => {
+  for (const mode of colorModes) {
+    await test.step(mode, async () => {
+      await page.goto(story("spacing"))
+      await setColorMode(page, mode)
+      const gaps = await page.evaluate(() => {
+        const read = (selector: string) => getComputedStyle(document.querySelector(selector)!)
+        const spacing = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--space-base")) * parseFloat(getComputedStyle(document.documentElement).fontSize) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--density"))
+        return {
+          spacing,
+          vertical: parseFloat(read('[data-testid="field-vertical"]').rowGap),
+          horizontal: parseFloat(read('[data-testid="field-horizontal"]').columnGap),
+          responsive: parseFloat(read('[data-testid="field-responsive"]').rowGap),
+          group: parseFloat(read('[data-slot="field-group"]').rowGap),
+        }
+      })
+      expect(gaps.spacing).toBeGreaterThan(0)
+      expect(gaps.vertical).toBeCloseTo(gaps.spacing * 2, 1)
+      expect(gaps.horizontal).toBeCloseTo(gaps.spacing * 3, 1)
+      expect(gaps.responsive).toBeCloseTo(gaps.spacing * 3, 1)
+      expect(gaps.group).toBeCloseTo(gaps.spacing * 7, 1)
+      // The label sits exactly one gap-2 above its control.
+      const label = (await page.getByText("Display name", { exact: true }).boundingBox())!
+      const input = (await page.getByLabel("Display name").boundingBox())!
+      expect(input.y - (label.y + label.height)).toBeCloseTo(gaps.spacing * 2, 0)
+      await assertNoSeriousOrCritical(page, testInfo, mode)
+    })
+  }
+})

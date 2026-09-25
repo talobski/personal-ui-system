@@ -38,6 +38,11 @@ export function PreviewFrame() {
     document.documentElement.classList.toggle("dark", state?.mode === "dark")
   }, [state?.mode])
 
+  // The preview document is one of the two Workbench scroll regions that use the subtle scoped scrollbar.
+  React.useEffect(() => {
+    document.documentElement.classList.add("quiet-scroll")
+  }, [])
+
   return (
     <main
       className="grid gap-6 p-4"

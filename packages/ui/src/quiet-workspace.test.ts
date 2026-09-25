@@ -1,21 +1,47 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { expect, it } from "vitest"
 import { validateComponentState, evaluateContextRequest, getContract } from "@personal-ui/core"
-import * as layout from "../../../apps/workbench/src/layout"
 
-const { editorBounds } = layout
+const workbench = (name: string) => readFileSync(new URL(`../../../apps/workbench/src/${name}`, import.meta.url), "utf8")
 
-it("has no fixed preview width: the preview fills the panel and follows the real viewport (WTEP-02)", () => {
-  expect(Object.keys(layout)).toEqual(["editorBounds"])
-  const app = readFileSync(new URL("../../../apps/workbench/src/App.tsx", import.meta.url), "utf8")
+it("has no fixed preview width: the preview fills the Sidebar inset and follows the real viewport (WTEP-02, WSSP-03)", () => {
+  const app = workbench("App.tsx")
   expect(app).not.toMatch(/WIDTHS|Preview width|Mobile 390|Desktop 1024|width: \d+px|height: 720/)
+  expect(existsSync(new URL("../../../apps/workbench/src/layout.ts", import.meta.url))).toBe(false)
 })
 
-it("clamps editor bounds at desktop sizes without widening the theme", () => {
-  expect(editorBounds(1440)).toEqual({ min: 352, max: 480, defaultSize: 352 })
-  expect(editorBounds(1024)).toEqual({ min: 352, max: 384, defaultSize: 352 })
-  expect(editorBounds(990).min).toBeLessThanOrEqual(editorBounds(990).max)
+it("renders the Workbench as one Sidebar shell with no header, resizable split, or mobile mode tabs (WSSP-03, WSSP-04)", () => {
+  const app = workbench("App.tsx")
+  const styles = workbench("styles.css")
+  for (const part of ["<SidebarProvider", "<Sidebar>", "<SidebarHeader", "<SidebarContent", "<SidebarInset", "<SidebarTrigger"]) expect(app).toContain(part)
+  expect(app.match(/<SidebarProvider\b/g)).toHaveLength(1)
+  expect(app.match(/<Sidebar\b/g)).toHaveLength(1)
+  expect(app).toContain('"--sidebar-width": "22rem"')
+  expect(app).not.toMatch(/ResizablePanel|ResizableHandle|resizable-panel|<header|quiet-header|Workspace mode|mobileMode|editorBounds/)
+  expect(styles).not.toMatch(/quiet-header|quiet-split|quiet-handle|quiet-mobile-tabs|quiet-modes/)
+  // The public resizable-panel resource stays published.
+  expect(existsSync(new URL("./components/resizable-panel.tsx", import.meta.url))).toBe(true)
 })
+
+it("scopes the subtle scrollbar to the sidebar content and the preview document only (WSSP-07)", () => {
+  const styles = workbench("styles.css")
+  const app = workbench("App.tsx")
+  const preview = workbench("PreviewFrame.tsx")
+  expect(styles).toMatch(/\.quiet-scroll \{[^}]*scrollbar-width: thin;[^}]*scrollbar-color:/)
+  expect(styles).toMatch(/\.quiet-scroll:hover, \.quiet-scroll:active, \.quiet-scroll:focus-within \{/)
+  expect(styles).toContain("@supports not (scrollbar-color: auto)")
+  // No global or element-wide scrollbar rules: every scrollbar selector is under .quiet-scroll.
+  for (const line of styles.split("\n").filter((l) => /scrollbar/.test(l) && /[{,]\s*$|\{/.test(l))) expect(line).toMatch(/\.quiet-scroll|@supports/)
+  expect(globalCss()).not.toMatch(/scrollbar/)
+  expect(app.match(/quiet-scroll/g)).toHaveLength(1)
+  expect(app).toMatch(/<SidebarContent className="quiet-editor quiet-scroll"/)
+  expect(preview).toContain('document.documentElement.classList.add("quiet-scroll")')
+  // Native modalities stay intact: nothing overrides touch, overscroll, or scroll pointer behavior.
+  expect(styles).not.toMatch(/touch-action|overscroll-behavior|pointer-events/)
+})
+
+const globalCss = () => readFileSync(new URL("./styles/globals.css", import.meta.url), "utf8")
+
 it("rejects unordered panel bounds and inaccessible separators with stable rules", () => {
   const valid = { kind: "resizable-panel", minPx: 352, defaultPx: 352, maxPx: 480, separatorName: "Resize editor", primitiveSeparator: true, visibleFocus: true }
   expect(validateComponentState(valid).ok).toBe(true)

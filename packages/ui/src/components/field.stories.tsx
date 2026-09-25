@@ -9,6 +9,7 @@ import {
   FieldLabel,
 } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
+import { Switch } from "@personal-ui/ui/components/switch"
 import { NativeSelect as NativeSelectControl, NativeSelectOption } from "@personal-ui/ui/components/native-select"
 
 function CountryField({ invalid = false, disabled = false }: { invalid?: boolean; disabled?: boolean }) {
@@ -51,6 +52,26 @@ function InputField() {
   )
 }
 
+/** The system default: gap-2 between a vertical label and its control; horizontal rows and field groups keep their own spacing. */
+function SpacingFields() {
+  return (
+    <FieldGroup className="max-w-md">
+      <Field data-testid="field-vertical">
+        <FieldLabel htmlFor="spacing-name">Display name</FieldLabel>
+        <Input id="spacing-name" defaultValue="Ada Lovelace" />
+      </Field>
+      <Field orientation="horizontal" data-testid="field-horizontal">
+        <Switch id="spacing-digest" defaultChecked />
+        <FieldLabel htmlFor="spacing-digest">Weekly digest</FieldLabel>
+      </Field>
+      <Field orientation="responsive" data-testid="field-responsive">
+        <FieldLabel htmlFor="spacing-team">Team</FieldLabel>
+        <Input id="spacing-team" defaultValue="Research" />
+      </Field>
+    </FieldGroup>
+  )
+}
+
 const meta = {
   title: "Pilot/Field",
   component: CountryField,
@@ -64,3 +85,4 @@ export const NativeSelect: Story = {}
 export const Invalid: Story = { args: { invalid: true } }
 export const Disabled: Story = { args: { disabled: true } }
 export const WithInput: StoryObj<typeof InputField> = { render: () => <InputField /> }
+export const Spacing: StoryObj<typeof SpacingFields> = { render: () => <SpacingFields /> }
