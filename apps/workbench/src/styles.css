@@ -13,6 +13,8 @@
 .quiet-stack { display: grid; align-content: start; gap: 16px; min-width: 0; }
 .quiet-gallery section { min-width: 0; }
 .quiet-gallery [data-composition] > [data-slot=card], .quiet-gallery [data-composition] > form > [data-slot=card] { box-shadow: none; }
+.quiet-categories [data-slot=tabs-trigger][data-state=active]:not(:focus-visible) { box-shadow: none; }
+.quiet-preview-view:not(:focus-visible) { box-shadow: none; }
 @media (min-width: 1000px) { .quiet-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; } }
 
 /* Workbench-owned overlay regions. Radix handles input; only the thumb colour reveals on interaction. */

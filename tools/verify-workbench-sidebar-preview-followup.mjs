@@ -101,8 +101,10 @@ assert.match(controls, /className="size-3 transition-transform motion-reduce:tra
 // WSPF-07/08: official preview Select with a preview-scoped ghost trigger; gap-4 p-4 root.
 for (const name of ["Select", "SelectTrigger", "SelectValue", "SelectContent", "SelectItem"]) assert.ok(preview.includes("<" + name))
 const previewTrigger = preview.match(/<SelectTrigger size="sm" aria-label="Preview views" className="([^"]+)"/)[1].split(" ")
-for (const token of ["quiet-control", "min-w-[6rem]", "border-transparent", "bg-transparent", "shadow-none", "hover:bg-accent", "hover:text-accent-foreground", "dark:bg-transparent"]) assert.ok(previewTrigger.includes(token), token)
+for (const token of ["quiet-control", "quiet-preview-view", "min-w-[6rem]", "border-transparent", "bg-transparent", "shadow-none", "hover:bg-accent", "hover:text-accent-foreground", "dark:bg-transparent"]) assert.ok(previewTrigger.includes(token), token)
 assert.ok(!previewTrigger.some(token => /^(?:focus-visible:|outline-none|ring-0|border-0)/.test(token)), "Focus affordance retained")
+assert.match(css, /\.quiet-categories \[data-slot=tabs-trigger\]\[data-state=active\]:not\(:focus-visible\) \{ box-shadow: none; \}/)
+assert.match(css, /\.quiet-preview-view:not\(:focus-visible\) \{ box-shadow: none; \}/)
 assert.match(preview, /<div className="flex justify-center">/)
 assert.match(preview, /<main\s+className="grid gap-4 p-4"/)
 assert.ok(preview.includes('<div hidden={view !== "states"} className={view === "states" ? "grid gap-6" : "hidden"}>'))

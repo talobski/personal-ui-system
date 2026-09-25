@@ -60,7 +60,7 @@ export function PreviewFrame() {
       <div className="flex justify-center">
         <Select value={view} onValueChange={(next) => { if (next) setView(next) }} items={[{ value: "cards", label: "Cards" }, { value: "states", label: "States" }]}>
           {/* Ghost trigger: no resting border, fill, or shadow; semantic accent hover and the primitive focus ring remain. */}
-          <SelectTrigger size="sm" aria-label="Preview views" className="quiet-control min-w-[6rem] cursor-pointer border-transparent bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent/50"><SelectValue /></SelectTrigger>
+          <SelectTrigger size="sm" aria-label="Preview views" className="quiet-control quiet-preview-view min-w-[6rem] cursor-pointer border-transparent bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent/50"><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value="cards">Cards</SelectItem><SelectItem value="states">States</SelectItem></SelectContent>
         </Select>
       </div>

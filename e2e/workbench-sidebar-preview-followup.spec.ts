@@ -1,11 +1,13 @@
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { FrameLocator, Locator, Page } from "@playwright/test"
+import { getValidatedTheme } from "../packages/core/src/context/themes"
 import { KNOWN_DEFAULT_MUTED_DEBT, seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { colorInput, editorCategory, expectEditorContainment, isMobileShell, setColorMode, workspaceMode } from "./workbench-navigation"
 
 // Runs in both projects of playwright.workbench.config.ts (390x844 and 1440x900). No viewport skips.
 const TRANSPARENT = "rgba(0, 0, 0, 0)"
+const defaultTheme = getValidatedTheme("default")!
 const box = async (el: Locator) => {
   const bounds = await el.boundingBox()
   expect(bounds).not.toBeNull()
@@ -20,11 +22,36 @@ const resolve = (scope: Locator, value: string, property: "color" | "background-
   scope.evaluate((el, [v, p]) => {
     const probe = el.ownerDocument.createElement("span")
     probe.style.setProperty(p!, p === "border-radius" ? v! : v!.startsWith("var(") || v!.includes("(") ? v! : `var(--${v})`)
-    el.ownerDocument.body.append(probe)
+    // Keep the probe inside the themed scope so inherited Workbench variables resolve.
+    el.append(probe)
     const result = getComputedStyle(probe).getPropertyValue(p!)
     probe.remove()
     return result
   }, [value, property] as const)
+
+const renderedRgba = (scope: Locator, value: string, property: "color" | "background-color" = "color") =>
+  scope.evaluate((el, [v, p]) => {
+    const probe = el.ownerDocument.createElement("span")
+    probe.style.setProperty(p!, v!.startsWith("var(") || v!.includes("(") ? v! : `var(--${v})`)
+    el.append(probe)
+    const computed = getComputedStyle(probe).getPropertyValue(p!)
+    const canvas = el.ownerDocument.createElement("canvas")
+    canvas.width = 1; canvas.height = 1
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!
+    ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = computed; ctx.fillRect(0, 0, 1, 1)
+    const result = Array.from(ctx.getImageData(0, 0, 1, 1).data)
+    probe.remove()
+    return result
+  }, [value, property] as const)
+
+const computedRgba = (scope: Locator, property: "color" | "background-color") =>
+  scope.evaluate((el, p) => {
+    const canvas = el.ownerDocument.createElement("canvas")
+    canvas.width = 1; canvas.height = 1
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!
+    ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = getComputedStyle(el).getPropertyValue(p); ctx.fillRect(0, 0, 1, 1)
+    return Array.from(ctx.getImageData(0, 0, 1, 1).data)
+  }, property)
 
 /** WCAG contrast of an element's computed foreground over its computed (opaque) background, via the renderer's sRGB. */
 const contrast = (el: Locator) => el.evaluate(node => {
@@ -88,8 +115,8 @@ for (const mode of ["light", "dark"] as const) {
 
       // WSPF-03: transparent padding-free list; content-width px-3 triggers with semantic active/inactive states.
       expect(await tablist.evaluate(el => { const s = getComputedStyle(el); return [s.backgroundColor, s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft, s.flexWrap, s.height] })).toEqual([TRANSPARENT, "0px", "0px", "0px", "0px", "nowrap", "36px"])
-      const radiusMd = await resolve(tablist, "var(--radius-md)", "border-radius")
-      const tokens = { secondary: await resolve(tablist, "secondary", "background-color"), secondaryForeground: await resolve(tablist, "secondary-foreground"), muted: await resolve(tablist, "muted-foreground") }
+      const radiusMd = await resolve(tablist, defaultTheme.radius.md.$value, "border-radius")
+      const tokens = { secondary: await renderedRgba(tablist, "secondary", "background-color"), secondaryForeground: await renderedRgba(tablist, "secondary-foreground"), muted: await renderedRgba(tablist, "muted-foreground") }
       const tabs = tablist.getByRole("tab")
       const tabHeights = new Set<number>()
       for (const tab of await tabs.all()) {
@@ -97,9 +124,12 @@ for (const mode of ["light", "dark"] as const) {
         expect([s.grow, s.shrink, s.wrap, s.pl, s.pr, s.pt, s.pb, s.cursor, s.size, s.weight, s.radius]).toEqual(["0", "0", "nowrap", "12px", "12px", "4px", "4px", "pointer", "14px", "500", radiusMd])
         tabHeights.add((await box(tab)).height)
         if ((await tab.getAttribute("aria-selected")) === "true") {
-          expect([s.bg, s.color, s.shadow]).toEqual([tokens.secondary, tokens.secondaryForeground, "none"])
+          expect(await computedRgba(tab, "background-color")).toEqual(tokens.secondary)
+          expect(await computedRgba(tab, "color")).toEqual(tokens.secondaryForeground)
+          expect(s.shadow).toBe("none")
         } else {
-          expect([s.bg, s.color]).toEqual([TRANSPARENT, tokens.muted])
+          expect(s.bg).toBe(TRANSPARENT)
+          expect(await computedRgba(tab, "color")).toEqual(tokens.muted)
         }
       }
       // The accepted trigger height: the former 3px-padded 36px list, less 1px.
@@ -138,7 +168,7 @@ for (const mode of ["light", "dark"] as const) {
       }
 
       // WSPF-05: every shared ControlSection trigger uses the semantic muted pair and compact geometry.
-      const radiusSm = await resolve(header, "var(--radius-sm)", "border-radius")
+      const radiusSm = await resolve(header, defaultTheme.radius.sm.$value, "border-radius")
       const pair = { bg: await resolve(header, "muted", "background-color"), fg: await resolve(header, "muted-foreground") }
       const measurements: { category: string; section: string; fg: string; bg: string; ratio: number; fontSize: string }[] = []
       for (const category of ["Colors", "Typography", "Other"] as const) {
@@ -203,7 +233,8 @@ for (const mode of ["light", "dark"] as const) {
       close(v.x + v.width / 2, m.x + m.width / 2)
       expect(v.height).toBe(32)
       await view.hover()
-      await expect.poll(() => css(view, "background-color")).toBe(await resolve(main, "accent", "background-color"))
+      const hover = mode === "dark" ? "color-mix(in oklab, var(--accent) 50%, transparent)" : "accent"
+      await expect.poll(() => computedRgba(view, "background-color")).toEqual(await renderedRgba(main, hover, "background-color"))
       await page.mouse.move(0, 0)
       await page.keyboard.press("Tab")
       await view.focus()

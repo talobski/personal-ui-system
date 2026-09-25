@@ -157,3 +157,31 @@ Build the Workbench at the exact candidate commit, then run:
 
 Keep the `known-contrast-debt-*.json` and `wspf-06-contrast-*.json` attachments as
 WSPF-06 receipts. After that, the fresh protected verifier reviews the exact candidate.
+
+## Lead correction and browser checkpoint
+
+The Lead found and corrected two deterministic test/rendering issues without changing
+the approved product semantics:
+
+- semantic radius assertions now resolve the canonical Default fixture values rather
+  than an unscoped runtime alias;
+- resting active tabs and the ghost preview Select now compute to literal
+  `box-shadow: none`, while `:focus-visible` retains the accepted 3px focus ring;
+- dark semantic colours are compared by rendered RGBA rather than browser-specific
+  `oklab` versus `oklch` serialization, including the accepted `accent/50` dark hover.
+
+Lead browser evidence on the corrected worktree:
+
+- Storybook: 94/94 passed;
+- initial full Workbench matrix: 134 passed, 2 established viewport skips, with the
+  eight new combined cases failing only on the corrected radius assertion;
+- corrected focused WSPF matrix: 20/20 passed across 390x844 and 1440x900, light and
+  dark, and both motion settings;
+- the exact approved Default-light ControlSection debt remains measured and attached;
+  no additional axe exception was added.
+
+One owner-controlled acceptance conflict remains open. The required inactive-tab hover
+`text-muted-foreground/80` measures 3.234:1 in Default light and 4.468:1 in Quiet
+Editorial light. This is outside the single pre-approved ControlSection debt, is not
+silently accepted, and has not been added to the axe exception. Protected verification
+remains reserved until the owner resolves that hover-state semantic conflict.
