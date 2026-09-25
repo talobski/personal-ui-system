@@ -12,7 +12,7 @@ async function previewFill(page: import("@playwright/test").Page) {
     const frame = document.querySelector('[data-testid="preview-frame"]')!.getBoundingClientRect()
     const body = document.querySelector(".quiet-preview-body")!
     const panel = body.getBoundingClientRect()
-    const toolbar = document.querySelector(".quiet-toolbar")!.getBoundingClientRect()
+    const toolbar = document.querySelector('[data-testid="workbench-toolbar"]')!.getBoundingClientRect()
     return { frameWidth: frame.width, frameHeight: frame.height, available: panel.width, bottom: frame.bottom, viewportHeight: innerHeight, edges: [frame.left - panel.left, frame.right - panel.right, frame.top - toolbar.bottom, frame.bottom - panel.bottom], border: getComputedStyle(document.querySelector(".quiet-viewport")!).borderWidth, radius: getComputedStyle(document.querySelector(".quiet-viewport")!).borderRadius }
   })
 }
@@ -275,7 +275,7 @@ test("scoped subtle scrollbars on the sidebar content and preview document only,
   // Keyboard scrolling: focus stays usable and Tab moves into later controls, scrolling them into view.
   await content.evaluate(el => { el.scrollTop = 0 })
   // Nothing outside the two regions is restyled: the Workbench root, inset, and toolbar keep the platform default.
-  for (const selector of ["html", "body", '[data-slot="sidebar-inset"]', ".quiet-toolbar"]) {
+  for (const selector of ["html", "body", '[data-slot="sidebar-inset"]', '[data-testid="workbench-toolbar"]']) {
     expect(await page.locator(selector).first().evaluate(el => [getComputedStyle(el).scrollbarWidth, getComputedStyle(el).scrollbarColor]), selector).toEqual(["auto", "auto"])
   }
   await workspaceMode(page, "Preview")

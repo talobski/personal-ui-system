@@ -508,5 +508,19 @@
       "field": "export boilerplate (@theme inline block, :root/.dark wrappers, derived --tracking-* and --shadow-* CSS text)",
       "disposition": "omitted: CSS is generated from canonical data by renderShadcnTailwindCss, never stored"
     }
-  ]
+  ],
+  "ownerOverrides": {
+    "document": "docs/WORKBENCH_THEME_CONTROLS_POLISH_CONTRACT.md",
+    "phase": "workbench-theme-controls-polish-v1-001",
+    "reason": "Owner-approved Default baselines; values above retain the historical imported source and normalization. Custom themes and Quiet Editorial are unchanged.",
+    "values": {
+      "radius.base": "0.7rem",
+      "radius.sm": "0.45rem",
+      "radius.md": "0.575rem",
+      "radius.lg": "0.7rem",
+      "radius.xl": "0.95rem",
+      "space.base": "0.25rem"
+    },
+    "derivation": "deriveRadiusScale(\"0.7rem\") with the existing deterministic offsets"
+  }
 }

@@ -12,7 +12,7 @@ import {
   loadBuiltInThemes,
   previewVariablesCss,
 } from "./lifecycle"
-import { buildFontOperation, buildShadowColorOperation, COLOR_GROUPS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readShadowColor } from "./controls"
+import { buildFontOperation, fontControlCopy, buildShadowColorOperation, COLOR_GROUPS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
 import { deleteTheme, emptySaved, loadSaved, saveSelection, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
@@ -29,6 +29,35 @@ const memoryStorage = (initial: Record<string, string> = {}): StorageLike & { da
   const data = { ...initial }
   return { data, getItem: (key) => data[key] ?? null, setItem: (key, value) => void (data[key] = value) }
 }
+
+describe("WTCP-03/09 baseline compatibility and concise font states", () => {
+  it("keeps historical custom values while a saved Default selection resolves to the current fixture", () => {
+    const custom = structuredClone(defaultTheme)
+    custom.id = "historical-custom"
+    custom.radius = { base: { $type: "dimension", $value: "1.475rem" }, sm: { $type: "dimension", $value: "1.225rem" }, md: { $type: "dimension", $value: "1.35rem" }, lg: { $type: "dimension", $value: "1.475rem" }, xl: { $type: "dimension", $value: "1.725rem" } }
+    custom.space.base.$value = "0.3rem"
+    custom.typography.sans.$value = ["My Exact Font", "system-ui", "sans-serif"]
+    const oldDefault = { ...custom, id: "default" }
+    const storage = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ themes: { [custom.id]: custom, default: oldDefault }, activeId: "default", bases: { [custom.id]: "default" } }) })
+    const loaded = loadSaved(storage, BUILT_IN_IDS)
+    expect(loaded.activeId).toBe("default")
+    expect(loaded.themes.default).toBeUndefined()
+    expect(loaded.themes[custom.id]).toEqual(custom)
+    expect(builtIns.find(t => t.id === loaded.activeId)!.radius.base.$value).toBe("0.7rem")
+    expect(loadSaved(memoryStorage({ [STORAGE_KEY]: JSON.stringify({ ...loaded, activeId: custom.id }) }), BUILT_IN_IDS).themes[custom.id]).toEqual(custom)
+    const quiet = validateTheme(v1QuietEditorial)
+    expect(quiet.ok && quiet.theme).toEqual(canonical)
+  })
+
+  it.each([ ["sans", "Sans-serif font...", "Custom sans-serif stack"], ["serif", "Serif font...", "Custom serif stack"], ["mono", "Monospace font...", "Custom monospace stack"] ] as const)("uses exact copy and exact stack equality for %s", (category, placeholder, custom) => {
+    const stack = defaultTheme.typography[category].$value
+    expect(fontControlCopy(category, [...stack], stack)).toBe(placeholder)
+    expect(fontControlCopy(category, ["Personal Font", ...stack], stack)).toBe(custom)
+    expect(fontControlCopy(category, [...stack].reverse(), stack)).toBe(custom)
+    expect(NUMERIC_CONTROLS.spacing.label).toBe("Spacing")
+    expect(NUMERIC_CONTROLS.spacing.build(0.3, defaultTheme)).toEqual({ op: "setSpacingBase", value: "0.3rem" })
+  })
+})
 
 describe("editColor", () => {
   it("applies a valid edit through the mutation API without touching the input", () => {
@@ -71,7 +100,7 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
   const cases: { id: NumericControlId; value: number; diff: string[]; css: string }[] = [
     { id: "tracking", value: 0.02, diff: ["typography.tracking"], css: "--tracking-base: 0.02em;" },
     { id: "radius", value: 0.5, diff: ["radius.base", "radius.lg", "radius.md", "radius.sm", "radius.xl"], css: "--radius: 0.5rem;" },
-    { id: "spacing", value: 0.25, diff: ["space.base"], css: "--space-base: 0.25rem;" },
+    { id: "spacing", value: 0.3, diff: ["space.base"], css: "--space-base: 0.3rem;" },
     { id: "density", value: 1.25, diff: ["space.density"], css: "--density: 1.25;" },
     { id: "motion", value: 320, diff: ["motion.durationBase"], css: "--motion-duration-base: 320ms;" },
     { id: "shadowOpacity", value: 0.2, diff: ["shadow.2xl", "shadow.2xs", "shadow.default", "shadow.lg", "shadow.md", "shadow.sm", "shadow.xl", "shadow.xs"], css: "--shadow-layers-sm: 0px 1px 3px 0px oklch(0 0 0 / 0.2)" },
@@ -99,7 +128,7 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
 
   it("reads the Default slider values exactly", () => {
     const read = (id: NumericControlId) => NUMERIC_CONTROLS[id].read(defaultTheme)
-    expect([read("tracking"), read("radius"), read("spacing"), read("density"), read("motion")]).toEqual([0, 1.475, 0.3, 1, 200])
+    expect([read("tracking"), read("radius"), read("spacing"), read("density"), read("motion")]).toEqual([0, 0.7, 0.25, 1, 200])
     expect([read("shadowOpacity"), read("shadowBlur"), read("shadowSpread"), read("shadowOffsetX"), read("shadowOffsetY")]).toEqual([0.1, 3, 0, 0, 1])
   })
 

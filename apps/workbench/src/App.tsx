@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Download, Save } from "@personal-ui/ui/lib/workbench-icons"
 
 import { applyProposal, createProposalSession, diffThemeTokens, discardProposal, stageProposal } from "@personal-ui/core"
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
@@ -63,9 +64,9 @@ const SWATCH_TOKENS = ["primary", "accent", "secondary", "border"] as const
 
 function ThemeSwatches({ theme, mode }: { theme: Theme; mode: Mode }) {
   return (
-    <span aria-hidden="true" data-testid="theme-swatches" data-theme-id={theme.id} className="flex shrink-0 items-center -space-x-1">
+    <span aria-hidden="true" data-testid="theme-swatches" data-theme-id={theme.id} className="flex shrink-0 items-center gap-0.5">
       {SWATCH_TOKENS.map((token) => (
-        <span key={token} data-token={token} className="size-3.5 rounded-full ring-1 ring-foreground/20" style={{ backgroundColor: theme.colors[mode][token].$value }} />
+        <span key={token} data-token={token} className="h-2.5 w-2.5 rounded-sm ring-1 ring-border" style={{ backgroundColor: theme.colors[mode][token].$value }} />
       ))}
     </span>
   )
@@ -326,11 +327,11 @@ export function App() {
     <SidebarProvider className="quiet-shell" data-theme-status={status} style={{ "--sidebar-width": "22rem" } as React.CSSProperties}>
       <style id="workbench-active-theme" data-theme-id={current.id} data-revision={current.revision}>{activeCss}</style>
       <Sidebar>
-        <SidebarHeader className="border-b">
+        <SidebarHeader className="p-4 pb-0">
           <SidebarMenu>
             <SidebarMenuItem>
               <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id && id !== current.id) load(id) }}>
-                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
+                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-0 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
                   <SelectValue>
                     <ThemeSwatches theme={current} mode={mode} />
                     <span className="truncate">{current.name}</span>
@@ -385,10 +386,10 @@ export function App() {
         </SidebarHeader>
         <SidebarContent className="quiet-editor quiet-scroll" data-testid="sidebar-content">
           <Tabs value={category} onValueChange={setCategory} className="gap-0">
-            <SidebarGroup className="sticky top-0 z-10 bg-card">
+            <SidebarGroup className="sticky top-0 z-10 bg-card p-4">
               <TabsList className="quiet-categories w-full" aria-label="Editor categories"><TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger><TabsTrigger value="typography" className="text-xs">Typography</TabsTrigger><TabsTrigger value="other" className="text-xs">Other</TabsTrigger><TabsTrigger value="command" className="text-xs">Command</TabsTrigger></TabsList>
             </SidebarGroup>
-                <TabsContent className="data-[state=inactive]:hidden" value="colors" forceMount><div className="grid gap-3 px-2 pb-4">
+                <TabsContent className="data-[state=inactive]:hidden" value="colors" forceMount><div className="grid gap-6 px-4 pb-4">
           {manualLockNote}
           {COLOR_GROUPS.map((group) => (
             <ControlSection key={group.id} id={`colors-${group.id}`} title={group.title}>
@@ -406,7 +407,7 @@ export function App() {
             </ControlSection>
           ))}
         </div></TabsContent>
-                <TabsContent className="data-[state=inactive]:hidden" value="typography" forceMount><div className="grid gap-3 px-2 pb-4">
+                <TabsContent className="data-[state=inactive]:hidden" value="typography" forceMount><div className="grid gap-6 px-4 pb-4">
           {manualLockNote}
           <ControlSection id="fonts" title="Font families">
             {FONT_CONTROLS.map(({ family, label }) => (
@@ -416,6 +417,7 @@ export function App() {
                 category={family}
                 label={label}
                 stack={current.typography[family].$value}
+                defaultStack={defaultTheme.typography[family].$value}
                 disabled={locked}
                 apply={applyManual}
               />
@@ -425,7 +427,7 @@ export function App() {
             {numeric("tracking")}
           </ControlSection>
         </div></TabsContent>
-                <TabsContent className="data-[state=inactive]:hidden" value="other" forceMount><div className="grid gap-3 px-2 pb-4">
+                <TabsContent className="data-[state=inactive]:hidden" value="other" forceMount><div className="grid gap-6 px-4 pb-4">
           {manualLockNote}
           <ControlSection id="radius" title="Radius">
             {numeric("radius")}
@@ -455,7 +457,7 @@ export function App() {
             {numeric("motion")}
           </ControlSection>
         </div></TabsContent>
-                <TabsContent className="data-[state=inactive]:hidden" value="command" forceMount><div className="grid gap-3 px-2 pb-4">
+                <TabsContent className="data-[state=inactive]:hidden" value="command" forceMount><div className="grid gap-6 px-4 pb-4">
           <Field>
             <FieldDescription id={`${commandTextId}-help`}>Changes are staged for review; nothing applies automatically.</FieldDescription>
             <FieldLabel htmlFor={commandTextId} className={FIELD_LABEL_CLASS}>Command</FieldLabel>
@@ -544,19 +546,21 @@ export function App() {
       </Sidebar>
       <SidebarInset className="quiet-preview">
         <h1 className="sr-only">Personal UI Workbench</h1>
-        <div className="quiet-toolbar">
-          <SidebarTrigger className="-ml-1 size-8" />
+        <div data-testid="workbench-toolbar" className="flex shrink-0 flex-wrap items-center gap-2 border-b p-4">
+          <SidebarTrigger className="size-8" />
           <div className="flex items-center gap-2">
             <Switch id="color-mode-switch" checked={mode === "dark"} onCheckedChange={(checked) => setMode(checked ? "dark" : "light")} />
             <Label htmlFor="color-mode-switch">Dark mode</Label>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" disabled={locked} onClick={() => download(exportThemeJson(current))}>
+            <Button variant="ghost" size="sm" disabled={locked} onClick={() => download(exportThemeJson(current))}>
+              <Download aria-hidden="true" />
               Export JSON
             </Button>
                   <ResponsiveDialog open={saveAsOpen} onOpenChange={setSaveAsOpen}>
                     <ResponsiveDialogTrigger asChild>
-                      <Button size="sm" disabled={locked} onClick={save}>
+                      <Button variant="ghost" size="sm" disabled={locked} onClick={save}>
+                        <Save aria-hidden="true" />
                         Save
                       </Button>
                     </ResponsiveDialogTrigger>

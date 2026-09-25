@@ -10,7 +10,7 @@ import { Slider } from "@personal-ui/ui/components/slider"
 import { cssFontStack, findFontOption, FONT_OPTIONS } from "@personal-ui/ui/lib/fonts"
 import type { FontCategory, FontOption } from "@personal-ui/ui/lib/fonts"
 
-import { buildFontOperation, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep } from "./controls"
+import { buildFontOperation, fontControlCopy, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep } from "./controls"
 import type { NumericControl } from "./controls"
 import type { WorkbenchIssue } from "./lifecycle"
 
@@ -50,10 +50,10 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
   }, [])
   const hasError = invalid.size > 0
   return (
-    <Collapsible open={open || hasError} onOpenChange={(next) => setOpen(next || hasError)} data-testid={`section-${id}`} data-has-error={hasError} className="grid gap-3 border-t pt-2 first:border-t-0 first:pt-0">
+    <Collapsible open={open || hasError} onOpenChange={(next) => setOpen(next || hasError)} data-testid={`section-${id}`} data-has-error={hasError} className="grid gap-2">
       <h3 className="text-sm font-medium">
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="w-full justify-between px-2 [&[data-state=open]>svg]:rotate-180">
+          <Button variant="ghost" size="sm" className="w-fit rounded-md bg-muted px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border/50 [&[data-state=open]>svg]:rotate-180">
             {title}
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 transition-transform motion-reduce:transition-none">
               <path d="m6 9 6 6 6-6" />
@@ -61,7 +61,7 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
           </Button>
         </CollapsibleTrigger>
       </h3>
-      <CollapsibleContent className="grid gap-4 px-2 pb-2">
+      <CollapsibleContent className="grid gap-4">
         <InvalidReport.Provider value={report}>{children}</InvalidReport.Provider>
       </CollapsibleContent>
     </Collapsible>
@@ -100,54 +100,53 @@ export function LiveNumberField({ id, control, theme, disabled, apply }: { id: s
 
   return (
     <Field data-invalid={error !== null} data-testid={`control-${id}`}>
-      <div className="flex items-center justify-between gap-2">
-        <FieldLabel id={labelId} htmlFor={inputId} className={FIELD_LABEL_CLASS}>
+      <div className="flex min-w-0 items-center gap-1.5" data-testid={`${id}-row`}>
+        <FieldLabel id={labelId} htmlFor={inputId} className={`${FIELD_LABEL_CLASS} w-24 flex-none`}>
           {control.label}
         </FieldLabel>
-        <div className="flex items-center gap-1.5">
-          <Input
-            id={inputId}
-            inputMode="decimal"
-            autoComplete="off"
-            spellCheck={false}
-            value={draft}
-            disabled={disabled}
-            aria-invalid={error !== null}
-            aria-describedby={error !== null ? errorId : undefined}
-            className="h-8 w-20 text-right tabular-nums"
-            onFocus={() => (focused.current = true)}
-            onBlur={() => {
-              focused.current = false
-              if (error === null) setDraft(formatted)
-            }}
-            onChange={(event) => {
-              setDraft(event.target.value)
-              const parsed = parseNumericDraft(control, event.target.value)
-              if (parsed === null) return setError(`Enter a number from ${range}. Not applied.`)
-              commit(parsed)
-            }}
-          />
-          {control.unit && (
-            <span className="w-7 text-sm text-muted-foreground" data-testid={`${id}-unit`}>
-              {control.unit}
-            </span>
-          )}
-        </div>
+        <Slider
+          className="min-w-0 flex-1"
+          aria-labelledby={labelId}
+          aria-valuetext={`${formatted}${unitText}`}
+          min={control.min}
+          max={control.max}
+          step={control.step}
+          value={[sliderValue]}
+          disabled={disabled}
+          onValueChange={([next]) => {
+            if (next === undefined) return
+            setDraft(formatNumber(next, control.step))
+            commit(next)
+          }}
+        />
+
+        <Input
+          id={inputId}
+          inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+          value={draft}
+          disabled={disabled}
+          aria-invalid={error !== null}
+          aria-describedby={error !== null ? errorId : undefined}
+          className="h-8 w-14 flex-none px-1 text-right tabular-nums"
+          onFocus={() => (focused.current = true)}
+          onBlur={() => {
+            focused.current = false
+            if (error === null) setDraft(formatted)
+          }}
+          onChange={(event) => {
+            setDraft(event.target.value)
+            const parsed = parseNumericDraft(control, event.target.value)
+            if (parsed === null) return setError(`Enter a number from ${range}. Not applied.`)
+            commit(parsed)
+          }}
+        />
+        <span aria-hidden={!control.unit || undefined} className="w-6 flex-none text-xs text-muted-foreground" data-testid={`${id}-unit`}>
+          {control.unit}
+        </span>
       </div>
-      <Slider
-        aria-labelledby={labelId}
-        aria-valuetext={`${formatted}${unitText}`}
-        min={control.min}
-        max={control.max}
-        step={control.step}
-        value={[sliderValue]}
-        disabled={disabled}
-        onValueChange={([next]) => {
-          if (next === undefined) return
-          setDraft(formatNumber(next, control.step))
-          commit(next)
-        }}
-      />
+
       {error !== null && (
         <FieldError id={errorId} data-testid={`${id}-error`}>
           {error}
@@ -314,13 +313,14 @@ export function LiveColorField({
 /**
  * A searchable font choice over the closed local catalog. Selecting an option writes that option's full canonical stack
  * through `setFontFamily` immediately; typed search text is never a value. A theme whose stack is not a catalog option
- * shows its stack as text instead of pretending to match one.
+ * shows concise category copy with accessible exact-stack detail.
  */
 export function LiveFontField({
   id,
   category,
   label,
   stack,
+  defaultStack,
   disabled,
   apply,
 }: {
@@ -328,6 +328,7 @@ export function LiveFontField({
   category: FontCategory
   label: string
   stack: readonly string[]
+  defaultStack: readonly string[]
   disabled: boolean
   apply: ApplyManual
 }) {
@@ -342,7 +343,7 @@ export function LiveFontField({
 
   return (
     <Field data-invalid={error !== null} data-testid={`control-${id}`} data-font={selected?.id ?? ""} className="gap-1.5">
-      <FieldLabel htmlFor={inputId} className={FIELD_LABEL_CLASS}>
+      <FieldLabel htmlFor={inputId} className="sr-only">
         {label}
       </FieldLabel>
       <Combobox
@@ -365,7 +366,7 @@ export function LiveFontField({
           aria-invalid={error !== null}
           className="h-8 w-full justify-between rounded-md border border-input px-3 text-sm shadow-xs"
         >
-          <span>{selected?.label ?? "Custom stack"}</span>
+          <span className="truncate">{selected?.label ?? fontControlCopy(category, stack, defaultStack)}</span>
         </ComboboxTrigger>
         <ComboboxContent>
           <div className="p-1">
@@ -382,8 +383,8 @@ export function LiveFontField({
         </ComboboxContent>
       </Combobox>
       {selected === null && (
-        <FieldDescription id={noteId} data-testid={`${id}-stack`} className="text-xs">
-          Current stack: <span className="break-all">{formatFontStack(stack)}</span>
+        <FieldDescription id={noteId} data-testid={`${id}-stack`} className="sr-only">
+          <span className="break-all">{formatFontStack(stack)}</span>
         </FieldDescription>
       )}
       {error !== null && (

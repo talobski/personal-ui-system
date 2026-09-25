@@ -5,7 +5,6 @@
 /* One full-height Sidebar shell: the sidebar owns the controls, the inset owns the toolbar and preview. */
 .quiet-shell { height: 100dvh; min-height: 0; overflow: hidden; }
 .quiet-preview { height: 100dvh; min-width: 0; overflow-y: auto; }
-.quiet-toolbar { display: flex; flex-shrink: 0; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); }
 /* The preview viewport fills the rest of the inset; the iframe scrolls its own document. */
 .quiet-preview-body { flex: 1 1 0; display: flex; min-height: 0; padding: 0; }
 .quiet-viewport { flex: 1; min-width: 0; overflow: hidden; }

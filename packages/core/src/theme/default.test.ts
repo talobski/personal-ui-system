@@ -6,7 +6,8 @@ import defaultFixture from "./fixtures/default.json"
 
 /**
  * TSV2-02. Every expected value below is transcribed independently from the contract tables in
- * docs/THEME_SYSTEM_V2_IMPLEMENTATION_CONTRACT.md ("Exact built-in Default values"), not read from the fixture.
+ * docs/THEME_SYSTEM_V2_IMPLEMENTATION_CONTRACT.md ("Exact built-in Default values"), with radius/spacing overrides
+ * from docs/WORKBENCH_THEME_CONTROLS_POLISH_CONTRACT.md, not read from the fixture.
  */
 const LIGHT: Record<string, string> = {
   background: "oklch(1 0 0)", card: "oklch(1 0 0)", popover: "oklch(1 0 0)",
@@ -93,9 +94,9 @@ describe("built-in Default matches the contract", () => {
 
   it("radius, spacing, density, and motion", () => {
     expect(Object.fromEntries(Object.entries(theme.radius).map(([k, v]) => [k, v.$value]))).toEqual({
-      base: "1.475rem", sm: "1.225rem", md: "1.35rem", lg: "1.475rem", xl: "1.725rem",
+      base: "0.7rem", sm: "0.45rem", md: "0.575rem", lg: "0.7rem", xl: "0.95rem",
     })
-    expect(theme.space.base.$value).toBe("0.3rem")
+    expect(theme.space.base.$value).toBe("0.25rem")
     expect(theme.space.density.$value).toBe(1)
     expect(theme.motion.durationFast.$value).toBe("150ms")
     expect(theme.motion.durationBase.$value).toBe("200ms")
@@ -107,7 +108,7 @@ describe("built-in Default matches the contract", () => {
   })
 
   it("the radius and shadow tiers are exactly what the manual controls derive from the Default profile", () => {
-    expect(deriveRadiusScale("1.475rem")).toEqual({ base: "1.475rem", sm: "1.225rem", md: "1.35rem", lg: "1.475rem", xl: "1.725rem" })
+    expect(deriveRadiusScale("0.7rem")).toEqual({ base: "0.7rem", sm: "0.45rem", md: "0.575rem", lg: "0.7rem", xl: "0.95rem" })
     const profile = readShadowProfile(theme)
     expect(profile).toEqual({ color: "oklch(0 0 0)", opacity: 0.1, blur: "3px", spread: "0px", offsetX: "0px", offsetY: "1px" })
     expect(deriveShadowTiers(profile)).toEqual(SHADOWS)
@@ -115,6 +116,20 @@ describe("built-in Default matches the contract", () => {
 })
 
 describe("Default conversion report", () => {
+  it("WTCP-02 retains the historical import and separately records the owner-approved canonical overrides", () => {
+    expect(report.values["radius.base"]).toEqual({ source: "1.475rem", normalized: "1.475rem" })
+    expect(report.values["space.base"]).toEqual({ source: "0.3rem", normalized: "0.3rem" })
+    expect(report.ownerOverrides.document).toBe("docs/WORKBENCH_THEME_CONTROLS_POLISH_CONTRACT.md")
+    expect(report.ownerOverrides.values).toEqual({
+      "radius.base": "0.7rem", "radius.sm": "0.45rem", "radius.md": "0.575rem",
+      "radius.lg": "0.7rem", "radius.xl": "0.95rem", "space.base": "0.25rem",
+    })
+    for (const [path, value] of Object.entries(report.ownerOverrides.values)) {
+      const [group, key] = path.split(".") as ["radius" | "space", string]
+      expect((theme[group] as Record<string, { $value: unknown }>)[key]!.$value).toBe(value)
+    }
+    expect(deriveRadiusScale(theme.radius.base.$value)).toEqual(Object.fromEntries(Object.entries(theme.radius).map(([k, v]) => [k, v.$value])))
+  })
   it("records source, precision policy, declared defaults, and unsupported sidebar/export boilerplate", () => {
     expect(report.source.document).toBe("docs/THEME_SYSTEM_V2_IMPLEMENTATION_CONTRACT.md")
     expect(report.precisionPolicy.color).toMatch(/6 decimal places/)
@@ -124,7 +139,7 @@ describe("Default conversion report", () => {
     expect(report.unsupported.map((u) => u.field).join(" ")).toMatch(/boilerplate/)
   })
 
-  it("every normalized value equals the fixture and is a fixed point of the normalizer", () => {
+  it("imported colors and shadows equal the fixture; historical lengths remain normalizer fixed points", () => {
     const values = report.values as Record<string, { source: unknown; normalized: unknown }>
     for (const mode of ["light", "dark"] as const) {
       for (const [name, token] of Object.entries(theme.colors[mode])) {

@@ -79,10 +79,10 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await expect(page.getByRole("combobox", { name: "Active theme" })).toHaveText("Default")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "built-in")
     await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-theme-id", "default")
-    // Default's canonical values reach the preview: radius base 1.475rem, md 1.35rem, spacing base 0.3rem.
-    expect(await previewVar(page, "--radius")).toBe("1.475rem")
-    await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("21.6px")
-    await expect.poll(() => previewStyle(page, "elevation-sample", "paddingLeft")).toBe("14.4px")
+    // Default's canonical values reach the preview: radius base 0.7rem, md 0.575rem, spacing base 0.25rem.
+    expect(await previewVar(page, "--radius")).toBe("0.7rem")
+    await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("9.2px")
+    await expect.poll(() => previewStyle(page, "elevation-sample", "paddingLeft")).toBe("12px")
     expect(await previewStyle(page, null, "fontFamily")).toMatch(/^ui-sans-serif, system-ui, -apple-system/)
     await workspaceMode(page, "Controls")
     // Compact selector (WTEP-09): built-ins are grouped as built-in; no custom group until one is saved.
@@ -175,7 +175,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await selectTheme(page, "default")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "built-in")
     await editorCategory(page, "Other")
-    await expect(numberField(page, "Radius")).toHaveValue("1.475")
+    await expect(numberField(page, "Radius")).toHaveValue("0.7")
     await selectTheme(page, "rounder")
 
     // Saving an existing custom theme updates it in place, without Save As.
@@ -269,8 +269,8 @@ for (const mode of MODES) {
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("6px")
       expect(await previewVar(page, "--radius")).toBe("0.5rem")
 
-      await setNumber(page, "Spacing base", "0.25")
-      await expect.poll(() => previewStyle(page, "elevation-sample", "paddingLeft")).toBe("12px")
+      await setNumber(page, "Spacing", "0.3")
+      await expect.poll(() => previewStyle(page, "elevation-sample", "paddingLeft")).toBe("14.4px")
       // Density stays canonical and programmatic (proposals and design commands) but has no manual control.
       await expect(page.getByTestId("control-density")).toHaveCount(0)
       await expect(page.getByRole("textbox", { name: "Density" })).toHaveCount(0)
@@ -396,9 +396,10 @@ for (const mode of MODES) {
       await expect(primary).toHaveValue("oklch(0.627955 0.257683 29.23388)")
       await expect.poll(() => previewVar(page, "--primary")).toBe("oklch(0.627955 0.257683 29.23388)")
       await expect.poll(() => chromeVar("--primary")).toBe("oklch(0.627955 0.257683 29.23388)")
-      // The chrome actually renders with the active theme (Save uses the primary button variant).
+      // The chrome receives the active primary token; Save remains the approved theme-neutral ghost action.
       await workspaceMode(page, "Preview")
-      await expect.poll(() => page.getByRole("button", { name: "Save", exact: true }).evaluate((el) => getComputedStyle(el).backgroundColor)).toMatch(/^oklch\(0\.627955 0\.257683 29\.23/)
+      expect(await chromeVar("--primary")).toBe("oklch(0.627955 0.257683 29.23388)")
+      await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveAttribute("data-variant", "ghost")
       // A translucent token keeps its alpha when picked.
       await editorCategory(page, "Colors")
       await colorInput(page, "border").fill("oklch(0.5 0 0 / 0.4)")
@@ -463,7 +464,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
     test(`manual controls pause while a proposal is staged; Discard and Apply resume them — ${mode}`, async ({ page }, testInfo) => {
       await openWorkbench(page, mode)
       await editorCategory(page, "Other")
-      await setNumber(page, "Spacing base", "0.25")
+      await setNumber(page, "Spacing", "0.3")
       await expect(revision(page)).toHaveAttribute("data-revision", "2")
       const stage = async (id: string, base: number) => {
         await editorCategory(page, "Command")
@@ -480,7 +481,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await editorCategory(page, "Other")
       await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toContainText("staged proposal")
       await expect(numberField(page, "Radius")).toBeDisabled()
-      await expect(numberField(page, "Radius")).toHaveValue("1.475")
+      await expect(numberField(page, "Radius")).toHaveValue("0.7")
       await expect(slider(page, "Radius")).toHaveAttribute("data-disabled", "")
       await expect(page.getByLabel("Shadow color")).toBeDisabled()
       await editorCategory(page, "Typography")
@@ -490,7 +491,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await expect(page.getByLabel("Primary picker", { exact: true })).toBeDisabled()
       // WTEP-04: the candidate is confined to the preview; the Workbench chrome stays on the active theme.
       expect(await previewVar(page, "--radius")).toBe("0.5rem")
-      expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--radius").trim())).toBe("1.475rem")
+      expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--radius").trim())).toBe("0.7rem")
       await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "2")
       await expect(page.getByTestId("staged-status")).toContainText("not yet active")
       await expectNoSeriousViolations(page, `${mode}-manual-locked`, testInfo)
@@ -499,7 +500,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Discard proposal" }).click()
       await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
-      await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("21.6px")
+      await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("9.2px")
       await editorCategory(page, "Other")
       await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toHaveCount(0)
       await setNumber(page, "Base motion duration", "275")

@@ -16,7 +16,7 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "theme:default": {
     sourceId: "packages/core/src/theme/fixtures/default.json",
-    sha256: "93fc2887f5ee7a355df8c3ca52a0adb005e7ac526942a5f3a0b2563521944282",
+    sha256: "124d47991f86aa6872db1b92afef0c874816340b94a02724836a6f6bc9f04f40",
   },
   "theme:quiet-editorial": {
     sourceId: "packages/core/src/theme/fixtures/valid.json",

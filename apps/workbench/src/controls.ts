@@ -83,7 +83,7 @@ export const NUMERIC_CONTROLS: Record<NumericControlId, NumericControl> = {
   },
   spacing: {
     ...B.spacingBase,
-    label: "Spacing base",
+    label: "Spacing",
     unit: "rem",
     read: (theme) => lengthIn(theme.space.base.$value, "rem"),
     build: (value) => ({ op: "setSpacingBase", value: `${value}rem` }),
@@ -200,4 +200,11 @@ export function pickedColorInput(hex: string, canonical: string): string {
   if (alpha === 1 || !/^#[0-9a-f]{6}$/i.test(hex)) return hex
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
   return `rgb(${r} ${g} ${b} / ${alpha})`
+}
+
+/** Exact built-in system stacks have invitation copy; unmatched custom stacks are never relabelled as catalog fonts. */
+export function fontControlCopy(category: "sans" | "serif" | "mono", stack: readonly string[], defaultStack: readonly string[]): string {
+  const categoryName = { sans: "sans-serif", serif: "serif", mono: "monospace" }[category]
+  const isDefault = stack.length === defaultStack.length && stack.every((name, index) => name === defaultStack[index])
+  return isDefault ? `${categoryName[0]!.toUpperCase()}${categoryName.slice(1)} font...` : `Custom ${categoryName} stack`
 }

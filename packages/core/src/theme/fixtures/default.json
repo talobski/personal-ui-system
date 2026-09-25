@@ -255,29 +255,29 @@
   "radius": {
     "base": {
       "$type": "dimension",
-      "$value": "1.475rem"
+      "$value": "0.7rem"
     },
     "sm": {
       "$type": "dimension",
-      "$value": "1.225rem"
+      "$value": "0.45rem"
     },
     "md": {
       "$type": "dimension",
-      "$value": "1.35rem"
+      "$value": "0.575rem"
     },
     "lg": {
       "$type": "dimension",
-      "$value": "1.475rem"
+      "$value": "0.7rem"
     },
     "xl": {
       "$type": "dimension",
-      "$value": "1.725rem"
+      "$value": "0.95rem"
     }
   },
   "space": {
     "base": {
       "$type": "dimension",
-      "$value": "0.3rem"
+      "$value": "0.25rem"
     },
     "density": {
       "$type": "number",
