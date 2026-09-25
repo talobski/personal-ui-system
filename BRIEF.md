@@ -108,7 +108,7 @@ Canonical sources of truth are versioned data/schema files and component source,
 
 For substantive implementation work in `personal-ui-system`, STRONG is the
 default producer class. The preferred configured STRONG routes are Codex
-`gpt-5.6-sol` at medium effort and Claude `claude-opus-5` at medium effort;
+`gpt-5.6-sol` at medium effort and Claude `claude-opus-5-5` at medium effort;
 provider selection still uses current admissibility, capacity evidence, and any
 active owner preference.
 
@@ -122,8 +122,23 @@ tasks, MAX should be preferred when justified. Astra is the preferred MAX route
 for primarily visual/UI work, but every MAX dispatch remains explicitly
 owner-gated for the exact task, profile, model, and effort.
 
+Current Claude class routing is `claude-sonnet-5` / medium for STANDARD,
+`claude-opus-5-5` / medium for STRONG, and `claude-fable-5-1` / medium for
+MAX. MAX remains exact one-use owner-gated, and STRONG must not fall through to
+MAX automatically.
+
 This is a project-level routing preference intended to reduce correction loops;
 it does not modify the global Loop Engineering model-class policy.
+
+Current Loop runtime behavior uses Phase 10 semantics. Owner visual review is
+opt-in at planning/admission rather than an implicit completion gate.
+Independent non-blocking owner questions are batched where safe while
+admissible work continues. After deterministic recovery is exhausted, an
+ambiguous runtime or verification problem may be routed through the
+fresh-context Loop Resolver before owner escalation. When technical acceptance
+and protected verification pass and no admitted owner gate remains, the Lead
+accepts, promotes, runs post-promotion checks, persists receipts, and closes
+the phase automatically.
 
 ## Design boundaries
 
