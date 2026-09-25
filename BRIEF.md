@@ -1025,6 +1025,40 @@ No owner visual gate was admitted. No public resource, Theme v2 schema,
 mutation operation, persistence format, Jev behavior, credential path, or
 network boundary changed.
 
+## Phase result: Workbench Control Navigation Scroll v1
+
+Accepted on 2026-09-26 at product commit
+`90ea824027f71c8e9ef3e376d6c5c6263b56dee9`. PUI-44 through PUI-50 were
+delivered as one coordinated batch under WCN-01 through WCN-16.
+
+Workbench form controls now share scoped typography while retaining semantic
+placeholder, invalid, disabled, and value colors. Numeric rows use stable
+`6rem | minmax(0,1fr) | max-content` geometry. Applicable text-and-icon actions
+use explicit `size-3.5` icons that follow the canonical spacing scale. Sidebar
+Tabs are content-width and horizontally scrollable, the preview Cards/States
+switcher uses the accepted Select primitive, and shared collapsible triggers
+use the approved radius and chevron sizing.
+
+The official Radix-backed shadcn ScrollArea is now the sole new public
+resource, bringing the registry to exactly 19 resources. Persistent
+Workbench-owned sidebar, category-navigation, and status/proposal regions use
+it; embedded preview-document, browser-document, Select/Combobox listbox, code,
+and dialog scrolling intentionally remain native. The prior custom native
+scrollbar styling was removed without adding a parallel scrolling model.
+
+Lead evidence passed 679 unit tests, all typechecks and builds, Storybook
+94/94, Workbench 122 passed with two established viewport-specific skips,
+Design Command 1/1, 19 registry resources, 11 mutation operations, and zero
+serious/critical axe findings. The fresh Claude Sonnet 5 STANDARD verifier
+independently passed the unchanged exact-candidate offline, source, contract,
+boundary, and evidence-integrity review without browser or repair authority.
+Three evidence-log whitespace issues were normalized after product evidence
+was green; the final correction changed no product, runtime, or test bytes.
+
+No owner visual gate was admitted. No Theme v2 schema, mutation operation,
+persistence format, Jev behavior, credential path, network boundary, or paid
+capacity changed.
+
 ## Phase result: Workbench Rendering Controls Polish v1
 
 Accepted on 2026-09-25 at product commit
