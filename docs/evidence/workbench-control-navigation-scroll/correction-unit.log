@@ -19,4 +19,3 @@ $ vitest run
 
     Isolate  38 workers spawned · ~136ms startup each (spawn + environment, per file)
              at least ~333ms faster with isolate: false — reuses workers across files instead of one per file
-

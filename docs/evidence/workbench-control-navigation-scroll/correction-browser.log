@@ -13,4 +13,3 @@
 [WebServer]   port: 5173
 [WebServer] }
 Error: Process from config.webServer was not able to start. Exit code: 1
-

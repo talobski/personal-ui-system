@@ -203,7 +203,7 @@ dist/assets/google-sans-ethiopic-wght-normal-In5Lv2Lo.woff2            249.23 kB
 dist/assets/index-CwUA-oRj.css                                         155.61 kB │ gzip:  37.43 kB
 dist/assets/index-k9mNy38M.js                                        1,118.34 kB │ gzip: 342.48 kB
 
-[plugin builtin:vite-reporter] 
+[plugin builtin:vite-reporter]
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
