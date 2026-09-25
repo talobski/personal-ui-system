@@ -1059,12 +1059,11 @@ No owner visual gate was admitted. No Theme v2 schema, mutation operation,
 persistence format, Jev behavior, credential path, network boundary, or paid
 capacity changed.
 
-## Phase: Workbench Sidebar Preview Follow-up v1
+## Phase result: Workbench Sidebar Preview Follow-up v1
 
-Owner-approved on 2026-09-26 as
-`workbench-sidebar-preview-followup-v1-001`, covering PUI-51 through PUI-55
-under WSPF-01 through WSPF-13. The phase is one bounded follow-up to the
-accepted Workbench navigation and ScrollArea work.
+Accepted on 2026-09-26 at product commit
+`d3ce5ec5822da47db94b509f8848203520154eb6`. PUI-51 through PUI-55 were
+delivered as one bounded follow-up under WSPF-01 through WSPF-13.
 
 It gives the category-navigation ScrollArea the full sidebar width, corrects
 tab state styling, adds the semantic sidebar-header divider, restores the
@@ -1073,16 +1072,22 @@ preview Select, tightens the preview root to `gap-4 p-4`, and gives the embedded
 PreviewFrame document exactly one vertical shadcn ScrollArea without creating
 an outer iframe scroll owner.
 
-The Default muted-pair contrast is known to be approximately 4.35:1 for the
-small trigger text. That exact issue is pre-approved deferred Default-theme
-debt: it must be measured and reported, not hidden or locally worked around.
-All other new serious/critical accessibility findings remain disallowed.
+Two semantic theme-token debts remain explicit rather than locally worked
+around. The Default-light compact ControlSection trigger measures 4.349:1 for
+`muted-foreground` on `muted`. Inactive-tab hover remains the owner-required
+`text-muted-foreground/80`, measuring 3.234:1 in Default light, 4.885:1 in
+Default dark, 4.468:1 in Quiet Editorial light, and 5.634:1 in Quiet Editorial
+dark. No component substitutes another token family, and the tab-hover debt is
+not hidden behind an axe suppression.
 
-No owner visual-review gate is admitted. The Lead owns executable browser
-evidence; a fresh Codex STANDARD verifier owns exact-candidate offline, source,
-contract, boundary, and evidence-integrity review. The phase ceiling is three
-agent runs (two expected), 240 minutes, concurrency one, and paid spend zero;
-the project lifetime ceiling is 60.
+Lead evidence passed 684 unit tests, all typechecks and builds, Storybook
+94/94, Workbench 142 passed with two established viewport-specific skips,
+Design Command 1/1, the exact 19-resource registry, 11 mutation operations,
+and the frozen/bundle/credential/network scan. The fresh Codex Terra STANDARD
+verifier independently passed the unchanged exact-candidate offline, source,
+contract, boundary, and evidence-integrity review without browser or repair
+authority. No owner visual gate was admitted. No schema, persistence, mutation,
+Jev, credential, network, dependency, or lockfile boundary changed.
 
 ## Phase result: Workbench Rendering Controls Polish v1
 
