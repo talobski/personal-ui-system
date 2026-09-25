@@ -224,3 +224,18 @@ Remaining Lead-owned work: rerun the full exact-candidate Workbench matrix, Stor
 regression, and Design Command live-boundary suite, including decoded axe and geometry
 evidence, then protected verification. Calculated contrast/unit success does not substitute
 for browser-measured contrast. No acceptance, promotion, or phase completion claimed.
+
+## Lead-owned mobile slider harness correction
+
+The first Lead matrix after accessibility remediation passed Storybook 88/88 and
+Workbench 99/102 with two intentional viewport skips. The only failure was the
+mobile Workbench slider pointer assertion: an absolute `page.mouse.click` coordinate
+inside the transformed off-canvas sheet left the value at zero, while the same case
+passed on desktop and the public Slider's dedicated mobile pointer coverage passed.
+
+The Workbench regression now scrolls the track into view and clicks at 50% relative
+to the track locator. At the mobile row's minimum width, the zero-position 16px thumb
+covered the earlier 20% target and correctly intercepted it; the midpoint is outside
+that thumb and still verifies pointer track selection. Product code, accessibility
+thresholds, and acceptance criteria are unchanged. Lead must rerun the focused mobile
+case and full matrix before protected verification.

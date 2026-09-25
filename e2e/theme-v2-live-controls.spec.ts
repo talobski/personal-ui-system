@@ -443,11 +443,12 @@ test("sliders respond to keyboard (Tab, Home, End, Page keys) with visible focus
   await page.keyboard.press("Home")
 
   const track = page.getByTestId("control-radius").locator('[data-slot="slider-track"]')
+  await track.scrollIntoViewIfNeeded()
   const box = (await track.boundingBox())!
   const start = await revisionNumber(page)
-  await page.mouse.click(box.x + box.width * 0.2, box.y + box.height / 2)
-  await expect.poll(async () => Number(await radius.getAttribute("aria-valuenow"))).toBeGreaterThan(0.3)
-  await expect.poll(async () => Number(await radius.getAttribute("aria-valuenow"))).toBeLessThan(0.7)
+  await track.click({ position: { x: box.width * 0.5, y: box.height / 2 } })
+  await expect.poll(async () => Number(await radius.getAttribute("aria-valuenow"))).toBeGreaterThan(0.9)
+  await expect.poll(async () => Number(await radius.getAttribute("aria-valuenow"))).toBeLessThan(1.6)
   expect(await revisionNumber(page)).toBeGreaterThan(start)
   const clicked = Number(await radius.getAttribute("aria-valuenow"))
   await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe(`${Math.max(0, clicked - 0.125) * 16}px`)
