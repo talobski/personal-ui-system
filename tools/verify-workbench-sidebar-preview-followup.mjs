@@ -134,6 +134,16 @@ for (const name of workbenchSpecs) {
 }
 const phaseSpec = read("e2e/workbench-sidebar-preview-followup.spec.ts")
 for (const required of ["WSPF-02", "WSPF-03", "WSPF-04", "WSPF-05", "WSPF-06", "WSPF-07", "WSPF-08", "WSPF-09", "WSPF-10", "WSPF-11", "wheel", "PageDown", "mouse.down", "touchStart", "reducedMotion", "Preview document"]) assert.ok(phaseSpec.includes(required), required)
+const contrast = JSON.parse(read("docs/evidence/workbench-sidebar-preview-followup/contrast.json"))
+const hoverDebt = contrast.knownDebt.filter(item => item.state?.startsWith("category tab inactive hover"))
+assert.deepEqual(hoverDebt.map(item => [item.theme, item.mode, item.ratio]), [
+  ["default", "light", 3.234],
+  ["quiet-editorial", "light", 4.468],
+])
+for (const item of hoverDebt) {
+  assert.match(item.disposition, /owner-accepted deferred theme-token debt/)
+  assert.match(item.disposition, /text-muted-foreground\/80/)
+}
 
 // Test hygiene: no focused/skipped additions and unchanged existing test counts.
 for (const path of changed.filter(path => /\.(test|spec)\.ts$/.test(path))) {
@@ -166,6 +176,9 @@ console.log(JSON.stringify({
   sourceSha256: hash(changed.filter(path => !path.startsWith(evidenceDir)).map(path => path + "\0" + hash(readFileSync(path))).join("\0")),
   frozenFileCount: frozen.length, registryCount: registry.items.length, operationCount: operations.length,
   workbenchSpecs, clientBundlesScanned: bundles,
-  knownDebt: { pairing: "Default light muted-foreground #737373 on muted #f5f5f5", disposition: "pre-approved deferred Default-theme debt; measured and recorded, not suppressed" },
+  knownDebt: {
+    controlSection: { pairing: "Default light muted-foreground #737373 on muted #f5f5f5", ratio: 4.349, disposition: "pre-approved deferred Default-theme debt; measured and recorded, not suppressed" },
+    inactiveTabHover: { semanticTreatment: "text-muted-foreground/80", builtInRatios: { defaultLight: 3.234, defaultDark: 4.885, quietEditorialLight: 4.468, quietEditorialDark: 5.634 }, disposition: "owner-accepted deferred theme-token debt; no component-local workaround or axe suppression" },
+  },
   note: "Offline source/boundary evidence only. Browser execution and protected fresh verification remain Lead-owned.",
 }, null, 2))

@@ -122,20 +122,20 @@
       "bg": "#f5f5f5",
       "ratio": 4.349,
       "disposition": "pre-approved deferred Default-theme debt (WSPF-06)"
-    }
-  ],
-  "observedOther": [
+    },
     {
       "theme": "default",
       "mode": "light",
       "state": "category tab inactive hover (text-muted-foreground/80, owner-specified transient state)",
-      "ratio": 3.234
+      "ratio": 3.234,
+      "disposition": "owner-accepted deferred theme-token debt; component semantic treatment remains text-muted-foreground/80"
     },
     {
       "theme": "quiet-editorial",
       "mode": "light",
       "state": "category tab inactive hover (text-muted-foreground/80, owner-specified transient state)",
-      "ratio": 4.468
+      "ratio": 4.468,
+      "disposition": "owner-accepted deferred theme-token debt; component semantic treatment remains text-muted-foreground/80"
     }
   ]
 }

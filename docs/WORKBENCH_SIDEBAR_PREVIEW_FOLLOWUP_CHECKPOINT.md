@@ -57,10 +57,13 @@ How the exception is handled in tests:
   about 4.35:1. In dark mode it requires none, so the exception can neither widen nor
   quietly disappear.
 
-Separate observation, not suppressed and not an axe finding at rest: the owner-specified
-inactive-tab hover `text-muted-foreground/80` computes to about 3.23:1 in Default light
-and 4.47:1 in Quiet Editorial light. It is a transient hover state, and axe runs after
-the pointer settles. The Lead should decide whether to record it as further debt.
+The owner subsequently confirmed that inactive tabs must remain in the muted semantic
+family: `text-muted-foreground` at rest and `hover:text-muted-foreground/80` on hover.
+The hover state measures 3.234:1 in Default light, 4.885:1 in Default dark, 4.468:1 in
+Quiet Editorial light, and 5.634:1 in Quiet Editorial dark. The two weaker light-mode
+results are explicitly accepted, deferred theme-token debt. They are recorded without
+suppression or a component-local token substitution. They are not axe findings because
+axe runs after the pointer settles; every other serious or critical finding still fails.
 
 ## Tests
 
@@ -180,8 +183,7 @@ Lead browser evidence on the corrected worktree:
 - the exact approved Default-light ControlSection debt remains measured and attached;
   no additional axe exception was added.
 
-One owner-controlled acceptance conflict remains open. The required inactive-tab hover
-`text-muted-foreground/80` measures 3.234:1 in Default light and 4.468:1 in Quiet
-Editorial light. This is outside the single pre-approved ControlSection debt, is not
-silently accepted, and has not been added to the axe exception. Protected verification
-remains reserved until the owner resolves that hover-state semantic conflict.
+The owner resolved the semantic checkpoint by requiring the exact muted-family tab
+treatment and accepting the measured light-mode hover contrast as deferred theme-token
+debt. No product class, axe exception, acceptance criterion, or theme token changed as a
+result. Protected verification may proceed after the Lead's exact-candidate browser run.
