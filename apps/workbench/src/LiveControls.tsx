@@ -23,6 +23,11 @@ export type ApplyManual = (build: (theme: Theme) => ThemeOperation) => Workbench
 /** The one ordinary field-label style across every editor tab; group headings stay visually distinct. */
 export const FIELD_LABEL_CLASS = "text-xs font-normal text-muted-foreground"
 
+/*
+ * Workbench editable controls pass `text-sm` so they compute to 14px at every viewport; the public Input, Textarea, and
+ * Combobox defaults (16px below md) are unchanged. Accepted tradeoff: iOS Safari may zoom on focus of sub-16px text.
+ */
+
 const describeIssues = (issues: WorkbenchIssue[]) => issues.map((i) => `${i.ruleId} at ${i.path || "(root)"}`).join("; ")
 
 /** Lets a section keep itself open while any control inside it holds a rejected draft (`collapsible.hidden-error`). */
@@ -53,8 +58,13 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
     <Collapsible open={open || hasError} onOpenChange={(next) => setOpen(next || hasError)} data-testid={`section-${id}`} data-has-error={hasError} className="grid gap-2">
       <h3 className="text-sm font-medium">
         <CollapsibleTrigger asChild>
-          {/* Half-strength muted over the card preserves muted-foreground at 12px: Default light exceeds 4.5:1. */}
-          <Button variant="ghost" size="sm" className="w-fit rounded-md bg-muted/50 px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border/50 [&[data-state=open]>svg]:rotate-180">
+          {/*
+            muted-foreground on full-strength muted falls below 4.5:1 in Default light, so the label uses the weakest
+            foreground step that is stronger than muted-foreground and clears normal-text contrast, at rest and on
+            hover, in both built-ins and both modes (lower steps are weaker than muted-foreground in Quiet light).
+            The explicit hover and dark-hover overrides replace the ghost variant's accent hover.
+          */}
+          <Button variant="ghost" size="sm" className="h-auto w-fit rounded-md bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-foreground/75 ring-1 ring-border hover:bg-muted/80 hover:text-foreground/75 dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
             {title}
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 transition-transform motion-reduce:transition-none">
               <path d="m6 9 6 6 6-6" />
@@ -130,7 +140,7 @@ export function LiveNumberField({ id, control, theme, disabled, apply }: { id: s
           disabled={disabled}
           aria-invalid={error !== null}
           aria-describedby={error !== null ? errorId : undefined}
-          className="h-8 w-14 flex-none px-1 text-right tabular-nums"
+          className="h-8 w-14 flex-none px-1 text-right text-sm tabular-nums"
           onFocus={() => (focused.current = true)}
           onBlur={() => {
             focused.current = false
@@ -157,96 +167,28 @@ export function LiveNumberField({ id, control, theme, disabled, apply }: { id: s
   )
 }
 
-/** A text field committed on every change that core admits; rejected text stays local with a visible error. */
-export function LiveTextField({
-  id,
-  label,
-  value,
-  build,
-  hint,
-  disabled,
-  apply,
-  canonicalNote,
-}: {
-  id: string
-  label: string
-  value: string
-  build: (raw: string, theme: Theme) => ThemeOperation
-  hint: string
-  disabled: boolean
-  apply: ApplyManual
-  canonicalNote?: boolean
-}) {
-  const [draft, setDraft] = React.useState(value)
-  const [error, setError] = React.useState<string | null>(null)
-  const focused = React.useRef(false)
-  React.useEffect(() => {
-    if (focused.current) return
-    setDraft(value)
-    setError(null)
-  }, [value])
-  useReportInvalid(id, error !== null)
-
-  const inputId = `${id}-input`
-  const errorId = `${id}-error`
-  const noteId = `${id}-note`
-  const describedBy = [error !== null ? errorId : null, canonicalNote ? noteId : null].filter(Boolean).join(" ") || undefined
-
-  return (
-    <Field data-invalid={error !== null} data-testid={`control-${id}`}>
-      <FieldLabel htmlFor={inputId} className={FIELD_LABEL_CLASS}>
-        {label}
-      </FieldLabel>
-      <Input
-        id={inputId}
-        value={draft}
-        disabled={disabled}
-        autoComplete="off"
-        spellCheck={false}
-        aria-invalid={error !== null}
-        aria-describedby={describedBy}
-        onFocus={() => (focused.current = true)}
-        onBlur={() => {
-          focused.current = false
-          if (error === null) setDraft(value)
-        }}
-        onChange={(event) => {
-          const raw = event.target.value
-          setDraft(raw)
-          const issues = apply((latest) => build(raw.trim(), latest))
-          setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}. ${hint}` : null)
-        }}
-      />
-      {canonicalNote && (
-        <FieldDescription id={noteId} data-testid={`${id}-canonical`}>
-          Stored as <code className="break-all">{value}</code>
-        </FieldDescription>
-      )}
-      {error !== null && (
-        <FieldError id={errorId} data-testid={`${id}-error`}>
-          {error}
-        </FieldError>
-      )}
-    </Field>
-  )
-}
+const COLOR_HINT = "Expected HEX, rgb(a), hsl(a), or oklch inside the Display P3 gamut."
 
 /**
- * One colour token row: a native colour picker (display sRGB) and the canonical text input, both entering through the
- * same `setColor` path. Valid values apply immediately; a rejected text draft stays visible and never activates.
+ * One colour row: a native colour picker (display sRGB) and the canonical text input, both entering through the same
+ * operation (`setColor` for tokens, `setShadowProfile` for the shadow colour), built against the latest active theme.
+ * Valid values apply immediately and core normalizes them to canonical OKLCH; a rejected text draft stays visible and
+ * never activates.
  */
 export function LiveColorField({
   id,
   label,
   value,
   build,
+  hint = COLOR_HINT,
   disabled,
   apply,
 }: {
   id: string
   label: string
   value: string
-  build: (raw: string) => ThemeOperation
+  build: (raw: string, theme: Theme) => ThemeOperation
+  hint?: string
   disabled: boolean
   apply: ApplyManual
 }) {
@@ -263,8 +205,8 @@ export function LiveColorField({
   const inputId = `${id}-input`
   const errorId = `${id}-error`
   const commit = (raw: string) => {
-    const issues = apply(() => build(raw))
-    setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}. Expected HEX, rgb(a), hsl(a), or oklch inside the Display P3 gamut.` : null)
+    const issues = apply((latest) => build(raw, latest))
+    setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}. ${hint}` : null)
   }
 
   return (
@@ -290,7 +232,7 @@ export function LiveColorField({
           spellCheck={false}
           aria-invalid={error !== null}
           aria-describedby={error !== null ? errorId : undefined}
-          className="h-8 font-mono md:text-xs"
+          className="h-8 font-mono text-sm"
           onFocus={() => (focused.current = true)}
           onBlur={() => {
             focused.current = false
@@ -371,7 +313,7 @@ export function LiveFontField({
         </ComboboxTrigger>
         <ComboboxContent>
           <div className="p-1">
-            <ComboboxInput id={`${inputId}-search`} aria-label={`Search ${label}`} placeholder="Search fonts" showTrigger={false} className="h-8" />
+            <ComboboxInput id={`${inputId}-search`} aria-label={`Search ${label}`} placeholder="Search fonts" showTrigger={false} className="h-8 [&_[data-slot=combobox-input]]:text-sm" />
           </div>
           <ComboboxEmpty>No fonts found.</ComboboxEmpty>
           <ComboboxList>

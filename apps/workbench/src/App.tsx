@@ -32,7 +32,7 @@ import { deleteTheme, loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
 import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, FONT_CONTROLS, NUMERIC_CONTROLS, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
-import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField, LiveTextField } from "./LiveControls"
+import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField } from "./LiveControls"
 import type { ApplyManual } from "./LiveControls"
 
 const builtIns = loadBuiltInThemes()
@@ -327,11 +327,12 @@ export function App() {
     <SidebarProvider className="quiet-shell" data-theme-status={status} style={{ "--sidebar-width": "22rem" } as React.CSSProperties}>
       <style id="workbench-active-theme" data-theme-id={current.id} data-revision={current.revision}>{activeCss}</style>
       <Sidebar>
-        <SidebarHeader className="p-4 pb-0">
+        {/* A fixed 64px row whose bottom edge meets the 64px preview toolbar; header px-2 plus selector px-2 = 16px inset. */}
+        <SidebarHeader className="h-16 shrink-0 flex-row items-center px-2 py-0">
           <SidebarMenu>
             <SidebarMenuItem>
               <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id && id !== current.id) load(id) }}>
-                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-0 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
+                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
                   <SelectValue>
                     <ThemeSwatches theme={current} mode={mode} />
                     <span className="truncate">{current.name}</span>
@@ -436,7 +437,7 @@ export function App() {
             {numeric("spacing")}
           </ControlSection>
           <ControlSection id="shadow" title="Shadow">
-            <LiveTextField
+            <LiveColorField
               key={`${current.id}-shadow-color`}
               id="shadow-color"
               label="Shadow color"
@@ -445,7 +446,6 @@ export function App() {
               hint="Expected an opaque HEX, rgb, hsl, or oklch color; opacity is set separately."
               disabled={locked}
               apply={applyManual}
-              canonicalNote
             />
             {numeric("shadowOpacity")}
             {numeric("shadowBlur")}
@@ -470,7 +470,7 @@ export function App() {
               spellCheck={false}
               rows={2}
               data-testid="design-command-input"
-              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 text-base md:text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             />
           </Field>
           <Button disabled={locked || commandText.trim().length === 0} onClick={evaluateCommand} data-testid="design-command-evaluate">
@@ -546,13 +546,13 @@ export function App() {
       </Sidebar>
       <SidebarInset className="quiet-preview">
         <h1 className="sr-only">Personal UI Workbench</h1>
-        <div data-testid="workbench-toolbar" className="flex shrink-0 flex-wrap items-center gap-2 border-b p-4">
+        <div data-testid="workbench-toolbar" className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="size-8" />
           <div className="flex items-center gap-2">
             <Switch id="color-mode-switch" checked={mode === "dark"} onCheckedChange={(checked) => setMode(checked ? "dark" : "light")} />
             <Label htmlFor="color-mode-switch">Dark mode</Label>
           </div>
-          <div className="ml-auto flex flex-wrap items-center gap-2">
+          <div className="ml-auto flex items-center gap-2">
             <Button variant="ghost" size="sm" disabled={locked} onClick={() => download(exportThemeJson(current))}>
               <Download aria-hidden="true" />
               Export JSON
@@ -578,6 +578,7 @@ export function App() {
                             onChange={(e) => setSaveAsName(e.target.value)}
                             autoComplete="off"
                             spellCheck={false}
+                            className="text-sm"
                             aria-invalid={saveAsIssues.length > 0}
                             aria-describedby={saveAsIssues.length > 0 ? `${saveAsNameId}-error` : undefined}
                           />

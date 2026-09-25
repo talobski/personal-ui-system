@@ -53,7 +53,7 @@ export function PreviewFrame() {
       data-revision={state?.revision}
     >
       <style id="workbench-theme">{state?.css ?? ""}</style>
-      <Tabs defaultValue="cards"><TabsList aria-label="Preview views"><TabsTrigger value="cards">Cards</TabsTrigger><TabsTrigger value="states">States</TabsTrigger></TabsList>
+      <Tabs defaultValue="cards"><TabsList aria-label="Preview views"><TabsTrigger value="cards" className="text-xs">Cards</TabsTrigger><TabsTrigger value="states" className="text-xs">States</TabsTrigger></TabsList>
       <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden"><Gallery /></TabsContent>
       <TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">
       <section aria-labelledby="pv-buttons" className="grid gap-2">

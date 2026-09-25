@@ -82,7 +82,7 @@ export async function assertActiveControls(page: Page, disabled: boolean) {
   await editorCategory(page, "Typography")
   for (const c of [page.getByLabel("Sans font"), page.getByLabel("Serif font"), page.getByLabel("Mono font"), page.getByRole("textbox", { name: "Letter spacing" }), page.getByRole("slider", { name: "Letter spacing" })]) await check(c)
   await editorCategory(page, "Other")
-  for (const c of [page.getByRole("textbox", { name: "Radius" }), page.getByRole("slider", { name: "Radius" }), page.getByLabel("Shadow color"), page.getByRole("slider", { name: "Shadow blur" })]) await check(c)
+  for (const c of [page.getByRole("textbox", { name: "Radius" }), page.getByRole("slider", { name: "Radius" }), page.getByLabel("Shadow color", { exact: true }), page.getByLabel("Shadow color picker", { exact: true }), page.getByRole("slider", { name: "Blur", exact: true })]) await check(c)
   // Active-versus-staged clarity: the manual panel says why its controls are paused.
   await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toHaveCount(disabled ? 1 : 0)
   await workspaceMode(page, "Preview")

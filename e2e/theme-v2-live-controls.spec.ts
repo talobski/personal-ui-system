@@ -280,26 +280,30 @@ for (const mode of MODES) {
       // Tailwind prefixes four transparent ring/inset layers to every box-shadow; compare only the theme's layers.
       const shadow = async () => (await previewStyle(page, "elevation-sample", "boxShadow")).replaceAll("rgba(0, 0, 0, 0) 0px 0px 0px 0px, ", "")
       expect(await shadow()).toBe("oklch(0 0 0 / 0.1) 0px 1px 3px 0px, oklch(0 0 0 / 0.1) 0px 2px 4px -1px")
-      await setNumber(page, "Shadow blur", "10")
+      await setNumber(page, "Blur", "10")
       await expect.poll(shadow).toBe("oklch(0 0 0 / 0.1) 0px 1px 10px 0px, oklch(0 0 0 / 0.1) 0px 2px 4px -1px")
-      await setNumber(page, "Shadow spread", "2")
-      await setNumber(page, "Shadow offset X", "4")
-      await setNumber(page, "Shadow offset Y", "5")
-      await setNumber(page, "Shadow opacity", "0.3")
+      await setNumber(page, "Spread", "2")
+      await setNumber(page, "Offset X", "4")
+      await setNumber(page, "Offset Y", "5")
+      await setNumber(page, "Opacity", "0.3")
       await expect.poll(shadow).toBe("oklch(0 0 0 / 0.3) 4px 5px 10px 2px, oklch(0 0 0 / 0.3) 4px 2px 4px 1px")
       const beforeColor = await revisionNumber(page)
-      await page.getByLabel("Shadow color").fill("#ff0000")
+      await page.getByLabel("Shadow color", { exact: true }).fill("#ff0000")
       await expect(revision(page)).toHaveAttribute("data-revision", String(beforeColor + 1))
-      await expect(page.getByTestId("shadow-color-canonical")).toContainText("oklch(0.627955 0.257683 29.23388)")
+      // No stored-value helper (WRCP-03): the shared colour field itself shows the canonical value once it settles.
+      await expect(page.getByTestId("shadow-color-canonical")).toHaveCount(0)
+      await page.getByLabel("Shadow color", { exact: true }).blur()
+      await expect(page.getByLabel("Shadow color", { exact: true })).toHaveValue("oklch(0.627955 0.257683 29.23388)")
+      await expect(page.getByTestId("shadow-color-picker")).toHaveValue("#ff0000")
       // The stored value is exact (checked above); the browser re-serializes hue to its own precision.
       await expect.poll(shadow).toMatch(/^oklch\(0\.627955 0\.257683 29\.23\d* \/ 0\.3\) 4px 5px 10px 2px, /)
-      await page.getByLabel("Shadow color").fill("rgba(0, 0, 0, 0.5)")
+      await page.getByLabel("Shadow color", { exact: true }).fill("rgba(0, 0, 0, 0.5)")
       await expect(page.getByTestId("shadow-color-error")).toContainText("mutation.invalid-value at operations[0].value.color")
       await expect(revision(page)).toHaveAttribute("data-revision", String(beforeColor + 1))
-      await page.getByLabel("Shadow color").fill("hsl(0 0% 0%)")
+      await page.getByLabel("Shadow color", { exact: true }).fill("hsl(0 0% 0%)")
       await expect.poll(shadow).toContain("oklch(0 0 0 / 0.3) 4px 5px 10px 2px")
 
-      await setNumber(page, "Base motion duration", "320")
+      await setNumber(page, "Duration", "320")
       await expect.poll(() => buttonMotion(page)).toBe("0.32s")
 
       // Invalid numeric draft: local only, visible, section forced open, preview unchanged.
@@ -320,9 +324,9 @@ for (const mode of MODES) {
 
       // A collapsed section hides its controls; expanding restores them.
       await page.getByRole("button", { name: "Motion", exact: true }).click()
-      await expect(numberField(page, "Base motion duration")).toHaveCount(0)
+      await expect(numberField(page, "Duration")).toHaveCount(0)
       await page.getByRole("button", { name: "Motion", exact: true }).click()
-      await expect(numberField(page, "Base motion duration")).toHaveValue("320")
+      await expect(numberField(page, "Duration")).toHaveValue("320")
 
       // Every change landed in the canonical active theme (no baseline-diff panel remains).
       await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "built-in, edited")
@@ -488,7 +492,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await expect(numberField(page, "Radius")).toBeDisabled()
       await expect(numberField(page, "Radius")).toHaveValue("0.7")
       await expect(slider(page, "Radius")).toHaveAttribute("data-disabled", "")
-      await expect(page.getByLabel("Shadow color")).toBeDisabled()
+      await expect(page.getByLabel("Shadow color", { exact: true })).toBeDisabled()
       await editorCategory(page, "Typography")
       await expect(page.getByLabel("Sans font")).toBeDisabled()
       await editorCategory(page, "Colors")
@@ -508,7 +512,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("9.2px")
       await editorCategory(page, "Other")
       await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toHaveCount(0)
-      await setNumber(page, "Base motion duration", "275")
+      await setNumber(page, "Duration", "275")
       await expect(revision(page)).toHaveAttribute("data-revision", "3")
 
       // Apply: exactly one revision, the applied value shows in the manual controls, which resume.
@@ -530,7 +534,7 @@ test("reduced motion: controls stay operable and preview transitions collapse to
   await openWorkbench(page, "dark")
   await expect.poll(() => buttonMotion(page)).toBe("0s")
   await editorCategory(page, "Other")
-  await setNumber(page, "Base motion duration", "400")
+  await setNumber(page, "Duration", "400")
   await expect.poll(() => buttonMotion(page)).toBe("0s")
   await slider(page, "Radius").focus()
   await page.keyboard.press("ArrowRight")

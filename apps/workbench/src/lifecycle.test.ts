@@ -25,20 +25,54 @@ const defaultTheme = builtIns[0]!
 const canonical = builtIns[1]!
 const VALID = "oklch(0.4 0.1 150)"
 
-it("WTCP-07/11 half-strength muted keeps Default section text above 4.5:1 without changing tokens", () => {
+it("WRCP-05 section triggers use the minimum foreground step stronger than muted-foreground that passes 4.5:1", () => {
   const rgb = (color: string) => pickerHex(color).slice(1).match(/../g)!.map(channel => parseInt(channel, 16) / 255)
   const luminance = (channels: number[]) => channels.reduce((sum, c, i) => sum + [0.2126, 0.7152, 0.0722][i]! * (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4), 0)
   const ratio = (a: number[], b: number[]) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05)
-  for (const mode of ["light", "dark"] as const) {
-    const colors = defaultTheme.colors[mode]
-    const foreground = rgb(colors["muted-foreground"].$value)
-    const muted = rgb(colors.muted.$value), card = rgb(colors.card.$value)
-    if (mode === "light") expect(ratio(foreground, muted)).toBeLessThan(4.5)
-    const composite = muted.map((c, i) => c * 0.5 + card[i]! * 0.5)
-    expect(ratio(foreground, composite)).toBeGreaterThanOrEqual(4.5)
-  }
+  const over = (top: number[], alpha: number, bottom: number[]) => top.map((c, i) => c * alpha + bottom[i]! * (1 - alpha))
+  // Admissible: at rest (bg-muted over the card sidebar) and on hover (bg-muted/80), stronger than muted-foreground on
+  // the same surface, and at least 4.5:1, in both built-ins and both modes.
+  const admissible = (alpha: number) => builtIns.every(theme => (["light", "dark"] as const).every(mode => {
+    const colors = theme.colors[mode]
+    const card = rgb(colors.card.$value), muted = rgb(colors.muted.$value), foreground = rgb(colors.foreground.$value)
+    return [muted, over(muted, 0.8, card)].every(surface => {
+      const label = ratio(over(foreground, alpha, surface), surface)
+      return label >= 4.5 && label > ratio(rgb(colors["muted-foreground"].$value), surface)
+    })
+  }))
+  // The prior muted-foreground label fails normal-text contrast on full-strength muted in Default light.
+  expect(ratio(rgb(defaultTheme.colors.light["muted-foreground"].$value), rgb(defaultTheme.colors.light.muted.$value))).toBeLessThan(4.5)
+  const steps = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+  expect(steps.find(step => admissible(step / 100))).toBe(75)
   const source = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
-  expect(source).toContain("bg-muted/50 px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border/50")
+  expect(source).toContain("h-auto w-fit rounded-md bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-foreground/75 ring-1 ring-border hover:bg-muted/80 hover:text-foreground/75 dark:hover:bg-muted/80 has-[>svg]:px-2")
+  const trigger = source.match(/<CollapsibleTrigger asChild>[\s\S]*?<Button [^>]*className="([^"]+)"/)![1]!
+  expect(trigger).not.toMatch(/bg-muted\/50|ring-border\/50|accent|muted-foreground|\[#|oklch|rgb|hsl/i)
+})
+
+describe("WRCP-03/04 Other-tab labels and shared shadow colour interaction", () => {
+  it("shortens only the approved visible labels; ids and operations are unchanged", () => {
+    const labels = (["shadowOpacity", "shadowBlur", "shadowSpread", "shadowOffsetX", "shadowOffsetY", "motion"] as const).map(id => NUMERIC_CONTROLS[id].label)
+    expect(labels).toEqual(["Opacity", "Blur", "Spread", "Offset X", "Offset Y", "Duration"])
+    expect([NUMERIC_CONTROLS.radius.label, NUMERIC_CONTROLS.spacing.label, NUMERIC_CONTROLS.tracking.label]).toEqual(["Radius", "Spacing", "Letter spacing"])
+    expect(NUMERIC_CONTROLS.motion.build(320, defaultTheme)).toEqual({ op: "setMotionDuration", value: "320ms" })
+    expect(NUMERIC_CONTROLS.shadowBlur.build(10, defaultTheme)).toMatchObject({ op: "setShadowProfile", value: { blur: "10px" } })
+  })
+
+  it("renders Shadow color with the Colors-tab picker/text field and no stored-value helper", () => {
+    const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8")
+    const controls = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
+    expect(app).toMatch(/<LiveColorField\s+key=\{`\$\{current\.id\}-shadow-color`\}\s+id="shadow-color"\s+label="Shadow color"\s+value=\{readShadowColor\(current\)\}\s+build=\{buildShadowColorOperation\}/)
+    expect(app + controls).not.toMatch(/LiveTextField|canonicalNote|Stored as/)
+    // A picked opaque sRGB hex enters the canonical shadow-profile operation and core stores canonical OKLCH.
+    const picked = pickedColorInput("#ff0000", readShadowColor(defaultTheme))
+    expect(picked).toBe("#ff0000")
+    const result = editTheme(defaultTheme, buildShadowColorOperation(picked, defaultTheme))
+    if (!result.ok) throw new Error("picked shadow colour rejected")
+    expect(readShadowColor(result.theme)).toBe("oklch(0.627955 0.257683 29.23388)")
+    expect(pickerHex(readShadowColor(result.theme))).toBe("#ff0000")
+    expect(editTheme(defaultTheme, buildShadowColorOperation("rgba(0, 0, 0, 0.5)", defaultTheme)).ok).toBe(false)
+  })
 })
 
 const memoryStorage = (initial: Record<string, string> = {}): StorageLike & { data: Record<string, string> } => {

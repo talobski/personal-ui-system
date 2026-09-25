@@ -22,7 +22,8 @@ for (const mode of ["light", "dark"] as const) {
       await page.goto("/")
       await setColorMode(page, mode)
       const toolbar = page.getByTestId("workbench-toolbar")
-      expect(await toolbar.evaluate(el => [getComputedStyle(el).paddingTop, getComputedStyle(el).paddingRight, getComputedStyle(el).paddingBottom, getComputedStyle(el).paddingLeft])).toEqual(["16px", "16px", "16px", "16px"])
+      // WRCP-07/08 supersede the 16px vertical padding: the toolbar is a fixed 64px flex row with 16px horizontal inset.
+      expect(await toolbar.evaluate(el => [getComputedStyle(el).paddingTop, getComputedStyle(el).paddingRight, getComputedStyle(el).paddingBottom, getComputedStyle(el).paddingLeft])).toEqual(["0px", "16px", "0px", "16px"])
       const toggle = page.getByRole("button", { name: "Toggle Sidebar" })
       close((await box(toggle)).x - (await box(toolbar)).x, 16)
       for (const name of ["Export JSON", "Save"]) {
@@ -53,7 +54,9 @@ for (const mode of ["light", "dark"] as const) {
       expect(await header.evaluate(el => getComputedStyle(el).borderBottomWidth)).toBe("0px")
       const themeSelect = page.getByRole("combobox", { name: "Active theme" })
       const headerBox = await box(header)
-      close((await box(themeSelect)).x - headerBox.x, 16)
+      // WRCP-08: header px-2 plus selector px-2 resolve the selector content to the same 16px inner edge.
+      close((await box(themeSelect)).x - headerBox.x, 8)
+      close((await box(themeSelect.getByTestId("theme-swatches"))).x - headerBox.x, 16)
       const tabs = await box(page.getByRole("tablist", { name: "Editor categories" }))
       close(tabs.x - headerBox.x, 16)
 
@@ -114,9 +117,10 @@ for (const mode of ["light", "dark"] as const) {
           expect(styles.border).toBe("0px"); expect(styles.shadow).not.toBe("none")
           expect(styles.transform).toBe("uppercase"); expect(parseFloat(styles.spacing)).toBeGreaterThan(0)
           expect(parseFloat(styles.radius)).toBeGreaterThan(0)
-          await expect(trigger).toHaveClass(/bg-muted\/50/)
-          await expect(trigger).toHaveClass(/text-muted-foreground/)
-          await expect(trigger).toHaveClass(/ring-1 ring-border\/50/)
+          // WRCP-05 supersedes the half-strength muted treatment.
+          await expect(trigger).toHaveClass(/(?:^| )bg-muted(?: |$)/)
+          await expect(trigger).toHaveClass(/(?:^| )text-foreground\/75(?: |$)/)
+          await expect(trigger).toHaveClass(/ring-1 ring-border(?: |$)/)
           expect(await section.evaluate(el => getComputedStyle(el).rowGap)).toBe("8px")
           expect(await section.evaluate(el => getComputedStyle(el.parentElement!).rowGap)).toBe("24px")
           await page.keyboard.press("Tab")

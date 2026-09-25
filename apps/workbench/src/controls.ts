@@ -98,7 +98,7 @@ export const NUMERIC_CONTROLS: Record<NumericControlId, NumericControl> = {
     build: (value) => ({ op: "setDensity", value }),
   },
   motion: {
-    label: "Base motion duration",
+    label: "Duration",
     unit: "ms",
     min: 0,
     max: 1000,
@@ -108,15 +108,15 @@ export const NUMERIC_CONTROLS: Record<NumericControlId, NumericControl> = {
   },
   shadowOpacity: {
     ...B.shadowOpacity,
-    label: "Shadow opacity",
+    label: "Opacity",
     unit: "",
     read: (theme) => readShadowProfile(theme).opacity,
     build: (value, theme) => ({ op: "setShadowProfile", value: { ...pxProfile(theme), opacity: value } }),
   },
-  shadowBlur: shadowField("blur", "Shadow blur", B.shadowBlur),
-  shadowSpread: shadowField("spread", "Shadow spread", B.shadowSpread),
-  shadowOffsetX: shadowField("offsetX", "Shadow offset X", B.shadowOffset),
-  shadowOffsetY: shadowField("offsetY", "Shadow offset Y", B.shadowOffset),
+  shadowBlur: shadowField("blur", "Blur", B.shadowBlur),
+  shadowSpread: shadowField("spread", "Spread", B.shadowSpread),
+  shadowOffsetX: shadowField("offsetX", "Offset X", B.shadowOffset),
+  shadowOffsetY: shadowField("offsetY", "Offset Y", B.shadowOffset),
 }
 
 /** A numeric draft is admissible only as a finite number inside the control's bounds; anything else stays local. */
