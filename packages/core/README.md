@@ -22,7 +22,7 @@ accepts v1 input and returns migrated v2; `normalizeColor` turns HEX, rgb(a), hs
 The operation union adds `setFontFamily`, `setTracking`, `setRadiusBase` (derives the radius scale),
 `setSpacingBase`, and `setShadowProfile` (derives all shadow tiers); `setColor` accepts the same four colour families.
 
-The catalog contains eighteen resources. `slider` (single-thumb, forwards its name and value text to the Radix
+The catalog contains nineteen resources. `slider` (single-thumb, forwards its name and value text to the Radix
 thumb) and `collapsible` (one named disclosure region) are components; retrieve either with
 `get --version personal-ui-context/1 --theme default --resource slider`. `select` (grouped rich single choice over
 Base UI Select), `combobox` (searchable single choice over `@base-ui/react@1.8.0`), and `chart` (Recharts 3 with theme
@@ -36,6 +36,15 @@ pattern backed by `react-resizable-panels@4.13.2`; retrieve it with
 `get --version personal-ui-context/1 --theme quiet-editorial --resource resizable-panel`.
 Its UI entry point exports `ResizablePanelGroup`, `ResizablePanel`, and
 `ResizableHandle` from `@personal-ui/ui/components/resizable-panel`.
+The new component resource is `scroll-area`, the official Radix-backed shadcn
+composition for bounded persistent app regions. Import `ScrollArea` and `ScrollBar`
+from `@personal-ui/ui/components/scroll-area`. Give the viewport its region name,
+keyboard reachability, and visible focus; keep native input and avoid competing
+same-axis scrollers. Its closed `scroll-area.*` constraints enforce these duties.
+Retrieve it with `get --version personal-ui-context/1 --theme default --resource scroll-area`.
+Browser documents, preview documents, choice listboxes, and transient dialogs keep
+native scrolling.
+
 Numeric bounds are pixels. Use the library separator with an accessible name
 and visible focus; replace the desktop split with full-width Tabs on mobile.
 Example admissibility state:

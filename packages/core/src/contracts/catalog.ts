@@ -23,6 +23,7 @@ const loaders = {
   combobox: () => import("./data/combobox").then((m) => m.combobox),
   chart: () => import("./data/chart").then((m) => m.chart),
   sidebar: () => import("./data/sidebar").then((m) => m.sidebar),
+  "scroll-area": () => import("./data/scroll-area").then((m) => m.scrollArea),
   avatar: () => import("./data/avatar").then((m) => m.avatar),
 } as const satisfies Record<string, () => Promise<unknown>>
 

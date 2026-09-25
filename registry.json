@@ -216,6 +216,22 @@
           "type": "registry:ui"
         }
       ]
+    },
+    {
+      "name": "scroll-area",
+      "type": "registry:ui",
+      "title": "Scroll Area",
+      "description": "Shadcn ScrollArea over Radix with overlay scrollbars, viewport accessibility props and composed axis selection.",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/scroll-area.tsx",
+          "type": "registry:ui"
+        }
+      ]
     }
   ]
 }

@@ -24,7 +24,7 @@ export type ApplyManual = (build: (theme: Theme) => ThemeOperation) => Workbench
 export const FIELD_LABEL_CLASS = "text-xs font-normal text-muted-foreground"
 
 /*
- * Workbench editable controls pass `text-sm` so they compute to 14px at every viewport; the public Input, Textarea, and
+ * Workbench editable controls use quiet-control typography so they compute to 14px at every viewport; the public Input, Textarea, and
  * Combobox defaults (16px below md) are unchanged. Accepted tradeoff: iOS Safari may zoom on focus of sub-16px text.
  */
 
@@ -64,9 +64,9 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
             hover, in both built-ins and both modes (lower steps are weaker than muted-foreground in Quiet light).
             The explicit hover and dark-hover overrides replace the ghost variant's accent hover.
           */}
-          <Button variant="ghost" size="sm" className="h-auto w-fit rounded-md bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-foreground/75 ring-1 ring-border hover:bg-muted/80 hover:text-foreground/75 dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
+          <Button variant="ghost" size="sm" className="h-auto w-fit rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-foreground/75 ring-1 ring-border hover:bg-muted/80 hover:text-foreground/75 dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
             {title}
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 transition-transform motion-reduce:transition-none">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-3 transition-transform motion-reduce:transition-none">
               <path d="m6 9 6 6 6-6" />
             </svg>
           </Button>
@@ -111,12 +111,12 @@ export function LiveNumberField({ id, control, theme, disabled, apply }: { id: s
 
   return (
     <Field data-invalid={error !== null} data-testid={`control-${id}`}>
-      <div className="flex min-w-0 items-center gap-1.5" data-testid={`${id}-row`}>
-        <FieldLabel id={labelId} htmlFor={inputId} className={`${FIELD_LABEL_CLASS} w-24 flex-none`}>
+      <div className="grid min-w-0 grid-cols-[6rem_minmax(0,1fr)_max-content] items-center gap-[0.375rem]" data-testid={`${id}-row`}>
+        <FieldLabel id={labelId} htmlFor={inputId} className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>
           {control.label}
         </FieldLabel>
         <Slider
-          className="min-w-0 flex-1"
+          className="min-w-0"
           aria-labelledby={labelId}
           aria-valuetext={`${formatted}${unitText}`}
           min={control.min}
@@ -131,31 +131,33 @@ export function LiveNumberField({ id, control, theme, disabled, apply }: { id: s
           }}
         />
 
-        <Input
-          id={inputId}
-          inputMode="decimal"
-          autoComplete="off"
-          spellCheck={false}
-          value={draft}
-          disabled={disabled}
-          aria-invalid={error !== null}
-          aria-describedby={error !== null ? errorId : undefined}
-          className="h-8 w-14 flex-none px-1 text-right text-sm tabular-nums"
-          onFocus={() => (focused.current = true)}
-          onBlur={() => {
-            focused.current = false
-            if (error === null) setDraft(formatted)
-          }}
-          onChange={(event) => {
-            setDraft(event.target.value)
-            const parsed = parseNumericDraft(control, event.target.value)
-            if (parsed === null) return setError(`Enter a number from ${range}. Not applied.`)
-            commit(parsed)
-          }}
-        />
-        <span aria-hidden={!control.unit || undefined} className="w-6 flex-none text-xs text-muted-foreground" data-testid={`${id}-unit`}>
-          {control.unit}
-        </span>
+        <div className="flex items-center gap-[0.375rem]">
+          <Input
+            id={inputId}
+            inputMode="decimal"
+            autoComplete="off"
+            spellCheck={false}
+            value={draft}
+            disabled={disabled}
+            aria-invalid={error !== null}
+            aria-describedby={error !== null ? errorId : undefined}
+            className="quiet-control h-[2rem] w-[3.5rem] flex-none px-[0.25rem] text-right tabular-nums"
+            onFocus={() => (focused.current = true)}
+            onBlur={() => {
+              focused.current = false
+              if (error === null) setDraft(formatted)
+            }}
+            onChange={(event) => {
+              setDraft(event.target.value)
+              const parsed = parseNumericDraft(control, event.target.value)
+              if (parsed === null) return setError(`Enter a number from ${range}. Not applied.`)
+              commit(parsed)
+            }}
+          />
+          <span aria-hidden={!control.unit || undefined} className="w-[1.5rem] flex-none text-xs text-muted-foreground" data-testid={`${id}-unit`}>
+            {control.unit}
+          </span>
+        </div>
       </div>
 
       {error !== null && (
@@ -232,7 +234,7 @@ export function LiveColorField({
           spellCheck={false}
           aria-invalid={error !== null}
           aria-describedby={error !== null ? errorId : undefined}
-          className="h-8 font-mono text-sm"
+          className="quiet-control h-8"
           onFocus={() => (focused.current = true)}
           onBlur={() => {
             focused.current = false
@@ -307,13 +309,13 @@ export function LiveFontField({
           disabled={disabled}
           aria-describedby={describedBy}
           aria-invalid={error !== null}
-          className="h-8 w-full justify-between rounded-md border border-input px-3 text-sm shadow-xs"
+          className="quiet-control h-8 w-full justify-between rounded-md border border-input px-3 text-sm shadow-xs"
         >
           <span className="truncate">{selected?.label ?? fontControlCopy(category, stack, defaultStack)}</span>
         </ComboboxTrigger>
         <ComboboxContent>
           <div className="p-1">
-            <ComboboxInput id={`${inputId}-search`} aria-label={`Search ${label}`} placeholder="Search fonts" showTrigger={false} className="h-8 [&_[data-slot=combobox-input]]:text-sm" />
+            <ComboboxInput id={`${inputId}-search`} aria-label={`Search ${label}`} placeholder="Search fonts" showTrigger={false} className="quiet-control-group h-8" />
           </div>
           <ComboboxEmpty>No fonts found.</ComboboxEmpty>
           <ComboboxList>

@@ -213,11 +213,23 @@ export const componentStateSchema = z.discriminatedUnion("kind", [
   chartStateSchema,
   sidebarStateSchema,
   avatarStateSchema,
+  z.strictObject({
+    kind: z.literal("scroll-area"),
+    bounded: z.boolean(),
+    accessibleName: z.string().max(200).nullable(),
+    keyboardReachable: z.boolean(),
+    visibleFocus: z.boolean(),
+    nativeInput: z.boolean(),
+    competingScroller: z.boolean(),
+  }),
 ])
 
 export type ComponentState = z.infer<typeof componentStateSchema>
 
 export type ComponentConstraintRuleId =
+  | "scroll-area.bounded"
+  | "scroll-area.accessible-viewport"
+  | "scroll-area.native-input"
   | "resizable-panel.bounds"
   | "resizable-panel.accessible-separator"
   | "constraint.invalid-state"
@@ -307,6 +319,11 @@ export function validateComponentState(input: unknown): ComponentStateValidation
 
   const issues: ComponentConstraintIssue[] = []
   const state = parsed.data
+  if (state.kind === "scroll-area") {
+    if (!state.bounded) issues.push({ ruleId: "scroll-area.bounded", path: "bounded" })
+    if (!state.accessibleName?.trim() || !state.keyboardReachable || !state.visibleFocus) issues.push({ ruleId: "scroll-area.accessible-viewport", path: "accessibleName" })
+    if (!state.nativeInput || state.competingScroller) issues.push({ ruleId: "scroll-area.native-input", path: "nativeInput" })
+  }
   if (state.kind === "resizable-panel") {
     if (state.minPx > state.defaultPx || state.defaultPx > state.maxPx) issues.push({ ruleId: "resizable-panel.bounds", path: "defaultPx" })
     if (!state.separatorName?.trim() || !state.primitiveSeparator || !state.visibleFocus) issues.push({ ruleId: "resizable-panel.accessible-separator", path: "separatorName" })

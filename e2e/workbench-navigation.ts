@@ -41,7 +41,9 @@ export async function editorCategory(page: Page, category: "Colors" | "Typograph
 }
 export async function previewStates(page: Page) {
   await workspaceMode(page, "Preview")
-  await page.frameLocator('[data-testid="preview-frame"]').getByRole("tab", { name: "States", exact: true }).click()
+  const preview = page.frameLocator('[data-testid="preview-frame"]')
+  await preview.getByRole("combobox", { name: "Preview views" }).click()
+  await preview.getByRole("option", { name: "States", exact: true }).click()
 }
 /** Sets the shell and preview colour mode through the toolbar Switch. */
 export async function setColorMode(page: Page, mode: "light" | "dark") {

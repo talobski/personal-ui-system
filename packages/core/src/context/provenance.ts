@@ -10,6 +10,10 @@ export type ProvenanceEntry = { sourceId: string; sha256: string }
  * result's `provenance` field could permanently corrupt this singleton for every later, unrelated call.
  */
 const RAW_PROVENANCE_MANIFEST = {
+  "resource:scroll-area": {
+    sourceId: "packages/core/src/contracts/data/scroll-area.ts",
+    sha256: "d269953cf5ee898f52287459448c40d3974d8d7b56d8e776131106232d86e48b",
+  },
   "resource:resizable-panel": {
     sourceId: "packages/core/src/contracts/data/resizable-panel.ts",
     sha256: "41688d427b0cad180bad7fd73883241aeaca26cd18935f497c610922a2c182c3",

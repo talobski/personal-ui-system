@@ -51,6 +51,7 @@ describe("fresh-agent-verifiable path (ACR-11)", () => {
       "native-select",
       "resizable-panel",
       "responsive-dialog",
+      "scroll-area",
       "select",
       "sidebar",
       "single-toggle-group",

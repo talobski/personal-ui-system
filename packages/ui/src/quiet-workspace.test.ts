@@ -23,20 +23,22 @@ it("renders the Workbench as one Sidebar shell with no header, resizable split, 
   expect(existsSync(new URL("./components/resizable-panel.tsx", import.meta.url))).toBe(true)
 })
 
-it("scopes the subtle scrollbar to the sidebar content and the preview document only (WSSP-07)", () => {
+it("uses ScrollArea only for persistent app regions and leaves preview scrolling native (WCN-04/05)", () => {
   const styles = workbench("styles.css")
   const app = workbench("App.tsx")
   const preview = workbench("PreviewFrame.tsx")
-  expect(styles).toMatch(/\.quiet-scroll \{[^}]*scrollbar-width: thin;[^}]*scrollbar-color:/)
-  expect(styles).toMatch(/\.quiet-scroll:hover, \.quiet-scroll:active, \.quiet-scroll:focus-within \{/)
-  expect(styles).toContain("@supports not (scrollbar-color: auto)")
-  // No global or element-wide scrollbar rules: every scrollbar selector is under .quiet-scroll.
-  for (const line of styles.split("\n").filter((l) => /scrollbar/.test(l) && /[{,]\s*$|\{/.test(l))) expect(line).toMatch(/\.quiet-scroll|@supports/)
+  expect(styles).not.toMatch(/scrollbar-width|scrollbar-color|::-webkit-scrollbar/)
+  expect(styles).toContain(".quiet-scroll-area:hover")
+  expect(styles).toContain(".quiet-scroll-area:active")
+  expect(styles).toContain(".quiet-scroll-area:focus-within")
+  expect(styles).toContain("[data-slot=scroll-area-thumb] { background: transparent; }")
   expect(globalCss()).not.toMatch(/scrollbar/)
-  expect(app.match(/quiet-scroll/g)).toHaveLength(1)
-  expect(app).toMatch(/<SidebarContent className="quiet-editor quiet-scroll"/)
-  expect(preview).toContain('document.documentElement.classList.add("quiet-scroll")')
-  // Native modalities stay intact: nothing overrides touch, overscroll, or scroll pointer behavior.
+  expect(app.match(/<ScrollArea /g)).toHaveLength(3)
+  expect(app).toMatch(/<SidebarContent className="quiet-editor overflow-hidden"/)
+  expect(preview).not.toMatch(/quiet-scroll|ScrollArea/)
+  expect(app).toContain('orientation="horizontal"')
+  expect(app).toContain('aria-label": "Theme editor", tabIndex: 0')
+  expect(app).toContain('aria-label": "Workbench status and proposal", tabIndex: 0')
   expect(styles).not.toMatch(/touch-action|overscroll-behavior|pointer-events/)
 })
 

@@ -1,5 +1,5 @@
 import { Gallery } from "./Gallery"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@personal-ui/ui/components/select"
 import * as React from "react"
 
 import { Button } from "@personal-ui/ui/components/button"
@@ -22,6 +22,7 @@ const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "li
 /** Runs inside the preview iframe: applies the workbench's theme variables and renders the pilot component states. */
 export function PreviewFrame() {
   const [state, setState] = React.useState<PreviewState | null>(null)
+  const [view, setView] = React.useState("cards")
   const [buttonActivations, setButtonActivations] = React.useState(0)
 
   React.useEffect(() => {
@@ -38,11 +39,6 @@ export function PreviewFrame() {
     document.documentElement.classList.toggle("dark", state?.mode === "dark")
   }, [state?.mode])
 
-  // The preview document is one of the two Workbench scroll regions that use the subtle scoped scrollbar.
-  React.useEffect(() => {
-    document.documentElement.classList.add("quiet-scroll")
-  }, [])
-
   return (
     <main
       className="grid gap-6 p-4"
@@ -53,9 +49,14 @@ export function PreviewFrame() {
       data-revision={state?.revision}
     >
       <style id="workbench-theme">{state?.css ?? ""}</style>
-      <Tabs defaultValue="cards"><TabsList aria-label="Preview views"><TabsTrigger value="cards" className="text-xs">Cards</TabsTrigger><TabsTrigger value="states" className="text-xs">States</TabsTrigger></TabsList>
-      <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden"><Gallery /></TabsContent>
-      <TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">
+      <div className="flex justify-center">
+        <Select value={view} onValueChange={(next) => { if (next) setView(next) }} items={[{ value: "cards", label: "Cards" }, { value: "states", label: "States" }]}>
+          <SelectTrigger size="sm" aria-label="Preview views" className="quiet-control min-w-[6rem]"><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="cards">Cards</SelectItem><SelectItem value="states">States</SelectItem></SelectContent>
+        </Select>
+      </div>
+      <div hidden={view !== "cards"}><Gallery /></div>
+      <div hidden={view !== "states"} className={view === "states" ? "grid gap-6" : "hidden"}>
       <section aria-labelledby="pv-buttons" className="grid gap-2">
         <h2 id="pv-buttons" className="text-sm font-semibold">
           Button
@@ -147,7 +148,7 @@ export function PreviewFrame() {
           </ResponsiveDialog>
         </div>
       </section>
-      </TabsContent></Tabs>
+      </div>
     </main>
   )
 }

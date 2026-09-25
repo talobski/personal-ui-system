@@ -60,7 +60,7 @@ for (const mode of ["light", "dark"] as const) {
     await setColorMode(page, mode)
     await expect(frame.getByTestId("preview")).toHaveAttribute("data-mode", mode)
     await expect(page.locator("html")).toHaveClass(mode === "dark" ? /dark/ : /^(?!.*dark).*$/)
-    await expect(frame.getByRole("tab", { name: "Cards", exact: true })).toHaveAttribute("aria-selected", "true")
+    await expect(frame.getByRole("combobox", { name: "Preview views" })).toHaveText("Cards")
     {
       const width = await frame.locator("html").evaluate(() => innerWidth)
       await expect(frame.locator("[data-composition]")).toHaveCount(8)
@@ -256,18 +256,19 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
   await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
 })
 
-test("scoped subtle scrollbars on the sidebar content and preview document only, with native scrolling intact (WSSP-07)", async ({ page }) => {
+test("overlay sidebar scrollbar and native preview scrolling (WCN-04/05 supersedes WSSP-07)", async ({ page }) => {
   await page.goto("/")
   await workspaceMode(page, "Controls")
-  const content = page.locator('[data-slot="sidebar-content"]')
+  const content = page.getByRole("region", { name: "Theme editor", exact: true })
   const read = (locator: import("@playwright/test").Locator) => locator.evaluate(el => ({ width: getComputedStyle(el).scrollbarWidth, color: getComputedStyle(el).scrollbarColor, overflowY: getComputedStyle(el).overflowY }))
   const rest = await read(content)
-  expect(rest.width).toBe("thin")
-  expect(rest.color).not.toBe("auto")
-  expect(rest.overflowY).toBe("auto")
+  expect(rest.width).toBe("none")
+  expect(rest.color).toBe("auto")
+  expect(rest.overflowY).toBe("scroll")
   // Stronger on hover than at rest.
   await content.hover()
-  await expect.poll(async () => (await read(content)).color).not.toBe(rest.color)
+  await expect(page.getByTestId("editor-scroll").locator('[data-slot="scroll-area-thumb"]')).toBeVisible()
+  expect(await content.evaluate(el => el.clientWidth)).toBe(await content.evaluate(el => el.getBoundingClientRect().width))
   // Native wheel scrolling still moves the region.
   const before = await content.evaluate(el => el.scrollTop)
   await page.mouse.wheel(0, 600)
@@ -280,8 +281,8 @@ test("scoped subtle scrollbars on the sidebar content and preview document only,
   }
   await workspaceMode(page, "Preview")
   const doc = page.frameLocator('[data-testid="preview-frame"]').locator("html")
-  await expect(doc).toHaveClass(/quiet-scroll/)
-  expect((await read(doc)).width).toBe("thin")
+  await expect(doc).not.toHaveClass(/quiet-scroll/)
+  expect((await read(doc)).width).toBe("auto")
   const scrolled = await doc.evaluate(async el => { window.scrollTo(0, 400); await new Promise(r => requestAnimationFrame(r)); return document.scrollingElement!.scrollTop })
   expect(scrolled).toBeGreaterThan(0)
   // The preview document's own content (compositions, dialogs) keeps default scrollbars.
@@ -476,7 +477,8 @@ for (const mode of ["light", "dark"] as const) {
     for (const name of ["Stage proposal", "Insert example", "Proposal"]) await expect(page.getByRole("button", { name, exact: true })).toHaveCount(0)
     await workspaceMode(page, "Preview")
     const frame = page.frameLocator('[data-testid="preview-frame"]')
-    await frame.getByRole("tab", { name: "States", exact: true }).click()
+    await frame.getByRole("combobox", { name: "Preview views" }).click()
+    await frame.getByRole("option", { name: "States", exact: true }).click()
     expect(await frame.getByTestId("elevation-sample").evaluate(el => getComputedStyle(el).boxShadow)).not.toBe("none")
   })
 }

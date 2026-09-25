@@ -13,7 +13,7 @@ const close = (actual: number, expected: number, tolerance = 1) => expect(Math.a
 const preview = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
 const style = (el: Locator, property: string) => el.evaluate((node, name) => getComputedStyle(node).getPropertyValue(name), property)
 const revision = (page: Page) => page.locator("#workbench-active-theme")
-const TRANSPARENT_THUMB = /^rgba\(0, 0, 0, 0\) /
+const TRANSPARENT_THUMB = "rgba(0, 0, 0, 0)"
 
 /** The sidebar surface: the desktop sidebar container, or the mobile off-canvas sheet. */
 const sidebarSurface = (page: Page) => (isMobileShell(page) ? sidebarSheet(page) : page.locator('[data-slot="sidebar-container"]'))
@@ -60,10 +60,10 @@ for (const mode of ["light", "dark"] as const) {
         expect(b.x + b.width).toBeLessThanOrEqual(toolbarBox.x + toolbarBox.width + 1)
       }
 
-      // WRCP-09 preview tabs share the sidebar's text-xs reference; public Tabs geometry is unchanged.
-      const previewTabs = preview(page).getByRole("tablist", { name: "Preview views" })
-      const previewTabSizes = await previewTabs.getByRole("tab").evaluateAll(els => els.map(el => getComputedStyle(el).fontSize))
-      expect((await box(previewTabs)).height).toBe(36)
+      // WCN-10/11 replace preview tabs with compact Select and enlarge sidebar type.
+      const previewTabs = preview(page).getByRole("combobox", { name: "Preview views" })
+      const previewTabSizes = [await style(previewTabs, "font-size")]
+      expect((await box(previewTabs)).height).toBe(32)
 
       await editorCategory(page, "Colors")
       const surface = sidebarSurface(page)
@@ -86,9 +86,9 @@ for (const mode of ["light", "dark"] as const) {
         close(headerBox.y + headerBox.height, toolbarBox.y + toolbarBox.height, 1 / dpr)
       }
 
-      // WRCP-09 sidebar and preview tab labels compute to the same size; sidebar tabs keep geometry and states.
+      // WCN-10/11 sidebar Tabs and preview Select use text-sm; sidebar keyboard states remain intact.
       const sidebarTabSizes = await tablist.getByRole("tab").evaluateAll(els => els.map(el => getComputedStyle(el).fontSize))
-      expect(new Set([...sidebarTabSizes, ...previewTabSizes])).toEqual(new Set(["12px"]))
+      expect(new Set([...sidebarTabSizes, ...previewTabSizes])).toEqual(new Set(["14px"]))
       expect((await box(tablist)).height).toBe(36)
       await expect(tablist.getByRole("tab", { name: "Colors", exact: true })).toHaveAttribute("aria-selected", "true")
       await tablist.getByRole("tab", { name: "Colors", exact: true }).focus()
@@ -96,24 +96,23 @@ for (const mode of ["light", "dark"] as const) {
       await expect(tablist.getByRole("tab", { name: "Typography", exact: true })).toBeFocused()
       await expect(tablist.getByRole("tab", { name: "Typography", exact: true })).toHaveAttribute("aria-selected", "true")
 
-      // WRCP-06 sidebar scroll region: transparent thumb at rest, revealed on hover and focus-within, no layout change.
-      const content = page.getByTestId("sidebar-content")
-      const scroll = (el: Locator) => el.evaluate(node => { const s = getComputedStyle(node); return { color: s.scrollbarColor, width: s.scrollbarWidth, overflowY: s.overflowY, clientWidth: (node as HTMLElement).clientWidth } })
+      // WCN supersedes WRCP-06: the Radix viewport owns scrolling; the overlay thumb reveals without reserving width.
+      const content = page.getByRole("region", { name: "Theme editor", exact: true })
+      await editorCategory(page, "Colors")
+      const thumb = page.getByTestId("editor-scroll").locator('[data-slot="scroll-area-thumb"]')
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
       await page.mouse.move(headerBox.x + headerBox.width / 2, headerBox.y + headerBox.height / 2)
-      const rest = await scroll(content)
-      expect(rest.color).toMatch(TRANSPARENT_THUMB)
-      expect(rest.width).toBe("thin")
-      expect(rest.overflowY).toBe("auto")
+      await expect(thumb).toBeAttached()
+      expect(await style(thumb, "background-color")).toBe(TRANSPARENT_THUMB)
+      const rest = await box(content)
+      expect(await style(content, "scrollbar-width")).toBe("none")
+      expect(await style(content, "overflow-y")).toBe("scroll")
       await content.hover()
-      const hovered = await scroll(content)
-      expect(hovered.color).not.toMatch(TRANSPARENT_THUMB)
-      expect({ ...hovered, color: "" }).toEqual({ ...rest, color: "" })
+      expect(await style(thumb, "background-color")).not.toBe(TRANSPARENT_THUMB)
+      expect(await box(content)).toEqual(rest)
+      await content.focus()
       await page.mouse.move(headerBox.x + headerBox.width / 2, headerBox.y + headerBox.height / 2)
-      await expect.poll(async () => (await scroll(content)).color).toMatch(TRANSPARENT_THUMB)
-      await page.getByRole("textbox", { name: "Letter spacing", exact: true }).focus()
-      expect((await scroll(content)).color).not.toMatch(TRANSPARENT_THUMB)
-      await editorCategory(page, "Colors")
+      expect(await style(thumb, "background-color")).not.toBe(TRANSPARENT_THUMB)
       const before = await content.evaluate(el => el.scrollTop)
       await content.hover()
       await page.mouse.wheel(0, 400)
@@ -187,23 +186,24 @@ for (const mode of ["light", "dark"] as const) {
       await page.keyboard.press("Escape")
       await expect(dialog).toHaveCount(0)
 
-      // WRCP-06 preview document: transparent at rest, revealed while hovered, native scrolling intact.
+      // WCN-04: preview document stays native with stable platform geometry and no app scrollbar styling.
       const doc = preview(page).locator("html")
-      await page.mouse.move(toolbarBox.x + 4, toolbarBox.y + 4)
-      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
-      await expect.poll(async () => (await scroll(doc)).color).toMatch(TRANSPARENT_THUMB)
-      const docRest = await scroll(doc)
+      expect(await style(doc, "scrollbar-width")).toBe("auto")
+      expect(await style(doc, "scrollbar-color")).toBe("auto")
+      const docRest = await box(doc)
       const frame = await box(page.getByTestId("preview-frame"))
       await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 2)
-      await expect.poll(async () => (await scroll(doc)).color).not.toMatch(TRANSPARENT_THUMB)
-      expect({ ...(await scroll(doc)), color: "" }).toEqual({ ...docRest, color: "" })
+      expect(await style(doc, "scrollbar-color")).toBe("auto")
+      expect(await box(doc)).toEqual(docRest)
       await page.mouse.wheel(0, 400)
       await expect.poll(() => doc.evaluate(() => document.scrollingElement!.scrollTop)).toBeGreaterThan(0)
 
-      // WRCP-09 preview tabs keep their keyboard behavior.
-      const cards = previewTabs.getByRole("tab", { name: "Cards", exact: true })
-      await cards.focus(); await page.keyboard.press("ArrowRight")
-      await expect(previewTabs.getByRole("tab", { name: "States", exact: true })).toHaveAttribute("aria-selected", "true")
+      // WCN-11: official Select keeps keyboard selection.
+      await previewTabs.focus()
+      await previewTabs.press("Enter")
+      await page.keyboard.press("End")
+      await page.keyboard.press("Enter")
+      await expect(previewTabs).toHaveText("States")
 
       // WRCP-11 containment at both viewports.
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -243,7 +243,8 @@ test("WRCP-03/04 Shadow color reuses the picker/text interaction; approved Other
   await expect(picker).toHaveValue("#ff0000")
   const elevation = () => preview(page).getByTestId("elevation-sample").evaluate(el => getComputedStyle(el).boxShadow)
   await workspaceMode(page, "Preview")
-  await preview(page).getByRole("tab", { name: "States", exact: true }).click()
+  await preview(page).getByRole("combobox", { name: "Preview views" }).click()
+  await preview(page).getByRole("option", { name: "States", exact: true }).click()
   await expect.poll(elevation).toMatch(/oklch\(0\.627955 0\.257683 29\.23\d* \/ 0\.1\)/)
   await editorCategory(page, "Other")
 

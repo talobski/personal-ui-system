@@ -45,7 +45,7 @@ it("WRCP-05 section triggers use the minimum foreground step stronger than muted
   const steps = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
   expect(steps.find(step => admissible(step / 100))).toBe(75)
   const source = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
-  expect(source).toContain("h-auto w-fit rounded-md bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-foreground/75 ring-1 ring-border hover:bg-muted/80 hover:text-foreground/75 dark:hover:bg-muted/80 has-[>svg]:px-2")
+  expect(source).toContain("h-auto w-fit rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-foreground/75 ring-1 ring-border hover:bg-muted/80 hover:text-foreground/75 dark:hover:bg-muted/80 has-[>svg]:px-2")
   const trigger = source.match(/<CollapsibleTrigger asChild>[\s\S]*?<Button [^>]*className="([^"]+)"/)![1]!
   expect(trigger).not.toMatch(/bg-muted\/50|ring-border\/50|accent|muted-foreground|\[#|oklch|rgb|hsl/i)
 })

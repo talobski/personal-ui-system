@@ -15,6 +15,7 @@ export default defineConfig({
     "theme-v2-live-controls.spec.ts",
     "workbench-theme-controls-polish.spec.ts",
     "workbench-rendering-controls-polish.spec.ts",
+    "workbench-control-navigation-scroll.spec.ts",
   ],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },

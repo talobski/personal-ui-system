@@ -54,6 +54,11 @@ describe("context list (ACR-02)", () => {
         purpose: "Present focused, blocking content as a centered Dialog on wide viewports and a bottom Drawer on narrow ones.",
       },
       {
+        id: "scroll-area",
+        kind: "component",
+        purpose: "Contain persistent application content in a bounded viewport with overlay scrollbars and native scrolling.",
+      },
+      {
         id: "select",
         kind: "component",
         purpose: "Choose one value from a short, fixed set when options need richer presentation or grouping than a native select allows.",

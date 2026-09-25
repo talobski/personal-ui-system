@@ -12,6 +12,7 @@ import { Panel } from "@personal-ui/ui/components/panel"
 import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogClose } from "@personal-ui/ui/components/responsive-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@personal-ui/ui/components/select"
 import { Sidebar, SidebarContent, SidebarGroup, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuAction, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from "@personal-ui/ui/components/sidebar"
+import { ScrollArea } from "@personal-ui/ui/components/scroll-area"
 import { Switch } from "@personal-ui/ui/components/switch"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
 import { Textarea } from "@personal-ui/ui/components/textarea"
@@ -332,7 +333,7 @@ export function App() {
           <SidebarMenu>
             <SidebarMenuItem>
               <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id && id !== current.id) load(id) }}>
-                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
+                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-control quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
                   <SelectValue>
                     <ThemeSwatches theme={current} mode={mode} />
                     <span className="truncate">{current.name}</span>
@@ -385,11 +386,19 @@ export function App() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
-        <SidebarContent className="quiet-editor quiet-scroll" data-testid="sidebar-content">
-          <Tabs value={category} onValueChange={setCategory} className="gap-0">
-            <SidebarGroup className="sticky top-0 z-10 bg-card p-4">
-              <TabsList className="quiet-categories w-full" aria-label="Editor categories"><TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger><TabsTrigger value="typography" className="text-xs">Typography</TabsTrigger><TabsTrigger value="other" className="text-xs">Other</TabsTrigger><TabsTrigger value="command" className="text-xs">Command</TabsTrigger></TabsList>
+        <SidebarContent className="quiet-editor overflow-hidden" data-testid="sidebar-content">
+          <Tabs value={category} onValueChange={setCategory} className="min-h-0 flex-1 gap-0">
+            <SidebarGroup className="shrink-0 bg-card p-4">
+              <ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full" viewportProps={{ role: "region", "aria-label": "Editor category navigation", tabIndex: 0 }}>
+                <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent" aria-label="Editor categories">
+                  <TabsTrigger value="colors" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Colors</TabsTrigger>
+                  <TabsTrigger value="typography" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Typography</TabsTrigger>
+                  <TabsTrigger value="other" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Other</TabsTrigger>
+                  <TabsTrigger value="command" className="w-auto flex-none shrink-0 whitespace-nowrap text-sm">Command</TabsTrigger>
+                </TabsList>
+              </ScrollArea>
             </SidebarGroup>
+            <ScrollArea type="auto" className="quiet-scroll-area min-h-0 flex-1" data-testid="editor-scroll" viewportProps={{ role: "region", "aria-label": "Theme editor", tabIndex: 0 }}>
                 <TabsContent className="data-[state=inactive]:hidden" value="colors" forceMount><div className="grid gap-6 px-4 pb-4">
           {manualLockNote}
           {COLOR_GROUPS.map((group) => (
@@ -470,7 +479,7 @@ export function App() {
               spellCheck={false}
               rows={2}
               data-testid="design-command-input"
-              className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              className="quiet-control w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             />
           </Field>
           <Button disabled={locked || commandText.trim().length === 0} onClick={evaluateCommand} data-testid="design-command-evaluate">
@@ -541,6 +550,7 @@ export function App() {
           {proposalIssues.length > 0 && <FieldError data-testid="proposal-error">Proposal rejected: {describeIssues(proposalIssues)}.</FieldError>}
           {proposalResult && <p data-testid="proposal-result" role="status" className="text-sm text-muted-foreground">{proposalResult}</p>}
         </div></TabsContent>
+            </ScrollArea>
           </Tabs>
         </SidebarContent>
       </Sidebar>
@@ -554,13 +564,13 @@ export function App() {
           </div>
           <div className="ml-auto flex items-center gap-2">
             <Button variant="ghost" size="sm" disabled={locked} onClick={() => download(exportThemeJson(current))}>
-              <Download aria-hidden="true" />
+              <Download aria-hidden="true" className="size-3.5" />
               Export JSON
             </Button>
                   <ResponsiveDialog open={saveAsOpen} onOpenChange={setSaveAsOpen}>
                     <ResponsiveDialogTrigger asChild>
                       <Button variant="ghost" size="sm" disabled={locked} onClick={save}>
-                        <Save aria-hidden="true" />
+                        <Save aria-hidden="true" className="size-3.5" />
                         Save
                       </Button>
                     </ResponsiveDialogTrigger>
@@ -578,7 +588,7 @@ export function App() {
                             onChange={(e) => setSaveAsName(e.target.value)}
                             autoComplete="off"
                             spellCheck={false}
-                            className="text-sm"
+                            className="quiet-control"
                             aria-invalid={saveAsIssues.length > 0}
                             aria-describedby={saveAsIssues.length > 0 ? `${saveAsNameId}-error` : undefined}
                           />
@@ -599,6 +609,7 @@ export function App() {
                   </ResponsiveDialog>
           </div>
         </div>
+        {(notice || staged || commandEvaluating) && <ScrollArea type="auto" className="quiet-scroll-area quiet-review" data-testid="review-scroll" viewportProps={{ role: "region", "aria-label": "Workbench status and proposal", tabIndex: 0 }}>
         {notice && <div className="px-4 py-2"><Notice>{notice}</Notice></div>}
         {(staged || commandEvaluating) && (
           <div className="quiet-status" role="status" data-testid="staged-status">
@@ -646,6 +657,7 @@ export function App() {
         )}
 
         </div>
+        </ScrollArea>}
         <div className="quiet-preview-body">
           <div role="region" aria-label="Preview viewport" tabIndex={0} className="quiet-viewport outline-none focus-visible:ring-inset focus-visible:ring-[3px] focus-visible:ring-ring/50">
             <iframe ref={iframeRef} title="Component preview" src="/?preview=1" data-testid="preview-frame" className="block size-full border-0" />

@@ -195,6 +195,7 @@ describe("shadcn foundation", () => {
       "native-select",
       "resizable-panel",
       "responsive-dialog",
+      "scroll-area",
       "select",
       "sidebar",
       "single-toggle-group",

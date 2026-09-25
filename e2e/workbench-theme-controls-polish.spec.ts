@@ -95,13 +95,14 @@ for (const mode of ["light", "dark"] as const) {
             const r = el.getBoundingClientRect(), s = getComputedStyle(el)
             return { x: r.x, right: r.right, y: r.y + r.height / 2, width: r.width, grow: s.flexGrow, shrink: s.flexShrink }
           }))
-          expect(children).toHaveLength(4)
-          for (const index of [0, 2, 3]) {
-            expect(children[index]!.grow).toBe("0"); expect(children[index]!.shrink).toBe("0")
+          expect(children).toHaveLength(3)
+          for (const index of [0, 2]) {
+            expect(children[index]!.grow).toBe("0"); expect(children[index]!.shrink).toBe("1")
           }
-          expect(children[1]!.grow).toBe("1")
+          expect(await row.evaluate(el => getComputedStyle(el).display)).toBe("grid")
           expect(children[1]!.width).toBeGreaterThan(24)
-          close(children[0]!.width, 96); close(children[2]!.width, 56); close(children[3]!.width, 24)
+          close(children[0]!.width, 96); close(children[2]!.width, 86)
+          close((await box(row.getByRole("textbox"))).width, 56); close((await box(row.locator("[data-testid$=-unit]"))).width, 24)
           for (let i = 0; i < children.length; i++) {
             close(children[i]!.y, bounds.y + bounds.height / 2)
             expect(children[i]!.right).toBeLessThanOrEqual(bounds.x + bounds.width + 1)

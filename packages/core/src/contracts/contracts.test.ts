@@ -13,6 +13,7 @@ const ALL_RESOURCE_IDS = [
   "native-select",
   "resizable-panel",
   "responsive-dialog",
+  "scroll-area",
   "select",
   "sidebar",
   "single-toggle-group",
@@ -23,7 +24,7 @@ const ALL_RESOURCE_IDS = [
 ]
 
 describe("contract lookup", () => {
-  it("lists exactly the eighteen public resources", () => {
+  it("lists exactly the nineteen public resources", () => {
     expect(listContractIds().sort()).toEqual([...ALL_RESOURCE_IDS].sort())
   })
 
