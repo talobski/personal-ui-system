@@ -52,7 +52,8 @@ no acceptance, promotion, protected verdict, or phase completion claimed.
 - `git diff --check`: pass.
 - Browser execution: not attempted, as assigned to Lead. No localhost permission expansion.
 - Initial Git staging/commit: blocked by external worktree-index write permissions;
-  product changes preserved in this worktree. Narrow local Git escalation requested separately.
+  narrow local Git escalation succeeded. Implementation checkpoint commit: `582ecac`.
+  The subsequent verification-definition commit is the candidate HEAD; resolve it with `git rev-parse HEAD`.
 
 Non-failing build advisories: Workbench large chunk (>500kB), Storybook dependency
 module-level `use client` directive notices. No dependency changes made to address advisories.
