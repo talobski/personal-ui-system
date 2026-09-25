@@ -121,6 +121,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await page.reload()
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "legacy-fork")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "custom, saved")
+    await workspaceMode(page, "Controls")
     await expect(page.getByRole("combobox", { name: "Active theme" })).toHaveText("Legacy Fork")
     await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-theme-id", "legacy-fork")
     const download = page.waitForEvent("download")

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { FONT_OPTIONS } from "../packages/ui/src/lib/fonts"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
-import { colorInput, editorCategory, isMobileShell, setColorMode, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
+import { colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
 const ids = ["productive-week", "account-profile", "team-access", "workspace-settings", "notifications", "support-request", "recent-activity", "room-to-think"]
 
@@ -172,8 +172,10 @@ test("one full-height Sidebar shell: 22rem desktop sidebar, preview fills the in
   await expect.poll(async () => (await geometry()).frameLeft).toBeCloseTo(0, 0)
   expect((await geometry()).frameRight).toBeCloseTo(1440, 0)
   // Keyboard: the trigger is a focusable button, and the official Ctrl+B shortcut toggles it back.
-  await trigger.focus()
-  expect(await trigger.evaluate(el => el.matches(":focus-visible"))).toBe(true)
+  await page.getByRole("switch", { name: "Dark mode" }).focus()
+  await page.keyboard.press("Shift+Tab")
+  await expect(trigger).toBeFocused()
+  expect(await trigger.evaluate(el => el.matches(":focus-visible") && getComputedStyle(el).boxShadow !== "none")).toBe(true)
   await page.keyboard.press("Control+b")
   await expect(page.locator('[data-slot="sidebar"]')).toHaveAttribute("data-state", "expanded")
   await expect.poll(async () => (await geometry()).insetLeft).toBeCloseTo(open.sidebarWidth, 0)
@@ -207,7 +209,7 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
   // The trigger's own box plus the toolbar padding give a comfortable touch target.
   expect(Math.min(size.width, size.height)).toBeGreaterThanOrEqual(32)
   await trigger.click()
-  await expect(sheet).toBeVisible()
+  await settledSheet(page)
   await expect(sheet).toHaveAttribute("data-mobile", "true")
   const box = (await sheet.boundingBox())!
   expect(box.x).toBeCloseTo(0, 0)
@@ -238,17 +240,17 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
   await expect(trigger).toBeFocused()
   // Pointer/touch: the overlay beside the sheet dismisses it.
   await trigger.click()
-  await expect(sheet).toBeVisible()
+  await settledSheet(page)
   await page.mouse.click(370, 400)
   await expect(sheet).toHaveCount(0)
   // Keyboard open from the focused trigger, then reduced motion.
   await trigger.focus()
   await page.keyboard.press("Enter")
-  await expect(sheet).toBeVisible()
+  await settledSheet(page)
   await page.keyboard.press("Escape")
   await page.emulateMedia({ reducedMotion: "reduce" })
   await trigger.click()
-  await expect(sheet).toBeVisible()
+  await settledSheet(page)
   expect(await sheet.evaluate(el => [getComputedStyle(el).transitionDuration, getComputedStyle(el).animationDuration])).toEqual(["0s", "0s"])
   await page.keyboard.press("Escape")
   await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
@@ -339,6 +341,7 @@ for (const mode of ["light", "dark"] as const) {
     await page.keyboard.press("Enter")
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "quiet-editorial")
     await page.reload()
+    await workspaceMode(page, "Controls")
     await expect(trigger).toHaveText("Quiet Editorial")
     await saveTheme(page, "Local Choice")
     await workspaceMode(page, "Controls")

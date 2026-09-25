@@ -329,7 +329,7 @@ export function App() {
         <SidebarHeader className="border-b">
           <SidebarMenu>
             <SidebarMenuItem>
-              <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id) load(id) }}>
+              <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id && id !== current.id) load(id) }}>
                 <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
                   <SelectValue>
                     <ThemeSwatches theme={current} mode={mode} />

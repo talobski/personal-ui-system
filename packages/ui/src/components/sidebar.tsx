@@ -4,24 +4,26 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 import { PanelLeftIcon } from "lucide-react"
-import { Dialog as SheetPrimitive, Slot } from "radix-ui"
+import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
+import { Slot } from "radix-ui"
 
 import { Button } from "@personal-ui/ui/components/button"
 import { Input } from "@personal-ui/ui/components/input"
 import { Separator } from "@personal-ui/ui/components/separator"
 
 /*
- * Derived from the official shadcn new-york-v4 Sidebar. Adaptations, all recorded in the sidebar contract:
+ * Derived from the official shadcn new-york-v4 Sidebar, with the mobile sheet taken from the official shadcn Base UI
+ * Sidebar. Adaptations, all recorded in the sidebar contract:
  * - sidebar-* colours map to the existing semantic tokens (card, card-foreground, accent, accent-foreground, border,
  *   ring); no sidebar-specific theme tokens exist.
- * - the mobile Sheet is the Radix Dialog primitive composed inline (the same primitive the official Sheet wraps), so no
- *   separate sheet resource is introduced.
+ * - the mobile sheet is the Base UI Dialog primitive composed inline (as in the official Base UI Sheet), so Base UI
+ *   popups inside it (Select, Combobox) nest in its portal, focus trap, and Escape handling; no separate sheet
+ *   resource is introduced.
  * - no cookie is written: sidebar open state is session UI state, never persisted.
  * - the tooltip prop and Tooltip provider are omitted (no Tooltip resource); icon-collapse labels stay visible text.
  * - the menu skeleton width is a deterministic prop instead of a random value.
  * - useIsMobile reads the media query through useSyncExternalStore, so the first render already matches the viewport.
- * - closing the mobile sheet returns focus to the SidebarTrigger that opened it (the sheet has no Dialog.Trigger, so
- *   Radix would otherwise drop focus to the document body).
+ * - closing the mobile sheet returns focus to the SidebarTrigger that opened it (the sheet has no Dialog.Trigger).
  */
 
 const SIDEBAR_WIDTH = "16rem"
@@ -192,26 +194,23 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <SheetPrimitive.Root open={openMobile} onOpenChange={setOpenMobile}>
+      <SheetPrimitive.Root open={openMobile} onOpenChange={(open) => setOpenMobile(open)}>
         <SheetPrimitive.Portal>
-          <SheetPrimitive.Overlay
+          <SheetPrimitive.Backdrop
             data-slot="sheet-overlay"
-            className="fixed inset-0 z-50 bg-black/50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+            className="fixed inset-0 z-50 bg-black/50 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0"
           />
-          <SheetPrimitive.Content
+          <SheetPrimitive.Popup
             data-sidebar="sidebar"
             data-slot="sidebar"
             data-mobile="true"
             data-side={side}
-            onCloseAutoFocus={(event) => {
-              event.preventDefault()
-              triggerRef.current?.focus()
-            }}
+            finalFocus={triggerRef}
             className={cn(
-              "fixed inset-y-0 z-50 flex h-full w-(--sidebar-width) flex-col bg-card p-0 text-card-foreground shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=closed]:animate-out data-[state=open]:animate-in",
+              "fixed inset-y-0 z-50 flex h-full w-(--sidebar-width) flex-col bg-card p-0 text-card-foreground shadow-lg transition-transform duration-200 ease-in-out outline-none",
               side === "left"
-                ? "left-0 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left"
-                : "right-0 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+                ? "left-0 border-r data-ending-style:-translate-x-full data-starting-style:-translate-x-full"
+                : "right-0 border-l data-ending-style:translate-x-full data-starting-style:translate-x-full",
               className
             )}
             style={
@@ -228,7 +227,7 @@ function Sidebar({
               </SheetPrimitive.Description>
             </div>
             <div className="flex h-full w-full flex-col">{children}</div>
-          </SheetPrimitive.Content>
+          </SheetPrimitive.Popup>
         </SheetPrimitive.Portal>
       </SheetPrimitive.Root>
     )

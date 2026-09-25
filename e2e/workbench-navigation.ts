@@ -4,8 +4,16 @@ import type { Page } from "@playwright/test"
 /** Below 768px the official Sidebar is an off-canvas sheet; at and above it the sidebar is always beside the preview. */
 export const isMobileShell = (page: Page) => (page.viewportSize()?.width ?? 1440) < 768
 
-/** The mobile sidebar sheet (a modal Radix dialog named by its screen-reader title). */
+/** The mobile sidebar sheet (a modal Base UI dialog named by its screen-reader title). */
 export const sidebarSheet = (page: Page) => page.getByRole("dialog", { name: "Sidebar", exact: true })
+
+/** Waits until the mobile sheet is open and has finished sliding in, so geometry and anchored popups are final. */
+export async function settledSheet(page: Page) {
+  const sheet = sidebarSheet(page)
+  await expect(sheet).toBeVisible()
+  await expect.poll(() => sheet.evaluate(el => Math.round(el.getBoundingClientRect().left))).toBe(0)
+  await expect(sheet).not.toHaveAttribute("data-starting-style")
+}
 
 /**
  * "Controls" opens the mobile off-canvas sidebar through its trigger; "Preview" dismisses it with Escape so the preview
@@ -17,7 +25,7 @@ export async function workspaceMode(page: Page, mode: "Controls" | "Preview") {
   if (mode === "Controls") {
     if (await sheet.isVisible()) return
     await page.getByRole("button", { name: "Toggle Sidebar", exact: true }).click()
-    await expect(sheet).toBeVisible()
+    await settledSheet(page)
     return
   }
   // Escape first closes any open popup inside the sheet, then the sheet itself.

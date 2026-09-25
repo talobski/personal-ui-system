@@ -139,7 +139,9 @@ describe("shadcn foundation", () => {
   it("keeps Sidebar and Avatar as thin shadcn-derived compositions on semantic tokens (WSSP-02)", () => {
     const sidebar = source("sidebar.tsx")
     const avatar = source("avatar.tsx")
-    expect(sidebar).toContain('import { Dialog as SheetPrimitive, Slot } from "radix-ui"')
+    expect(sidebar).toContain('import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"')
+    expect(sidebar).toContain('import { Slot } from "radix-ui"')
+    expect(sidebar).toContain("finalFocus={triggerRef}")
     expect(sidebar).toContain('from "class-variance-authority"')
     for (const slot of ["sidebar-wrapper", "sidebar-gap", "sidebar-container", "sidebar-inset", "sidebar-header", "sidebar-content", "sidebar-footer", "sidebar-menu-button", "sidebar-menu-action", "sidebar-trigger"]) expect(sidebar).toContain(`data-slot="${slot}"`)
     expect(sidebar).toContain('const SIDEBAR_WIDTH_MOBILE = "18rem"')
@@ -178,7 +180,7 @@ describe("shadcn foundation", () => {
     expect(item("select")?.dependencies).toEqual(["cn", "lucide-react", "@base-ui/react@1.8.0"])
     expect(item("combobox")?.dependencies).toEqual(["cn", "lucide-react", "@base-ui/react@1.8.0"])
     expect(item("chart")?.dependencies).toEqual(["cn", "recharts@3.10.1"])
-    expect(item("sidebar")?.dependencies).toEqual(["cn", "class-variance-authority", "lucide-react", "radix-ui"])
+    expect(item("sidebar")?.dependencies).toEqual(["cn", "class-variance-authority", "lucide-react", "radix-ui", "@base-ui/react@1.8.0"])
     expect(item("sidebar")?.registryDependencies).toEqual(["button", "input", "separator"])
     expect(item("avatar")?.dependencies).toEqual(["cn", "radix-ui"])
     expect(registry.items.map((entry) => entry.name).sort()).toEqual([

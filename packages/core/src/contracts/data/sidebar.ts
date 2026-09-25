@@ -17,14 +17,14 @@ export const sidebar = {
   responsiveBehavior:
     "At 768px and wider the side region is fixed at --sidebar-width (default 16rem; an application may set it, for example 22rem) and the inset fills the rest. Below 768px the side region becomes an off-canvas modal sheet (18rem) opened by SidebarTrigger, and the inset uses the full viewport when it is closed.",
   accessibility: [
-    "The mobile sheet is the Radix Dialog primitive: it moves focus in, traps it, closes on Escape or overlay press, returns focus to the trigger, and has a screen-reader title.",
+    "The mobile sheet is the Base UI Dialog primitive: it moves focus in, traps it, closes on Escape or backdrop press, returns focus to the trigger, and has a screen-reader title.",
     "SidebarTrigger is a real button named Toggle Sidebar; Ctrl or Cmd+B toggles the sidebar from the keyboard.",
     "Menu buttons and menu actions are native buttons with visible focus rings; an icon-only SidebarMenuAction needs an aria-label.",
     "Mobile menu actions expand their hit area to at least 36px; reduced motion removes the slide and width transitions.",
   ],
   composition: [
-    "Extends the official shadcn new-york-v4 Sidebar over radix-ui@1.6.7 Slot and Dialog, class-variance-authority, lucide-react, and the internal Button, Input, and Separator.",
-    "Adaptations: semantic card/accent/border/ring tokens instead of sidebar tokens, an inline Radix Dialog sheet, no cookie, no tooltip prop, and a deterministic skeleton width.",
+    "Extends the official shadcn new-york-v4 Sidebar (radix-ui@1.6.7 Slot, class-variance-authority, lucide-react, internal Button, Input, Separator) with the Base UI Sidebar's @base-ui/react@1.8.0 Dialog sheet.",
+    "Adaptations: semantic card/accent/border/ring tokens, an inline Base UI Dialog sheet so Base UI popups nest in it, focus returns to the trigger, no cookie, no tooltip prop, deterministic skeleton.",
     "Compose SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, and SidebarMenuAction inside SidebarContent.",
   ],
   examples: [
@@ -37,7 +37,7 @@ export const sidebar = {
     "Adding a separate top header or resizable panel that duplicates the shell.",
     "Styling the sidebar with literal colours instead of the theme's semantic tokens.",
   ],
-  mobileReplacement: "The official off-canvas sheet (Radix Dialog) below 768px, opened by SidebarTrigger.",
+  mobileReplacement: "The official off-canvas sheet (Base UI Dialog) below 768px, opened by SidebarTrigger.",
   constraints: [
     { id: "sidebar.single-shell", rule: "Exactly one SidebarProvider and one Sidebar form the shell; no nested sidebar." },
     { id: "sidebar.inset-required", rule: "The main content is rendered in one SidebarInset beside the Sidebar." },

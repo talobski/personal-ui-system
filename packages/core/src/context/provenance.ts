@@ -84,7 +84,7 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "resource:sidebar": {
     sourceId: "packages/core/src/contracts/data/sidebar.ts",
-    sha256: "6257664807304774d0fde3da46d1da6cb8aef0bf79b9699c3001dcdb2bab4f3d",
+    sha256: "ea0cea03cf4e438af8d88eb7646d93f682685e5d20b3f80d76a382567e16f209",
   },
   "resource:avatar": {
     sourceId: "packages/core/src/contracts/data/avatar.ts",

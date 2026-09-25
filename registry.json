@@ -185,12 +185,13 @@
       "name": "sidebar",
       "type": "registry:ui",
       "title": "Sidebar",
-      "description": "Shadcn Sidebar application shell on semantic theme tokens; the mobile off-canvas sheet uses the Radix Dialog primitive.",
+      "description": "Shadcn Sidebar application shell on semantic theme tokens; the mobile off-canvas sheet uses the Base UI Dialog primitive, as in the shadcn Base UI Sidebar.",
       "dependencies": [
         "cn",
         "class-variance-authority",
         "lucide-react",
-        "radix-ui"
+        "radix-ui",
+        "@base-ui/react@1.8.0"
       ],
       "registryDependencies": ["button", "input", "separator"],
       "files": [
