@@ -1,8 +1,31 @@
 import { expect } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
+/** Below 768px the official Sidebar is an off-canvas sheet; at and above it the sidebar is always beside the preview. */
+export const isMobileShell = (page: Page) => (page.viewportSize()?.width ?? 1440) < 768
+
+/** The mobile sidebar sheet (a modal Radix dialog named by its screen-reader title). */
+export const sidebarSheet = (page: Page) => page.getByRole("dialog", { name: "Sidebar", exact: true })
+
+/**
+ * "Controls" opens the mobile off-canvas sidebar through its trigger; "Preview" dismisses it with Escape so the preview
+ * is usable edge-to-edge. On desktop both surfaces are always visible, so this is a no-op.
+ */
 export async function workspaceMode(page: Page, mode: "Controls" | "Preview") {
-  if ((page.viewportSize()?.width ?? 1440) < 1024) await page.getByRole("tab", { name: mode, exact: true }).click()
+  if (!isMobileShell(page)) return
+  const sheet = sidebarSheet(page)
+  if (mode === "Controls") {
+    if (await sheet.isVisible()) return
+    await page.getByRole("button", { name: "Toggle Sidebar", exact: true }).click()
+    await expect(sheet).toBeVisible()
+    return
+  }
+  // Escape first closes any open popup inside the sheet, then the sheet itself.
+  for (let attempt = 0; attempt < 3 && (await sheet.isVisible()); attempt++) {
+    await page.keyboard.press("Escape")
+    await page.waitForTimeout(50)
+  }
+  await expect(sheet).toHaveCount(0)
 }
 export async function editorCategory(page: Page, category: "Colors" | "Typography" | "Other" | "Command") {
   await workspaceMode(page, "Controls")

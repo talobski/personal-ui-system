@@ -253,7 +253,7 @@ for (const mode of MODES) {
       expect(await previewFrame(page).locator("html").evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true)
     })
 
-    test("other: radius, spacing, density, shadow profile, and motion change computed styles immediately", async ({ page }, testInfo) => {
+    test("other: radius, spacing, shadow profile, and motion change computed styles immediately; no manual Density control (WSSP-10)", async ({ page }, testInfo) => {
       await openWorkbench(page, mode)
       await previewFrame(page).locator("html").evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true))
       await editorCategory(page, "Other")
@@ -270,8 +270,11 @@ for (const mode of MODES) {
 
       await setNumber(page, "Spacing base", "0.25")
       await expect.poll(() => previewStyle(page, "elevation-sample", "paddingLeft")).toBe("12px")
-      await setNumber(page, "Density", "1.5")
-      await expect.poll(() => previewStyle(page, "elevation-sample", "paddingLeft")).toBe("18px")
+      // Density stays canonical and programmatic (proposals and design commands) but has no manual control.
+      await expect(page.getByTestId("control-density")).toHaveCount(0)
+      await expect(page.getByRole("textbox", { name: "Density" })).toHaveCount(0)
+      await expect(page.getByRole("slider", { name: "Density" })).toHaveCount(0)
+      await expect(page.locator(".quiet-editor").getByText("Density", { exact: true })).toHaveCount(0)
 
       // Tailwind prefixes four transparent ring/inset layers to every box-shadow; compare only the theme's layers.
       const shadow = async () => (await previewStyle(page, "elevation-sample", "boxShadow")).replaceAll("rgba(0, 0, 0, 0) 0px 0px 0px 0px, ", "")
@@ -498,7 +501,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("21.6px")
       await editorCategory(page, "Other")
       await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toHaveCount(0)
-      await setNumber(page, "Density", "1.25")
+      await setNumber(page, "Base motion duration", "275")
       await expect(revision(page)).toHaveAttribute("data-revision", "3")
 
       // Apply: exactly one revision, the applied value shows in the manual controls, which resume.

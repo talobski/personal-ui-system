@@ -20,6 +20,8 @@ import { Separator } from "@personal-ui/ui/components/separator"
  * - the tooltip prop and Tooltip provider are omitted (no Tooltip resource); icon-collapse labels stay visible text.
  * - the menu skeleton width is a deterministic prop instead of a random value.
  * - useIsMobile reads the media query through useSyncExternalStore, so the first render already matches the viewport.
+ * - closing the mobile sheet returns focus to the SidebarTrigger that opened it (the sheet has no Dialog.Trigger, so
+ *   Radix would otherwise drop focus to the document body).
  */
 
 const SIDEBAR_WIDTH = "16rem"
@@ -50,6 +52,7 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   toggleSidebar: () => void
+  triggerRef: React.RefObject<HTMLButtonElement | null>
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
@@ -78,6 +81,7 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null)
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -129,6 +133,7 @@ function SidebarProvider({
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      triggerRef,
     }),
     [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
   )
@@ -168,7 +173,7 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, state, openMobile, setOpenMobile, triggerRef } = useSidebar()
 
   if (collapsible === "none") {
     return (
@@ -198,6 +203,10 @@ function Sidebar({
             data-slot="sidebar"
             data-mobile="true"
             data-side={side}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault()
+              triggerRef.current?.focus()
+            }}
             className={cn(
               "fixed inset-y-0 z-50 flex h-full w-(--sidebar-width) flex-col bg-card p-0 text-card-foreground shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=closed]:animate-out data-[state=open]:animate-in",
               side === "left"
@@ -276,12 +285,18 @@ function Sidebar({
 function SidebarTrigger({
   className,
   onClick,
+  ref,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, triggerRef } = useSidebar()
 
   return (
     <Button
+      ref={(node) => {
+        triggerRef.current = node
+        if (typeof ref === "function") return ref(node)
+        if (ref) ref.current = node
+      }}
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"

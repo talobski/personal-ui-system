@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { FONT_OPTIONS } from "../packages/ui/src/lib/fonts"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
-import { colorInput, editorCategory, setColorMode, workspaceMode, saveTheme, previewStates } from "./workbench-navigation"
+import { colorInput, editorCategory, isMobileShell, setColorMode, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
 const ids = ["productive-week", "account-profile", "team-access", "workspace-settings", "notifications", "support-request", "recent-activity", "room-to-think"]
 
@@ -38,8 +38,8 @@ test("preview fills the real right panel, with no device selector or fixed width
     return fill
   }
   const initial = await check()
-  const desktop = page.viewportSize()!.width >= 1024
-  // 1440x900: everything right of the 352px editor and 1px divider, with no viewport inset; 390x844: the full mode.
+  const desktop = !isMobileShell(page)
+  // 1440x900: everything right of the 22rem (352px) sidebar, with no viewport inset; 390x844: the full viewport.
   if (desktop) expect(initial.frameWidth).toBeGreaterThan(1040)
   else expect(initial.frameWidth).toBeGreaterThan(360)
   // The preview's own document sees the panel width, so responsive behavior follows the real viewport.
@@ -56,7 +56,7 @@ for (const mode of ["light", "dark"] as const) {
     await page.goto("/")
     const frame = page.frameLocator('[data-testid="preview-frame"]')
     await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
-    const mobile = page.viewportSize()!.width < 1024
+    const mobile = isMobileShell(page)
     await setColorMode(page, mode)
     await expect(frame.getByTestId("preview")).toHaveAttribute("data-mode", mode)
     await expect(page.locator("html")).toHaveClass(mode === "dark" ? /dark/ : /^(?!.*dark).*$/)
@@ -100,17 +100,23 @@ for (const mode of ["light", "dark"] as const) {
     await workspaceMode(page, "Preview")
     await expect(frame.getByLabel("Display name", { exact: true })).toHaveValue("Ada Preview")
     await workspaceMode(page, "Controls")
-    await expect(colorInput(page, "primary")).toHaveValue("rejected draft retained")
+    // Desktop keeps the sidebar mounted, so a rejected draft stays visible; the official mobile sheet unmounts on close,
+    // so the draft is discarded and the field shows the active value again. Neither path ever activates the draft.
+    await expect(colorInput(page, "primary")).toHaveValue(mobile ? /^oklch\(/ : "rejected draft retained")
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
     if (mobile) {
       await expect(page.getByRole("separator", { name: "Resize editor" })).toHaveCount(0)
-      await expect(page.locator(".quiet-editor")).toBeVisible()
-      await expect(page.locator(".quiet-preview")).toBeHidden()
-      const tab = page.getByRole("tab", { name: "Controls", exact: true })
-      await tab.focus(); await page.keyboard.press("ArrowRight")
-      await expect(page.getByRole("tab", { name: "Preview", exact: true })).toHaveAttribute("aria-selected", "true")
-      await expect(page.locator(".quiet-editor")).toBeHidden()
-      await expect(page.locator(".quiet-preview")).toBeVisible()
+      await expect(page.getByRole("tab", { name: "Controls", exact: true })).toHaveCount(0)
+      const sheet = sidebarSheet(page)
+      await expect(sheet.locator(".quiet-editor")).toBeVisible()
+      // The sheet is modal: it holds focus and hides the inset from assistive technology until dismissed.
+      await expect.poll(() => sheet.evaluate(el => el.contains(document.activeElement))).toBe(true)
+      await expect(page.getByRole("switch", { name: "Dark mode" })).toHaveCount(0)
+      await page.keyboard.press("Escape")
+      await expect(sheet).toHaveCount(0)
+      await expect(page.getByRole("button", { name: "Toggle Sidebar", exact: true })).toBeFocused()
+      await expect(page.locator(".quiet-editor")).toHaveCount(0)
+      await expect(page.getByTestId("preview-frame")).toBeVisible()
     }
     await workspaceMode(page, "Preview")
     await page.mouse.move(0, 0)
@@ -130,56 +136,154 @@ for (const mode of ["light", "dark"] as const) {
   })
 }
 
-test("desktop separator is a subtle divider with hover, focus, pointer, Arrow, Home, End and viewport clamps (WTEP-10)", async ({ page }) => {
-  test.skip(page.viewportSize()!.width < 1024, "Desktop split is deliberately replaced by mobile tabs")
+test("one full-height Sidebar shell: 22rem desktop sidebar, preview fills the inset, trigger and Ctrl+B collapse it (WSSP-03, WSSP-12)", async ({ page }) => {
+  test.skip(isMobileShell(page), "The desktop sidebar is replaced by the off-canvas sheet below 768px")
   await page.goto("/")
-  const editor = page.locator('#editor-panel')
-  const width = () => editor.evaluate(el => el.getBoundingClientRect().width)
-  const handle = page.getByRole("separator", { name: "Resize editor" })
-  await expect.poll(width).toBeCloseTo(352, 0)
-  await expect(handle).toHaveAttribute("aria-orientation", "vertical")
-  await expect(handle).toHaveAttribute("aria-controls", "editor-panel")
-  await expect(handle).toHaveAttribute("aria-valuenow", /\d/)
-  // Subtle: a one-pixel border-coloured line with no visible grip, over the library's larger hit target.
-  const look = () => handle.evaluate(el => ({ width: el.getBoundingClientRect().width, lineWidth: getComputedStyle(el, "::after").width, bg: getComputedStyle(el, "::after").backgroundColor, grip: Array.from(el.children).filter(c => getComputedStyle(c).display !== "none").length, border: getComputedStyle(document.documentElement).getPropertyValue("--border").trim() }))
-  const rest = await look()
-  expect(rest.width).toBeGreaterThanOrEqual(8)
-  expect(rest.lineWidth).toBe("1px")
-  expect(rest.grip).toBe(0)
-  expect(rest.bg).toBe(rest.border)
-  // Hover feedback just beside the line (inside the invisible target) and a resize cursor.
-  const hit = (await handle.boundingBox())!
-  await page.mouse.move(hit.x + hit.width / 2 + 4, hit.y + 200)
-  await expect.poll(async () => (await look()).bg).not.toBe(rest.bg)
-  expect(await page.evaluate(() => getComputedStyle(document.body).cursor)).toMatch(/resize/)
-  await page.mouse.move(0, 0)
-  await expect.poll(async () => (await look()).bg).toBe(rest.bg)
-  // Keyboard focus is clearly visible.
-  await page.getByRole("tab", { name: "Colors", exact: true }).focus()
-  await page.keyboard.press("Shift+Tab")
-  await handle.focus()
-  await expect(handle).toBeFocused()
-  expect(await handle.evaluate(el => getComputedStyle(el).boxShadow)).not.toBe("none")
-  expect((await look()).bg).not.toBe(rest.bg)
-  await page.keyboard.press("End"); await expect.poll(width).toBeCloseTo(480, 0)
-  await page.keyboard.press("Home"); await expect.poll(width).toBeCloseTo(352, 0)
-  await page.keyboard.press("ArrowRight"); await expect.poll(width).toBeGreaterThan(352)
-  const box = (await handle.boundingBox())!
-  await page.mouse.move(box.x + box.width / 2, box.y + 100); await page.mouse.down(); await page.mouse.move(page.viewportSize()!.width - 10, box.y + 100, { steps: 10 }); await page.mouse.up()
-  await expect.poll(width).toBeCloseTo(480, 0)
-  await page.setViewportSize({ width: 1024, height: 900 })
-  await expect.poll(width).toBeLessThanOrEqual(384.5)
-  await expect.poll(width).toBeGreaterThanOrEqual(351.5)
+  await expect(page.locator("header")).toHaveCount(0)
+  await expect(page.getByRole("separator", { name: "Resize editor" })).toHaveCount(0)
+  await expect(page.locator("[data-panel], [data-separator]")).toHaveCount(0)
+  await expect(page.locator('[data-slot="sidebar-wrapper"]')).toHaveCount(1)
+  await expect(page.locator('[data-slot="sidebar"]')).toHaveCount(1)
+  await expect(page.locator('[data-slot="sidebar-inset"]')).toHaveCount(1)
+  const geometry = () => page.evaluate(() => {
+    const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
+    const container = box('[data-slot="sidebar-container"]')
+    const inset = box('[data-slot="sidebar-inset"]')
+    const frame = box('[data-testid="preview-frame"]')
+    return { sidebarLeft: container.left, sidebarWidth: container.width, sidebarHeight: container.height, insetLeft: inset.left, insetRight: inset.right, frameLeft: frame.left, frameRight: frame.right, frameBottom: frame.bottom, rem: parseFloat(getComputedStyle(document.documentElement).fontSize), scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight }
+  })
+  const open = await geometry()
+  expect(open.sidebarWidth).toBeCloseTo(22 * open.rem, 0)
+  expect(open.sidebarHeight).toBeCloseTo(900, 0)
+  expect(open.insetLeft).toBeCloseTo(open.sidebarWidth, 0)
+  expect(open.frameLeft).toBeCloseTo(open.insetLeft, 0)
+  expect(open.frameRight).toBeCloseTo(1440, 0)
+  expect(open.frameBottom).toBeCloseTo(900, 0)
+  expect(open.scrollWidth).toBeLessThanOrEqual(1440)
+  expect(open.scrollHeight).toBeLessThanOrEqual(900)
+  // Header, content, and the theme Select live in the one sidebar; the toolbar lives in the inset.
+  await expect(page.locator('[data-slot="sidebar-header"]').getByRole("combobox", { name: "Active theme" })).toBeVisible()
+  await expect(page.locator('[data-slot="sidebar-content"]').getByRole("tablist", { name: "Editor categories" })).toBeVisible()
+  await expect(page.locator('[data-slot="sidebar-inset"]').getByRole("switch", { name: "Dark mode" })).toBeVisible()
+  // Pointer collapse: the sidebar goes off-canvas and the preview takes the full width.
+  const trigger = page.getByRole("button", { name: "Toggle Sidebar", exact: true })
+  await trigger.click()
+  await expect(page.locator('[data-slot="sidebar"]')).toHaveAttribute("data-state", "collapsed")
+  await expect.poll(async () => (await geometry()).frameLeft).toBeCloseTo(0, 0)
+  expect((await geometry()).frameRight).toBeCloseTo(1440, 0)
+  // Keyboard: the trigger is a focusable button, and the official Ctrl+B shortcut toggles it back.
+  await trigger.focus()
+  expect(await trigger.evaluate(el => el.matches(":focus-visible"))).toBe(true)
+  await page.keyboard.press("Control+b")
+  await expect(page.locator('[data-slot="sidebar"]')).toHaveAttribute("data-state", "expanded")
+  await expect.poll(async () => (await geometry()).insetLeft).toBeCloseTo(open.sidebarWidth, 0)
+  await page.keyboard.press("Enter")
+  await expect(page.locator('[data-slot="sidebar"]')).toHaveAttribute("data-state", "collapsed")
+  await page.keyboard.press("Space")
+  await expect(page.locator('[data-slot="sidebar"]')).toHaveAttribute("data-state", "expanded")
+  // Reduced motion removes the width/offset transition.
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  expect(await page.locator('[data-slot="sidebar-container"]').evaluate(el => getComputedStyle(el).transitionDuration)).toBe("0s")
+  // A narrower desktop keeps the 22rem sidebar and gives the inset the rest, without page overflow.
+  await page.setViewportSize({ width: 1024, height: 768 })
+  const narrow = await geometry()
+  expect(narrow.sidebarWidth).toBeCloseTo(22 * narrow.rem, 0)
+  expect(narrow.frameRight).toBeCloseTo(1024, 0)
+  expect(narrow.scrollWidth).toBeLessThanOrEqual(1024)
   await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
-  await page.setViewportSize({ width: 320, height: 844 })
+})
+
+test("mobile off-canvas sidebar opens, traps focus, exposes every editor section, and dismisses by Escape, overlay, and touch-sized trigger (WSSP-04)", async ({ page }, info) => {
+  test.skip(!isMobileShell(page), "Mobile-only off-canvas behavior")
+  await page.goto("/")
+  const trigger = page.getByRole("button", { name: "Toggle Sidebar", exact: true })
+  const sheet = sidebarSheet(page)
+  await expect(sheet).toHaveCount(0)
+  // Closed: the preview is edge-to-edge beneath the toolbar.
+  const frame = (await page.getByTestId("preview-frame").boundingBox())!
+  expect(frame.x).toBeCloseTo(0, 0)
+  expect(frame.width).toBeCloseTo(390, 0)
+  const size = (await trigger.boundingBox())!
+  // The trigger's own box plus the toolbar padding give a comfortable touch target.
+  expect(Math.min(size.width, size.height)).toBeGreaterThanOrEqual(32)
+  await trigger.click()
+  await expect(sheet).toBeVisible()
+  await expect(sheet).toHaveAttribute("data-mobile", "true")
+  const box = (await sheet.boundingBox())!
+  expect(box.x).toBeCloseTo(0, 0)
+  expect(box.width).toBeCloseTo(18 * 16, 0)
+  expect(box.height).toBeCloseTo(844, 0)
+  await expect.poll(() => sheet.evaluate(el => el.contains(document.activeElement))).toBe(true)
+  // Focus is trapped: tabbing forward many times never leaves the sheet.
+  for (let i = 0; i < 12; i++) {
+    await page.keyboard.press("Tab")
+    expect(await sheet.evaluate(el => el.contains(document.activeElement))).toBe(true)
+  }
+  await expect(sheet.getByRole("combobox", { name: "Active theme" })).toBeVisible()
+  for (const [category, probe] of [["Colors", "Primary"], ["Typography", "Sans font"], ["Other", "Radius"], ["Command", "Command"]] as const) {
+    await sheet.getByRole("tab", { name: category, exact: true }).click()
+    const panel = sheet.getByRole("tabpanel", { name: category, exact: true })
+    await expect(panel).toBeVisible()
+    await expect(panel.getByLabel(probe, { exact: true }).first()).toBeVisible()
+    // Tabs fit the 18rem sheet: nothing overflows horizontally.
+    expect(await sheet.evaluate(el => el.querySelector('[data-slot="sidebar-content"]')!.scrollWidth <= el.querySelector('[data-slot="sidebar-content"]')!.clientWidth)).toBe(true)
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+  const { violations } = await new AxeBuilder({ page }).analyze()
+  const decoded = violations.filter(v => v.impact === "serious" || v.impact === "critical")
+  await info.attach("axe-mobile-sidebar-open.json", { body: JSON.stringify(decoded), contentType: "application/json" })
+  expect(decoded).toEqual([])
+  await page.keyboard.press("Escape")
+  await expect(sheet).toHaveCount(0)
+  await expect(trigger).toBeFocused()
+  // Pointer/touch: the overlay beside the sheet dismisses it.
+  await trigger.click()
+  await expect(sheet).toBeVisible()
+  await page.mouse.click(370, 400)
+  await expect(sheet).toHaveCount(0)
+  // Keyboard open from the focused trigger, then reduced motion.
+  await trigger.focus()
+  await page.keyboard.press("Enter")
+  await expect(sheet).toBeVisible()
+  await page.keyboard.press("Escape")
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await trigger.click()
+  await expect(sheet).toBeVisible()
+  expect(await sheet.evaluate(el => [getComputedStyle(el).transitionDuration, getComputedStyle(el).animationDuration])).toEqual(["0s", "0s"])
+  await page.keyboard.press("Escape")
+  await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
+})
+
+test("scoped subtle scrollbars on the sidebar content and preview document only, with native scrolling intact (WSSP-07)", async ({ page }) => {
+  await page.goto("/")
   await workspaceMode(page, "Controls")
-  await expect(page.getByLabel("Editor category")).toBeVisible()
-  await page.getByLabel("Editor category").selectOption("other")
-  const radius = page.getByRole("textbox", { name: "Radius" })
-  await expect(radius).toBeVisible()
-  expect(await radius.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16)
-  await expect(page.getByRole("slider", { name: "Radius" })).toBeVisible()
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+  const content = page.locator('[data-slot="sidebar-content"]')
+  const read = (locator: import("@playwright/test").Locator) => locator.evaluate(el => ({ width: getComputedStyle(el).scrollbarWidth, color: getComputedStyle(el).scrollbarColor, overflowY: getComputedStyle(el).overflowY }))
+  const rest = await read(content)
+  expect(rest.width).toBe("thin")
+  expect(rest.color).not.toBe("auto")
+  expect(rest.overflowY).toBe("auto")
+  // Stronger on hover than at rest.
+  await content.hover()
+  await expect.poll(async () => (await read(content)).color).not.toBe(rest.color)
+  // Native wheel scrolling still moves the region.
+  const before = await content.evaluate(el => el.scrollTop)
+  await page.mouse.wheel(0, 600)
+  await expect.poll(() => content.evaluate(el => el.scrollTop)).toBeGreaterThan(before)
+  // Keyboard scrolling: focus stays usable and Tab moves into later controls, scrolling them into view.
+  await content.evaluate(el => { el.scrollTop = 0 })
+  // Nothing outside the two regions is restyled: the Workbench root, inset, and toolbar keep the platform default.
+  for (const selector of ["html", "body", '[data-slot="sidebar-inset"]', ".quiet-toolbar"]) {
+    expect(await page.locator(selector).first().evaluate(el => [getComputedStyle(el).scrollbarWidth, getComputedStyle(el).scrollbarColor]), selector).toEqual(["auto", "auto"])
+  }
+  await workspaceMode(page, "Preview")
+  const doc = page.frameLocator('[data-testid="preview-frame"]').locator("html")
+  await expect(doc).toHaveClass(/quiet-scroll/)
+  expect((await read(doc)).width).toBe("thin")
+  const scrolled = await doc.evaluate(async el => { window.scrollTo(0, 400); await new Promise(r => requestAnimationFrame(r)); return document.scrollingElement!.scrollTop })
+  expect(scrolled).toBeGreaterThan(0)
+  // The preview document's own content (compositions, dialogs) keeps default scrollbars.
+  expect(await page.frameLocator('[data-testid="preview-frame"]').locator('[data-slot="card"]').first().evaluate(el => getComputedStyle(el).scrollbarWidth)).toBe("auto")
 })
 
 for (const mode of ["light", "dark"] as const) {
@@ -195,7 +299,7 @@ for (const mode of ["light", "dark"] as const) {
       await expect(list).toBeVisible()
       await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial"])
       const anchor = (await trigger.boundingBox())!
-      const region = (await page.locator(".quiet-theme").boundingBox())!
+      const region = (await page.locator('[data-slot="sidebar-header"] [data-slot="sidebar-menu-item"]').boundingBox())!
       const popup = (await page.locator('[data-slot="select-content"]').boundingBox())!
       expect(Math.abs(anchor.x - region.x)).toBeLessThanOrEqual(1)
       expect(Math.abs(anchor.width - region.width)).toBeLessThanOrEqual(1)
@@ -218,11 +322,13 @@ for (const mode of ["light", "dark"] as const) {
       await expect(trigger).toBeFocused()
     }
     await inspect()
-    if (page.viewportSize()!.width >= 1024) {
-      const handle = page.getByRole("separator", { name: "Resize editor" })
-      await handle.focus()
-      await handle.press("End")
-      await expect.poll(() => page.locator("#editor-panel").evaluate(el => el.getBoundingClientRect().width)).toBeCloseTo(480, 0)
+    if (!isMobileShell(page)) {
+      // Collapsing and reopening the sidebar leaves the Select anchored to its full header row.
+      await page.getByRole("button", { name: "Toggle Sidebar", exact: true }).click()
+      await expect(page.locator('[data-slot="sidebar"]')).toHaveAttribute("data-state", "collapsed")
+      await page.getByRole("button", { name: "Toggle Sidebar", exact: true }).click()
+      await expect(page.locator('[data-slot="sidebar"]')).toHaveAttribute("data-state", "expanded")
+      await expect.poll(() => trigger.evaluate(el => el.getBoundingClientRect().left)).toBeGreaterThanOrEqual(0)
       await inspect()
     }
     await trigger.press("ArrowDown")
@@ -241,6 +347,107 @@ for (const mode of ["light", "dark"] as const) {
     await page.keyboard.press("Escape")
     await page.emulateMedia({ reducedMotion: "reduce" })
     await inspect()
+  })
+
+  test(`theme Select shows primary, accent, secondary, and border swatches in the trigger and every row, with pointer and accent hover — ${mode}`, async ({ page }, info) => {
+    await page.goto("/")
+    await setColorMode(page, mode)
+    await saveTheme(page, "Swatch Check")
+    await workspaceMode(page, "Controls")
+    const trigger = page.getByRole("combobox", { name: "Active theme" })
+    const swatches = (scope: import("@playwright/test").Locator) => scope.locator('[data-testid="theme-swatches"] [data-token]').evaluateAll(nodes => nodes.map(n => ({ token: n.getAttribute("data-token"), color: getComputedStyle(n).backgroundColor, hidden: n.closest("[aria-hidden=true]") !== null })))
+    const expected = async (themeId: string) => page.evaluate(({ themeId, mode }) => {
+      const probe = document.createElement("span")
+      document.body.append(probe)
+      const saved = JSON.parse(localStorage.getItem("personal-ui-workbench/v1") ?? "{}").themes?.[themeId]
+      const source = saved ?? null
+      const read = (value: string) => { probe.style.backgroundColor = value; return getComputedStyle(probe).backgroundColor }
+      const result = source ? ["primary", "accent", "secondary", "border"].map(t => read(source.colors[mode][t].$value)) : null
+      probe.remove()
+      return result
+    }, { themeId, mode })
+    const inTrigger = await swatches(trigger)
+    expect(inTrigger.map(s => s.token)).toEqual(["primary", "accent", "secondary", "border"])
+    expect(inTrigger.every(s => s.hidden)).toBe(true)
+    expect(inTrigger.map(s => s.color)).toEqual(await expected("swatch-check"))
+    await expect(trigger).toHaveText("Swatch Check")
+    expect(await trigger.evaluate(el => getComputedStyle(el).cursor)).toBe("pointer")
+    const restBg = await trigger.evaluate(el => getComputedStyle(el).backgroundColor)
+    await trigger.hover()
+    await expect.poll(() => trigger.evaluate(el => getComputedStyle(el).backgroundColor)).toBe(await page.evaluate(() => { const p = document.createElement("span"); p.style.backgroundColor = "var(--accent)"; document.body.append(p); const c = getComputedStyle(p).backgroundColor; p.remove(); return c }))
+    expect(restBg).not.toBe("")
+    await trigger.click()
+    const rows = page.getByRole("option")
+    await expect(rows).toHaveText(["Default", "Quiet Editorial", "Swatch Check"])
+    for (let i = 0; i < 3; i++) {
+      const row = rows.nth(i)
+      const found = await swatches(row)
+      expect(found.map(s => s.token)).toEqual(["primary", "accent", "secondary", "border"])
+      expect(await row.evaluate(el => getComputedStyle(el).cursor)).toBe("pointer")
+    }
+    // Built-in rows show their own colours: Default and Quiet Editorial differ.
+    expect((await swatches(rows.nth(0))).map(s => s.color)).not.toEqual((await swatches(rows.nth(1))).map(s => s.color))
+    await rows.nth(1).hover()
+    await expect(rows.nth(1)).toHaveAttribute("data-highlighted", "")
+    const { violations } = await new AxeBuilder({ page }).analyze()
+    const decoded = violations.filter(v => v.impact === "serious" || v.impact === "critical")
+    await info.attach(`axe-theme-swatches-${mode}.json`, { body: JSON.stringify(decoded), contentType: "application/json" })
+    expect(decoded).toEqual([])
+    await page.keyboard.press("Escape")
+  })
+
+  test(`only the active custom theme exposes a sibling delete action; confirmed deletion removes it and persists Default — ${mode}`, async ({ page }, info) => {
+    await page.goto("/")
+    await setColorMode(page, mode)
+    const action = page.getByTestId("delete-theme")
+    // Built-ins never expose delete.
+    for (const id of ["default", "quiet-editorial"]) {
+      await selectTheme(page, id)
+      await workspaceMode(page, "Controls")
+      await expect(action).toHaveCount(0)
+      await expect(page.getByRole("button", { name: /^Delete /, exact: false })).toHaveCount(0)
+    }
+    await saveTheme(page, "Keep Me")
+    await selectTheme(page, "default")
+    await saveTheme(page, "Temporary")
+    await workspaceMode(page, "Controls")
+    await expect(action).toHaveCount(1)
+    await expect(action).toHaveAccessibleName("Delete Temporary")
+    // A sibling of the Select trigger, not inside it or its rows.
+    expect(await action.evaluate(el => el.closest('[data-slot="select-trigger"], [role="option"]') === null && el.parentElement!.querySelector('[data-slot="select-trigger"]') !== null)).toBe(true)
+    // Cancel changes nothing and never opens the Select.
+    await action.click()
+    const dialog = page.getByRole("dialog", { name: "Delete custom theme?" })
+    await expect(dialog).toBeVisible()
+    await expect(page.getByRole("listbox")).toHaveCount(0)
+    await expect(dialog).toContainText("Temporary")
+    const { violations } = await new AxeBuilder({ page }).analyze()
+    const decoded = violations.filter(v => v.impact === "serious" || v.impact === "critical")
+    await info.attach(`axe-delete-dialog-${mode}.json`, { body: JSON.stringify(decoded), contentType: "application/json" })
+    expect(decoded).toEqual([])
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click()
+    await expect(dialog).toHaveCount(0)
+    await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "temporary")
+    // Keyboard path: focus the action, open with Enter, confirm.
+    await workspaceMode(page, "Controls")
+    await action.focus()
+    await page.keyboard.press("Enter")
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole("button", { name: "Delete theme", exact: true }).click()
+    await expect(dialog).toHaveCount(0)
+    await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "default")
+    await expect(page.getByTestId("notice")).toContainText('Deleted "Temporary"')
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!))
+    expect(stored.activeId).toBe("default")
+    expect(Object.keys(stored.themes)).toEqual(["keep-me"])
+    expect(Object.keys(stored.bases)).toEqual(["keep-me"])
+    await page.reload()
+    await workspaceMode(page, "Controls")
+    await expect(page.getByRole("combobox", { name: "Active theme" })).toHaveText("Default")
+    await expect(action).toHaveCount(0)
+    await page.getByRole("combobox", { name: "Active theme" }).click()
+    await expect(page.getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Keep Me"])
+    await page.keyboard.press("Escape")
   })
 
   test(`removed copy and manual authoring stay absent; ordinary labels match — ${mode}`, async ({ page }) => {

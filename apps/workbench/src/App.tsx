@@ -336,7 +336,7 @@ export function App() {
                     <span className="truncate">{current.name}</span>
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent align="start" alignItemWithTrigger={false}>
+                <SelectContent align="start" alignItemWithTrigger={false} sideOffset={0}>
                   <SelectGroup>
                     <SelectLabel>Built-in</SelectLabel>
                     {builtIns.map((theme) => (
