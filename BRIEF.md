@@ -1,12 +1,12 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `workbench-sidebar-system-polish-v1-001` completed PUI-25
-through PUI-30 and was accepted at product commit
-`aac8372cb646ac2a89bb3f7bd17e9e408fc19c0d`. Acceptance used separately
-attributed Lead-owned browser evidence and a fresh protected offline verifier;
-the verifier's owner-authorized `auto-review` mode exception remained
-logically read-only/no-repair and passed deterministic pre/post integrity
-checks. The earlier
+Status: ACTIVE — `workbench-theme-controls-polish-v1-001` is admitted from
+accepted product commit `aac8372cb646ac2a89bb3f7bd17e9e408fc19c0d`
+for PUI-31 through PUI-37. The phase has no owner visual-review gate. Browser
+execution is Lead-owned; the fresh cross-provider verifier owns exact-candidate
+offline, source, contract, and evidence-integrity review. The preceding
+`workbench-sidebar-system-polish-v1-001` phase completed PUI-25 through PUI-30
+and is the accepted implementation base. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
@@ -65,6 +65,16 @@ native input behavior. Density remains canonical and programmatically
 supported but is no longer manually editable in the Workbench. Theme v2,
 mutation operations, persistence format, proposal safety, credentials, and
 network boundaries remain unchanged.
+
+The admitted Workbench theme controls polish phase is a bounded refinement of
+the accepted sidebar editor. It covers PUI-31 through PUI-37 in one batch:
+compact non-overlapping theme swatches, owner-selected Default radius and
+spacing baselines, a theme-neutral shadcn toolbar, single-row numeric controls,
+shared collapsible-group polish, aligned 16px sidebar/preview insets, and
+concise font-family controls that retain exact canonical custom stacks. It adds
+no public resource, schema, operation, persistence format, network behavior,
+credential path, or owner visual gate. The registry must remain exactly 18
+resources and the mutation union exactly 11 operations.
 
 ## V1 product contract
 
