@@ -25,6 +25,22 @@ const defaultTheme = builtIns[0]!
 const canonical = builtIns[1]!
 const VALID = "oklch(0.4 0.1 150)"
 
+it("WTCP-07/11 half-strength muted keeps Default section text above 4.5:1 without changing tokens", () => {
+  const rgb = (color: string) => pickerHex(color).slice(1).match(/../g)!.map(channel => parseInt(channel, 16) / 255)
+  const luminance = (channels: number[]) => channels.reduce((sum, c, i) => sum + [0.2126, 0.7152, 0.0722][i]! * (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4), 0)
+  const ratio = (a: number[], b: number[]) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05)
+  for (const mode of ["light", "dark"] as const) {
+    const colors = defaultTheme.colors[mode]
+    const foreground = rgb(colors["muted-foreground"].$value)
+    const muted = rgb(colors.muted.$value), card = rgb(colors.card.$value)
+    if (mode === "light") expect(ratio(foreground, muted)).toBeLessThan(4.5)
+    const composite = muted.map((c, i) => c * 0.5 + card[i]! * 0.5)
+    expect(ratio(foreground, composite)).toBeGreaterThanOrEqual(4.5)
+  }
+  const source = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
+  expect(source).toContain("bg-muted/50 px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border/50")
+})
+
 const memoryStorage = (initial: Record<string, string> = {}): StorageLike & { data: Record<string, string> } => {
   const data = { ...initial }
   return { data, getItem: (key) => data[key] ?? null, setItem: (key, value) => void (data[key] = value) }

@@ -19,7 +19,7 @@ const admitted = new Set([
   "packages/core/src/theme/theme.test.ts", "packages/core/src/context/provenance.ts",
   "packages/ui/src/lib/workbench-icons.ts",
   "e2e/quiet-workspace.spec.ts", "e2e/theme-v2-live-controls.spec.ts",
-  "e2e/workbench-theme-controls-polish.spec.ts", "playwright.workbench.config.ts",
+  "e2e/workbench-theme-controls-polish.spec.ts", "playwright.workbench.config.ts", "playwright.config.ts",
   "tools/verify-workbench-theme-controls-polish.mjs", "docs/WORKBENCH_THEME_CONTROLS_POLISH_CHECKPOINT.md",
 ])
 const changed = [...new Set([...lines(git("diff", "--name-only", base)), ...lines(git("ls-files", "--others", "--exclude-standard"))])].sort()
@@ -70,7 +70,7 @@ assert.match(app, /data-testid="workbench-toolbar"[^>]* p-4/)
 assert.match(app, /<Button variant="ghost"[^>]*onClick=\{save\}/)
 assert.match(app, /<Button variant="ghost"[^\n]*download\(exportThemeJson\(current\)\)/)
 for (const icon of ["Download", "Save"]) assert.ok(app.includes(`<${icon} aria-hidden="true" />`))
-assert.match(controls, /w-fit rounded-md bg-muted[^"\n]*text-xs[^"\n]*uppercase tracking-wide text-muted-foreground ring-1 ring-border\/50/)
+assert.match(controls, /w-fit rounded-md bg-muted\/50[^"\n]*text-xs[^"\n]*uppercase tracking-wide text-muted-foreground ring-1 ring-border\/50/)
 assert.doesNotMatch(controls, /border-t|Current stack:|w-full justify-between px-2/)
 assert.match(controls, /min-w-0 flex-1/)
 for (const width of ["w-24", "w-14", "w-6"]) assert.ok(controls.includes(`${width} flex-none`))
@@ -90,6 +90,11 @@ for (const path of changed.filter(path => tracked.includes(path) && /\.(test|spe
 assert.doesNotMatch(read("e2e/workbench-theme-controls-polish.spec.ts"), /\b(?:skip|only|fixme|todo)\(/)
 const priorConfig = prior("playwright.workbench.config.ts")
 assert.equal(read("playwright.workbench.config.ts"), priorConfig.replace('"theme-v2-live-controls.spec.ts"]', '"theme-v2-live-controls.spec.ts", "workbench-theme-controls-polish.spec.ts"]'))
+// The only admitted Storybook config change routes the new Workbench-only spec away from Storybook.
+assert.equal(read("playwright.config.ts"), prior("playwright.config.ts").replace(
+  '    "theme-v2-live-controls.spec.ts",',
+  '    "theme-v2-live-controls.spec.ts",\n    "workbench-theme-controls-polish.spec.ts",'
+))
 
 for (const path of changed.filter(path => /^(apps\/workbench\/src|packages\/ui\/src\/lib)\//.test(path) && /\.(tsx?|css)$/.test(path) && !/\.(spec|test)\.ts$/.test(path))) {
   assert.doesNotMatch(read(path), /\bfetch\s*\(|XMLHttpRequest|WebSocket|process\.env|import\.meta\.env|TYPESAFE_|https?:\/\//, `New network/credential surface: ${path}`)

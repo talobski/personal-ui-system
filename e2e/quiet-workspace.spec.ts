@@ -457,11 +457,12 @@ for (const mode of ["light", "dark"] as const) {
     await page.goto("/")
     await setColorMode(page, mode)
     const styles: unknown[] = []
-    for (const [category, label] of [["Colors", "Primary"], ["Typography", "Sans font"], ["Other", "Shadow color"], ["Command", "Command"]] as const) {
+    // Font labels are intentionally screen-reader-only (WTCP-09); compare the visible Typography numeric label.
+    for (const [category, label] of [["Colors", "Primary"], ["Typography", "Letter spacing"], ["Other", "Shadow color"], ["Command", "Command"]] as const) {
       await editorCategory(page, category)
       await expect(page.getByRole("tabpanel", { name: category, exact: true })).toBeVisible()
       await expect(page.getByRole("heading", { name: category === "Command" ? "Design command" : category, exact: true })).toHaveCount(0)
-      const input = category === "Command" ? page.getByTestId("design-command-input") : page.getByLabel(label, { exact: true })
+      const input = category === "Command" ? page.getByTestId("design-command-input") : page.getByRole("textbox", { name: label, exact: true })
       styles.push(await input.evaluate(el => {
         const label = document.querySelector(`label[for="${el.id}"]`)!
         const s = getComputedStyle(label)

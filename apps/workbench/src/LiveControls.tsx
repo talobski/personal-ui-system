@@ -53,7 +53,8 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
     <Collapsible open={open || hasError} onOpenChange={(next) => setOpen(next || hasError)} data-testid={`section-${id}`} data-has-error={hasError} className="grid gap-2">
       <h3 className="text-sm font-medium">
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="w-fit rounded-md bg-muted px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border/50 [&[data-state=open]>svg]:rotate-180">
+          {/* Half-strength muted over the card preserves muted-foreground at 12px: Default light exceeds 4.5:1. */}
+          <Button variant="ghost" size="sm" className="w-fit rounded-md bg-muted/50 px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border/50 [&[data-state=open]>svg]:rotate-180">
             {title}
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 transition-transform motion-reduce:transition-none">
               <path d="m6 9 6 6 6-6" />

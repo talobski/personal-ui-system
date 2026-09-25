@@ -114,7 +114,7 @@ for (const mode of ["light", "dark"] as const) {
           expect(styles.border).toBe("0px"); expect(styles.shadow).not.toBe("none")
           expect(styles.transform).toBe("uppercase"); expect(parseFloat(styles.spacing)).toBeGreaterThan(0)
           expect(parseFloat(styles.radius)).toBeGreaterThan(0)
-          await expect(trigger).toHaveClass(/bg-muted/)
+          await expect(trigger).toHaveClass(/bg-muted\/50/)
           await expect(trigger).toHaveClass(/text-muted-foreground/)
           await expect(trigger).toHaveClass(/ring-1 ring-border\/50/)
           expect(await section.evaluate(el => getComputedStyle(el).rowGap)).toBe("8px")
