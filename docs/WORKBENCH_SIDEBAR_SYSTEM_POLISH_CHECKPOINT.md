@@ -10,8 +10,40 @@ Producer route: Claude Opus 5.5, STRONG, medium effort.
 Candidate implementation commit: `818d85274d337061087ffdb89ff473ec873a85dd` (this checkpoint is committed on top of it
 and changes no product, test, or tool file).
 
-Status: PRODUCER-COMPLETE. This is not acceptance or promotion. Protected fresh Codex STANDARD verification and
+Status: PRODUCER-COMPLETE, with one bounded test-only correction (below). This is not acceptance or promotion. Protected fresh Codex STANDARD verification and
 Lead-owned browser evidence are still required.
+
+## Bounded correction — Field Spacing dark-mode axe finding (2026-09-25)
+
+Lead exact-candidate browser execution at `32eb616e816c9e3d452b70313aa8bd9a0cf47879` passed 87 of 88 Storybook cases.
+The one failure was `e2e/field-native-select.spec.ts:55`, desktop-1440x900, dark mode: axe reported a serious
+`color-contrast` violation on the Pilot/Field Spacing inputs `#spacing-name` and `#spacing-team`, with foreground
+`#22262a` on background `#15191c` (1.16:1).
+
+**Cause (measured):** this is a test timing bug, not a colour defect. The shadcn Input has `transition-[color,box-shadow]`,
+which runs for 0.2s from the theme motion token. The spec's `setColorMode` added `.dark` and returned immediately, so axe
+could sample a frame part-way through the transition. A probe of `#spacing-name` right after the toggle read
+`oklab(0.2 …)` (≈ `#22262a`, the light-mode foreground), then `oklab(0.265 …)` 40ms later, with five running CSS
+transitions. Once settled, it read `oklch(0.96 0.005 250)` on `oklch(0.16 0.01 250)` with no running animations, which
+is high contrast. The story composition, Field and Input classes, and theme fixture are correct, so no public component
+or token change is needed.
+
+**Fix:** in `e2e/field-native-select.spec.ts`, `setColorMode` now waits until `document.getAnimations().length === 0`
+before any measurement or audit. Axe, its rules, its impact filter, and its thresholds are unchanged. No product,
+story, component, token, or tool file changed.
+
+**Producer rerun evidence (this worktree):**
+
+| Command | Result |
+|---|---|
+| `playwright test e2e/field-native-select.spec.ts` (both viewports, light and dark steps), 3 runs | 6/6 passed each run |
+| `playwright test e2e/field-native-select.spec.ts -g "gap-2" --repeat-each=10` | 20/20 passed |
+| `vitest run packages/ui` | 21/21 passed |
+| `tsc --noEmit` (packages/ui), `tsc -p e2e` | passed |
+| `vite build` (workbench) then `node tools/verify-workbench-sidebar-system-polish.mjs` | `result: pass` |
+| `git diff --check` | clean |
+
+The full formal browser rerun on the corrected candidate is still the Lead's.
 
 ## What changed
 

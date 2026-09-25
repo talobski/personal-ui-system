@@ -7,6 +7,9 @@ const colorModes = ["light", "dark"] as const
 async function setColorMode(page: import("@playwright/test").Page, mode: (typeof colorModes)[number]) {
   await page.locator("html").evaluate((element, nextMode) => element.classList.toggle("dark", nextMode === "dark"), mode)
   expect(await page.locator("html").evaluate((element) => element.classList.contains("dark"))).toBe(mode === "dark")
+  // Inputs transition their text colour (shadcn `transition-[color,box-shadow]`); audit only the settled mode, never a
+  // mid-transition frame that is part-way between the light and dark foregrounds.
+  await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBe(0)
 }
 
 async function assertNoSeriousOrCritical(page: import("@playwright/test").Page, testInfo: import("@playwright/test").TestInfo, mode: (typeof colorModes)[number]) {
