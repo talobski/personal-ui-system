@@ -1,14 +1,12 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `workbench-sidebar-system-polish-v1-001` is admitted from the
-accepted product commit `b2952d17f240abb2bf1e7e87f20f14281399015d` to deliver
-PUI-25 through PUI-30 as one bounded phase. The previously accepted
-`workbench-controls-preview-refinement-v1-001` owner approved
-the final desktop/mobile result, WCPR-16 passed through separately attributed
-protected offline and Lead-owned browser evidence, and the exact candidate was
-promoted through accepted-state-before-main. The protected verifier's blocked
-localhost attempt remains recorded as capability evidence rather than browser
-PASS. The earlier
+Status: ACTIVE — `workbench-sidebar-system-polish-v1-001` completed PUI-25
+through PUI-30 and was accepted at product commit
+`aac8372cb646ac2a89bb3f7bd17e9e408fc19c0d`. Acceptance used separately
+attributed Lead-owned browser evidence and a fresh protected offline verifier;
+the verifier's owner-authorized `auto-review` mode exception remained
+logically read-only/no-repair and passed deterministic pre/post integrity
+checks. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
@@ -53,6 +51,20 @@ the Design Command staging lifecycle remains intact. Color sections now use
 the approved ten-group order with every canonical token represented exactly
 once. Theme v2, mutation operations, persistence, Jev, credentials, and
 runtime-network boundaries remain unchanged.
+
+The accepted Workbench sidebar system polish phase replaces the custom shell
+with the official shadcn Sidebar pattern: a 22rem desktop application sidebar,
+an off-canvas mobile editor, and a preview that fills the remaining inset. The
+compact theme selector shows each theme's primary, accent, secondary, and
+border tokens; custom themes can be deleted through a separate confirmed
+action while built-ins remain immutable and deletion falls back to Default.
+Sidebar and Avatar are accepted public resources, bringing the registry to 18.
+Initials-style avatars use one meaningful character with muted semantic tokens,
+standard vertical Fields use `gap-2`, and scoped low-contrast scrollbars retain
+native input behavior. Density remains canonical and programmatically
+supported but is no longer manually editable in the Workbench. Theme v2,
+mutation operations, persistence format, proposal safety, credentials, and
+network boundaries remain unchanged.
 
 ## V1 product contract
 
