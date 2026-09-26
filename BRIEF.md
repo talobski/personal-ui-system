@@ -1,14 +1,11 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`d3ce5ec5822da47db94b509f8848203520154eb6` on `main` control commit
-`25cebd535b6ed133a9dd3a24033b28f142523833`. The next admitted phase,
-`workbench-sidebar-theme-polish-v1-001`, covers PUI-56 through PUI-62 as one
-bounded delivery: canonical Theme v2.1 Sidebar colors and source selection,
-plus related Sidebar, ScrollArea, control-label, tab, selector, and pointer
-polish. Its immutable worker reference packet contains verbatim admission-time
-Linear snapshots and the authoritative reconciled phase contract. No owner
-visual-review gate is admitted. The earlier
+`47d0aebef617f9d936d21f53089c96bd040e70d6` on `main`. Phase
+`workbench-sidebar-theme-polish-v1-001` is accepted, promoted, and technically
+verified; its immutable reference packet preserves verbatim admission-time
+Linear snapshots alongside the authoritative reconciled contract. No owner
+visual-review gate was admitted. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
@@ -77,6 +74,19 @@ concise font-family controls that retain exact canonical custom stacks. It adds
 no public resource, schema, operation, persistence format, network behavior,
 credential path, or owner visual gate. The registry must remain exactly 18
 resources and the mutation union exactly 11 operations.
+
+The accepted Workbench sidebar theme polish phase delivers PUI-56 through
+PUI-62 as one bounded change. Canonical Theme v2.1 adds eight dedicated
+light/dark Sidebar colors, the user-facing `useDedicatedTokens` switch, and
+internal-only deterministic initialization bookkeeping. Migrated v1/v2.0
+themes begin with alias-derived values and dedicated rendering off; activation
+or the first dedicated edit snapshots both modes without a visual jump. The
+mutation union is exactly 12 operations with `setSidebarTokensEnabled` as the
+sole addition, while the registry remains 19 resources. The same phase refines
+shared ScrollArea styling, configures the official desktop Sidebar width to
+28rem, standardizes 5rem editor-label geometry, and applies the approved
+selector, Effects-tab, tab-padding, and pointer-affordance polish without new
+dependencies, credentials, network behavior, or Jev authority.
 
 ## V1 product contract
 
