@@ -205,4 +205,3 @@ wrong; document the measured reason and keep the delay within 100–150 ms.
   visual-review gate: none.
 - Lead owns executable browser evidence; protected verification owns fresh
   exact-candidate offline/source/contract/boundary/evidence integrity.
-

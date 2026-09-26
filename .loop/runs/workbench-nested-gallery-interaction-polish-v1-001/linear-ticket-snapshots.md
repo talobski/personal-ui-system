@@ -16,4 +16,3 @@ Tickets:
 - `PUI-70`: `linear/PUI-70.json`
 
 Per-ticket and aggregate SHA-256 values are recorded in `snapshot-hashes.json` after file creation.
-

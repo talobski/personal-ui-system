@@ -38,4 +38,3 @@ checkpoint useful work, and produce a clean committed candidate plus a
 provider-neutral checkpoint containing exact completed/remaining scope, test
 state, risks, and evidence. Browser acceptance, protected verification,
 promotion, and closure are Lead-owned.
-
