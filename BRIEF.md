@@ -1,17 +1,17 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — the accepted product remains
-`47d0aebef617f9d936d21f53089c96bd040e70d6` on `main`. Phase
-`semantic-typography-history-grid-v1-001` is admitted for PUI-3, PUI-63, and
-PUI-64 against that product base. Its immutable reference packet preserves
+Status: ACTIVE — the accepted product is
+`a33c3d025fe408593264b96f76f4f6054d83b758` on `main`. Phase
+`semantic-typography-history-grid-v1-001` is accepted, promoted, verified, and
+closed for PUI-3, PUI-63, and PUI-64. Its immutable reference packet preserves
 verbatim admission-time Linear snapshots alongside the authoritative
-reconciled contract. No owner visual-review gate is admitted. The earlier
+reconciled contract. No owner visual-review gate was admitted. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
-Last updated: 2026-09-26
+Last updated: 2026-09-27
 
 ## Goal
 
@@ -87,6 +87,20 @@ shared ScrollArea styling, configures the official desktop Sidebar width to
 28rem, standardizes 5rem editor-label geometry, and applies the approved
 selector, Effects-tab, tab-padding, and pointer-affordance polish without new
 dependencies, credentials, network behavior, or Jev authority.
+
+The accepted semantic typography, history, and composition-grid phase delivers
+PUI-3, PUI-63, and PUI-64 as one bounded change. Canonical Theme v3 introduces
+composed Heading and Body roles with font, weight, and tracking while retaining
+Mono as a separate primitive; deterministic migration maps legacy serif to
+Heading, sans to Body, and preserves legacy mono and tracking. The Workbench
+adds per-theme session-local Undo, Redo, and confirmed Reset with immutable
+built-in or last-saved custom baselines, coalesced manual edits, and one atomic
+history checkpoint for Design Command Apply while Preview and Discard remain
+staged. The preview gallery uses source-ordered, non-dense 1/2/3-column CSS Grid
+with composition-owned default and wide footprints and natural card heights.
+Both built-in themes are committed canonical v3 fixtures. The registry remains
+19 resources, the mutation union remains 12 operations, and no dependency,
+credential, network, or public-component boundary expands.
 
 ## V1 product contract
 
