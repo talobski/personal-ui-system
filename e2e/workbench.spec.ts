@@ -148,7 +148,7 @@ test.describe("workbench theme lifecycle", () => {
       // Portable export.
       const download = page.waitForEvent("download")
       await workspaceMode(page, "Preview")
-      await page.getByRole("button", { name: "Export JSON" }).click()
+      await page.getByRole("button", { name: "Export", exact: true }).click()
       const file = await download
       expect(file.suggestedFilename()).toBe("my-theme.theme.json")
       const exported = JSON.parse(await (await import("node:fs/promises")).readFile((await file.path())!, "utf8"))

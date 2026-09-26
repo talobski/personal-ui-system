@@ -295,11 +295,11 @@ for (const mode of ["light", "dark"] as const) {
         expect(await css(effects.locator("label").first(), "cursor")).not.toBe("pointer")
         expect(await css(page.getByRole("slider", { name: "Radius" }), "cursor")).not.toBe("pointer")
         await workspaceMode(page, "Preview")
-        for (const name of ["Export JSON", "Save", "Toggle Sidebar"]) expect(await css(page.getByRole("button", { name, exact: true }), "cursor")).toBe("pointer")
+        for (const name of ["Export", "Save", "Toggle Sidebar"]) expect(await css(page.getByRole("button", { name, exact: true }), "cursor")).toBe("pointer")
         expect(await css(page.getByRole("switch", { name: "Dark mode" }), "cursor")).toBe("pointer")
         await stageCommand(page, [{ op: "setSidebarTokensEnabled", value: true }])
         await workspaceMode(page, "Preview")
-        for (const name of ["Export JSON", "Save"]) {
+        for (const name of ["Export", "Save"]) {
           const button = page.getByRole("button", { name, exact: true })
           await expect(button).toBeDisabled()
           expect(await css(button, "pointer-events")).toBe("none")

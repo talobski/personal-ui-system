@@ -4,7 +4,7 @@ import type { Page, TestInfo } from "@playwright/test"
 
 import { stageCommand } from "./design-command-fixture"
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
-import { editorCategory, isMobileShell, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { editorCategory, isMobileShell, saveTheme, selectTheme, workspaceMode } from "./workbench-navigation"
 
 /**
  * semantic-typography-history-grid-v1-001 producer definitions (runs under playwright.workbench.config.ts at 390x844
@@ -55,7 +55,7 @@ test.describe("STHG-09 to STHG-12 manual history and recovery", () => {
     const toolbar = page.getByTestId("workbench-toolbar")
     const names = await toolbar.getByRole("button").evaluateAll(els => els.map(el => el.getAttribute("aria-label") ?? el.textContent!.trim()))
     const at = (name: string) => names.indexOf(name)
-    expect(names.slice(at("Undo"), at("Undo") + 5)).toEqual(["Undo", "Redo", "Reset", "Export JSON", "Save"])
+    expect(names.slice(at("Undo"), at("Undo") + 5)).toEqual(["Undo", "Redo", "Reset", "Export", "Save"])
     for (const name of ["Undo", "Redo", "Reset"] as const) await expect(history(page, name)).toBeDisabled()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect(await toolbar.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
@@ -262,7 +262,9 @@ test.describe("STHG-06/07 semantic roles reach Workbench chrome and the preview"
     await choose("Heading", "Playfair Display")
     const family = (locator: ReturnType<Page["locator"]>) => locator.evaluate(el => getComputedStyle(el).fontFamily)
     await expect.poll(() => family(page.getByRole("combobox", { name: "Body Font", exact: true }))).toContain("Manrope")
-    await expect.poll(() => family(page.getByTestId("section-type-heading").locator("h3"))).toContain("Playfair Display")
+    // NGIP-08 supersedes the section-label Heading opt-in: shared collapsible triggers are Workbench chrome and use Body.
+    await expect.poll(() => family(page.getByTestId("section-type-heading").locator("h3 button"))).toContain("Manrope")
+    expect(await family(page.getByTestId("section-type-heading").locator("h3 button"))).not.toContain("Playfair Display")
     await workspaceMode(page, "Preview")
     await expect.poll(() => family(page.getByRole("switch", { name: "Dark mode" }).locator("xpath=following-sibling::label"))).toContain("Manrope")
     const title = frame.locator('[data-composition="productive-week"] h2')
@@ -275,55 +277,5 @@ test.describe("STHG-06/07 semantic roles reach Workbench chrome and the preview"
   })
 })
 
-test.describe("STHG-13/14 source-ordered responsive composition grid", () => {
-  const layout = (page: Page) =>
-    previewFrame(page).locator("html").evaluate(() => {
-      const gallery = document.querySelector(".quiet-gallery")!
-      const columns = getComputedStyle(gallery).gridTemplateColumns.split(" ").length
-      const items = Array.from(gallery.querySelectorAll(":scope > [data-composition]")).map(el => {
-        const r = el.getBoundingClientRect()
-        const card = el.firstElementChild!.getBoundingClientRect()
-        return { id: el.getAttribute("data-composition")!, layout: el.getAttribute("data-layout")!, x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height), cardHeight: Math.round(card.height), aspect: getComputedStyle(el).aspectRatio }
-      })
-      return { columns, flow: getComputedStyle(gallery).gridAutoFlow, align: getComputedStyle(gallery).alignItems, width: innerWidth, overflow: document.documentElement.scrollWidth > innerWidth, items }
-    })
-
-  for (const size of [{ width: 390, height: 844 }, { width: 1100, height: 900 }, { width: 1440, height: 900 }]) {
-    test(`columns, spans, order, natural heights, and containment at ${size.width}px`, async ({ page }, info) => {
-      test.skip(size.width === 1100 && isMobileShell(page), "the 1100px medium check runs once, in the desktop project")
-      if (size.width !== page.viewportSize()!.width) await page.setViewportSize(size)
-      await open(page)
-      await workspaceMode(page, "Preview")
-      const result = await layout(page)
-      const expected = result.width >= 960 ? 3 : result.width >= 640 ? 2 : 1
-      expect(result.columns).toBe(expected)
-      if (size.width === 390) expect(expected).toBe(1)
-      if (size.width === 1100) expect(expected).toBe(2)
-      if (size.width === 1440) expect(expected).toBe(3)
-      expect(result.flow).toBe("row")
-      expect(result.align).toBe("start")
-      expect(result.overflow).toBe(false)
-      expect(result.items.map(item => item.id)).toEqual(["productive-week", "account-profile", "team-access", "workspace-settings", "notifications", "support-request", "recent-activity", "room-to-think"])
-      const unit = Math.min(...result.items.filter(item => item.layout === "default").map(item => item.width))
-      for (const item of result.items) {
-        const span = item.layout === "wide" && expected >= 2 ? 2 : 1
-        const gap = expected === 3 ? 24 : 16
-        expect(Math.abs(item.width - (unit * span + gap * (span - 1))), item.id).toBeLessThanOrEqual(1)
-        expect(item.x + item.width).toBeLessThanOrEqual(result.width)
-        expect(item.aspect).toBe("auto")
-        // Content-driven height: each grid item is exactly its own card, never stretched to a row.
-        expect(Math.abs(item.height - item.cardHeight), item.id).toBeLessThanOrEqual(1)
-      }
-      expect(new Set(result.items.map(item => item.height)).size).toBeGreaterThan(3)
-      // Visual reading order (top, then left) is the source order: no dense back-filling.
-      const visual = [...result.items].sort((a, b) => a.y - b.y || a.x - b.x).map(item => item.id)
-      expect(visual).toEqual(result.items.map(item => item.id))
-      // Keyboard focus order follows the same source order through the compositions.
-      const frame = previewFrame(page)
-      const firstFocusable = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => n.querySelector("button, input, select, textarea, [tabindex='0']")?.closest("[data-composition]")?.getAttribute("data-composition") ?? null).filter(Boolean))
-      expect(firstFocusable).toEqual(result.items.map(item => item.id).filter(id => firstFocusable.includes(id)))
-      await setColorMode(page, "dark")
-      await axe(page, info, `grid-${size.width}-dark`)
-    })
-  }
-})
+// STHG-13/14's flat global grid is superseded by PUI-65. Its order, natural-height, containment, focus-order, and axe
+// coverage now runs against the nested gallery regions in workbench-nested-gallery-interaction-polish.spec.ts.

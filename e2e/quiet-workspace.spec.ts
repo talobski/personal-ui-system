@@ -6,7 +6,8 @@ import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import { colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
-const ids = ["productive-week", "account-profile", "team-access", "workspace-settings", "notifications", "support-request", "recent-activity", "room-to-think"]
+/** PUI-65 gallery DOM order: the activity stack, the profile/action stack, the full region, then the local pair. */
+const ids = ["productive-week", "team-access", "account-profile", "notifications", "support-request", "workspace-settings", "recent-activity", "room-to-think"]
 
 /** The preview iframe's box versus the panel content box it should fill (WTEP-02). */
 async function previewFill(page: import("@playwright/test").Page) {
@@ -62,7 +63,7 @@ for (const mode of ["light", "dark"] as const) {
     await setColorMode(page, mode)
     await expect(frame.getByTestId("preview")).toHaveAttribute("data-mode", mode)
     await expect(page.locator("html")).toHaveClass(mode === "dark" ? /dark/ : /^(?!.*dark).*$/)
-    await expect(frame.getByRole("combobox", { name: "Preview views" })).toHaveText("Cards")
+    await expect(frame.getByRole("tab", { name: "Cards", exact: true })).toHaveAttribute("aria-selected", "true")
     {
       const width = await frame.locator("html").evaluate(() => innerWidth)
       await expect(frame.locator("[data-composition]")).toHaveCount(8)
@@ -70,8 +71,8 @@ for (const mode of ["light", "dark"] as const) {
       expect(await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-composition")))).toEqual(ids)
       const geometry = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => { const r = n.getBoundingClientRect(); return { x: r.x, right: r.right, width: r.width, scroll: n.scrollWidth, client: n.clientWidth } }))
       for (const box of geometry) { expect(box.x).toBeGreaterThanOrEqual(0); expect(box.right).toBeLessThanOrEqual(width); expect(box.scroll).toBeLessThanOrEqual(box.client + 1) }
-      // STHG-14: the gallery follows the preview's real width: 1 column, 2 from 40rem, 3 from 60rem. With the 28rem
-      // sidebar a 1440px desktop leaves a 992px preview, so it shows the three-column grid.
+      // NGIP-05: distinct left edges follow the preview's real width. From 60rem the 7fr/5fr stacks and the local pair
+      // give three; from 40rem only the local pair is side by side; below that everything is one column.
       expect(new Set(geometry.map(b => b.x)).size).toBe(width >= 960 ? 3 : width >= 640 ? 2 : 1)
     }
     await frame.getByLabel("Display name", { exact: true }).fill("Ada Preview")
@@ -484,8 +485,7 @@ for (const mode of ["light", "dark"] as const) {
     for (const name of ["Stage proposal", "Insert example", "Proposal"]) await expect(page.getByRole("button", { name, exact: true })).toHaveCount(0)
     await workspaceMode(page, "Preview")
     const frame = page.frameLocator('[data-testid="preview-frame"]')
-    await frame.getByRole("combobox", { name: "Preview views" }).click()
-    await frame.getByRole("option", { name: "States", exact: true }).click()
+    await previewStates(page)
     expect(await frame.getByTestId("elevation-sample").evaluate(el => getComputedStyle(el).boxShadow)).not.toBe("none")
   })
 }
@@ -541,7 +541,7 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
       // Export measures the actual canonical active value for every option.
       await workspaceMode(page, "Preview")
       const downloaded = page.waitForEvent("download")
-      await page.getByRole("button", { name: "Export JSON" }).click()
+      await page.getByRole("button", { name: "Export", exact: true }).click()
       const data = JSON.parse(readFileSync((await (await downloaded).path())!, "utf8"))
       expect(stackOf(data, target)).toEqual(option.stack)
       await saveTheme(page)

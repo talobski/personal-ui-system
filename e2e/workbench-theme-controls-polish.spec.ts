@@ -27,7 +27,7 @@ for (const mode of ["light", "dark"] as const) {
       expect(await toolbar.evaluate(el => [getComputedStyle(el).paddingTop, getComputedStyle(el).paddingRight, getComputedStyle(el).paddingBottom, getComputedStyle(el).paddingLeft])).toEqual(["0px", "16px", "0px", "16px"])
       const toggle = page.getByRole("button", { name: "Toggle Sidebar" })
       close((await box(toggle)).x - (await box(toolbar)).x, 16)
-      for (const name of ["Export JSON", "Save"]) {
+      for (const name of ["Export", "Save"]) {
         const action = toolbar.getByRole("button", { name, exact: true })
         await expect(action).toHaveAttribute("data-variant", "ghost")
         await expect(action.locator("svg[aria-hidden=true]")).toHaveCount(1)
@@ -36,12 +36,12 @@ for (const mode of ["light", "dark"] as const) {
         await expect(action).toBeFocused()
         await expect.poll(() => action.evaluate(el => getComputedStyle(el).boxShadow)).toContain("3px")
       }
-      const exportBox = await box(toolbar.getByRole("button", { name: "Export JSON" }))
+      const exportBox = await box(toolbar.getByRole("button", { name: "Export", exact: true }))
       const saveBox = await box(toolbar.getByRole("button", { name: "Save", exact: true }))
       expect(exportBox.x).toBeLessThan(saveBox.x)
       close(saveBox.x + saveBox.width, (await box(toolbar)).x + (await box(toolbar)).width - 16)
       const download = page.waitForEvent("download")
-      await toolbar.getByRole("button", { name: "Export JSON" }).press("Enter")
+      await toolbar.getByRole("button", { name: "Export", exact: true }).press("Enter")
       expect((await download).suggestedFilename()).toMatch(/\.json$/)
       await toolbar.getByRole("button", { name: "Save", exact: true }).press("Enter")
       await expect(page.getByRole("dialog", { name: "Save as a custom theme" })).toBeVisible()
@@ -121,9 +121,10 @@ for (const mode of ["light", "dark"] as const) {
           const trigger = section.getByRole("button").first()
           expect((await box(trigger)).width).toBeLessThan((await box(section)).width)
           expect(await section.evaluate(el => getComputedStyle(el).borderTopWidth)).toBe("0px")
-          const styles = await trigger.evaluate(el => { const s = getComputedStyle(el); return { border: s.borderWidth, shadow: s.boxShadow, transform: s.textTransform, spacing: s.letterSpacing, radius: s.borderRadius } })
+          const styles = await trigger.evaluate(el => { const s = getComputedStyle(el); return { border: s.borderWidth, shadow: s.boxShadow, transform: s.textTransform, spacing: s.letterSpacing, bodySpacing: getComputedStyle(document.body).letterSpacing, radius: s.borderRadius } })
           expect(styles.border).toBe("0px"); expect(styles.shadow).not.toBe("none")
-          expect(styles.transform).toBe("uppercase"); expect(parseFloat(styles.spacing)).toBeGreaterThan(0)
+          // NGIP-08 supersedes the local tracking-wide chip: the trigger resolves Body tracking.
+          expect(styles.transform).toBe("uppercase"); expect(styles.spacing).toBe(styles.bodySpacing)
           expect(parseFloat(styles.radius)).toBeGreaterThan(0)
           // WSPF-05 restores the semantic muted pair (WRCP-05's text-foreground/75 is superseded).
           await expect(trigger).toHaveClass(/(?:^| )bg-muted(?: |$)/)
@@ -165,7 +166,8 @@ test("WTCP-09 concise default/custom/catalog states retain accessible exact stac
   const stackOf = (theme: typeof defaultTheme, target: "heading" | "body" | "mono") => (target === "mono" ? theme.typography.mono : theme.typography[target].font).$value
   await page.goto("/")
   await editorCategory(page, "Typography")
-  for (const [target, copy] of [["body", "Sans-serif font..."], ["heading", "Serif font..."], ["mono", "Monospace font..."]] as const) {
+  // NGIP-09: both built-ins use their sans Body stack for Heading, so the Default Heading copy is sans-serif.
+  for (const [target, copy] of [["body", "Sans-serif font..."], ["heading", "Sans-serif font..."], ["mono", "Monospace font..."]] as const) {
     const field = page.getByTestId(`control-font-${target}`)
     await expect(field.getByRole("combobox")).toHaveText(copy)
     await expect(field.getByRole("combobox")).toHaveAccessibleDescription(stackOf(defaultTheme, target).join(", "))
@@ -178,7 +180,7 @@ test("WTCP-09 concise default/custom/catalog states retain accessible exact stac
   custom.typography.mono.$value = ["Personal mono", ...custom.typography.mono.$value]
   await page.evaluate(theme => localStorage.setItem("personal-ui-workbench/v1", JSON.stringify({ themes: { [theme.id]: theme }, activeId: theme.id, bases: { [theme.id]: "default" } })), custom)
   await page.reload(); await editorCategory(page, "Typography")
-  for (const [target, copy] of [["body", "sans-serif"], ["heading", "serif"], ["mono", "monospace"]] as const) {
+  for (const [target, copy] of [["body", "sans-serif"], ["heading", "sans-serif"], ["mono", "monospace"]] as const) {
     const trigger = page.getByTestId(`control-font-${target}`).getByRole("combobox")
     await expect(trigger).toHaveText(`Custom ${copy} stack`)
     await expect(trigger).toHaveAccessibleDescription(stackOf(custom, target).join(", "))

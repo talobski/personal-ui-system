@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test"
 import type { FrameLocator, Locator, Page } from "@playwright/test"
 import { getValidatedTheme } from "../packages/core/src/context/themes"
 import { KNOWN_DEFAULT_MUTED_DEBT, seriousOutsideKnownDebt } from "./known-contrast-debt"
-import { colorInput, editorCategory, expectEditorContainment, isMobileShell, setColorMode, workspaceMode } from "./workbench-navigation"
+import { colorInput, editorCategory, expectEditorContainment, isMobileShell, previewView, setColorMode, workspaceMode } from "./workbench-navigation"
 
 // Runs in both projects of playwright.workbench.config.ts (390x844 and 1440x900). No viewport skips.
 const TRANSPARENT = "rgba(0, 0, 0, 0)"
@@ -179,10 +179,10 @@ for (const mode of ["light", "dark"] as const) {
           await trigger.scrollIntoViewIfNeeded()
           await page.mouse.move(0, 0)
           await expect.poll(() => css(trigger, "background-color")).toBe(pair.bg)
-          const s = await trigger.evaluate(el => { const c = getComputedStyle(el); return { color: c.color, pl: c.paddingLeft, pr: c.paddingRight, pt: c.paddingTop, pb: c.paddingBottom, transform: c.textTransform, spacing: parseFloat(c.letterSpacing), size: parseFloat(c.fontSize), radius: c.borderRadius, ring: c.boxShadow } })
+          const s = await trigger.evaluate(el => { const c = getComputedStyle(el); return { color: c.color, pl: c.paddingLeft, pr: c.paddingRight, pt: c.paddingTop, pb: c.paddingBottom, transform: c.textTransform, spacing: c.letterSpacing, bodySpacing: getComputedStyle(document.body).letterSpacing, size: parseFloat(c.fontSize), radius: c.borderRadius, ring: c.boxShadow } })
           expect(s.color).toBe(pair.fg)
           expect([s.pl, s.pr, s.pt, s.pb, s.transform, s.radius]).toEqual(["8px", "8px", "2px", "2px", "uppercase", radiusSm])
-          expect(s.spacing).toBeGreaterThan(0); expect(s.size).toBeLessThan(12)
+          expect(s.spacing).toBe(s.bodySpacing); expect(s.size).toBeLessThan(12) // NGIP-08: Body tracking
           expect(s.ring).toMatch(/0px 0px 0px 1px/)
           expect((await box(trigger)).width).toBeLessThan((await box(section)).width)
           const chevron = trigger.locator("svg")
@@ -221,45 +221,53 @@ for (const mode of ["light", "dark"] as const) {
       else expect(debtNodes).toEqual([])
       expect(await seriousOutsideKnownDebt(page, axeControls.violations, info, `wspf-controls-${mode}-${reducedMotion}`)).toEqual([])
 
-      // WSPF-07: the official preview Select is ghost-like, centred, keyboard operable, and keeps its state.
+      // NGIP-07 supersedes WSPF-07: Cards / States are left-aligned official Tabs styled exactly like the sidebar tabs.
+      const sidebarTrigger = (name: string) => page.getByRole("tablist", { name: "Editor categories" }).getByRole("tab", { name, exact: true })
+      const triggerStyle = (el: Locator) => el.evaluate(node => {
+        const c = getComputedStyle(node), r = node.getBoundingClientRect()
+        return { bg: c.backgroundColor, color: c.color, font: [c.fontFamily, c.fontSize, c.fontWeight, c.letterSpacing], padding: [c.paddingLeft, c.paddingRight], radius: c.borderTopLeftRadius, shadow: c.boxShadow, cursor: c.cursor, height: Math.round(r.height) }
+      })
+      const sidebarStyles = isMobileShell(page) ? null : { active: await triggerStyle(sidebarTrigger("Colors")), inactive: await triggerStyle(sidebarTrigger("Typography")) }
       await workspaceMode(page, "Preview")
       const frame = previewFrame(page)
       const main = frame.getByTestId("preview")
-      const view = frame.getByRole("combobox", { name: "Preview views" })
+      const view = frame.getByRole("tablist", { name: "Preview views" })
+      const cards = view.getByRole("tab", { name: "Cards", exact: true }), states = view.getByRole("tab", { name: "States", exact: true })
       await settle(page)
-      const rest = await view.evaluate(el => { const c = getComputedStyle(el); return { border: c.borderTopColor, bg: c.backgroundColor, shadow: c.boxShadow } })
-      expect(rest).toEqual({ border: TRANSPARENT, bg: TRANSPARENT, shadow: "none" })
-      const v = await box(view), m = await box(main)
-      close(v.x + v.width / 2, m.x + m.width / 2)
-      expect(v.height).toBe(32)
-      await view.hover()
-      const hover = mode === "dark" ? "color-mix(in oklab, var(--accent) 50%, transparent)" : "accent"
-      await expect.poll(() => computedRgba(view, "background-color")).toEqual(await renderedRgba(main, hover, "background-color"))
+      await expect(cards).toHaveAttribute("aria-selected", "true")
+      await expect(states).toHaveAttribute("aria-selected", "false")
+      await expect(frame.getByRole("combobox", { name: "Preview views" })).toHaveCount(0)
+      const m = await box(main), leftInset = parseFloat(await css(main, "padding-left"))
+      close((await box(view)).x, m.x + leftInset)
+      expect(await css(states, "background-color")).toBe(TRANSPARENT)
+      expect(await computedRgba(cards, "background-color")).toEqual(await renderedRgba(main, "secondary", "background-color"))
+      if (sidebarStyles) {
+        expect(await triggerStyle(cards)).toEqual(sidebarStyles.active)
+        expect(await triggerStyle(states)).toEqual(sidebarStyles.inactive)
+      }
       await page.mouse.move(0, 0)
       await page.keyboard.press("Tab")
-      await view.focus()
-      await expect.poll(() => view.evaluate(el => el.matches(":focus-visible"))).toBe(true)
-      await expect.poll(() => css(view, "box-shadow")).toContain("3px")
-      await view.press("Enter")
-      await expect(view).toHaveAttribute("aria-expanded", "true")
-      await expect(frame.getByRole("option", { name: "Cards", exact: true })).toBeFocused()
-      await page.keyboard.press("End")
-      await expect(frame.getByRole("option", { name: "States", exact: true })).toBeFocused()
-      await page.keyboard.press("Enter")
-      await expect(view).toHaveText("States")
-      await expect(view).toBeFocused()
+      await cards.focus()
+      await expect.poll(() => cards.evaluate(el => el.matches(":focus-visible"))).toBe(true)
+      await expect.poll(() => css(cards, "box-shadow")).toContain("3px")
+      await page.keyboard.press("ArrowRight")
+      await expect(states).toBeFocused()
+      await expect(states).toHaveAttribute("aria-selected", "true")
       await expect(frame.getByRole("heading", { name: "Button", exact: true })).toBeVisible()
-      const selected = await box(view)
-      close(selected.x + selected.width / 2, m.x + m.width / 2)
-      expect(selected.height).toBe(32)
+      await expect(frame.getByRole("tabpanel", { name: "States", exact: true })).toBeVisible()
+      close((await box(view)).x, m.x + leftInset)
 
-      // WSPF-08: the preview root is gap-4 p-4; gallery grid and card structure are otherwise unchanged.
+      // WSPF-08: the preview root is gap-4 p-4. NGIP-04/05: the gallery is a column of nested regions whose principal
+      // stacks split from 60rem and whose local pair splits from 40rem.
       expect(await main.evaluate(el => { const s = getComputedStyle(el); return [s.display, s.rowGap, s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft] })).toEqual(["grid", "16px", "16px", "16px", "16px", "16px"])
-      await view.click(); await frame.getByRole("option", { name: "Cards", exact: true }).click()
-      await expect(view).toHaveText("Cards")
+      await page.keyboard.press("ArrowLeft")
+      await expect(cards).toHaveAttribute("aria-selected", "true")
       const gallery = frame.locator(".quiet-gallery")
       const previewWidth = await frame.locator("html").evaluate(() => innerWidth)
-      expect(await gallery.evaluate(el => [getComputedStyle(el).gridTemplateColumns.split(" ").length, getComputedStyle(el).rowGap])).toEqual(previewWidth >= 960 ? [3, "24px"] : previewWidth >= 640 ? [2, "16px"] : [1, "16px"])
+      const columns = (selector: string) => frame.locator(selector).evaluate(el => getComputedStyle(el).gridTemplateColumns.split(" ").length)
+      expect(await gallery.evaluate(el => [getComputedStyle(el).display, getComputedStyle(el).flexDirection, getComputedStyle(el).rowGap])).toEqual(["flex", "column", previewWidth >= 960 ? "24px" : "16px"])
+      expect(await columns(".quiet-gallery-principal")).toBe(previewWidth >= 960 ? 2 : 1)
+      expect(await columns(".quiet-gallery-pair")).toBe(previewWidth >= 640 ? 2 : 1)
       expect(await frame.locator("html").evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 
@@ -337,7 +345,7 @@ for (const mode of ["light", "dark"] as const) {
       await expect.poll(() => viewport.evaluate(el => el.scrollTop)).toBe(0)
       // Focus is not trapped: Tab leaves the viewport for the first preview control.
       await page.keyboard.press("Tab")
-      await expect(frame.getByRole("combobox", { name: "Preview views" })).toBeFocused()
+      await expect(frame.getByRole("tab", { selected: true })).toBeFocused()
 
       // Thumb drag.
       await page.mouse.move(f.x + f.width / 2, f.y + f.height / 2)
@@ -388,9 +396,8 @@ test("WSPF-11 live editing, preview view state and scroll position survive theme
   const frame = previewFrame(page)
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
   await workspaceMode(page, "Preview")
-  const view = frame.getByRole("combobox", { name: "Preview views" })
-  await view.click(); await frame.getByRole("option", { name: "States", exact: true }).click()
-  await expect(view).toHaveText("States")
+  const view = frame.getByRole("tab", { name: "States", exact: true })
+  await previewView(page, "States")
   const viewport = previewDocument(frame)
   await viewport.evaluate(el => { el.scrollTop = 120 })
   const top = await viewport.evaluate(el => el.scrollTop)
@@ -400,7 +407,7 @@ test("WSPF-11 live editing, preview view state and scroll position survive theme
   await colorInput(page, "primary").fill("oklch(0.5 0.1 250)")
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-revision", String(revision + 1))
   await workspaceMode(page, "Preview")
-  await expect(view).toHaveText("States")
+  await expect(view).toHaveAttribute("aria-selected", "true")
   expect(await viewport.evaluate(el => el.scrollTop)).toBe(top)
   expect(await frame.locator('[data-slot="scroll-area"]').count()).toBe(1)
 })

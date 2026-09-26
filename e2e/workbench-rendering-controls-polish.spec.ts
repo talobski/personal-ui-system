@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { Locator, Page } from "@playwright/test"
-import { editorCategory, isMobileShell, setColorMode, sidebarSheet, workspaceMode } from "./workbench-navigation"
+import { editorCategory, isMobileShell, previewStates, setColorMode, sidebarSheet, workspaceMode } from "./workbench-navigation"
 
 // Runs in both projects of playwright.workbench.config.ts (390x844 and 1440x900). No viewport skips.
 const box = async (el: Locator) => {
@@ -61,10 +61,11 @@ for (const mode of ["light", "dark"] as const) {
         expect(b.x + b.width).toBeLessThanOrEqual(toolbarBox.x + toolbarBox.width + 1)
       }
 
-      // WCN-10/11 replace preview tabs with compact Select and enlarge sidebar type.
-      const previewTabs = preview(page).getByRole("combobox", { name: "Preview views" })
-      const previewTabSizes = [await style(previewTabs, "font-size")]
-      expect((await box(previewTabs)).height).toBe(32)
+      // NGIP-07 supersedes WCN-11: Cards / States are official Tabs sharing the sidebar trigger type and height.
+      const previewTabs = preview(page).getByRole("tablist", { name: "Preview views" })
+      const previewTabSizes = await previewTabs.getByRole("tab").evaluateAll(els => els.map(el => getComputedStyle(el).fontSize))
+      const previewTabHeights = await previewTabs.getByRole("tab").evaluateAll(els => els.map(el => Math.round(el.getBoundingClientRect().height)))
+      expect((await box(previewTabs)).height).toBe(36)
 
       await editorCategory(page, "Colors")
       const surface = sidebarSurface(page)
@@ -87,9 +88,11 @@ for (const mode of ["light", "dark"] as const) {
         close(headerBox.y + headerBox.height, toolbarBox.y + toolbarBox.height, 1 / dpr)
       }
 
-      // WCN-10/11 sidebar Tabs and preview Select use text-sm; sidebar keyboard states remain intact.
+      // WCN-10 and NGIP-07: sidebar and preview Tabs use the same text-sm trigger height; keyboard states remain intact.
       const sidebarTabSizes = await tablist.getByRole("tab").evaluateAll(els => els.map(el => getComputedStyle(el).fontSize))
       expect(new Set([...sidebarTabSizes, ...previewTabSizes])).toEqual(new Set(["14px"]))
+      const sidebarTabHeights = await tablist.getByRole("tab").evaluateAll(els => els.map(el => Math.round(el.getBoundingClientRect().height)))
+      expect(new Set([...sidebarTabHeights, ...previewTabHeights]).size).toBe(1)
       expect((await box(tablist)).height).toBe(36)
       await expect(tablist.getByRole("tab", { name: "Colors", exact: true })).toHaveAttribute("aria-selected", "true")
       await tablist.getByRole("tab", { name: "Colors", exact: true }).focus()
@@ -134,11 +137,12 @@ for (const mode of ["light", "dark"] as const) {
           // WSPF-05 supersedes text-foreground/75 with the semantic muted pair; no local foreground workaround.
           await expect(trigger).toHaveClass(/(?:^| )text-muted-foreground(?: |$)/)
           await expect(trigger).not.toHaveClass(/accent|bg-muted\/50|ring-border\/50|text-foreground/)
-          const s = await trigger.evaluate(el => { const c = getComputedStyle(el); return { pl: c.paddingLeft, pr: c.paddingRight, pt: c.paddingTop, pb: c.paddingBottom, size: parseFloat(c.fontSize), transform: c.textTransform, spacing: parseFloat(c.letterSpacing), radius: parseFloat(c.borderRadius), shadow: c.boxShadow, bg: c.backgroundColor } })
+          const s = await trigger.evaluate(el => { const c = getComputedStyle(el); return { pl: c.paddingLeft, pr: c.paddingRight, pt: c.paddingTop, pb: c.paddingBottom, size: parseFloat(c.fontSize), transform: c.textTransform, spacing: c.letterSpacing, bodySpacing: getComputedStyle(document.body).letterSpacing, radius: parseFloat(c.borderRadius), shadow: c.boxShadow, bg: c.backgroundColor } })
           expect([s.pl, s.pr, s.pt, s.pb]).toEqual(["8px", "8px", "2px", "2px"])
           expect(s.size).toBeLessThan(12)
           expect(s.transform).toBe("uppercase")
-          expect(s.spacing).toBeGreaterThan(0)
+          // NGIP-08 supersedes the local tracking-wide chip: the trigger resolves Body tracking.
+          expect(s.spacing).toBe(s.bodySpacing)
           expect(s.radius).toBeGreaterThan(0)
           expect(s.shadow).not.toBe("none")
           expect((await box(trigger)).width).toBeLessThan((await box(section)).width)
@@ -204,22 +208,16 @@ for (const mode of ["light", "dark"] as const) {
       expect(await doc.evaluate(() => document.scrollingElement!.scrollTop)).toBe(0)
       await previewViewport.evaluate(el => { el.scrollTop = 0 })
 
-      // WCN-11: official Select keeps keyboard selection.
-      await previewTabs.focus()
-      await expect(previewTabs).toBeFocused()
-      await previewTabs.press("Enter")
-      await expect(previewTabs).toHaveAttribute("aria-expanded", "true")
-      const cardsOption = preview(page).getByRole("option", { name: "Cards", exact: true })
-      const statesOption = preview(page).getByRole("option", { name: "States", exact: true })
-      await expect(cardsOption).toBeVisible()
-      await expect(cardsOption).toBeFocused()
+      // NGIP-07: official Tabs keep keyboard selection with automatic activation.
+      const cardsTab = previewTabs.getByRole("tab", { name: "Cards", exact: true })
+      const statesTab = previewTabs.getByRole("tab", { name: "States", exact: true })
+      await cardsTab.focus()
+      await expect(cardsTab).toBeFocused()
+      await expect(cardsTab).toHaveAttribute("aria-selected", "true")
       await page.keyboard.press("End")
-      await expect(statesOption).toBeFocused()
-      await expect(statesOption).toHaveAttribute("data-highlighted")
-      await page.keyboard.press("Enter")
-      await expect(previewTabs).toHaveAttribute("aria-expanded", "false")
-      await expect(previewTabs).toHaveText("States")
-      await expect(previewTabs).toBeFocused()
+      await expect(statesTab).toBeFocused()
+      await expect(statesTab).toHaveAttribute("aria-selected", "true")
+      await expect(preview(page).getByRole("tabpanel", { name: "States", exact: true })).toBeVisible()
 
       // WRCP-11 containment at both viewports.
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -258,9 +256,7 @@ test("WRCP-03/04 Shadow color reuses the picker/text interaction; approved Other
   await expect(text).toHaveValue("oklch(0.627955 0.257683 29.23388)")
   await expect(picker).toHaveValue("#ff0000")
   const elevation = () => preview(page).getByTestId("elevation-sample").evaluate(el => getComputedStyle(el).boxShadow)
-  await workspaceMode(page, "Preview")
-  await preview(page).getByRole("combobox", { name: "Preview views" }).click()
-  await preview(page).getByRole("option", { name: "States", exact: true }).click()
+  await previewStates(page)
   await expect.poll(elevation).toMatch(/oklch\(0\.627955 0\.257683 29\.23\d* \/ 0\.1\)/)
   await editorCategory(page, "Effects")
 

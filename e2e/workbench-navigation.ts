@@ -39,12 +39,14 @@ export async function editorCategory(page: Page, category: "Colors" | "Typograph
   await workspaceMode(page, "Controls")
   await page.getByRole("tab", { name: category, exact: true }).click()
 }
-export async function previewStates(page: Page) {
+/** Selects a preview view through the left-aligned Cards / States Tabs (PUI-70) and waits for its panel. */
+export async function previewView(page: Page, view: "Cards" | "States") {
   await workspaceMode(page, "Preview")
-  const preview = page.frameLocator('[data-testid="preview-frame"]')
-  await preview.getByRole("combobox", { name: "Preview views" }).click()
-  await preview.getByRole("option", { name: "States", exact: true }).click()
+  const tab = page.frameLocator('[data-testid="preview-frame"]').getByRole("tablist", { name: "Preview views" }).getByRole("tab", { name: view, exact: true })
+  await tab.click()
+  await expect(tab).toHaveAttribute("aria-selected", "true")
 }
+export const previewStates = (page: Page) => previewView(page, "States")
 /** Sets the shell and preview colour mode through the toolbar Switch. */
 export async function setColorMode(page: Page, mode: "light" | "dark") {
   await workspaceMode(page, "Preview")
@@ -93,7 +95,7 @@ export async function assertActiveControls(page: Page, disabled: boolean) {
   // Active-versus-staged clarity: the manual panel says why its controls are paused.
   await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toHaveCount(disabled ? 1 : 0)
   await workspaceMode(page, "Preview")
-  await check(page.getByRole("button", { name: "Save", exact: true })); await check(page.getByRole("button", { name: "Export JSON" }))
+  await check(page.getByRole("button", { name: "Save", exact: true })); await check(page.getByRole("button", { name: "Export", exact: true }))
   // No Fork workflow remains anywhere in the Workbench.
   await expect(page.getByRole("button", { name: /fork/i })).toHaveCount(0)
   // The mode Switch is presentation-only and stays usable while locked.

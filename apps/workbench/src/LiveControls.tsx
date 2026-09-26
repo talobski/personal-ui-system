@@ -244,30 +244,37 @@ export function LiveColorField({
   picker: ColorPickerController
 }) {
   const pickerInput = React.useRef<HTMLInputElement>(null)
-  const nativeChange = React.useRef<(hex: string) => void>(() => {})
+  // A per-mount identity: a remounted field with the same key can never finish or cancel its predecessor's gesture.
   const [owner] = React.useState(() => ({ key: `${id}-picker` }))
+  // Picker-local feedback. It follows the canonical value except while this field owns the open picker gesture.
   const [localHex, setLocalHex] = React.useState(() => pickerHex(value))
   React.useLayoutEffect(() => {
     if (disabled) picker.cancel(owner)
     if (!picker.active(owner)) setLocalHex(pickerHex(value))
   }, [value, disabled, owner, picker])
-  React.useEffect(() => {
-    const finish = () => picker.finish(owner)
-    const input = pickerInput.current
-    const change = () => nativeChange.current(input!.value)
-    input?.addEventListener("change", change)
-    window.addEventListener("pointerup", finish)
-    window.addEventListener("pointercancel", finish)
-    nativeChange.current = hex => {
+  /** Shows the picked colour now and schedules its canonical write; the latest movement always supersedes earlier ones. */
+  const move = (hex: string) => {
     if (disabled) return
     setLocalHex(hex)
     const raw = pickedColorInput(hex, value)
     picker.move(owner, () => commit(raw, owner.key))
-    picker.finish(owner)
   }
-
-  return () => {
-      input?.removeEventListener("change", change)
+  // The native listener below is attached once, so it reads this render's handler rather than a stale closure.
+  const latestMove = React.useRef(move)
+  latestMove.current = move
+  React.useEffect(() => {
+    const input = pickerInput.current!
+    const finish = () => picker.finish(owner)
+    // Completion is a native listener: React may deduplicate a `change` that follows an `input` with the same value.
+    const change = () => {
+      latestMove.current(input.value)
+      finish()
+    }
+    input.addEventListener("change", change)
+    window.addEventListener("pointerup", finish)
+    window.addEventListener("pointercancel", finish)
+    return () => {
+      input.removeEventListener("change", change)
       window.removeEventListener("pointerup", finish)
       window.removeEventListener("pointercancel", finish)
       picker.cancel(owner)
@@ -275,9 +282,11 @@ export function LiveColorField({
   }, [owner, picker])
   const [draft, setDraft] = React.useState(value)
   const [error, setError] = React.useState<string | null>(null)
-  const focused = React.useRef(false)
+  // Only a draft being typed is protected from canonical updates; a focused, untouched field still follows the value
+  // (for example the picker write that focusing it flushes).
+  const typing = React.useRef(false)
   React.useEffect(() => {
-    if (focused.current) return
+    if (typing.current) return
     setDraft(value)
     setError(null)
   }, [value])
@@ -305,14 +314,8 @@ export function LiveColorField({
           data-testid={`${id}-picker`}
           value={localHex}
           disabled={disabled}
-          onInput={(event) => {
-            if (disabled) return
-            const hex = event.currentTarget.value
-            setLocalHex(hex)
-            const raw = pickedColorInput(hex, value)
-            picker.move(owner, () => commit(raw, owner.key))
-          }}
-          // Completion uses a native change listener: React may deduplicate change after input with the same value.
+          onInput={(event) => move(event.currentTarget.value)}
+          // Completion is handled by the native `change` listener above; this only satisfies React's controlled input.
           onChange={() => {}}
           onPointerUp={() => picker.finish(owner)}
           onBlur={() => picker.finish(owner)}
@@ -328,14 +331,15 @@ export function LiveColorField({
           aria-invalid={error !== null}
           aria-describedby={error !== null ? errorId : undefined}
           className="quiet-control h-8"
-          onFocus={() => { picker.finish(); focused.current = true }}
+          onFocus={() => picker.finish()}
           onBlur={() => {
-            focused.current = false
+            typing.current = false
             endGesture()
             if (error === null) setDraft(value)
           }}
           onChange={(event) => {
             picker.finish()
+            typing.current = true
             setDraft(event.target.value)
             commit(event.target.value.trim(), id)
           }}

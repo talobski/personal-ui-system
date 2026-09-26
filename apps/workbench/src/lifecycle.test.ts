@@ -810,7 +810,11 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={locked} onClick={() => { endGesture(); download(exportThemeJson(currentRef.current)) }}>')
     expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Save" disabled={locked} onClick={save}>')
     expect(app).toContain('<span className="max-sm:sr-only">Export</span>')
-    for (const name of ["Undo", "Redo", "Reset"]) expect(app).toContain(`<Button variant="ghost" size="icon" className="size-8 cursor-pointer" aria-label="${name}" title="${name}"`)
+    // PUI-68: recovery actions show a pointer only while enabled; disabled ones keep a default cursor.
+    for (const name of ["Undo", "Redo", "Reset"]) expect(app).toContain(`<Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="${name}" title="${name}"`)
+    // A short button-height semantic separator sits between the recovery group and Export.
+    expect(app).toMatch(/data-testid="history-controls"[\s\S]*?<\/div>\s*<div role="separator" aria-orientation="vertical" className="h-8 w-px shrink-0 bg-border" \/>[\s\S]*?title="Export"/)
+    expect(app).not.toContain("Export JSON")
     // Disabled buttons drop pointer events, so no pointer cursor can show while disabled.
     expect(button).toContain("disabled:pointer-events-none")
     expect(button).not.toContain("cursor-pointer")

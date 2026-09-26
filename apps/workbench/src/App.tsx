@@ -257,6 +257,8 @@ export function App() {
     const result = editTheme(base, build(base))
     if (!result.ok) return result.issues
     const unchanged = sameDesign(base, result.theme)
+    // A gesture step is rebuilt from the gesture base, so returning to the base value must not move the live revision
+    // backwards past a debounced step that already reached the preview.
     if (key !== undefined) setActive({ ...(unchanged ? base : result.theme), revision: Math.max(currentRef.current.revision, unchanged ? base.revision : result.theme.revision) })
     else if (!unchanged) {
       writeTrack(base.id, record(trackOf(base.id), base, result.theme))
@@ -307,6 +309,7 @@ export function App() {
   }
 
   const evaluateCommand = async () => {
+    // Flushing may land a pending picker write synchronously, so the base is read from the ref, not this render.
     endGesture()
     const commandBase = currentRef.current
     setCommandEvaluating(true)
@@ -317,7 +320,7 @@ export function App() {
       setCommandOutcome(result.outcome)
       return
     }
-    // Everything mutating is locked from the moment evaluation started (see `locked`), so `current`/`session` here
+    // Everything mutating is locked from the moment evaluation started (see `locked`), so `commandBase`/`session` here
     // are still exactly what they were when the request was issued: the captured base cannot have raced anything.
     const seq = commandSeq + 1
     setCommandSeq(seq)
@@ -358,7 +361,6 @@ export function App() {
       return
     }
     event.preventDefault()
-    endGesture()
     // Saving re-baselines the durable snapshot; session history is kept, so Undo after Save makes the theme dirty again.
     const result = saveTheme(window.localStorage, saved, currentRef.current, builtInIds, saved.bases[current.id] ?? DEFAULT_THEME_ID)
     if (!result.ok) return setNotice(`Not saved: ${describeIssues(result.issues)}`)

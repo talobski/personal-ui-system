@@ -115,7 +115,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-theme-id", "legacy-fork")
     const download = page.waitForEvent("download")
     await workspaceMode(page, "Preview")
-    await page.getByRole("button", { name: "Export JSON" }).click()
+    await page.getByRole("button", { name: "Export", exact: true }).click()
     const exported = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
     expect(exported).toMatchObject({ id: "legacy-fork", schemaVersion: "3.0", $schema: "https://personal-ui.local/schema/theme-3.json" })
     expect(Object.keys(exported.typography)).toEqual(["heading", "body", "mono"])
@@ -421,7 +421,7 @@ for (const mode of MODES) {
       // Export carries the canonical OKLCH values, never picker hex.
       await setColorMode(page, mode)
       const download = page.waitForEvent("download")
-      await page.getByRole("button", { name: "Export JSON" }).click()
+      await page.getByRole("button", { name: "Export", exact: true }).click()
       const exported = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
       expect(exported.colors[mode].primary.$value).toBe("oklch(0.627955 0.257683 29.23388)")
       expect(exported.colors[mode].border.$value).toBe("oklch(0.499314 0.098664 250.433057 / 0.4)")

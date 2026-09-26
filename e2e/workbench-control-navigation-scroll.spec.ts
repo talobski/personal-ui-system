@@ -3,7 +3,7 @@ import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { Locator } from "@playwright/test"
 import { stageCommand } from "./design-command-fixture"
-import { expectEditorContainment, editorCategory, previewStates, setColorMode, workspaceMode } from "./workbench-navigation"
+import { expectEditorContainment, editorCategory, previewStates, previewView, setColorMode, workspaceMode } from "./workbench-navigation"
 
 const geometry = (el: Locator) => el.evaluate(node => {
   const r = node.getBoundingClientRect()
@@ -118,7 +118,7 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
       await slider.focus(); await slider.press("ArrowRight")
       expect(Number(await slider.getAttribute("aria-valuenow"))).toBeGreaterThan(value)
       await workspaceMode(page, "Preview")
-      for (const name of ["Save", "Export JSON"]) {
+      for (const name of ["Save", "Export"]) {
         const svg = page.getByRole("button", { name, exact: true }).locator("svg")
         await expect(svg).toHaveClass(/(?:^| )size-3\.5(?: |$)/)
         expect((await geometry(svg)).width).toBeCloseTo(Number(spacing) * 16 * 3.5, 1)
@@ -136,15 +136,15 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
     if (reducedMotion === "reduce") expect(await section.locator("svg").evaluate(el => getComputedStyle(el).transitionDuration)).toBe("0s")
     await previewStates(page)
     const frame = page.frameLocator('[data-testid="preview-frame"]')
-    const view = frame.getByRole("combobox", { name: "Preview views" })
-    await expect(view).toHaveText("States")
+    // NGIP-07 supersedes the centered Select: Cards / States are left-aligned Tabs that keep each view's state.
+    const view = frame.getByRole("tablist", { name: "Preview views" })
+    await expect(view.getByRole("tab", { name: "States", exact: true })).toHaveAttribute("aria-selected", "true")
     await frame.getByRole("button", { name: "default", exact: true }).click()
-    await view.click(); await frame.getByRole("option", { name: "Cards", exact: true }).click()
-    await view.click(); await frame.getByRole("option", { name: "States", exact: true }).click()
+    await previewView(page, "Cards"); await previewView(page, "States")
     await expect(frame.getByTestId("button-activations")).toContainText("1")
     const v = await geometry(view), main = await geometry(frame.getByTestId("preview"))
-    expect(Math.abs(v.x + v.width / 2 - main.x - main.width / 2)).toBeLessThanOrEqual(1)
-    expect(v.height).toBe(32)
+    const inset = await frame.getByTestId("preview").evaluate(el => parseFloat(getComputedStyle(el).paddingLeft))
+    expect(Math.abs(v.x - main.x - inset)).toBeLessThanOrEqual(1)
     // WSPF-09 supersedes WCN-04 here: the embedded document has exactly one root ScrollArea.
     expect(await frame.locator('[data-slot="scroll-area"]').count()).toBe(1)
     expect(await frame.getByPlaceholder("Placeholder text").evaluate(el => getComputedStyle(el).fontSize)).toBe((page.viewportSize()!.width < 768) ? "16px" : "14px")
