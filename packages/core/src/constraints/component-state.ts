@@ -177,8 +177,15 @@ const avatarStateSchema = z.strictObject({
   accessibleName: z.string().max(200).nullable(),
 })
 
-/** Semantic theme colour tokens a sidebar may use; sidebar-specific tokens and literal colours are not admitted. */
-const SIDEBAR_COLOR_TOKENS = new Set(["background", "foreground", "card", "card-foreground", "accent", "accent-foreground", "border", "ring", "primary", "primary-foreground", "muted", "muted-foreground"])
+/**
+ * Semantic theme colour tokens a sidebar may use: the canonical Theme v2.1 Sidebar tokens plus the base semantics a
+ * sidebar legitimately shares (for example `input` for a SidebarInput). Literal colours and non-canonical sidebar tokens
+ * (`sidebar-input`, `sidebar-card`) are not admitted.
+ */
+const SIDEBAR_COLOR_TOKENS = new Set([
+  "sidebar", "sidebar-foreground", "sidebar-primary", "sidebar-primary-foreground", "sidebar-accent", "sidebar-accent-foreground", "sidebar-border", "sidebar-ring",
+  "background", "foreground", "card", "card-foreground", "accent", "accent-foreground", "border", "input", "ring", "primary", "primary-foreground", "muted", "muted-foreground",
+])
 
 /** The one-character avatar initial: the first letter or digit, upper-cased when that stays one character. */
 export function avatarInitial(name: string): string {

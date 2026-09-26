@@ -113,7 +113,7 @@ for (const mode of ["light", "dark"] as const) {
       expect(await editor.locator('[data-slot="scroll-area-scrollbar"][data-orientation="horizontal"]').evaluateAll(bars => bars.every(bar => bar.closest('[data-slot="scroll-area"]')?.querySelector('[aria-label="Editor category navigation"]') != null))).toBe(true)
       await expectEditorContainment(page)
 
-      // WSPF-03: transparent padding-free list; content-width px-3 triggers with semantic active/inactive states.
+      // WSPF-03 (WSTP-13 px-2): transparent padding-free list; content-width px-2 triggers with semantic active/inactive states.
       expect(await tablist.evaluate(el => { const s = getComputedStyle(el); return [s.backgroundColor, s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft, s.flexWrap, s.height] })).toEqual([TRANSPARENT, "0px", "0px", "0px", "0px", "nowrap", "36px"])
       const radiusMd = await resolve(tablist, defaultTheme.radius.md.$value, "border-radius")
       const tokens = { secondary: await renderedRgba(tablist, "secondary", "background-color"), secondaryForeground: await renderedRgba(tablist, "secondary-foreground"), muted: await renderedRgba(tablist, "muted-foreground") }
@@ -121,7 +121,7 @@ for (const mode of ["light", "dark"] as const) {
       const tabHeights = new Set<number>()
       for (const tab of await tabs.all()) {
         const s = await tab.evaluate(el => { const c = getComputedStyle(el); return { grow: c.flexGrow, shrink: c.flexShrink, wrap: c.whiteSpace, pl: c.paddingLeft, pr: c.paddingRight, pt: c.paddingTop, pb: c.paddingBottom, cursor: c.cursor, size: c.fontSize, weight: c.fontWeight, radius: c.borderRadius, bg: c.backgroundColor, color: c.color, shadow: c.boxShadow } })
-        expect([s.grow, s.shrink, s.wrap, s.pl, s.pr, s.pt, s.pb, s.cursor, s.size, s.weight, s.radius]).toEqual(["0", "0", "nowrap", "12px", "12px", "4px", "4px", "pointer", "14px", "500", radiusMd])
+        expect([s.grow, s.shrink, s.wrap, s.pl, s.pr, s.pt, s.pb, s.cursor, s.size, s.weight, s.radius]).toEqual(["0", "0", "nowrap", "8px", "8px", "4px", "4px", "pointer", "14px", "500", radiusMd])
         tabHeights.add((await box(tab)).height)
         if ((await tab.getAttribute("aria-selected")) === "true") {
           expect(await computedRgba(tab, "background-color")).toEqual(tokens.secondary)
@@ -134,7 +134,7 @@ for (const mode of ["light", "dark"] as const) {
       }
       // The accepted trigger height: the former 3px-padded 36px list, less 1px.
       expect([...tabHeights]).toEqual([29])
-      const inactive = tablist.getByRole("tab", { name: "Other", exact: true })
+      const inactive = tablist.getByRole("tab", { name: "Effects", exact: true })
       const restColor = await css(inactive, "color")
       await inactive.hover()
       await expect.poll(() => css(inactive, "color")).not.toBe(restColor)
@@ -171,7 +171,7 @@ for (const mode of ["light", "dark"] as const) {
       const radiusSm = await resolve(header, defaultTheme.radius.sm.$value, "border-radius")
       const pair = { bg: await resolve(header, "muted", "background-color"), fg: await resolve(header, "muted-foreground") }
       const measurements: { category: string; section: string; fg: string; bg: string; ratio: number; fontSize: string }[] = []
-      for (const category of ["Colors", "Typography", "Other"] as const) {
+      for (const category of ["Colors", "Typography", "Effects"] as const) {
         await editorCategory(page, category)
         const panel = page.getByRole("tabpanel", { name: category, exact: true })
         for (const section of await panel.locator('[data-testid^="section-"]').all()) {

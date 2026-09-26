@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { deriveRadiusScale, deriveShadowTiers, normalizeColor, normalizeLength, readShadowProfile, validateTheme } from "../index"
+import { deriveRadiusScale, deriveShadowTiers, isSidebarColorToken, normalizeColor, normalizeLength, readShadowProfile, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, validateTheme } from "../index"
 import type { Theme } from "../index"
 import report from "./fixtures/default.conversion.json"
 import defaultFixture from "./fixtures/default.json"
@@ -69,15 +69,17 @@ const theme = (() => {
 
 describe("built-in Default matches the contract", () => {
   it("identity", () => {
-    expect(theme).toMatchObject({ id: "default", name: "Default", revision: 1, schemaVersion: "2.0", kind: "personal-ui-theme" })
+    expect(theme).toMatchObject({ id: "default", name: "Default", revision: 1, schemaVersion: "2.1", kind: "personal-ui-theme" })
   })
 
-  it("every light and dark colour, with no sidebar tokens", () => {
+  it("every light and dark colour; Sidebar colours are uninitialized copies of their base aliases, off (WSTP-04)", () => {
     for (const [mode, table] of [["light", LIGHT], ["dark", DARK]] as const) {
-      expect(Object.keys(theme.colors[mode]).sort()).toEqual(Object.keys(table).sort())
+      expect(Object.keys(theme.colors[mode]).sort()).toEqual([...Object.keys(table), ...SIDEBAR_COLOR_TOKENS].sort())
       for (const [name, value] of Object.entries(table)) expect(theme.colors[mode][name as keyof Theme["colors"]["light"]].$value, `${mode}.${name}`).toBe(value)
+      for (const name of SIDEBAR_COLOR_TOKENS) expect(theme.colors[mode][name].$value, `${mode}.${name}`).toBe(table[SIDEBAR_TOKEN_ALIASES[name]])
     }
-    expect(JSON.stringify(theme)).not.toMatch(/sidebar/)
+    expect(theme.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: false }, dedicatedValuesInitialized: false })
+    expect(JSON.stringify(theme)).not.toMatch(/sidebar-(?:input|card)/)
   })
 
   it("typography stacks and tracking", () => {
@@ -135,14 +137,23 @@ describe("Default conversion report", () => {
     expect(report.precisionPolicy.color).toMatch(/6 decimal places/)
     expect(report.precisionPolicy.length).toMatch(/4 decimal places/)
     expect(Object.keys(report.declaredDefaults)).toEqual(expect.arrayContaining(["motion.durationFast", "motion.durationBase", "space.density"]))
-    expect(report.unsupported.map((u) => u.field).join(" ")).toMatch(/sidebar/)
+    expect(report.unsupported.map((u) => u.field).join(" ")).toMatch(/sidebar-input/)
+    expect(report.unsupported.map((u) => u.field).join(" ")).not.toMatch(/sidebar-(?!input)/)
     expect(report.unsupported.map((u) => u.field).join(" ")).toMatch(/boilerplate/)
+  })
+
+  it("WSTP-09 promotes the eight Sidebar tokens to canonical 1:1 and records the Default's alias-derived defaults", () => {
+    expect(report.theme.schemaVersion).toBe("2.1")
+    expect(report.sidebarTokens.mapping).toEqual(Object.fromEntries(SIDEBAR_COLOR_TOKENS.map((name) => [name, name])))
+    expect(report.sidebarTokens.defaults).toEqual(SIDEBAR_TOKEN_ALIASES)
   })
 
   it("imported colors and shadows equal the fixture; historical lengths remain normalizer fixed points", () => {
     const values = report.values as Record<string, { source: unknown; normalized: unknown }>
     for (const mode of ["light", "dark"] as const) {
       for (const [name, token] of Object.entries(theme.colors[mode])) {
+        // Sidebar colours are declared alias-derived defaults (see `sidebarTokens`), not transcribed source values.
+        if (isSidebarColorToken(name)) continue
         const entry = values[`colors.${mode}.${name}`]!
         expect(entry.normalized).toBe(token.$value)
         expect(normalizeColor(entry.source)).toEqual({ ok: true, value: token.$value })

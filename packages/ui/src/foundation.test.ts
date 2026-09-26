@@ -146,8 +146,13 @@ describe("shadcn foundation", () => {
     for (const slot of ["sidebar-wrapper", "sidebar-gap", "sidebar-container", "sidebar-inset", "sidebar-header", "sidebar-content", "sidebar-footer", "sidebar-menu-button", "sidebar-menu-action", "sidebar-trigger"]) expect(sidebar).toContain(`data-slot="${slot}"`)
     expect(sidebar).toContain('const SIDEBAR_WIDTH_MOBILE = "18rem"')
     expect(sidebar).toContain('<span className="sr-only">Toggle Sidebar</span>')
-    // Adapted to the existing semantic tokens: no sidebar-specific colour utilities, no literal colours, no cookie.
-    expect(sidebar).not.toMatch(/(?:bg|text|border|ring|outline|shadow)-sidebar|--sidebar-(?:background|foreground|accent|border|ring|primary)|hsl\(|#[0-9a-f]{3,8}\b/i)
+    // WSTP-06: the official sidebar-* utilities over canonical Theme v2.1 tokens; the Sidebar never uses card colours,
+    // non-canonical sidebar tokens, literal colours, or a cookie.
+    expect(sidebar).toMatch(/flex h-full w-\(--sidebar-width\) flex-col bg-sidebar text-sidebar-foreground/)
+    expect(sidebar).not.toMatch(/(?:bg|text|border)-card\b|(?:bg|text|border|ring)-sidebar-(?:input|card)|--sidebar-(?:input|card|background)|hsl\(|#[0-9a-f]{3,8}\b/i)
+    for (const utility of sidebar.match(/(?:bg|text|border|ring)-sidebar[a-z-]*/g) ?? []) {
+      expect(["bg-sidebar", "text-sidebar-foreground", "bg-sidebar-accent", "text-sidebar-accent-foreground", "bg-sidebar-border", "border-sidebar-border", "ring-sidebar-ring"]).toContain(utility)
+    }
     expect(sidebar).not.toMatch(/document\.cookie|localStorage|sessionStorage|Math\.random/)
     expect(avatar).toContain('import { Avatar as AvatarPrimitive } from "radix-ui"')
     expect(avatar).toContain('data-slot="avatar-fallback"')

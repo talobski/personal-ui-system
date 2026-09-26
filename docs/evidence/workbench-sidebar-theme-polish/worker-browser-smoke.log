@@ -1,0 +1,23 @@
+Worker-run, non-authoritative smoke evidence (localhost only, Chromium from the local Playwright cache). Browser acceptance remains Lead-owned.
+PATH included node_modules/.bin so the configured 'vite preview' webServer resolves; each run built on the current worktree.
+
+$ playwright test -c playwright.workbench.config.ts workbench-sidebar-theme-polish.spec.ts --workers=4  (final spec)
+  40 passed (44.1s)
+
+$ playwright test -c playwright.workbench.config.ts --workers=4  (full Workbench suite, after all spec updates)
+  ✘   25 [workbench-mobile-390x844] › e2e/workbench-control-navigation-scroll.spec.ts:18:3 › WCN-05–12/14 overlay input, navigation, controls: dark, reduce (6.3s)
+  1 failed
+  2 skipped
+  181 passed (3.5m)
+
+$ playwright test -c playwright.workbench.config.ts workbench-control-navigation-scroll.spec.ts --repeat-each=4 --workers=4  (repeat of the one intermittent failure above)
+  48 passed (47.1s)
+
+$ playwright test -c playwright.workbench.config.ts quiet-workspace.spec.ts theme-v2-live-controls.spec.ts workbench-control-navigation-scroll.spec.ts workbench.spec.ts --workers=4  (rerun after stale-expectation fixes)
+  2 skipped
+  70 passed (1.6m)
+
+$ playwright test --workers=4  (Storybook suite)
+  94 passed (31.7s)
+
+Not run by the worker: test:browser:design-command-live (playwright.designcommand.config.ts).

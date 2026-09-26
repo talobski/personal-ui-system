@@ -20,7 +20,7 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "theme:default": {
     sourceId: "packages/core/src/theme/fixtures/default.json",
-    sha256: "124d47991f86aa6872db1b92afef0c874816340b94a02724836a6f6bc9f04f40",
+    sha256: "205920c100c63303fc994fd47ae5dd884ee32066701aca5b8f0e52ae7964995c",
   },
   "theme:quiet-editorial": {
     sourceId: "packages/core/src/theme/fixtures/valid.json",
@@ -88,7 +88,7 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "resource:sidebar": {
     sourceId: "packages/core/src/contracts/data/sidebar.ts",
-    sha256: "ea0cea03cf4e438af8d88eb7646d93f682685e5d20b3f80d76a382567e16f209",
+    sha256: "3bcf0e1bc256de23bc9ec39e2831d36b1612423701728578004badc6b4188792",
   },
   "resource:avatar": {
     sourceId: "packages/core/src/contracts/data/avatar.ts",

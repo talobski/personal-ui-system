@@ -41,8 +41,8 @@ test("preview fills the real right panel, with no device selector or fixed width
   }
   const initial = await check()
   const desktop = !isMobileShell(page)
-  // 1440x900: everything right of the 22rem (352px) sidebar, with no viewport inset; 390x844: the full viewport.
-  if (desktop) expect(initial.frameWidth).toBeGreaterThan(1040)
+  // 1440x900: everything right of the 28rem (448px) sidebar, with no viewport inset; 390x844: the full viewport.
+  if (desktop) expect(initial.frameWidth).toBeGreaterThan(980)
   else expect(initial.frameWidth).toBeGreaterThan(360)
   // The preview's own document sees the panel width, so responsive behavior follows the real viewport.
   const inner = await page.frameLocator('[data-testid="preview-frame"]').locator("html").evaluate(() => innerWidth)
@@ -70,8 +70,9 @@ for (const mode of ["light", "dark"] as const) {
       expect(await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-composition")))).toEqual(ids)
       const geometry = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => { const r = n.getBoundingClientRect(); return { x: r.x, right: r.right, width: r.width, scroll: n.scrollWidth, client: n.clientWidth } }))
       for (const box of geometry) { expect(box.x).toBeGreaterThanOrEqual(0); expect(box.right).toBeLessThanOrEqual(width); expect(box.scroll).toBeLessThanOrEqual(box.client + 1) }
-      if (mobile) expect(new Set(geometry.map(b => b.x)).size).toBe(1)
-      else expect(new Set(geometry.map(b => b.x)).size).toBe(3)
+      // The gallery follows the preview's real width (3 columns from 1000px). With the WSTP-11 28rem sidebar, a 1440px
+      // desktop leaves a 992px preview, so it stacks like mobile; a wider preview still shows three columns.
+      expect(new Set(geometry.map(b => b.x)).size).toBe(width >= 1000 ? 3 : 1)
     }
     await frame.getByLabel("Display name", { exact: true }).fill("Ada Preview")
     await frame.getByRole("button", { name: "Save profile" }).click()
@@ -138,7 +139,7 @@ for (const mode of ["light", "dark"] as const) {
   })
 }
 
-test("one full-height Sidebar shell: 22rem desktop sidebar, preview fills the inset, trigger and Ctrl+B collapse it (WSSP-03, WSSP-12)", async ({ page }) => {
+test("one full-height Sidebar shell: 28rem desktop sidebar, preview fills the inset, trigger and Ctrl+B collapse it (WSSP-03, WSSP-12)", async ({ page }) => {
   test.skip(isMobileShell(page), "The desktop sidebar is replaced by the off-canvas sheet below 768px")
   await page.goto("/")
   await expect(page.locator("header")).toHaveCount(0)
@@ -155,7 +156,7 @@ test("one full-height Sidebar shell: 22rem desktop sidebar, preview fills the in
     return { sidebarLeft: container.left, sidebarWidth: container.width, sidebarHeight: container.height, insetLeft: inset.left, insetRight: inset.right, frameLeft: frame.left, frameRight: frame.right, frameBottom: frame.bottom, rem: parseFloat(getComputedStyle(document.documentElement).fontSize), scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight }
   })
   const open = await geometry()
-  expect(open.sidebarWidth).toBeCloseTo(22 * open.rem, 0)
+  expect(open.sidebarWidth).toBeCloseTo(28 * open.rem, 0)
   expect(open.sidebarHeight).toBeCloseTo(900, 0)
   expect(open.insetLeft).toBeCloseTo(open.sidebarWidth, 0)
   expect(open.frameLeft).toBeCloseTo(open.insetLeft, 0)
@@ -188,10 +189,10 @@ test("one full-height Sidebar shell: 22rem desktop sidebar, preview fills the in
   // Reduced motion removes the width/offset transition.
   await page.emulateMedia({ reducedMotion: "reduce" })
   expect(await page.locator('[data-slot="sidebar-container"]').evaluate(el => getComputedStyle(el).transitionDuration)).toBe("0s")
-  // A narrower desktop keeps the 22rem sidebar and gives the inset the rest, without page overflow.
+  // A narrower desktop keeps the 28rem sidebar and gives the inset the rest, without page overflow.
   await page.setViewportSize({ width: 1024, height: 768 })
   const narrow = await geometry()
-  expect(narrow.sidebarWidth).toBeCloseTo(22 * narrow.rem, 0)
+  expect(narrow.sidebarWidth).toBeCloseTo(28 * narrow.rem, 0)
   expect(narrow.frameRight).toBeCloseTo(1024, 0)
   expect(narrow.scrollWidth).toBeLessThanOrEqual(1024)
   await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
@@ -224,7 +225,7 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
     expect(await sheet.evaluate(el => el.contains(document.activeElement))).toBe(true)
   }
   await expect(sheet.getByRole("combobox", { name: "Active theme" })).toBeVisible()
-  for (const [category, probe] of [["Colors", "Primary"], ["Typography", "Sans font"], ["Other", "Radius"], ["Command", "Command"]] as const) {
+  for (const [category, probe] of [["Colors", "Primary"], ["Typography", "Sans"], ["Effects", "Radius"], ["Command", "Command"]] as const) {
     await sheet.getByRole("tab", { name: category, exact: true }).click()
     const panel = sheet.getByRole("tabpanel", { name: category, exact: true })
     await expect(panel).toBeVisible()
@@ -465,7 +466,7 @@ for (const mode of ["light", "dark"] as const) {
     await setColorMode(page, mode)
     const styles: unknown[] = []
     // Font labels are intentionally screen-reader-only (WTCP-09); compare the visible Typography numeric label.
-    for (const [category, label] of [["Colors", "Primary"], ["Typography", "Letter spacing"], ["Other", "Shadow color"], ["Command", "Command"]] as const) {
+    for (const [category, label] of [["Colors", "Primary"], ["Typography", "Tracking"], ["Effects", "Shadow color"], ["Command", "Command"]] as const) {
       await editorCategory(page, category)
       await expect(page.getByRole("tabpanel", { name: category, exact: true })).toBeVisible()
       await expect(page.getByRole("heading", { name: category === "Command" ? "Design command" : category, exact: true })).toHaveCount(0)
@@ -509,10 +510,10 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
   await editorCategory(page, "Typography")
   for (const category of ["sans", "serif", "mono"] as const) {
     for (const option of FONT_OPTIONS[category]) {
-      const label = `${category[0]!.toUpperCase()}${category.slice(1)} font`
+      const label = `${category[0]!.toUpperCase()}${category.slice(1)}`
       const trigger = page.getByRole("combobox", { name: label, exact: true })
       await trigger.click()
-      const input = page.getByRole("combobox", { name: `Search ${label}`, exact: true })
+      const input = page.getByRole("combobox", { name: `Search ${label} fonts`, exact: true })
       await input.fill(option.label)
       await expect(page.getByRole("option", { name: option.label, exact: true })).toBeVisible()
       if (option === FONT_OPTIONS[category][0]) {

@@ -1,3 +1,4 @@
+import { SIDEBAR_COLOR_TOKENS } from "./schema"
 import type { Theme } from "./schema"
 
 /** One changed token value. Values are JSON, so entries serialize as-is. */
@@ -11,16 +12,24 @@ const leaves = (node: unknown, path: string, out: Map<string, unknown>) => {
   }
 }
 
-const tokenValues = (theme: Theme) => {
+const tokenValues = (theme: Theme, omitDerivedSidebar: boolean) => {
   const out = new Map<string, unknown>()
-  for (const group of ["colors", "typography", "radius", "space", "shadow", "motion"] as const) leaves(theme[group], group, out)
+  // `sidebar` contributes only its `useDedicatedTokens` token; the bare `dedicatedValuesInitialized` bookkeeping flag has
+  // no `$value`, so it is never a design difference.
+  for (const group of ["colors", "typography", "radius", "space", "shadow", "motion", "sidebar"] as const) leaves(theme[group], group, out)
+  if (omitDerivedSidebar) for (const mode of ["light", "dark"]) for (const name of SIDEBAR_COLOR_TOKENS) out.delete(`colors.${mode}.${name}`)
   return out
 }
 
-/** Token-value (`$value` leaf) diff sorted by path; identity and revision are excluded. */
+/**
+ * Token-value (`$value` leaf) diff sorted by path; identity and revision are excluded. While the dedicated Sidebar set
+ * is uninitialized on both sides its colours are only generated copies of their base aliases, so they are omitted: the
+ * base token change is the design difference. Once either side is initialized, dedicated colours diff normally.
+ */
 export function diffThemeTokens(before: Theme, after: Theme): ThemeTokenDiffEntry[] {
-  const from = tokenValues(before)
-  const to = tokenValues(after)
+  const derived = !before.sidebar.dedicatedValuesInitialized && !after.sidebar.dedicatedValuesInitialized
+  const from = tokenValues(before, derived)
+  const to = tokenValues(after, derived)
   return [...new Set([...from.keys(), ...to.keys()])]
     .sort()
     .filter((path) => JSON.stringify(from.get(path)) !== JSON.stringify(to.get(path)))

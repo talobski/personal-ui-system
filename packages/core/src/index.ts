@@ -3,7 +3,7 @@ export { normalizeColor, normalizeLength, parseCanonicalOklch, parseLength } fro
 export type { ColorNormalization, ColorRejection, OklchComponents, ParsedLength } from "./theme/color"
 export { MANUAL_CONTROL_BOUNDS, deriveRadiusScale, deriveShadowTiers, readShadowProfile, SHADOW_PROFILE_FIELDS } from "./theme/derive"
 export type { RadiusScale, ShadowProfile } from "./theme/derive"
-export { migrateThemeV1, V1_MIGRATION_DEFAULTS } from "./theme/migrate"
+export { migrateThemeV1, migrateThemeV2_0, V1_MIGRATION_DEFAULTS } from "./theme/migrate"
 export { renderShadcnTailwindCss } from "./theme/render"
 export * from "./contracts/contract"
 export { getContract, listContractIds } from "./contracts/catalog"

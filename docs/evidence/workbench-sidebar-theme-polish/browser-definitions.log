@@ -1,0 +1,47 @@
+$ playwright test -c playwright.workbench.config.ts workbench-sidebar-theme-polish.spec.ts --list
+Listing tests:
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:90:7 › light, no-preference motion › WSTP-06/07/09 Sidebar source: off aliases, no-jump activation, live edits, preserved values, save and reload
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:167:7 › light, no-preference motion › WSTP-04/06 a saved v2.0 custom theme migrates on load, starts off, and renders its base background
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:188:7 › light, no-preference motion › WSTP-06/08 a staged Sidebar proposal previews only in the preview and applies through Apply
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:207:7 › light, no-preference motion › WSTP-11/12/13 geometry, typography rows, selector weight, Effects tab, and pointer affordances
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:300:7 › light, no-preference motion › WSTP-10 shared ScrollArea: slim bars, semantic thumb states, no reserved width, native input
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:90:7 › light, reduce motion › WSTP-06/07/09 Sidebar source: off aliases, no-jump activation, live edits, preserved values, save and reload
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:167:7 › light, reduce motion › WSTP-04/06 a saved v2.0 custom theme migrates on load, starts off, and renders its base background
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:188:7 › light, reduce motion › WSTP-06/08 a staged Sidebar proposal previews only in the preview and applies through Apply
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:207:7 › light, reduce motion › WSTP-11/12/13 geometry, typography rows, selector weight, Effects tab, and pointer affordances
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:300:7 › light, reduce motion › WSTP-10 shared ScrollArea: slim bars, semantic thumb states, no reserved width, native input
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:90:7 › dark, no-preference motion › WSTP-06/07/09 Sidebar source: off aliases, no-jump activation, live edits, preserved values, save and reload
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:167:7 › dark, no-preference motion › WSTP-04/06 a saved v2.0 custom theme migrates on load, starts off, and renders its base background
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:188:7 › dark, no-preference motion › WSTP-06/08 a staged Sidebar proposal previews only in the preview and applies through Apply
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:207:7 › dark, no-preference motion › WSTP-11/12/13 geometry, typography rows, selector weight, Effects tab, and pointer affordances
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:300:7 › dark, no-preference motion › WSTP-10 shared ScrollArea: slim bars, semantic thumb states, no reserved width, native input
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:90:7 › dark, reduce motion › WSTP-06/07/09 Sidebar source: off aliases, no-jump activation, live edits, preserved values, save and reload
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:167:7 › dark, reduce motion › WSTP-04/06 a saved v2.0 custom theme migrates on load, starts off, and renders its base background
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:188:7 › dark, reduce motion › WSTP-06/08 a staged Sidebar proposal previews only in the preview and applies through Apply
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:207:7 › dark, reduce motion › WSTP-11/12/13 geometry, typography rows, selector weight, Effects tab, and pointer affordances
+  [workbench-mobile-390x844] › workbench-sidebar-theme-polish.spec.ts:300:7 › dark, reduce motion › WSTP-10 shared ScrollArea: slim bars, semantic thumb states, no reserved width, native input
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:90:7 › light, no-preference motion › WSTP-06/07/09 Sidebar source: off aliases, no-jump activation, live edits, preserved values, save and reload
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:167:7 › light, no-preference motion › WSTP-04/06 a saved v2.0 custom theme migrates on load, starts off, and renders its base background
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:188:7 › light, no-preference motion › WSTP-06/08 a staged Sidebar proposal previews only in the preview and applies through Apply
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:207:7 › light, no-preference motion › WSTP-11/12/13 geometry, typography rows, selector weight, Effects tab, and pointer affordances
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:300:7 › light, no-preference motion › WSTP-10 shared ScrollArea: slim bars, semantic thumb states, no reserved width, native input
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:90:7 › light, reduce motion › WSTP-06/07/09 Sidebar source: off aliases, no-jump activation, live edits, preserved values, save and reload
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:167:7 › light, reduce motion › WSTP-04/06 a saved v2.0 custom theme migrates on load, starts off, and renders its base background
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:188:7 › light, reduce motion › WSTP-06/08 a staged Sidebar proposal previews only in the preview and applies through Apply
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:207:7 › light, reduce motion › WSTP-11/12/13 geometry, typography rows, selector weight, Effects tab, and pointer affordances
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:300:7 › light, reduce motion › WSTP-10 shared ScrollArea: slim bars, semantic thumb states, no reserved width, native input
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:90:7 › dark, no-preference motion › WSTP-06/07/09 Sidebar source: off aliases, no-jump activation, live edits, preserved values, save and reload
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:167:7 › dark, no-preference motion › WSTP-04/06 a saved v2.0 custom theme migrates on load, starts off, and renders its base background
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:188:7 › dark, no-preference motion › WSTP-06/08 a staged Sidebar proposal previews only in the preview and applies through Apply
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:207:7 › dark, no-preference motion › WSTP-11/12/13 geometry, typography rows, selector weight, Effects tab, and pointer affordances
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:300:7 › dark, no-preference motion › WSTP-10 shared ScrollArea: slim bars, semantic thumb states, no reserved width, native input
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:90:7 › dark, reduce motion › WSTP-06/07/09 Sidebar source: off aliases, no-jump activation, live edits, preserved values, save and reload
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:167:7 › dark, reduce motion › WSTP-04/06 a saved v2.0 custom theme migrates on load, starts off, and renders its base background
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:188:7 › dark, reduce motion › WSTP-06/08 a staged Sidebar proposal previews only in the preview and applies through Apply
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:207:7 › dark, reduce motion › WSTP-11/12/13 geometry, typography rows, selector weight, Effects tab, and pointer affordances
+  [workbench-desktop-1440x900] › workbench-sidebar-theme-polish.spec.ts:300:7 › dark, reduce motion › WSTP-10 shared ScrollArea: slim bars, semantic thumb states, no reserved width, native input
+Total: 40 tests in 1 file
+$ playwright test -c playwright.workbench.config.ts --list | tail -1
+Total: 184 tests in 11 files
+$ playwright test --list | tail -1  (Storybook)
+Total: 94 tests in 20 files

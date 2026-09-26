@@ -33,4 +33,16 @@ describe("ScrollArea public resource (WCN-02/03)", () => {
     expect(source).toContain('orientation !== "horizontal"')
     expect(source).toContain('orientation !== "vertical"')
   })
+  it("WSTP-10 shares one slim, semantic, overlay treatment across orientations", () => {
+    const source = readFileSync(new URL("./components/scroll-area.tsx", import.meta.url), "utf8")
+    // Physical 0.5rem: Tailwind spacing utilities here scale with the editable theme spacing, so they are not used.
+    expect(source).toContain('orientation === "vertical" && "h-full w-[0.5rem] border-l border-l-transparent"')
+    expect(source).toContain('orientation === "horizontal" && "h-[0.5rem] flex-col border-t border-t-transparent"')
+    expect(source).toContain("bg-transparent p-px")
+    const thumb = source.match(/data-slot="scroll-area-thumb"\s+className="([^"]+)"/)![1]!.split(" ")
+    for (const token of ["rounded-full", "bg-muted-foreground/25", "group-hover/scroll-area:bg-muted-foreground/40", "group-focus-within/scroll-area:bg-muted-foreground/40", "hover:bg-muted-foreground/55", "active:bg-muted-foreground/55"]) expect(thumb).toContain(token)
+    expect(source).toContain('className={cn("group/scroll-area relative", className)}')
+    // Semantic tokens only; the former heavier 10px bar and border-coloured thumb are gone.
+    expect(source).not.toMatch(/w-2\.5|h-2\.5|bg-border|#[0-9a-f]{3,8}\b|oklch\(|rgb\(|gray-/)
+  })
 })

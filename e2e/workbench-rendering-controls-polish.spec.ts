@@ -97,30 +97,32 @@ for (const mode of ["light", "dark"] as const) {
       await expect(tablist.getByRole("tab", { name: "Typography", exact: true })).toBeFocused()
       await expect(tablist.getByRole("tab", { name: "Typography", exact: true })).toHaveAttribute("aria-selected", "true")
 
-      // WCN supersedes WRCP-06: the Radix viewport owns scrolling; the overlay thumb reveals without reserving width.
+      // WCN supersedes WRCP-06: the Radix viewport owns scrolling; the overlay thumb strengthens without reserving width.
       const content = page.getByRole("region", { name: "Theme editor", exact: true })
       await editorCategory(page, "Colors")
       const thumb = page.getByTestId("editor-scroll").locator('[data-slot="scroll-area-thumb"]')
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
       await page.mouse.move(headerBox.x + headerBox.width / 2, headerBox.y + headerBox.height / 2)
       await expect(thumb).toBeAttached()
-      expect(await style(thumb, "background-color")).toBe(TRANSPARENT_THUMB)
+      // WSTP-10: the shared thumb is a faint semantic neutral at rest and strengthens on region hover/focus.
+      const restThumb = await style(thumb, "background-color")
+      expect(restThumb).not.toBe(TRANSPARENT_THUMB)
       const rest = await box(content)
       expect(await style(content, "scrollbar-width")).toBe("none")
       expect(await style(content, "overflow-y")).toBe("scroll")
       await content.hover()
-      expect(await style(thumb, "background-color")).not.toBe(TRANSPARENT_THUMB)
+      await expect.poll(() => style(thumb, "background-color")).not.toBe(restThumb)
       expect(await box(content)).toEqual(rest)
       await content.focus()
       await page.mouse.move(headerBox.x + headerBox.width / 2, headerBox.y + headerBox.height / 2)
-      expect(await style(thumb, "background-color")).not.toBe(TRANSPARENT_THUMB)
+      await expect.poll(() => style(thumb, "background-color")).not.toBe(restThumb)
       const before = await content.evaluate(el => el.scrollTop)
       await content.hover()
       await page.mouse.wheel(0, 400)
       await expect.poll(() => content.evaluate(el => el.scrollTop)).toBeGreaterThan(before)
       await content.evaluate(el => { el.scrollTop = 0 })
 
-      for (const category of ["Colors", "Typography", "Other", "Command"] as const) {
+      for (const category of ["Colors", "Typography", "Effects", "Command"] as const) {
         await editorCategory(page, category)
         const panel = page.getByRole("tabpanel", { name: category, exact: true })
         // WRCP-05 shared section triggers.
@@ -166,7 +168,7 @@ for (const mode of ["light", "dark"] as const) {
       // WRCP-10 font search and Save As name are Workbench editable controls too.
       await editorCategory(page, "Typography")
       await page.getByTestId("control-font-sans").getByRole("combobox").click()
-      const search = page.getByRole("combobox", { name: "Search Sans font" })
+      const search = page.getByRole("combobox", { name: "Search Sans fonts" })
       await expect(search).toBeVisible()
       expect(await style(search, "font-size")).toBe("14px")
       await search.fill("Lat")
@@ -230,8 +232,8 @@ for (const mode of ["light", "dark"] as const) {
 
 test("WRCP-03/04 Shadow color reuses the picker/text interaction; approved Other labels; no stored-value helper", async ({ page }, info) => {
   await page.goto("/")
-  await editorCategory(page, "Other")
-  const panel = page.getByRole("tabpanel", { name: "Other", exact: true })
+  await editorCategory(page, "Effects")
+  const panel = page.getByRole("tabpanel", { name: "Effects", exact: true })
   const shadow = panel.getByTestId("section-shadow")
   const labels = await shadow.locator('[data-slot="field-label"]').allInnerTexts()
   expect(labels.map(label => label.trim())).toEqual(["Shadow color", "Opacity", "Blur", "Spread", "Offset X", "Offset Y"])
@@ -246,7 +248,7 @@ test("WRCP-03/04 Shadow color reuses the picker/text interaction; approved Other
   await editorCategory(page, "Colors")
   const primary = await page.getByTestId("control-color-primary").evaluate(el => el.innerHTML.replace(/color-primary|Primary|value="[^"]*"/g, ""))
   expect(colors).toBe(primary)
-  await editorCategory(page, "Other")
+  await editorCategory(page, "Effects")
 
   const text = page.getByLabel("Shadow color", { exact: true })
   const picker = page.getByLabel("Shadow color picker", { exact: true })
@@ -260,7 +262,7 @@ test("WRCP-03/04 Shadow color reuses the picker/text interaction; approved Other
   await preview(page).getByRole("combobox", { name: "Preview views" }).click()
   await preview(page).getByRole("option", { name: "States", exact: true }).click()
   await expect.poll(elevation).toMatch(/oklch\(0\.627955 0\.257683 29\.23\d* \/ 0\.1\)/)
-  await editorCategory(page, "Other")
+  await editorCategory(page, "Effects")
 
   // Keyboard text entry: HEX normalizes to canonical OKLCH; a translucent colour is rejected locally and never applied.
   await text.focus()

@@ -24,8 +24,8 @@ const apply = (operation: unknown, base: Theme = theme) => {
 
 const profile = { color: "#000000", opacity: 0.2, blur: "6px", spread: "1px", offsetX: "2px", offsetY: "3px" }
 
-describe("closed operation union (TSV2 additions only)", () => {
-  it("adds exactly setFontFamily, setTracking, setRadiusBase, setSpacingBase, setShadowProfile", () => {
+describe("closed operation union (TSV2 additions, then WSTP-08 setSidebarTokensEnabled only)", () => {
+  it("adds exactly setFontFamily, setTracking, setRadiusBase, setSpacingBase, setShadowProfile, setSidebarTokensEnabled", () => {
     expect(describeOperations()).toEqual([
       { name: "setColor", fields: ["op", "mode", "token", "value"] },
       { name: "setRadius", fields: ["op", "value"] },
@@ -38,7 +38,9 @@ describe("closed operation union (TSV2 additions only)", () => {
       { name: "setRadiusBase", fields: ["op", "value"] },
       { name: "setSpacingBase", fields: ["op", "value"] },
       { name: "setShadowProfile", fields: ["op", "value"] },
+      { name: "setSidebarTokensEnabled", fields: ["op", "value"] },
     ])
+    expect(describeOperations()).toHaveLength(12)
   })
 })
 

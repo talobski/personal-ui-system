@@ -1,7 +1,7 @@
 import { normalizeColor, parseLength } from "../theme/color"
 import { admitRemLength, admitShadowProfile, deriveRadiusScale, deriveShadowTiers, MANUAL_CONTROL_BOUNDS, SHADOW_PROFILE_FIELDS } from "../theme/derive"
 import type { ShadowProfile } from "../theme/derive"
-import { COLOR_TOKENS, densitySchema, durationSchema, FONT_FAMILY_TOKENS, fontNameSchema, fontStackSchema, SHADOW_TOKENS, themeSchema, trackingSchema } from "../theme/schema"
+import { COLOR_TOKENS, densitySchema, durationSchema, FONT_FAMILY_TOKENS, fontNameSchema, fontStackSchema, isSidebarColorToken, SHADOW_TOKENS, syncUninitializedSidebarColors, themeSchema, trackingSchema } from "../theme/schema"
 import type { ColorToken, FontFamilyToken, Theme } from "../theme/schema"
 import { renderShadcnTailwindCss } from "../theme/render"
 
@@ -15,7 +15,8 @@ type Mode = (typeof MODES)[number]
  * and token from closed lists and `setFontFamily` a family from a closed list; every other operation edits one fixed
  * target (documented per operation), so it carries no token or path field to select anything else.
  *
- * `setColor` accepts HEX, RGB(A), HSL(A), or OKLCH input; the stored value is canonical OKLCH.
+ * `setColor` accepts HEX, RGB(A), HSL(A), or OKLCH input; the stored value is canonical OKLCH. Its token list includes
+ * the eight dedicated Sidebar colours; the first edit of one of them initializes the dedicated set (see below).
  */
 export type SetColorOperation = { op: "setColor"; mode: Mode; token: ColorToken; value: string }
 /** Sets `radius.md` alone (rendered `--radius-md`); the rest of the scale is kept. Non-negative dimension. */
@@ -38,6 +39,12 @@ export type SetRadiusBaseOperation = { op: "setRadiusBase"; value: string }
 export type SetSpacingBaseOperation = { op: "setSpacingBase"; value: string }
 /** Derives all eight shadow tiers from one profile (`theme/derive.ts`); no profile is stored beside the tiers. */
 export type SetShadowProfileOperation = { op: "setShadowProfile"; value: ShadowProfile }
+/**
+ * Sets `sidebar.useDedicatedTokens`: on, the Sidebar renders the dedicated Sidebar colours; off, their base aliases.
+ * Stored dedicated values are kept either way. The first activation initializes the dedicated set from the current
+ * resolved aliases in both modes, so switching on causes no visual change.
+ */
+export type SetSidebarTokensEnabledOperation = { op: "setSidebarTokensEnabled"; value: boolean }
 export type ThemeOperation =
   | SetColorOperation
   | SetRadiusOperation
@@ -50,6 +57,7 @@ export type ThemeOperation =
   | SetRadiusBaseOperation
   | SetSpacingBaseOperation
   | SetShadowProfileOperation
+  | SetSidebarTokensEnabledOperation
 
 export type MutationRequest = {
   schemaVersion: typeof MUTATION_SCHEMA_VERSION
@@ -101,6 +109,7 @@ const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
   ["setRadiusBase", new Set(["op", "value"])],
   ["setSpacingBase", new Set(["op", "value"])],
   ["setShadowProfile", new Set(["op", "value"])],
+  ["setSidebarTokensEnabled", new Set(["op", "value"])],
 ])
 const REQUEST_KEYS = new Set(["schemaVersion", "requestId", "base", "operations"])
 
@@ -133,6 +142,7 @@ const VALUE_CHECKS: Record<string, (value: unknown) => boolean> = {
   setTracking: (value) => trackingSchema.safeParse(value).success,
   setRadiusBase: (value) => admitRemLength(value, MANUAL_CONTROL_BOUNDS.radiusBase) !== null,
   setSpacingBase: (value) => admitRemLength(value, MANUAL_CONTROL_BOUNDS.spacingBase) !== null,
+  setSidebarTokensEnabled: (value) => typeof value === "boolean",
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -191,6 +201,16 @@ export function validateMutation(input: unknown, base: Pick<Theme, "id" | "revis
   return errors.length > 0 ? { ok: false, errors } : { ok: true, request: input as MutationRequest }
 }
 
+/**
+ * Snapshots the dedicated Sidebar set: while uninitialized, copies the current resolved base aliases into it in both
+ * modes (so earlier operations of the same request are reflected) and marks it initialized. Idempotent afterwards.
+ */
+function initializeSidebarColors(theme: Theme) {
+  if (theme.sidebar.dedicatedValuesInitialized) return
+  syncUninitializedSidebarColors(theme)
+  theme.sidebar.dedicatedValuesInitialized = true
+}
+
 /** Pure: returns the next-revision candidate theme and its CSS; the input theme is never mutated. */
 export function applyMutation(theme: Theme, input: unknown): MutationResult {
   const validation = validateMutation(input, theme)
@@ -201,7 +221,12 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
   validation.request.operations.forEach((operation, index) => {
     switch (operation.op) {
       case "setColor":
+        if (isSidebarColorToken(operation.token)) initializeSidebarColors(next)
         next.colors[operation.mode][operation.token].$value = (normalizeColor(operation.value) as { ok: true; value: string }).value
+        break
+      case "setSidebarTokensEnabled":
+        if (operation.value) initializeSidebarColors(next)
+        next.sidebar.useDedicatedTokens.$value = operation.value
         break
       case "setRadius":
         next.radius.md.$value = operation.value
@@ -248,7 +273,8 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
   if (missing.length > 0) return { ok: false, errors: missing }
   next.revision = theme.revision + 1
 
-  // Defense in depth: the candidate must still be a schema-valid theme.
+  // Defense in depth: the candidate must still be a schema-valid theme. Parsing also re-synchronizes an uninitialized
+  // dedicated Sidebar set to the (possibly edited) base aliases.
   const checked = themeSchema.parse(next)
   return { ok: true, theme: checked, css: renderShadcnTailwindCss(checked) }
 }

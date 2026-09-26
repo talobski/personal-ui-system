@@ -50,7 +50,7 @@ for (const mode of ["light", "dark"] as const) {
       const preview = page.frameLocator('[data-testid="preview-frame"]')
       await expect(preview.getByTestId("preview")).toHaveAttribute("data-ready", "true")
       expect(await preview.getByTestId("preview").evaluate(el => getComputedStyle(el).paddingLeft)).toBe("16px")
-      await editorCategory(page, "Other")
+      await editorCategory(page, "Effects")
       const header = page.locator('[data-slot="sidebar-header"]')
       // WSPF-04 supersedes the borderless header: exactly one semantic 1px bottom border.
       expect(await header.evaluate(el => getComputedStyle(el).borderBottomWidth)).toBe("1px")
@@ -87,7 +87,7 @@ for (const mode of ["light", "dark"] as const) {
       for (const option of await page.getByRole("option").all()) await checkSwatches(option.getByTestId("theme-swatches"))
       await page.keyboard.press("Escape")
 
-      for (const category of ["Other", "Typography", "Colors"] as const) {
+      for (const category of ["Effects", "Typography", "Colors"] as const) {
         await editorCategory(page, category)
         const panel = page.getByRole("tabpanel", { name: category, exact: true })
         for (const row of await panel.locator('[data-testid$="-row"]').all()) {
@@ -97,14 +97,19 @@ for (const mode of ["light", "dark"] as const) {
             const r = el.getBoundingClientRect(), s = getComputedStyle(el)
             return { x: r.x, right: r.right, y: r.y + r.height / 2, width: r.width, grow: s.flexGrow, shrink: s.flexShrink }
           }))
-          expect(children).toHaveLength(3)
-          for (const index of [0, 2]) {
+          expect(await row.evaluate(el => getComputedStyle(el).display)).toBe("grid")
+          // WSTP-12: one shared fixed 5rem (80px) label column; font rows are label + control, numeric rows add the value.
+          const fontRow = (await row.getAttribute("data-testid"))!.startsWith("font-")
+          expect(children).toHaveLength(fontRow ? 2 : 3)
+          for (const index of fontRow ? [0] : [0, 2]) {
             expect(children[index]!.grow).toBe("0"); expect(children[index]!.shrink).toBe("1")
           }
-          expect(await row.evaluate(el => getComputedStyle(el).display)).toBe("grid")
           expect(children[1]!.width).toBeGreaterThan(24)
-          close(children[0]!.width, 96); close(children[2]!.width, 86)
-          close((await box(row.getByRole("textbox"))).width, 56); close((await box(row.locator("[data-testid$=-unit]"))).width, 24)
+          close(children[0]!.width, 80)
+          if (!fontRow) {
+            close(children[2]!.width, 86)
+            close((await box(row.getByRole("textbox"))).width, 56); close((await box(row.locator("[data-testid$=-unit]"))).width, 24)
+          }
           for (let i = 0; i < children.length; i++) {
             close(children[i]!.y, bounds.y + bounds.height / 2)
             expect(children[i]!.right).toBeLessThanOrEqual(bounds.x + bounds.width + 1)
@@ -142,7 +147,7 @@ for (const mode of ["light", "dark"] as const) {
         expect(await seriousOutsideKnownDebt(page, axe.violations, info, `${category}-${mode}-${reducedMotion}`)).toEqual([])
         expect(await panel.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
       }
-      await editorCategory(page, "Other")
+      await editorCategory(page, "Effects")
       const spacing = page.getByRole("slider", { name: "Spacing", exact: true })
       await spacing.focus(); await spacing.press("ArrowRight")
       await expect(page.getByRole("textbox", { name: "Spacing", exact: true })).toHaveValue("0.255")

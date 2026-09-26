@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
-import { applyProposal, COLOR_TOKENS, createProposalSession, diffThemeTokens, discardProposal, normalizeColor, renderShadcnTailwindCss, stageProposal, validateTheme } from "@personal-ui/core"
+import { applyProposal, COLOR_TOKENS, createProposalSession, diffThemeTokens, discardProposal, normalizeColor, renderShadcnTailwindCss, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, stageProposal, validateTheme } from "@personal-ui/core"
 
 import {
   createCustomTheme,
@@ -12,7 +12,7 @@ import {
   loadBuiltInThemes,
   previewVariablesCss,
 } from "./lifecycle"
-import { buildFontOperation, fontControlCopy, buildShadowColorOperation, COLOR_GROUPS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readShadowColor } from "./controls"
+import { buildFontOperation, fontControlCopy, buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, FONT_CONTROLS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
 import { deleteTheme, emptySaved, loadSaved, saveSelection, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
@@ -43,7 +43,7 @@ it("WSPF-05/06 section triggers use the semantic muted pair; only the known Defa
   expect([defaultTheme.colors.light["muted-foreground"].$value, defaultTheme.colors.light.muted.$value]).toEqual(["oklch(0.555527 0 0)", "oklch(0.970151 0 0)"])
   expect([pickerHex(defaultTheme.colors.light["muted-foreground"].$value), pickerHex(defaultTheme.colors.light.muted.$value)]).toEqual(["#737373", "#f5f5f5"])
   const source = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
-  expect(source).toContain("h-auto w-fit rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180")
+  expect(source).toContain("h-auto w-fit cursor-pointer rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180")
   const trigger = source.match(/<CollapsibleTrigger asChild>[\s\S]*?<Button [^>]*className="([^"]+)"/)![1]!
   // No stronger local foreground workaround, raw colour, or accent treatment.
   expect(trigger).not.toMatch(/text-foreground|bg-muted\/50|ring-border\/50|accent|\[#|oklch|rgb|hsl/i)
@@ -56,7 +56,8 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
   const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8")
 
   it("gives the category ScrollArea the full sidebar width with its 16px inset inside the scrolling content", () => {
-    expect(app).toContain('<SidebarGroup className="shrink-0 bg-card p-0">')
+    // WSTP-06 supersedes the card fill: the category bar follows the Sidebar semantic (base background while off).
+    expect(app).toContain('<SidebarGroup className="shrink-0 bg-sidebar p-0">')
     expect(app).toMatch(/<ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden"[^>]*>\s*<div data-testid="category-inset" className="w-max p-4">\s*(?:\{\/\*[^*]*\*\/\}\s*)?<TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0"/)
     expect(app.match(/orientation="horizontal"/g)).toHaveLength(1)
     expect(app).toContain('<ScrollArea type="auto" className="quiet-scroll-area min-h-0 flex-1" data-testid="editor-scroll"')
@@ -64,7 +65,7 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
 
   it("styles category tabs with the approved state tokens while keeping the official trigger", () => {
     const tabClass = app.match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!
-    for (const token of ["w-auto", "flex-none", "shrink-0", "whitespace-nowrap", "px-3", "cursor-pointer", "text-sm", "text-muted-foreground", "data-[state=inactive]:bg-transparent", "data-[state=inactive]:hover:text-muted-foreground/80", "data-[state=active]:bg-secondary", "data-[state=active]:text-secondary-foreground", "data-[state=active]:shadow-none", "h-[calc(100%-7px)]"]) {
+    for (const token of ["w-auto", "flex-none", "shrink-0", "whitespace-nowrap", "px-2", "cursor-pointer", "text-sm", "text-muted-foreground", "data-[state=inactive]:bg-transparent", "data-[state=inactive]:hover:text-muted-foreground/80", "data-[state=active]:bg-secondary", "data-[state=active]:text-secondary-foreground", "data-[state=active]:shadow-none", "h-[calc(100%-7px)]"]) {
       expect(tabClass.split(" ")).toContain(token)
     }
     expect(tabClass).not.toMatch(/(?:^| )(?:flex-1|flex-wrap|hover:bg-|rounded-|py-|font-)/)
@@ -101,7 +102,7 @@ describe("WRCP-03/04 Other-tab labels and shared shadow colour interaction", () 
   it("shortens only the approved visible labels; ids and operations are unchanged", () => {
     const labels = (["shadowOpacity", "shadowBlur", "shadowSpread", "shadowOffsetX", "shadowOffsetY", "motion"] as const).map(id => NUMERIC_CONTROLS[id].label)
     expect(labels).toEqual(["Opacity", "Blur", "Spread", "Offset X", "Offset Y", "Duration"])
-    expect([NUMERIC_CONTROLS.radius.label, NUMERIC_CONTROLS.spacing.label, NUMERIC_CONTROLS.tracking.label]).toEqual(["Radius", "Spacing", "Letter spacing"])
+    expect([NUMERIC_CONTROLS.radius.label, NUMERIC_CONTROLS.spacing.label, NUMERIC_CONTROLS.tracking.label]).toEqual(["Radius", "Spacing", "Tracking"])
     expect(NUMERIC_CONTROLS.motion.build(320, defaultTheme)).toEqual({ op: "setMotionDuration", value: "320ms" })
     expect(NUMERIC_CONTROLS.shadowBlur.build(10, defaultTheme)).toMatchObject({ op: "setShadowProfile", value: { blur: "10px" } })
   })
@@ -181,7 +182,7 @@ describe("built-in themes (TSV2-02, TSV2-03, TSV2-04)", () => {
     expect(BUILT_IN_IDS).toEqual([DEFAULT_THEME_ID, "quiet-editorial"])
     for (const theme of builtIns) expect(validateTheme(theme)).toEqual({ ok: true, theme })
     expect(defaultTheme.name).toBe("Default")
-    expect(canonical.schemaVersion).toBe("2.0")
+    expect(canonical.schemaVersion).toBe("2.1")
   })
 
   it("accepts all four colour families through the manual colour path and stores canonical OKLCH", () => {
@@ -311,7 +312,7 @@ describe("Save As (WTEP-08)", () => {
 
 describe("grouped colour rows and native picker (WTEP-05, WTEP-06)", () => {
   it("lists every canonical colour token exactly once, in the approved groups", () => {
-    expect(COLOR_GROUPS.map((group) => group.title)).toEqual(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts"])
+    expect(COLOR_GROUPS.map((group) => group.title)).toEqual(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"])
     expect(COLOR_GROUPS.find((group) => group.id === "base")?.tokens).toEqual(["background", "foreground"])
     const tokens = COLOR_GROUPS.flatMap((group) => group.tokens)
     expect([...tokens].sort()).toEqual([...COLOR_TOKENS].sort())
@@ -389,7 +390,7 @@ describe("persistence (TSV2-04, TSV2-12)", () => {
     const storage = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ themes: { "legacy-fork": v1 }, activeId: "legacy-fork" }) })
     const loaded = loadSaved(storage, BUILT_IN_IDS)
     expect(loaded.activeId).toBe("legacy-fork")
-    expect(loaded.themes["legacy-fork"]?.schemaVersion).toBe("2.0")
+    expect(loaded.themes["legacy-fork"]?.schemaVersion).toBe("2.1")
     expect(loaded.themes["legacy-fork"]?.colors.light.primary.$value).toBe(canonical.colors.light.primary.$value)
     expect(loaded.bases).toEqual({})
   })
@@ -614,5 +615,157 @@ describe("density boundary (WSSP-10)", () => {
     expect(staged.ok).toBe(true)
     if (staged.ok) expect(staged.staged.candidate.space.density.$value).toBe(1.5)
     expect(NUMERIC_CONTROLS.density.read(canonical)).toBe(canonical.space.density.$value)
+  })
+})
+
+describe("WSTP-06/07/09 Sidebar tokens in the Workbench", () => {
+  const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8")
+  const controls = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
+
+  it("exposes one Sidebar colour group with the eight exact visible labels", () => {
+    const group = COLOR_GROUPS.filter((entry) => entry.id === "sidebar")
+    expect(group).toHaveLength(1)
+    expect(group[0]!.tokens).toEqual([...SIDEBAR_COLOR_TOKENS])
+    expect(group[0]!.tokens.map(colorTokenLabel)).toEqual(["Background", "Foreground", "Primary", "Primary foreground", "Accent", "Accent foreground", "Border", "Ring"])
+    // Base labels are unchanged; screen readers get the Sidebar context without changing the visible label.
+    expect(colorTokenLabel("background")).toBe("Background")
+    expect(app).toContain('labelPrefix={isSidebarColorToken(token) ? "Sidebar" : undefined}')
+  })
+
+  it("uses the official Switch with exact label and helper copy, and never gates the colour fields on the mode", () => {
+    expect(controls).toContain('import { Switch } from "@personal-ui/ui/components/switch"')
+    expect(controls).toContain("<Label htmlFor=\"sidebar-tokens-switch\">Use sidebar tokens</Label>")
+    expect(controls).toContain('"Sidebar tokens are active."')
+    expect(controls).toContain('"Sidebar tokens are currently not applied."')
+    expect(controls).toContain('apply(() => ({ op: "setSidebarTokensEnabled", value: checked }))')
+    // The fields render for every token in both states and are disabled only by the shared staging lock.
+    expect(app).toContain('{group.id === "sidebar" && <SidebarTokensSwitch enabled={current.sidebar.useDedicatedTokens.$value} disabled={locked} apply={applyManual} />}')
+    expect(app).not.toMatch(/useDedicatedTokens\.\$value\s*[?&]/)
+    expect(app).not.toMatch(/dedicatedValuesInitialized/)
+    expect(controls).not.toMatch(/dedicatedValuesInitialized/)
+  })
+
+  it("edits through the core mutation path: off keeps aliases live, first activation has no jump, on applies edits", () => {
+    const editedBase = editColor(defaultTheme, "light", "background", "oklch(0.97 0.01 90)")
+    if (!editedBase.ok) throw new Error("expected edit")
+    const offCss = previewVariablesCss(editedBase.theme)
+    for (const name of SIDEBAR_COLOR_TOKENS) expect(offCss).toContain(`  --${name}: var(--${SIDEBAR_TOKEN_ALIASES[name]});`)
+    // A dedicated edit while off is stored but not applied.
+    const dedicated = editColor(editedBase.theme, "light", "sidebar", "oklch(0.9 0.02 250)")
+    if (!dedicated.ok) throw new Error("expected edit")
+    expect(dedicated.theme.colors.light.sidebar.$value).toBe("oklch(0.9 0.02 250)")
+    expect(previewVariablesCss(dedicated.theme)).toContain("  --sidebar: var(--background);")
+    const on = editTheme(dedicated.theme, { op: "setSidebarTokensEnabled", value: true })
+    if (!on.ok) throw new Error("expected edit")
+    expect(previewVariablesCss(on.theme)).toContain("  --sidebar: oklch(0.9 0.02 250);")
+    // First activation of a never-edited set snapshots the resolved aliases: identical resolved values.
+    const firstOn = editTheme(editedBase.theme, { op: "setSidebarTokensEnabled", value: true })
+    if (!firstOn.ok) throw new Error("expected edit")
+    expect(previewVariablesCss(firstOn.theme)).toContain("  --sidebar: oklch(0.97 0.01 90);")
+    expect(diffThemeTokens(editedBase.theme, firstOn.theme)).toEqual([{ path: "sidebar.useDedicatedTokens", before: false, after: true }])
+  })
+
+  it("saves, reloads, exports, and re-imports v2.1 Sidebar state under the unchanged storage key", () => {
+    const on = editTheme(defaultTheme, { op: "setSidebarTokensEnabled", value: true })
+    if (!on.ok) throw new Error("expected edit")
+    const copy = createCustomTheme(on.theme, "Sidebar Test", BUILT_IN_IDS)
+    if (!copy.ok) throw new Error("expected copy")
+    const recolored = editColor(copy.theme, "dark", "sidebar-accent", "oklch(0.35 0.03 250)")
+    if (!recolored.ok) throw new Error("expected edit")
+    const storage = memoryStorage()
+    const saved = saveTheme(storage, emptySaved(), recolored.theme, BUILT_IN_IDS, DEFAULT_THEME_ID)
+    if (!saved.ok) throw new Error("expected save")
+    expect(Object.keys(storage.data)).toEqual([STORAGE_KEY])
+    expect(STORAGE_KEY).toBe("personal-ui-workbench/v1")
+    const reloaded = loadSaved(storage, BUILT_IN_IDS)
+    expect(reloaded.themes["sidebar-test"]).toEqual(recolored.theme)
+    expect(reloaded.activeId).toBe("sidebar-test")
+    const exported = JSON.parse(exportThemeJson(recolored.theme).json)
+    expect(exported.schemaVersion).toBe("2.1")
+    expect(exported.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: true }, dedicatedValuesInitialized: true })
+    expect(validateTheme(exported)).toEqual({ ok: true, theme: recolored.theme })
+  })
+
+  it("migrates a saved v2.0 custom theme on read without losing values, selection, or base record", () => {
+    const v20 = structuredClone(defaultTheme) as Record<string, any>
+    Object.assign(v20, { id: "legacy-v20", name: "Legacy V20", revision: 4, schemaVersion: "2.0" })
+    delete v20.sidebar
+    for (const mode of ["light", "dark"]) for (const name of SIDEBAR_COLOR_TOKENS) delete v20.colors[mode][name]
+    v20.colors.light.primary.$value = VALID
+    const storage = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ themes: { "legacy-v20": v20 }, activeId: "legacy-v20", bases: { "legacy-v20": "quiet-editorial" } }) })
+    const loaded = loadSaved(storage, BUILT_IN_IDS)
+    const theme = loaded.themes["legacy-v20"]!
+    expect(loaded.activeId).toBe("legacy-v20")
+    expect(loaded.bases).toEqual({ "legacy-v20": "quiet-editorial" })
+    expect(theme).toMatchObject({ schemaVersion: "2.1", revision: 4, name: "Legacy V20" })
+    expect(theme.colors.light.primary.$value).toBe(VALID)
+    expect(theme.colors.light["sidebar-primary"].$value).toBe(VALID)
+    expect(theme.sidebar.useDedicatedTokens.$value).toBe(false)
+    // Rendering is unchanged by migration: the Sidebar follows the same base semantics as before.
+    expect(previewVariablesCss(theme)).toContain("  --sidebar: var(--background);")
+  })
+
+  it("never lets a staged Sidebar proposal reach the active theme before Apply", () => {
+    const proposal = { schemaVersion: "1.0", proposalId: "sidebar-1", base: { themeId: defaultTheme.id, revision: defaultTheme.revision }, provenance: { source: "fixture", sourceId: "wstp", createdAt: "2026-09-26T00:00:00Z" }, operations: [{ op: "setSidebarTokensEnabled", value: true }] }
+    const staged = stageProposal(createProposalSession(), defaultTheme, proposal, "2026-09-26T00:00:00Z")
+    if (!staged.ok) throw new Error("expected staged")
+    expect(previewVariablesCss(defaultTheme)).toContain("  --sidebar: var(--background);")
+    expect(previewVariablesCss(staged.staged.candidate)).not.toContain("  --sidebar: var(--background);")
+    // Chrome renders only the active theme; the candidate only reaches the preview state.
+    expect(app).toContain("const activeCss = React.useMemo(() => previewVariablesCss(current), [current])")
+  })
+})
+
+describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and pointer affordances", () => {
+  const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8")
+  const controls = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
+  const button = readFileSync(new URL("../../../packages/ui/src/components/button.tsx", import.meta.url), "utf8")
+
+  it("sets only the official desktop --sidebar-width to 28rem", () => {
+    expect(app).toContain('style={{ "--sidebar-width": "28rem" } as React.CSSProperties}')
+    expect(app.match(/--sidebar-width/g)).toHaveLength(1)
+    expect(app).not.toMatch(/--sidebar-width-mobile|w-\[28rem\]|28rem\]/)
+    expect(readFileSync(new URL("../../../packages/ui/src/components/sidebar.tsx", import.meta.url), "utf8")).toContain('const SIDEBAR_WIDTH_MOBILE = "18rem"')
+  })
+
+  it("uses the shared 5rem label geometry for font rows (Sans/Serif/Mono) and numeric rows, and exact Spacing/Tracking copy", () => {
+    expect(FONT_CONTROLS.map((control) => control.label)).toEqual(["Sans", "Serif", "Mono"])
+    expect(controls).toContain('export const LABELLED_ROW_CLASS = "grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] items-center gap-[0.375rem]"')
+    expect(controls).toContain('export const NUMERIC_ROW_CLASS = "grid min-w-0 grid-cols-[5rem_minmax(0,1fr)_max-content] items-center gap-[0.375rem]"')
+    expect(controls).toContain("<div className={LABELLED_ROW_CLASS} data-testid={`${id}-row`}>")
+    expect(controls).toContain("<div className={NUMERIC_ROW_CLASS} data-testid={`${id}-row`}>")
+    expect(controls).not.toMatch(/6rem_minmax|className="sr-only">\s*\{label\}/)
+    // Physical rem geometry only: no spacing-scale utilities in the label column contract.
+    expect(controls).not.toMatch(/grid-cols-\[(?:var|calc)/)
+    expect(app).toContain('<ControlSection id="tracking" title="Spacing">')
+    expect(NUMERIC_CONTROLS.tracking.label).toBe("Tracking")
+    expect(NUMERIC_CONTROLS.tracking.build(0.02, defaultTheme)).toEqual({ op: "setTracking", value: "0.02em" })
+  })
+
+  it("renders the active theme name and every dropdown theme name at font-medium", () => {
+    expect(app).toContain('<span className="truncate font-medium">{current.name}</span>')
+    expect(app).toContain('<span className="font-medium">{theme.name}</span>')
+    expect(app).toContain('<span className="font-medium">{saved.themes[id]!.name}</span>')
+  })
+
+  it("shows Effects for the internal other tab with px-2 triggers, in the original order", () => {
+    const tabs = [...app.matchAll(/<TabsTrigger value="([a-z]+)" className=\{CATEGORY_TRIGGER_CLASS\}>([A-Za-z]+)<\/TabsTrigger>/g)].map((match) => [match[1], match[2]])
+    expect(tabs).toEqual([["colors", "Colors"], ["typography", "Typography"], ["other", "Effects"], ["command", "Command"]])
+    expect(app).toContain('<TabsContent className="data-[state=inactive]:hidden" value="other" forceMount>')
+    const trigger = app.match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!.split(" ")
+    expect(trigger).toContain("px-2")
+    expect(trigger).not.toContain("px-3")
+  })
+
+  it("adds pointer cursors only at bounded enabled call sites; the public Button stays unchanged", () => {
+    expect(controls).toMatch(/<Button variant="ghost" size="sm" className="h-auto w-fit cursor-pointer /)
+    expect(app).toContain('<SidebarTrigger className="size-8 cursor-pointer" />')
+    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer" disabled={locked} onClick={() => download(exportThemeJson(current))}>')
+    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer" disabled={locked} onClick={save}>')
+    // Disabled buttons drop pointer events, so no pointer cursor can show while disabled.
+    expect(button).toContain("disabled:pointer-events-none")
+    expect(button).not.toContain("cursor-pointer")
+    // Labels, sliders, and static copy receive no pointer cursor.
+    expect(controls).not.toMatch(/<(?:FieldLabel|Slider|FieldDescription|span)[^>]*cursor-pointer/)
   })
 })

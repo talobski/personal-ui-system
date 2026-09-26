@@ -45,7 +45,7 @@ test("Sidebar shell: desktop width, semantic tokens, menu actions as siblings, k
         await expect(sheet).toHaveAccessibleDescription("Displays the mobile sidebar.")
         expect((await sheet.boundingBox())!.width).toBeCloseTo(288, 0)
         await expect.poll(() => sheet.evaluate((el) => el.contains(document.activeElement))).toBe(true)
-        expect(await sheet.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(await resolved(page, "card"))
+        expect(await sheet.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(await resolved(page, "background"))
         await assertNoSeriousOrCritical(page, testInfo, `sidebar-mobile-open-${mode}`)
         await sheet.getByRole("button", { name: "Typography" }).click()
         await expect(sheet.getByRole("button", { name: "Typography" })).toHaveAttribute("data-active", "true")
@@ -57,7 +57,7 @@ test("Sidebar shell: desktop width, semantic tokens, menu actions as siblings, k
       }
       const container = page.locator('[data-slot="sidebar-container"]')
       expect((await container.boundingBox())!.width).toBeCloseTo(22 * 16, 0)
-      expect(await page.locator('[data-slot="sidebar-inner"]').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(await resolved(page, "card"))
+      expect(await page.locator('[data-slot="sidebar-inner"]').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(await resolved(page, "background"))
       expect(await container.evaluate((el) => getComputedStyle(el).borderRightColor)).toBe(await resolved(page, "border"))
       // Active item and hover use the accent token.
       const colors = page.getByRole("button", { name: "Colors" })

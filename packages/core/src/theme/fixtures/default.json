@@ -1,6 +1,6 @@
 {
   "$schema": "https://personal-ui.local/schema/theme-2.json",
-  "schemaVersion": "2.0",
+  "schemaVersion": "2.1",
   "kind": "personal-ui-theme",
   "id": "default",
   "name": "Default",
@@ -102,6 +102,38 @@
       "chart-5": {
         "$type": "color",
         "$value": "oklch(0.421042 0.179192 266.009449)"
+      },
+      "sidebar": {
+        "$type": "color",
+        "$value": "oklch(1 0 0)"
+      },
+      "sidebar-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.144788 0 0)"
+      },
+      "sidebar-primary": {
+        "$type": "color",
+        "$value": "oklch(0.204627 0 0)"
+      },
+      "sidebar-primary-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.985104 0 0)"
+      },
+      "sidebar-accent": {
+        "$type": "color",
+        "$value": "oklch(0.970151 0 0)"
+      },
+      "sidebar-accent-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.204627 0 0)"
+      },
+      "sidebar-border": {
+        "$type": "color",
+        "$value": "oklch(0.921906 0 0)"
+      },
+      "sidebar-ring": {
+        "$type": "color",
+        "$value": "oklch(0.709 0 0)"
       }
     },
     "dark": {
@@ -200,6 +232,38 @@
       "chart-5": {
         "$type": "color",
         "$value": "oklch(0.421042 0.179192 266.009449)"
+      },
+      "sidebar": {
+        "$type": "color",
+        "$value": "oklch(0.144788 0 0)"
+      },
+      "sidebar-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.985104 0 0)"
+      },
+      "sidebar-primary": {
+        "$type": "color",
+        "$value": "oklch(0.921906 0 0)"
+      },
+      "sidebar-primary-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.204627 0 0)"
+      },
+      "sidebar-accent": {
+        "$type": "color",
+        "$value": "oklch(0.371495 0 0)"
+      },
+      "sidebar-accent-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.985104 0 0)"
+      },
+      "sidebar-border": {
+        "$type": "color",
+        "$value": "oklch(0.276848 0 0)"
+      },
+      "sidebar-ring": {
+        "$type": "color",
+        "$value": "oklch(0.555527 0 0)"
       }
     }
   },
@@ -443,6 +507,13 @@
       "$type": "string",
       "$value": "reduce"
     }
+  },
+  "sidebar": {
+    "useDedicatedTokens": {
+      "$type": "boolean",
+      "$value": false
+    },
+    "dedicatedValuesInitialized": false
   },
   "$extensions": {
     "personal-ui-system": {

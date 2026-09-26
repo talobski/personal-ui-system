@@ -1,0 +1,17 @@
+built css: index-CHKlT_ji.css
+Sidebar bg utility                                         1
+Sidebar fg utility                                         1
+Sidebar accent hover                                       2
+Sidebar ring utility                                       1
+OFF alias --sidebar: var(--background) (:root and .dark)   2
+thumb rest 25%                                             1
+thumb region hover 40%                                     2
+thumb region focus-within 40%                              2
+thumb hover 55%                                            2
+thumb active 55%                                           2
+bar width 0.5rem                                           1
+bar height 0.5rem                                          1
+font row grid 5rem                                         1
+numeric row grid 5rem                                      1
+cursor-pointer                                             1
+former 6rem numeric grid                                   absent

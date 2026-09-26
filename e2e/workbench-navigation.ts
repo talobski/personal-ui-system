@@ -35,7 +35,7 @@ export async function workspaceMode(page: Page, mode: "Controls" | "Preview") {
   }
   await expect(sheet).toHaveCount(0)
 }
-export async function editorCategory(page: Page, category: "Colors" | "Typography" | "Other" | "Command") {
+export async function editorCategory(page: Page, category: "Colors" | "Typography" | "Effects" | "Command") {
   await workspaceMode(page, "Controls")
   await page.getByRole("tab", { name: category, exact: true }).click()
 }
@@ -54,7 +54,12 @@ export async function setColorMode(page: Page, mode: "light" | "dark") {
 }
 
 /** A colour row's canonical text input (labelled by its token name) in the grouped colour editor. */
-export const colorInput = (page: Page, token: string) => page.getByRole("textbox", { name: token.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase()), exact: true })
+/** A colour row's text input. Sidebar rows are named "Sidebar <short label>" (the prefix is screen-reader only). */
+export const colorInput = (page: Page, token: string) => {
+  const short = token === "sidebar" ? "background" : token.replace(/^sidebar-/, "")
+  const label = short.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase())
+  return page.getByRole("textbox", { name: token.startsWith("sidebar") ? `Sidebar ${label}` : label, exact: true })
+}
 
 /** Save from the toolbar; for a built-in this opens Save As, which is completed with `name` when given. */
 export async function saveTheme(page: Page, name?: string) {
@@ -80,10 +85,10 @@ export async function selectTheme(page: Page, id: string) {
 export async function assertActiveControls(page: Page, disabled: boolean) {
   const check = async (control: ReturnType<Page["getByLabel"]>) => disabled ? expect(control).toBeDisabled() : expect(control).toBeEnabled()
   await editorCategory(page, "Colors")
-  for (const c of [colorInput(page, "primary"), page.getByLabel("Primary picker", { exact: true }), colorInput(page, "chart-5"), page.getByLabel("Active theme")]) await check(c)
+  for (const c of [colorInput(page, "primary"), page.getByLabel("Primary picker", { exact: true }), colorInput(page, "chart-5"), colorInput(page, "sidebar"), page.getByRole("switch", { name: "Use sidebar tokens" }), page.getByLabel("Active theme")]) await check(c)
   await editorCategory(page, "Typography")
-  for (const c of [page.getByLabel("Sans font"), page.getByLabel("Serif font"), page.getByLabel("Mono font"), page.getByRole("textbox", { name: "Letter spacing" }), page.getByRole("slider", { name: "Letter spacing" })]) await check(c)
-  await editorCategory(page, "Other")
+  for (const c of [page.getByLabel("Sans", { exact: true }), page.getByLabel("Serif", { exact: true }), page.getByLabel("Mono", { exact: true }), page.getByRole("textbox", { name: "Tracking" }), page.getByRole("slider", { name: "Tracking" })]) await check(c)
+  await editorCategory(page, "Effects")
   for (const c of [page.getByRole("textbox", { name: "Radius" }), page.getByRole("slider", { name: "Radius" }), page.getByLabel("Shadow color", { exact: true }), page.getByLabel("Shadow color picker", { exact: true }), page.getByRole("slider", { name: "Blur", exact: true })]) await check(c)
   // Active-versus-staged clarity: the manual panel says why its controls are paused.
   await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toHaveCount(disabled ? 1 : 0)

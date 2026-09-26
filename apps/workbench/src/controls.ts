@@ -1,4 +1,4 @@
-import { MANUAL_CONTROL_BOUNDS, parseCanonicalOklch, parseLength, readShadowProfile } from "@personal-ui/core"
+import { isSidebarColorToken, MANUAL_CONTROL_BOUNDS, parseCanonicalOklch, parseLength, readShadowProfile, SIDEBAR_COLOR_TOKENS } from "@personal-ui/core"
 import type { ColorToken, FontFamilyToken, ShadowProfile, Theme, ThemeOperation } from "@personal-ui/core"
 
 /**
@@ -69,7 +69,8 @@ const B = MANUAL_CONTROL_BOUNDS
 export const NUMERIC_CONTROLS: Record<NumericControlId, NumericControl> = {
   tracking: {
     ...B.tracking,
-    label: "Letter spacing",
+    // Visible copy only: the canonical token stays `typography.tracking`, edited through `setTracking`.
+    label: "Tracking",
     unit: "em",
     read: (theme) => lengthIn(theme.typography.tracking.$value, "em"),
     build: (value) => ({ op: "setTracking", value: `${value}em` }),
@@ -129,9 +130,9 @@ export function parseNumericDraft(control: NumericControl, raw: string): number 
 
 /** One searchable control per canonical stack; a choice writes the catalog option's full stack through `setFontFamily`. */
 export const FONT_CONTROLS: readonly { family: FontFamilyToken; label: string }[] = [
-  { family: "sans", label: "Sans font" },
-  { family: "serif", label: "Serif font" },
-  { family: "mono", label: "Mono font" },
+  { family: "sans", label: "Sans" },
+  { family: "serif", label: "Serif" },
+  { family: "mono", label: "Mono" },
 ]
 
 export const formatFontStack = (families: readonly string[]) => families.join(", ")
@@ -144,7 +145,8 @@ export const buildShadowColorOperation = (raw: string, theme: Theme): ThemeOpera
 
 /**
  * The grouped colour editor: every canonical colour token appears in exactly one group, in this order. `Base` is only a
- * UI group for the page background and foreground pair; no token is added or renamed.
+ * UI group for the page background and foreground pair; no token is added or renamed. `Sidebar` holds the eight
+ * dedicated Sidebar colours beside the `Use sidebar tokens` mode switch.
  */
 export const COLOR_GROUPS: readonly { id: string; title: string; tokens: readonly ColorToken[] }[] = [
   { id: "primary", title: "Primary", tokens: ["primary", "primary-foreground"] },
@@ -157,11 +159,16 @@ export const COLOR_GROUPS: readonly { id: string; title: string; tokens: readonl
   { id: "destructive", title: "Destructive", tokens: ["destructive", "destructive-foreground"] },
   { id: "border", title: "Border, Input & Ring", tokens: ["border", "input", "ring"] },
   { id: "charts", title: "Charts", tokens: ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] },
+  { id: "sidebar", title: "Sidebar", tokens: SIDEBAR_COLOR_TOKENS },
 ]
 
-/** A token's readable sentence-case field label: `card-foreground` -> `Card foreground`, `chart-1` -> `Chart 1`. */
+/**
+ * A token's readable sentence-case field label: `card-foreground` -> `Card foreground`, `chart-1` -> `Chart 1`. Inside
+ * the Sidebar group the prefix is implied: `sidebar` -> `Background`, `sidebar-primary-foreground` -> `Primary foreground`.
+ */
 export const colorTokenLabel = (token: ColorToken) => {
-  const words = token.replace(/-/g, " ")
+  const name = isSidebarColorToken(token) ? (token === "sidebar" ? "background" : token.slice("sidebar-".length)) : token
+  const words = name.replace(/-/g, " ")
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
 

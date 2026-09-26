@@ -6,7 +6,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@personal-u
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxTrigger } from "@personal-ui/ui/components/combobox"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
+import { Label } from "@personal-ui/ui/components/label"
 import { Slider } from "@personal-ui/ui/components/slider"
+import { Switch } from "@personal-ui/ui/components/switch"
 import { cssFontStack, findFontOption, FONT_OPTIONS } from "@personal-ui/ui/lib/fonts"
 import type { FontCategory, FontOption } from "@personal-ui/ui/lib/fonts"
 
@@ -22,6 +24,13 @@ export type ApplyManual = (build: (theme: Theme) => ThemeOperation) => Workbench
 
 /** The one ordinary field-label style across every editor tab; group headings stay visually distinct. */
 export const FIELD_LABEL_CLASS = "text-xs font-normal text-muted-foreground"
+
+/**
+ * Shared physical row geometry for left-labelled controls: a fixed 5rem label column that never scales with the
+ * editable theme spacing, then the flexible control, then (numeric rows) the intrinsic value and unit.
+ */
+export const LABELLED_ROW_CLASS = "grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] items-center gap-[0.375rem]"
+export const NUMERIC_ROW_CLASS = "grid min-w-0 grid-cols-[5rem_minmax(0,1fr)_max-content] items-center gap-[0.375rem]"
 
 /*
  * Workbench editable controls use quiet-control typography so they compute to 14px at every viewport; the public Input, Textarea, and
@@ -63,7 +72,7 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
             known, pre-approved Default-theme debt that is measured and reported, not locally worked around.
             The explicit hover and dark-hover overrides replace the ghost variant's accent hover.
           */}
-          <Button variant="ghost" size="sm" className="h-auto w-fit rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
+          <Button variant="ghost" size="sm" className="h-auto w-fit cursor-pointer rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
             {title}
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-3 transition-transform motion-reduce:transition-none">
               <path d="m6 9 6 6 6-6" />
@@ -110,7 +119,7 @@ export function LiveNumberField({ id, control, theme, disabled, apply }: { id: s
 
   return (
     <Field data-invalid={error !== null} data-testid={`control-${id}`}>
-      <div className="grid min-w-0 grid-cols-[6rem_minmax(0,1fr)_max-content] items-center gap-[0.375rem]" data-testid={`${id}-row`}>
+      <div className={NUMERIC_ROW_CLASS} data-testid={`${id}-row`}>
         <FieldLabel id={labelId} htmlFor={inputId} className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>
           {control.label}
         </FieldLabel>
@@ -179,6 +188,7 @@ const COLOR_HINT = "Expected HEX, rgb(a), hsl(a), or oklch inside the Display P3
 export function LiveColorField({
   id,
   label,
+  labelPrefix,
   value,
   build,
   hint = COLOR_HINT,
@@ -187,6 +197,8 @@ export function LiveColorField({
 }: {
   id: string
   label: string
+  /** Screen-reader-only context prepended to the visible label, e.g. `Sidebar` for the dedicated Sidebar colours. */
+  labelPrefix?: string
   value: string
   build: (raw: string, theme: Theme) => ThemeOperation
   hint?: string
@@ -213,12 +225,13 @@ export function LiveColorField({
   return (
     <Field data-invalid={error !== null} data-testid={`control-${id}`} className="gap-1.5">
       <FieldLabel htmlFor={inputId} className={FIELD_LABEL_CLASS}>
+        {labelPrefix && <span className="sr-only">{labelPrefix} </span>}
         {label}
       </FieldLabel>
       <div className="flex items-center gap-2">
         <input
           type="color"
-          aria-label={`${label} picker`}
+          aria-label={`${labelPrefix ? `${labelPrefix} ` : ""}${label} picker`}
           data-testid={`${id}-picker`}
           value={pickerHex(value)}
           disabled={disabled}
@@ -288,45 +301,49 @@ export function LiveFontField({
 
   return (
     <Field data-invalid={error !== null} data-testid={`control-${id}`} data-font={selected?.id ?? ""} className="gap-1.5">
-      <FieldLabel htmlFor={inputId} className="sr-only">
-        {label}
-      </FieldLabel>
-      <Combobox
-        items={FONT_OPTIONS[category]}
-        value={selected}
-        disabled={disabled}
-        itemToStringLabel={(option: FontOption) => option.label}
-        itemToStringValue={(option: FontOption) => option.id}
-        isItemEqualToValue={(option: FontOption, value: FontOption) => option.id === value.id}
-        onValueChange={(next: FontOption | null) => {
-          if (next === null) return
-          const issues = apply(() => buildFontOperation(category, next.stack))
-          setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
-        }}
-      >
-        <ComboboxTrigger
-          id={inputId}
-          disabled={disabled}
-          aria-describedby={describedBy}
-          aria-invalid={error !== null}
-          className="quiet-control h-8 w-full justify-between rounded-md border border-input px-3 text-sm shadow-xs"
-        >
-          <span className="truncate">{selected?.label ?? fontControlCopy(category, stack, defaultStack)}</span>
-        </ComboboxTrigger>
-        <ComboboxContent>
-          <div className="p-1">
-            <ComboboxInput id={`${inputId}-search`} aria-label={`Search ${label}`} placeholder="Search fonts" showTrigger={false} className="quiet-control-group h-8" />
-          </div>
-          <ComboboxEmpty>No fonts found.</ComboboxEmpty>
-          <ComboboxList>
-            {(option: FontOption) => (
-              <ComboboxItem key={option.id} value={option} style={{ fontFamily: cssFontStack(option.stack) }}>
-                {option.label}
-              </ComboboxItem>
-            )}
-          </ComboboxList>
-        </ComboboxContent>
-      </Combobox>
+      <div className={LABELLED_ROW_CLASS} data-testid={`${id}-row`}>
+        <FieldLabel htmlFor={inputId} className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>
+          {label}
+        </FieldLabel>
+        <div className="min-w-0">
+          <Combobox
+            items={FONT_OPTIONS[category]}
+            value={selected}
+            disabled={disabled}
+            itemToStringLabel={(option: FontOption) => option.label}
+            itemToStringValue={(option: FontOption) => option.id}
+            isItemEqualToValue={(option: FontOption, value: FontOption) => option.id === value.id}
+            onValueChange={(next: FontOption | null) => {
+              if (next === null) return
+              const issues = apply(() => buildFontOperation(category, next.stack))
+              setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
+            }}
+          >
+            <ComboboxTrigger
+              id={inputId}
+              disabled={disabled}
+              aria-describedby={describedBy}
+              aria-invalid={error !== null}
+              className="quiet-control h-8 w-full cursor-pointer justify-between rounded-md border border-input px-3 text-sm shadow-xs disabled:cursor-not-allowed"
+            >
+              <span className="truncate">{selected?.label ?? fontControlCopy(category, stack, defaultStack)}</span>
+            </ComboboxTrigger>
+            <ComboboxContent>
+              <div className="p-1">
+                <ComboboxInput id={`${inputId}-search`} aria-label={`Search ${label} fonts`} placeholder="Search fonts" showTrigger={false} className="quiet-control-group h-8" />
+              </div>
+              <ComboboxEmpty>No fonts found.</ComboboxEmpty>
+              <ComboboxList>
+                {(option: FontOption) => (
+                  <ComboboxItem key={option.id} value={option} style={{ fontFamily: cssFontStack(option.stack) }}>
+                    {option.label}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        </div>
+      </div>
       {selected === null && (
         <FieldDescription id={noteId} data-testid={`${id}-stack`} className="sr-only !w-px">
           <span className="break-all">{formatFontStack(stack)}</span>
@@ -337,6 +354,37 @@ export function LiveFontField({
           {error}
         </FieldError>
       )}
+    </Field>
+  )
+}
+
+/**
+ * The persistent Sidebar source mode (`setSidebarTokensEnabled`), applied immediately like every manual control. It
+ * never hides or disables the dedicated colour fields: off, they stay editable but unapplied; on, they are live.
+ */
+export function SidebarTokensSwitch({ enabled, disabled, apply }: { enabled: boolean; disabled: boolean; apply: ApplyManual }) {
+  const [error, setError] = React.useState<string | null>(null)
+  useReportInvalid("sidebar-tokens", error !== null)
+  return (
+    <Field data-invalid={error !== null} data-testid="control-sidebar-tokens" className="gap-1.5">
+      <div className="flex items-center gap-2">
+        <Switch
+          id="sidebar-tokens-switch"
+          className="cursor-pointer"
+          checked={enabled}
+          disabled={disabled}
+          aria-describedby="sidebar-tokens-status"
+          onCheckedChange={(checked) => {
+            const issues = apply(() => ({ op: "setSidebarTokensEnabled", value: checked }))
+            setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
+          }}
+        />
+        <Label htmlFor="sidebar-tokens-switch">Use sidebar tokens</Label>
+      </div>
+      <FieldDescription id="sidebar-tokens-status" data-testid="sidebar-tokens-status" data-active={enabled}>
+        {enabled ? "Sidebar tokens are active." : "Sidebar tokens are currently not applied."}
+      </FieldDescription>
+      {error !== null && <FieldError data-testid="sidebar-tokens-error">{error}</FieldError>}
     </Field>
   )
 }

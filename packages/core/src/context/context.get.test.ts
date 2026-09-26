@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { evaluateContextRequest, OPERATION_MAX_BYTES, principlesFor, toCanonicalJson, validateTheme } from "../index"
+import { evaluateContextRequest, OPERATION_MAX_BYTES, principlesFor, SIDEBAR_COLOR_TOKENS, toCanonicalJson, validateTheme } from "../index"
 
 const get = async (resource: string) => {
   const result = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "get", theme: "quiet-editorial", resource })
@@ -31,7 +31,7 @@ describe("context get (ACR-03)", () => {
     expect(result.capabilitiesSummary).toEqual({
       mutationSchemaVersion: "1.0",
       proposalSchemaVersion: "1.0",
-      operationCount: 11,
+      operationCount: 12,
       maxProposalOperations: 8,
     })
   })
@@ -87,12 +87,15 @@ describe("context get (ACR-03)", () => {
   })
 })
 
-describe("context get serves Theme v2 (TSV2-01)", () => {
-  it.each(["default", "quiet-editorial"])("returns canonical v2 %s with v2 identity and fixture provenance", async (theme) => {
+describe("context get serves Theme v2.1 (TSV2-01, WSTP-03, WSTP-09)", () => {
+  it.each(["default", "quiet-editorial"])("returns canonical v2.1 %s with v2.1 identity and fixture provenance", async (theme) => {
     const result = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "get", theme, resource: "responsive-dialog" })
     if (!result.ok || result.operation !== "get") throw new Error("expected get")
-    expect(result.identity.themeSchemaVersion).toBe("2.0")
-    expect(result.theme.schemaVersion).toBe("2.0")
+    expect(result.identity.themeSchemaVersion).toBe("2.1")
+    expect(result.theme.schemaVersion).toBe("2.1")
+    // The eight Sidebar colours are published per mode; initialization bookkeeping is internal data only.
+    for (const mode of ["light", "dark"] as const) expect(Object.keys(result.theme.colors[mode]).filter((name) => name.startsWith("sidebar"))).toEqual([...SIDEBAR_COLOR_TOKENS])
+    expect(result.theme.sidebar.useDedicatedTokens.$value).toBe(false)
     expect(result.theme.id).toBe(theme)
     expect(validateTheme(result.theme)).toEqual({ ok: true, theme: result.theme })
     expect(result.provenance.theme.sourceId).toBe(theme === "default" ? "packages/core/src/theme/fixtures/default.json" : "packages/core/src/theme/fixtures/valid.json")

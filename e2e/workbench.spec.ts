@@ -152,7 +152,7 @@ test.describe("workbench theme lifecycle", () => {
       const file = await download
       expect(file.suggestedFilename()).toBe("my-theme.theme.json")
       const exported = JSON.parse(await (await import("node:fs/promises")).readFile((await file.path())!, "utf8"))
-      expect(exported).toMatchObject({ id: "my-theme", name: "My Theme", kind: "personal-ui-theme", revision: 1, schemaVersion: "2.0" })
+      expect(exported).toMatchObject({ id: "my-theme", name: "My Theme", kind: "personal-ui-theme", revision: 1, schemaVersion: "2.1" })
       expect(exported.colors[mode].primary.$value).toBe(EDIT[mode])
 
       await expectNoSeriousViolations(page, `${mode}-after-reload`, testInfo)

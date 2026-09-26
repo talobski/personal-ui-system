@@ -4,7 +4,7 @@
   "theme": {
     "id": "default",
     "name": "Default",
-    "schemaVersion": "2.0"
+    "schemaVersion": "2.1"
   },
   "source": {
     "description": "Owner-supplied theme export as transcribed, already in OKLCH, in docs/THEME_SYSTEM_V2_IMPLEMENTATION_CONTRACT.md, section 'Exact built-in Default values'. The raw export file itself is not committed; the contract tables are the authoritative source.",
@@ -495,10 +495,34 @@
       "reason": "Every listed source layer is an outer shadow."
     }
   },
+  "sidebarTokens": {
+    "document": "docs/WORKBENCH_SIDEBAR_THEME_POLISH_CONTRACT.md",
+    "mapping": {
+      "sidebar": "sidebar",
+      "sidebar-foreground": "sidebar-foreground",
+      "sidebar-primary": "sidebar-primary",
+      "sidebar-primary-foreground": "sidebar-primary-foreground",
+      "sidebar-accent": "sidebar-accent",
+      "sidebar-accent-foreground": "sidebar-accent-foreground",
+      "sidebar-border": "sidebar-border",
+      "sidebar-ring": "sidebar-ring"
+    },
+    "defaults": {
+      "sidebar": "background",
+      "sidebar-foreground": "foreground",
+      "sidebar-primary": "primary",
+      "sidebar-primary-foreground": "primary-foreground",
+      "sidebar-accent": "accent",
+      "sidebar-accent-foreground": "accent-foreground",
+      "sidebar-border": "border",
+      "sidebar-ring": "ring"
+    },
+    "disposition": "Theme v2.1 promotes the eight shadcn sidebar tokens to canonical colours 1:1 in both modes. The source export's sidebar values were never transcribed into the v2 contract, so the built-in Default ships them as uninitialized copies of their base aliases (defaults above) with sidebar.useDedicatedTokens false; it renders exactly as before."
+  },
   "unsupported": [
     {
-      "field": "sidebar, sidebar-foreground, sidebar-primary, sidebar-primary-foreground, sidebar-accent, sidebar-accent-foreground, sidebar-border, sidebar-ring (light and dark)",
-      "disposition": "omitted: sidebar tokens are outside Theme v2"
+      "field": "sidebar-input (light and dark)",
+      "disposition": "omitted: Theme v2.1 has no sidebar-input token; inputs inside a Sidebar use the ordinary input token"
     },
     {
       "field": "font sizes, weights, line heights",

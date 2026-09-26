@@ -16,7 +16,9 @@ it("renders the Workbench as one Sidebar shell with no header, resizable split, 
   for (const part of ["<SidebarProvider", "<Sidebar>", "<SidebarHeader", "<SidebarContent", "<SidebarInset", "<SidebarTrigger"]) expect(app).toContain(part)
   expect(app.match(/<SidebarProvider\b/g)).toHaveLength(1)
   expect(app.match(/<Sidebar\b/g)).toHaveLength(1)
-  expect(app).toContain('"--sidebar-width": "22rem"')
+  // WSTP-11: the one official desktop width variable on the provider.
+  expect(app).toContain('"--sidebar-width": "28rem"')
+  expect(app.match(/--sidebar-width/g)).toHaveLength(1)
   expect(app).not.toMatch(/ResizablePanel|ResizableHandle|resizable-panel|<header|quiet-header|Workspace mode|mobileMode|editorBounds/)
   expect(styles).not.toMatch(/quiet-header|quiet-split|quiet-handle|quiet-mobile-tabs|quiet-modes/)
   // The public resizable-panel resource stays published.
@@ -28,10 +30,8 @@ it("uses ScrollArea for persistent app regions and exactly one embedded preview-
   const app = workbench("App.tsx")
   const preview = workbench("PreviewFrame.tsx")
   expect(styles).not.toMatch(/scrollbar-width|scrollbar-color|::-webkit-scrollbar/)
-  expect(styles).toContain(".quiet-scroll-area:hover")
-  expect(styles).toContain(".quiet-scroll-area:active")
-  expect(styles).toContain(".quiet-scroll-area:focus-within")
-  expect(styles).toContain("[data-slot=scroll-area-thumb] { background: transparent; }")
+  // WSTP-10: Workbench regions inherit the shared ScrollArea thumb states; no Workbench-only thumb colours remain.
+  expect(styles).not.toContain("scroll-area-thumb")
   expect(globalCss()).not.toMatch(/scrollbar/)
   expect(app.match(/<ScrollArea /g)).toHaveLength(3)
   expect(app).toMatch(/<SidebarContent className="quiet-editor overflow-hidden"/)

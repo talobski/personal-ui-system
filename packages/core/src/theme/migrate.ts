@@ -1,4 +1,5 @@
 import type { ThemeV1 } from "./schema-v1"
+import type { ThemeV2_0 } from "./schema"
 
 /**
  * Declared defaults for the v1 -> v2 migration. Every v1 value is carried over unchanged (colours and lengths are then
@@ -37,7 +38,7 @@ type V1Layer = ThemeV1["shadow"]["sm"]["$value"][number]
 const migrateLayers = (layers: readonly V1Layer[]) =>
   layers.length === 0 ? [{ ...V1_MIGRATION_DEFAULTS.emptyShadowLayer }] : layers.map((layer) => ({ inset: false, ...layer }))
 
-/** Pure v1 -> v2 structural migration. The result is v2 *input*: `validateTheme` still parses it with the v2 schema. */
+/** Pure v1 -> v2.0 structural migration. The result is v2.0 *input*: `validateTheme` still parses it with the v2.0 schema. */
 export function migrateThemeV1(v1: ThemeV1): unknown {
   // Key order is irrelevant here: the v2 schema parse emits keys in schema order.
   const colors = (mode: "light" | "dark") => ({
@@ -81,5 +82,35 @@ export function migrateThemeV1(v1: ThemeV1): unknown {
     shadow,
     motion: v1.motion,
     ...(v1.$extensions ? { $extensions: v1.$extensions } : {}),
+  }
+}
+
+/** The exact base semantic each v2.1 Sidebar token is generated from (mirrors `SIDEBAR_TOKEN_ALIASES` in `schema.ts`). */
+const SIDEBAR_MIGRATION_ALIASES = Object.freeze([
+  ["sidebar", "background"],
+  ["sidebar-foreground", "foreground"],
+  ["sidebar-primary", "primary"],
+  ["sidebar-primary-foreground", "primary-foreground"],
+  ["sidebar-accent", "accent"],
+  ["sidebar-accent-foreground", "accent-foreground"],
+  ["sidebar-border", "border"],
+  ["sidebar-ring", "ring"],
+] as const)
+
+/**
+ * Pure v2.0 -> v2.1 migration. Every v2.0 value is carried over unchanged. Both colour modes gain the eight dedicated
+ * Sidebar colours, each a copy of its base alias in that mode, and the Sidebar source state starts off and
+ * uninitialized, so a migrated theme renders exactly what it rendered before. The result is v2.1 *input*.
+ */
+export function migrateThemeV2_0(v2: ThemeV2_0): unknown {
+  const colors = (mode: "light" | "dark") => ({
+    ...v2.colors[mode],
+    ...Object.fromEntries(SIDEBAR_MIGRATION_ALIASES.map(([name, alias]) => [name, { $type: "color", $value: v2.colors[mode][alias].$value }])),
+  })
+  return {
+    ...v2,
+    schemaVersion: "2.1",
+    colors: { light: colors("light"), dark: colors("dark") },
+    sidebar: { useDedicatedTokens: { $type: "boolean", $value: false }, dedicatedValuesInitialized: false },
   }
 }

@@ -23,9 +23,9 @@ describe("theme schema v2", () => {
     expect(validateTheme(JSON.parse(JSON.stringify(theme)))).toEqual({ ok: true, theme })
   })
 
-  it("accepts the v1 Quiet Editorial fixture, returns v2, and is idempotent", () => {
+  it("accepts the v1 Quiet Editorial fixture, returns canonical v2.1, and is idempotent", () => {
     const theme = valid(validFixture)
-    expect(theme.schemaVersion).toBe("2.0")
+    expect(theme.schemaVersion).toBe("2.1")
     expect(theme.$schema).toBe("https://personal-ui.local/schema/theme-2.json")
     expect(valid(theme)).toEqual(theme)
     expect(JSON.stringify(valid(JSON.parse(JSON.stringify(theme))))).toBe(JSON.stringify(theme))
@@ -80,7 +80,15 @@ describe("theme schema v2", () => {
       (t) => (t.shadow.inner = t.shadow.md),
       (t) => (t.shadow.md.$value[0].blur = "-1px"),
       (t) => delete t.shadow.md.$value[0].inset,
-      (t) => (t.colors.light.sidebar = { $type: "color", $value: "oklch(1 0 0)" }),
+      (t) => (t.colors.light["sidebar-input"] = { $type: "color", $value: "oklch(1 0 0)" }),
+      (t) => (t.colors.dark["sidebar-card"] = { $type: "color", $value: "oklch(1 0 0)" }),
+      (t) => delete t.colors.dark["sidebar-ring"],
+      (t) => delete t.sidebar,
+      (t) => (t.sidebar.extra = true),
+      (t) => (t.sidebar.useDedicatedTokens.$value = "yes"),
+      (t) => (t.sidebar.dedicatedValuesInitialized = { $type: "boolean", $value: true }),
+      // An uninitialized dedicated set can never be the active source.
+      (t) => (t.sidebar.useDedicatedTokens.$value = true),
       (t) => (t.typography.sans.$value = []),
       (t) => (t.typography.serif.$value = ['x"; } a {']),
       (t) => (t.$extensions.other = { x: 1 }),
@@ -188,7 +196,7 @@ describe("renderShadcnTailwindCss", () => {
     expect(css).toContain("--color-destructive-foreground: var(--destructive-foreground);")
     expect(css).toContain("@media (prefers-reduced-motion: reduce)")
     for (const token of COLOR_TOKENS) expect(css).toContain(`--${token}:`)
-    expect(css).not.toMatch(/sidebar/)
+    expect(css).not.toMatch(/sidebar-(?:input|card)/)
   })
 
   it("renders an inset layer with the inset keyword", () => {

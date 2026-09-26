@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Download, Save } from "@personal-ui/ui/lib/workbench-icons"
 
-import { applyProposal, createProposalSession, diffThemeTokens, discardProposal, stageProposal } from "@personal-ui/core"
+import { applyProposal, createProposalSession, diffThemeTokens, discardProposal, isSidebarColorToken, stageProposal } from "@personal-ui/core"
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
@@ -33,7 +33,7 @@ import { deleteTheme, loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
 import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, FONT_CONTROLS, NUMERIC_CONTROLS, readShadowColor } from "./controls"
 import type { NumericControlId } from "./controls"
-import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField } from "./LiveControls"
+import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField, SidebarTokensSwitch } from "./LiveControls"
 import type { ApplyManual } from "./LiveControls"
 
 const builtIns = loadBuiltInThemes()
@@ -78,7 +78,7 @@ function ThemeSwatches({ theme, mode }: { theme: Theme; mode: Mode }) {
  * foreground and a text-only hover. The official trigger's radius, vertical padding, focus ring, and ARIA are unchanged.
  */
 const CATEGORY_TRIGGER_CLASS =
-  "h-[calc(100%-7px)] w-auto flex-none shrink-0 cursor-pointer whitespace-nowrap px-3 text-sm text-muted-foreground dark:text-muted-foreground data-[state=inactive]:bg-transparent data-[state=inactive]:hover:text-muted-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-secondary dark:data-[state=active]:text-secondary-foreground"
+  "h-[calc(100%-7px)] w-auto flex-none shrink-0 cursor-pointer whitespace-nowrap px-2 text-sm text-muted-foreground dark:text-muted-foreground data-[state=inactive]:bg-transparent data-[state=inactive]:hover:text-muted-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-secondary dark:data-[state=active]:text-secondary-foreground"
 
 function TrashIcon() {
   return (
@@ -97,6 +97,7 @@ function ReviewChangesButton({ evaluating, showCommand }: { evaluating: boolean;
     <Button
       size="sm"
       variant="outline"
+      className="cursor-pointer"
       onClick={() => {
         if (evaluating) {
           showCommand()
@@ -332,7 +333,7 @@ export function App() {
   const activeCustom = !builtInCopy && Object.hasOwn(saved.themes, current.id)
 
   return (
-    <SidebarProvider className="quiet-shell" data-theme-status={status} style={{ "--sidebar-width": "22rem" } as React.CSSProperties}>
+    <SidebarProvider className="quiet-shell" data-theme-status={status} style={{ "--sidebar-width": "28rem" } as React.CSSProperties}>
       <style id="workbench-active-theme" data-theme-id={current.id} data-revision={current.revision}>{activeCss}</style>
       <Sidebar>
         {/* A fixed 64px row whose bottom edge meets the 64px preview toolbar; header px-2 plus selector px-2 = 16px inset. */}
@@ -343,7 +344,7 @@ export function App() {
                 <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-control quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
                   <SelectValue>
                     <ThemeSwatches theme={current} mode={mode} />
-                    <span className="truncate">{current.name}</span>
+                    <span className="truncate font-medium">{current.name}</span>
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent align="start" alignItemWithTrigger={false} sideOffset={0}>
@@ -352,7 +353,7 @@ export function App() {
                     {builtIns.map((theme) => (
                       <SelectItem key={theme.id} value={theme.id} className="cursor-pointer">
                         <ThemeSwatches theme={rowTheme(theme.id)} mode={mode} />
-                        {theme.name}
+                        <span className="font-medium">{theme.name}</span>
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -362,7 +363,7 @@ export function App() {
                       {savedIds.map((id) => (
                         <SelectItem key={id} value={id} className="cursor-pointer">
                           <ThemeSwatches theme={rowTheme(id)} mode={mode} />
-                          {saved.themes[id]!.name}
+                          <span className="font-medium">{saved.themes[id]!.name}</span>
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -384,8 +385,8 @@ export function App() {
                       </ResponsiveDialogDescription>
                     </ResponsiveDialogHeader>
                     <ResponsiveDialogFooter>
-                      <Button variant="destructive" onClick={deleteActive}>Delete theme</Button>
-                      <ResponsiveDialogClose asChild><Button variant="outline">Cancel</Button></ResponsiveDialogClose>
+                      <Button variant="destructive" className="cursor-pointer" onClick={deleteActive}>Delete theme</Button>
+                      <ResponsiveDialogClose asChild><Button variant="outline" className="cursor-pointer">Cancel</Button></ResponsiveDialogClose>
                     </ResponsiveDialogFooter>
                   </ResponsiveDialogContent>
                 </ResponsiveDialog>
@@ -396,14 +397,15 @@ export function App() {
         <SidebarContent className="quiet-editor overflow-hidden" data-testid="sidebar-content">
           <Tabs value={category} onValueChange={setCategory} className="min-h-0 w-full min-w-0 flex-1 gap-0">
             {/* The horizontal owner spans the full sidebar width; the 16px inset lives inside its scrollable content. */}
-            <SidebarGroup className="shrink-0 bg-card p-0">
+            <SidebarGroup className="shrink-0 bg-sidebar p-0">
               <ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden" viewportProps={{ role: "region", "aria-label": "Editor category navigation", tabIndex: 0 }}>
                 <div data-testid="category-inset" className="w-max p-4">
                   {/* Triggers keep the accepted 29px height (the former 3px-padded 36px list, less 1px), radius, py-1 and type. */}
                   <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" aria-label="Editor categories">
                     <TabsTrigger value="colors" className={CATEGORY_TRIGGER_CLASS}>Colors</TabsTrigger>
                     <TabsTrigger value="typography" className={CATEGORY_TRIGGER_CLASS}>Typography</TabsTrigger>
-                    <TabsTrigger value="other" className={CATEGORY_TRIGGER_CLASS}>Other</TabsTrigger>
+                    {/* Visible label only: the internal value stays `other`. */}
+                    <TabsTrigger value="other" className={CATEGORY_TRIGGER_CLASS}>Effects</TabsTrigger>
                     <TabsTrigger value="command" className={CATEGORY_TRIGGER_CLASS}>Command</TabsTrigger>
                   </TabsList>
                 </div>
@@ -414,11 +416,13 @@ export function App() {
           {manualLockNote}
           {COLOR_GROUPS.map((group) => (
             <ControlSection key={group.id} id={`colors-${group.id}`} title={group.title}>
+              {group.id === "sidebar" && <SidebarTokensSwitch enabled={current.sidebar.useDedicatedTokens.$value} disabled={locked} apply={applyManual} />}
               {group.tokens.map((token) => (
                 <LiveColorField
                   key={`${current.id}-${mode}-${token}`}
                   id={`color-${token}`}
                   label={colorTokenLabel(token)}
+                  labelPrefix={isSidebarColorToken(token) ? "Sidebar" : undefined}
                   value={current.colors[mode][token].$value}
                   build={(raw) => ({ op: "setColor", mode, token, value: raw })}
                   disabled={locked}
@@ -444,7 +448,7 @@ export function App() {
               />
             ))}
           </ControlSection>
-          <ControlSection id="tracking" title="Letter spacing">
+          <ControlSection id="tracking" title="Spacing">
             {numeric("tracking")}
           </ControlSection>
         </div></TabsContent>
@@ -493,7 +497,7 @@ export function App() {
               className="quiet-control w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             />
           </Field>
-          <Button disabled={locked || commandText.trim().length === 0} onClick={evaluateCommand} data-testid="design-command-evaluate">
+          <Button className="cursor-pointer" disabled={locked || commandText.trim().length === 0} onClick={evaluateCommand} data-testid="design-command-evaluate">
             {commandEvaluating ? "Evaluating…" : "Evaluate"}
           </Button>
           {commandEvaluating && (
@@ -568,19 +572,19 @@ export function App() {
       <SidebarInset className="quiet-preview">
         <h1 className="sr-only">Personal UI Workbench</h1>
         <div data-testid="workbench-toolbar" className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="size-8" />
+          <SidebarTrigger className="size-8 cursor-pointer" />
           <div className="flex items-center gap-2">
-            <Switch id="color-mode-switch" checked={mode === "dark"} onCheckedChange={(checked) => setMode(checked ? "dark" : "light")} />
+            <Switch id="color-mode-switch" className="cursor-pointer" checked={mode === "dark"} onCheckedChange={(checked) => setMode(checked ? "dark" : "light")} />
             <Label htmlFor="color-mode-switch">Dark mode</Label>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="sm" disabled={locked} onClick={() => download(exportThemeJson(current))}>
+            <Button variant="ghost" size="sm" className="cursor-pointer" disabled={locked} onClick={() => download(exportThemeJson(current))}>
               <Download aria-hidden="true" className="size-3.5" />
               Export JSON
             </Button>
                   <ResponsiveDialog open={saveAsOpen} onOpenChange={setSaveAsOpen}>
                     <ResponsiveDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" disabled={locked} onClick={save}>
+                      <Button variant="ghost" size="sm" className="cursor-pointer" disabled={locked} onClick={save}>
                         <Save aria-hidden="true" className="size-3.5" />
                         Save
                       </Button>
@@ -613,8 +617,8 @@ export function App() {
                         </Field>
                       </form>
                       <ResponsiveDialogFooter>
-                        <Button type="submit" form={saveAsFormId}>Save theme</Button>
-                        <ResponsiveDialogClose asChild><Button variant="outline">Cancel</Button></ResponsiveDialogClose>
+                        <Button type="submit" form={saveAsFormId} className="cursor-pointer">Save theme</Button>
+                        <ResponsiveDialogClose asChild><Button variant="outline" className="cursor-pointer">Cancel</Button></ResponsiveDialogClose>
                       </ResponsiveDialogFooter>
                     </ResponsiveDialogContent>
                   </ResponsiveDialog>
@@ -658,8 +662,8 @@ export function App() {
                 ))}
               </ul>
               <div className="flex flex-wrap gap-2">
-                <Button onClick={applyStaged}>Apply proposal</Button>
-                <Button variant="outline" onClick={discardStaged}>
+                <Button className="cursor-pointer" onClick={applyStaged}>Apply proposal</Button>
+                <Button variant="outline" className="cursor-pointer" onClick={discardStaged}>
                   Discard proposal
                 </Button>
               </div>

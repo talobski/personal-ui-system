@@ -100,7 +100,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "default")
   })
 
-  test("a stored v1 theme migrates on load, stays selected, and exports as v2 (TSV2-12)", async ({ page }) => {
+  test("a stored v1 theme migrates on load, stays selected, and exports as canonical v2.1 (TSV2-12, WSTP-09)", async ({ page }) => {
     const v1 = JSON.parse(readFileSync(new URL("../packages/core/src/theme/fixtures/valid.json", import.meta.url), "utf8"))
     await page.goto("/")
     await page.evaluate(
@@ -117,13 +117,14 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await workspaceMode(page, "Preview")
     await page.getByRole("button", { name: "Export JSON" }).click()
     const exported = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
-    expect(exported).toMatchObject({ id: "legacy-fork", schemaVersion: "2.0", $schema: "https://personal-ui.local/schema/theme-2.json" })
+    expect(exported).toMatchObject({ id: "legacy-fork", schemaVersion: "2.1", $schema: "https://personal-ui.local/schema/theme-2.json" })
+    expect(exported.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: false }, dedicatedValuesInitialized: false })
     expect(exported.colors.dark.border.$value).toBe("oklch(1 0 0 / 0.1)")
   })
 
   test("built-ins are immutable: Save opens Save As, which saves and selects one custom copy that reloads (WTEP-08)", async ({ page }, testInfo) => {
     await openWorkbench(page)
-    await editorCategory(page, "Other")
+    await editorCategory(page, "Effects")
     await setNumber(page, "Radius", "0.5")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "built-in, edited")
 
@@ -163,12 +164,12 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     // The built-in itself never changed.
     await selectTheme(page, "default")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "built-in")
-    await editorCategory(page, "Other")
+    await editorCategory(page, "Effects")
     await expect(numberField(page, "Radius")).toHaveValue("0.7")
     await selectTheme(page, "rounder")
 
     // Saving an existing custom theme updates it in place, without Save As.
-    await editorCategory(page, "Other")
+    await editorCategory(page, "Effects")
     await setNumber(page, "Radius", "0.75")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "custom, unsaved changes")
     await saveTheme(page)
@@ -180,7 +181,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
 
     await page.reload()
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "rounder")
-    await editorCategory(page, "Other")
+    await editorCategory(page, "Effects")
     await expect(numberField(page, "Radius")).toHaveValue("0.75")
     await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("10px")
   })
@@ -197,22 +198,22 @@ for (const mode of MODES) {
       await expectContained(page)
 
       for (const [label, testId, name] of [
-        ["Sans font", "type-sans", "Lato"],
-        ["Serif font", "type-serif", "Lora"],
-        ["Mono font", "type-mono", "Geist Mono"],
+        ["Sans", "type-sans", "Lato"],
+        ["Serif", "type-serif", "Lora"],
+        ["Mono", "type-mono", "Geist Mono"],
       ] as const) {
         const before = await revisionNumber(page)
         await page.getByRole("combobox", { name: label, exact: true }).click()
-        await page.getByRole("combobox", { name: `Search ${label}`, exact: true }).fill(name)
+        await page.getByRole("combobox", { name: `Search ${label} fonts`, exact: true }).fill(name)
         await page.getByRole("option", { name, exact: true }).click()
         await expect(revision(page)).toHaveAttribute("data-revision", String(before + 1))
         await expect.poll(() => previewStyle(page, testId, "fontFamily")).toContain(name)
       }
       // Search text is never a mutation. No match, Escape, and the selected canonical stack remains intact.
       const before = await revisionNumber(page)
-      const sans = page.getByRole("combobox", { name: "Sans font", exact: true })
+      const sans = page.getByRole("combobox", { name: "Sans", exact: true })
       await sans.click()
-      const sansSearch = page.getByRole("combobox", { name: "Search Sans font", exact: true })
+      const sansSearch = page.getByRole("combobox", { name: "Search Sans fonts", exact: true })
       await sansSearch.fill("not-a-local-font")
       await expect(page.getByText("No fonts found.", { exact: true })).toBeVisible()
       await expect(revision(page)).toHaveAttribute("data-revision", String(before))
@@ -222,19 +223,19 @@ for (const mode of MODES) {
 
       // Tracking: numeric field, visible unit, keyboard slider.
       await expect(page.getByTestId("tracking-unit")).toHaveText("em")
-      await setNumber(page, "Letter spacing", "0.05")
+      await setNumber(page, "Tracking", "0.05")
       await expect.poll(() => previewStyle(page, null, "letterSpacing")).toBe("0.8px")
-      const tracking = slider(page, "Letter spacing")
+      const tracking = slider(page, "Tracking")
       await expect(tracking).toHaveAttribute("aria-valuetext", "0.05 em")
       await tracking.focus()
       const beforeKey = await revisionNumber(page)
       await page.keyboard.press("ArrowLeft")
       await expect(revision(page)).toHaveAttribute("data-revision", String(beforeKey + 1))
-      await expect(numberField(page, "Letter spacing")).toHaveValue("0.045")
+      await expect(numberField(page, "Tracking")).toHaveValue("0.045")
       await expect.poll(() => previewStyle(page, null, "letterSpacing")).toBe("0.72px")
       for (const draft of ["0.3", "abc", "-"]) {
         const at = await revisionNumber(page)
-        await numberField(page, "Letter spacing").fill(draft)
+        await numberField(page, "Tracking").fill(draft)
         await expect(page.getByTestId("tracking-error")).toContainText("Not applied")
         await expect(revision(page)).toHaveAttribute("data-revision", String(at))
         expect(await previewStyle(page, null, "letterSpacing")).toBe("0.72px")
@@ -246,7 +247,7 @@ for (const mode of MODES) {
     test("other: radius, spacing, shadow profile, and motion change computed styles immediately; no manual Density control (WSSP-10)", async ({ page }, testInfo) => {
       await openWorkbench(page, mode)
       await previewFrame(page).locator("html").evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true))
-      await editorCategory(page, "Other")
+      await editorCategory(page, "Effects")
       await expect(page.getByRole("button", { name: /^Apply/ })).toHaveCount(0)
       for (const [name, unit] of [["radius", "rem"], ["spacing", "rem"], ["shadowBlur", "px"], ["motion", "ms"]] as const) {
         await expect(page.getByTestId(`${name}-unit`)).toHaveText(unit)
@@ -327,19 +328,22 @@ for (const mode of MODES) {
       await openWorkbench(page, mode)
       await editorCategory(page, "Colors")
       // Approved groups, using the existing section/header pattern, each listing its tokens once.
-      const groups = { base: ["background", "foreground"], card: ["card", "card-foreground"], popover: ["popover", "popover-foreground"], primary: ["primary", "primary-foreground"], secondary: ["secondary", "secondary-foreground"], muted: ["muted", "muted-foreground"], accent: ["accent", "accent-foreground"], destructive: ["destructive", "destructive-foreground"], border: ["border", "input", "ring"], charts: ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] }
-      await expect(page.getByRole("tabpanel", { name: "Colors", exact: true }).getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts"])
-      for (const title of ["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts"]) {
+      const groups = { base: ["background", "foreground"], card: ["card", "card-foreground"], popover: ["popover", "popover-foreground"], primary: ["primary", "primary-foreground"], secondary: ["secondary", "secondary-foreground"], muted: ["muted", "muted-foreground"], accent: ["accent", "accent-foreground"], destructive: ["destructive", "destructive-foreground"], border: ["border", "input", "ring"], charts: ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"], sidebar: ["sidebar", "sidebar-foreground", "sidebar-primary", "sidebar-primary-foreground", "sidebar-accent", "sidebar-accent-foreground", "sidebar-border", "sidebar-ring"] }
+      await expect(page.getByRole("tabpanel", { name: "Colors", exact: true }).getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"])
+      for (const title of ["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"]) {
         await expect(page.getByRole("heading", { level: 3, name: title, exact: true })).toBeVisible()
         await expect(page.getByRole("button", { name: title, exact: true })).toHaveAttribute("aria-expanded", "true")
       }
-      await expect(page.locator('.quiet-editor [data-testid^="control-color-"]')).toHaveCount(24)
+      await expect(page.locator('.quiet-editor [data-testid^="control-color-"]')).toHaveCount(32)
       for (const [group, tokens] of Object.entries(groups)) {
         const rows = await page.getByTestId(`section-colors-${group}`).locator('[data-testid^="control-color-"]').evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")!.slice("control-color-".length)))
         expect(rows).toEqual(tokens)
         for (const token of tokens) {
           await expect(colorInput(page, token)).toHaveCount(1)
-          await expect(page.getByLabel(`${token.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase())} picker`, { exact: true })).toHaveCount(1)
+          // Sidebar rows show the short visible label and carry a screen-reader-only "Sidebar" prefix.
+          const visible = token === "sidebar" ? "background" : token.replace(/^sidebar-/, "")
+          const label = `${visible.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase())} picker`
+          await expect(page.getByLabel(token.startsWith("sidebar") ? `Sidebar ${label}` : label, { exact: true })).toHaveCount(1)
         }
       }
       await expect(page.getByLabel("Token", { exact: true })).toHaveCount(0)
@@ -412,7 +416,7 @@ for (const mode of MODES) {
 
 test("sliders respond to keyboard (Tab, Home, End, Page keys) with visible focus, and to pointer click and drag", async ({ page }, testInfo) => {
   await openWorkbench(page)
-  await editorCategory(page, "Other")
+  await editorCategory(page, "Effects")
   const radius = slider(page, "Radius")
   // WTCP-06 row order is label / slider / input / unit: forward Tab enters the thumb before the input.
   await page.getByTestId("section-radius").getByRole("button", { name: "Radius", exact: true }).focus()
@@ -461,7 +465,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
   for (const mode of MODES) {
     test(`manual controls pause while a proposal is staged; Discard and Apply resume them — ${mode}`, async ({ page }, testInfo) => {
       await openWorkbench(page, mode)
-      await editorCategory(page, "Other")
+      await editorCategory(page, "Effects")
       await setNumber(page, "Spacing", "0.3")
       await expect(revision(page)).toHaveAttribute("data-revision", "2")
       const stage = async (id: string, base: number) => {
@@ -476,14 +480,14 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("6px")
       await expect(revision(page)).toHaveAttribute("data-revision", "2")
       await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("3")
-      await editorCategory(page, "Other")
+      await editorCategory(page, "Effects")
       await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toContainText("staged proposal")
       await expect(numberField(page, "Radius")).toBeDisabled()
       await expect(numberField(page, "Radius")).toHaveValue("0.7")
       await expect(slider(page, "Radius")).toHaveAttribute("data-disabled", "")
       await expect(page.getByLabel("Shadow color", { exact: true })).toBeDisabled()
       await editorCategory(page, "Typography")
-      await expect(page.getByLabel("Sans font")).toBeDisabled()
+      await expect(page.getByLabel("Sans", { exact: true })).toBeDisabled()
       await editorCategory(page, "Colors")
       await expect(colorInput(page, "primary")).toBeDisabled()
       await expect(page.getByLabel("Primary picker", { exact: true })).toBeDisabled()
@@ -499,7 +503,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await page.getByRole("button", { name: "Discard proposal" }).click()
       await expect(page.getByTestId("proposal-staged")).toHaveCount(0)
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("9.2px")
-      await editorCategory(page, "Other")
+      await editorCategory(page, "Effects")
       await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toHaveCount(0)
       await setNumber(page, "Duration", "275")
       await expect(revision(page)).toHaveAttribute("data-revision", "3")
@@ -508,7 +512,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await stage("tsv2-2", 3)
       await page.getByRole("button", { name: "Apply proposal" }).click()
       await expect(revision(page)).toHaveAttribute("data-revision", "4")
-      await editorCategory(page, "Other")
+      await editorCategory(page, "Effects")
       await expect(numberField(page, "Radius")).toBeEnabled()
       await expect(numberField(page, "Radius")).toHaveValue("0.5")
       await setNumber(page, "Radius", "0.6")
@@ -522,7 +526,7 @@ test("reduced motion: controls stay operable and preview transitions collapse to
   await page.emulateMedia({ reducedMotion: "reduce" })
   await openWorkbench(page, "dark")
   await expect.poll(() => buttonMotion(page)).toBe("0s")
-  await editorCategory(page, "Other")
+  await editorCategory(page, "Effects")
   await setNumber(page, "Duration", "400")
   await expect.poll(() => buttonMotion(page)).toBe("0s")
   await slider(page, "Radius").focus()

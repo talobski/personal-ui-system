@@ -10,7 +10,8 @@ import type { MutationOperationCapability } from "./types"
  * on every `capabilities` call.
  */
 export const VALUE_CONSTRAINT_DESCRIPTIONS: Readonly<Record<string, string>> = Object.freeze({
-  setColor: "HEX, rgb(a), hsl(a), or oklch colour inside the Display P3 gamut; stored as canonical oklch(L C H [/ A])",
+  setColor:
+    "HEX, rgb(a), hsl(a), or oklch colour inside the Display P3 gamut; stored as canonical oklch(L C H [/ A]); tokens include the eight dedicated sidebar colours (sidebar, sidebar-foreground, sidebar-primary, sidebar-primary-foreground, sidebar-accent, sidebar-accent-foreground, sidebar-border, sidebar-ring)",
   setRadius: "non-negative rem/px/em dimension for radius.md",
   setDensity: "number from 0.5 to 2",
   setSansFamily: "single font name matching the theme font-name grammar",
@@ -21,6 +22,7 @@ export const VALUE_CONSTRAINT_DESCRIPTIONS: Readonly<Record<string, string>> = O
   setRadiusBase: "rem/px length from 0 to 2.5rem; derives radius sm/md/lg/xl",
   setSpacingBase: "rem/px length from 0.1rem to 0.5rem",
   setShadowProfile: "{ color: opaque colour, opacity: 0..1, blur: 0..64px, spread/offsetX/offsetY: -32..32px }; derives all eight shadow tiers",
+  setSidebarTokensEnabled: "boolean; true renders the dedicated sidebar colours, false renders their base semantic aliases; stored dedicated values are kept either way",
 })
 
 /** Builds a fresh array/object graph every call; safe to return directly without additional copying or freezing. */
