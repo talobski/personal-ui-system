@@ -1,5 +1,6 @@
 import { Gallery } from "./Gallery"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@personal-ui/ui/components/select"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
+import { CATEGORY_TRIGGER_CLASS } from "./workbenchTabs"
 import * as React from "react"
 
 import { Button } from "@personal-ui/ui/components/button"
@@ -57,15 +58,13 @@ export function PreviewFrame() {
       data-revision={state?.revision}
     >
       <style id="workbench-theme">{state?.css ?? ""}</style>
-      <div className="flex justify-center">
-        <Select value={view} onValueChange={(next) => { if (next) setView(next) }} items={[{ value: "cards", label: "Cards" }, { value: "states", label: "States" }]}>
-          {/* Ghost trigger: no resting border, fill, or shadow; semantic accent hover and the primitive focus ring remain. */}
-          <SelectTrigger size="sm" aria-label="Preview views" className="quiet-control quiet-preview-view min-w-[6rem] cursor-pointer border-transparent bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent/50"><SelectValue /></SelectTrigger>
-          <SelectContent><SelectItem value="cards">Cards</SelectItem><SelectItem value="states">States</SelectItem></SelectContent>
-        </Select>
-      </div>
-      <div hidden={view !== "cards"}><Gallery /></div>
-      <div hidden={view !== "states"} className={view === "states" ? "grid gap-6" : "hidden"}>
+      <Tabs value={view} onValueChange={setView} className="min-w-0 gap-4">
+        <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" aria-label="Preview views">
+          <TabsTrigger value="cards" className={CATEGORY_TRIGGER_CLASS}>Cards</TabsTrigger>
+          <TabsTrigger value="states" className={CATEGORY_TRIGGER_CLASS}>States</TabsTrigger>
+        </TabsList>
+        <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden"><Gallery /></TabsContent>
+        <TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">
       <section aria-labelledby="pv-buttons" className="grid gap-2">
         <h2 id="pv-buttons" className="type-heading text-sm">
           Button
@@ -158,7 +157,8 @@ export function PreviewFrame() {
           </ResponsiveDialog>
         </div>
       </section>
-      </div>
+        </TabsContent>
+      </Tabs>
     </main>
     </ScrollArea>
   )

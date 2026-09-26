@@ -272,12 +272,9 @@
       "font": {
         "$type": "fontFamily",
         "$value": [
-          "ui-serif",
-          "Georgia",
-          "Cambria",
-          "Times New Roman",
-          "Times",
-          "serif"
+          "Inter",
+          "system-ui",
+          "sans-serif"
         ]
       },
       "weight": {

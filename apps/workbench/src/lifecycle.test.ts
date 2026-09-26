@@ -43,7 +43,7 @@ it("WSPF-05/06 section triggers use the semantic muted pair; only the known Defa
   expect([defaultTheme.colors.light["muted-foreground"].$value, defaultTheme.colors.light.muted.$value]).toEqual(["oklch(0.555527 0 0)", "oklch(0.970151 0 0)"])
   expect([pickerHex(defaultTheme.colors.light["muted-foreground"].$value), pickerHex(defaultTheme.colors.light.muted.$value)]).toEqual(["#737373", "#f5f5f5"])
   const source = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
-  expect(source).toContain("h-auto w-fit cursor-pointer rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180")
+  expect(source).toContain("h-auto w-fit cursor-pointer rounded-sm bg-muted px-2 py-0.5 quiet-section-trigger text-[0.6875rem] uppercase text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180")
   const trigger = source.match(/<CollapsibleTrigger asChild>[\s\S]*?<Button [^>]*className="([^"]+)"/)![1]!
   // No stronger local foreground workaround, raw colour, or accent treatment.
   expect(trigger).not.toMatch(/text-foreground|bg-muted\/50|ring-border\/50|accent|\[#|oklch|rgb|hsl/i)
@@ -64,7 +64,7 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
   })
 
   it("styles category tabs with the approved state tokens while keeping the official trigger", () => {
-    const tabClass = app.match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!
+    const tabClass = readFileSync(new URL("./workbenchTabs.ts", import.meta.url), "utf8").match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!
     for (const token of ["w-auto", "flex-none", "shrink-0", "whitespace-nowrap", "px-2", "cursor-pointer", "text-sm", "text-muted-foreground", "data-[state=inactive]:bg-transparent", "data-[state=inactive]:hover:text-muted-foreground/80", "data-[state=active]:bg-secondary", "data-[state=active]:text-secondary-foreground", "data-[state=active]:shadow-none", "h-[calc(100%-7px)]"]) {
       expect(tabClass.split(" ")).toContain(token)
     }
@@ -76,13 +76,13 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
     expect(app).toContain('<SidebarHeader className="h-16 shrink-0 flex-row items-center border-b px-2 py-0">')
   })
 
-  it("keeps the official preview Select, ghosts only its preview trigger, and tightens the preview root", () => {
-    expect(preview).toMatch(/<Select value=\{view\}/)
-    const trigger = preview.match(/<SelectTrigger size="sm" aria-label="Preview views" className="([^"]+)"/)![1]!
-    for (const token of ["border-transparent", "bg-transparent", "shadow-none", "hover:bg-accent", "hover:text-accent-foreground", "dark:bg-transparent"]) expect(trigger.split(" ")).toContain(token)
-    expect(trigger).not.toMatch(/focus-visible:|ring-0|outline-none|border-0/)
+  it("NGIP-07 uses official Tabs with shared trigger styling, left alignment, and mounted state panels", () => {
+    expect(preview).toContain('<Tabs value={view} onValueChange={setView}')
+    expect(preview).toContain('className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0"')
+    expect(preview.match(/className=\{CATEGORY_TRIGGER_CLASS\}/g)).toHaveLength(2)
+    expect(preview).not.toMatch(/<Select|justify-center/)
     expect(preview).toContain('className="grid gap-4 p-4"')
-    expect(preview).toContain('<div hidden={view !== "states"} className={view === "states" ? "grid gap-6" : "hidden"}>')
+    expect(preview).toContain('<TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">')
   })
 
   it("gives the embedded document exactly one vertical root ScrollArea and suppresses document-root overflow", () => {
@@ -144,10 +144,15 @@ describe("WTCP-03/09 baseline compatibility and concise font states", () => {
     expect(builtIns.find(t => t.id === loaded.activeId)!.radius.base.$value).toBe("0.7rem")
     expect(loadSaved(memoryStorage({ [STORAGE_KEY]: JSON.stringify({ ...loaded, activeId: custom.id }) }), BUILT_IN_IDS).themes[custom.id]).toEqual(custom)
     const quiet = validateTheme(v1QuietEditorial)
-    expect(quiet.ok && quiet.theme).toEqual(canonical)
+    expect(quiet.ok).toBe(true)
+    if (quiet.ok) {
+      expect(quiet.theme.typography.heading.font.$value).toContain("serif")
+      quiet.theme.typography.heading.font = structuredClone(quiet.theme.typography.body.font)
+      expect(quiet.theme).toEqual(canonical)
+    }
   })
 
-  it.each([ ["body", "Sans-serif font...", "Custom sans-serif stack"], ["heading", "Serif font...", "Custom serif stack"], ["mono", "Monospace font...", "Custom monospace stack"] ] as const)("uses exact copy and exact stack equality for %s", (target, placeholder, custom) => {
+  it.each([ ["body", "Sans-serif font...", "Custom sans-serif stack"], ["heading", "Sans-serif font...", "Custom sans-serif stack"], ["mono", "Monospace font...", "Custom monospace stack"] ] as const)("uses exact copy and exact stack equality for %s", (target, placeholder, custom) => {
     const stack = readFontStack(defaultTheme, target)
     expect(fontControlCopy([...stack], stack)).toBe(placeholder)
     expect(fontControlCopy(["Personal Font", ...stack], stack)).toBe(custom)
@@ -401,7 +406,9 @@ describe("persistence (TSV2-04, TSV2-12)", () => {
     const loaded = loadSaved(storage, BUILT_IN_IDS)
     expect(loaded.activeId).toBe("legacy-fork")
     expect(loaded.themes["legacy-fork"]?.schemaVersion).toBe("3.0")
-    expect(loaded.themes["legacy-fork"]?.typography).toEqual(canonical.typography)
+    const migrated = validateTheme(v1)
+    expect(migrated.ok && loaded.themes["legacy-fork"]?.typography).toEqual(migrated.ok && migrated.theme.typography)
+    expect(loaded.themes["legacy-fork"]?.typography.heading.font.$value).toContain("serif")
     expect(loaded.themes["legacy-fork"]?.colors.light.primary.$value).toBe(canonical.colors.light.primary.$value)
     expect(loaded.bases).toEqual({})
   })
@@ -791,7 +798,7 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     const tabs = [...app.matchAll(/<TabsTrigger value="([a-z]+)" className=\{CATEGORY_TRIGGER_CLASS\}>([A-Za-z]+)<\/TabsTrigger>/g)].map((match) => [match[1], match[2]])
     expect(tabs).toEqual([["colors", "Colors"], ["typography", "Typography"], ["other", "Effects"], ["command", "Command"]])
     expect(app).toContain('<TabsContent className="data-[state=inactive]:hidden" value="other" forceMount>')
-    const trigger = app.match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!.split(" ")
+    const trigger = readFileSync(new URL("./workbenchTabs.ts", import.meta.url), "utf8").match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!.split(" ")
     expect(trigger).toContain("px-2")
     expect(trigger).not.toContain("px-3")
   })
@@ -800,9 +807,9 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(controls).toMatch(/<Button variant="ghost" size="sm" className="h-auto w-fit cursor-pointer /)
     expect(app).toContain('<SidebarTrigger className="size-8 cursor-pointer" />')
     // STHG-12: below 640px Export and Save are icon-only (names kept) so the recovery group fits the toolbar.
-    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export JSON" disabled={locked} onClick={() => download(exportThemeJson(current))}>')
+    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={locked} onClick={() => { endGesture(); download(exportThemeJson(currentRef.current)) }}>')
     expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Save" disabled={locked} onClick={save}>')
-    expect(app).toContain('<span className="max-sm:sr-only">Export JSON</span>')
+    expect(app).toContain('<span className="max-sm:sr-only">Export</span>')
     for (const name of ["Undo", "Redo", "Reset"]) expect(app).toContain(`<Button variant="ghost" size="icon" className="size-8 cursor-pointer" aria-label="${name}" title="${name}"`)
     // Disabled buttons drop pointer events, so no pointer cursor can show while disabled.
     expect(button).toContain("disabled:pointer-events-none")

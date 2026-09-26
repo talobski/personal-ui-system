@@ -38,6 +38,9 @@ import type { HistoryStep, HistoryTrack } from "./history"
 import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField, SidebarTokensSwitch } from "./LiveControls"
 import type { ApplyManual, EndGesture } from "./LiveControls"
 
+import { ColorPickerController } from "./colorPicker"
+import { CATEGORY_TRIGGER_CLASS } from "./workbenchTabs"
+
 const builtIns = loadBuiltInThemes()
 const builtInIds = builtIns.map((theme) => theme.id)
 const builtInById = (id: string) => builtIns.find((theme) => theme.id === id)
@@ -74,13 +77,6 @@ function ThemeSwatches({ theme, mode }: { theme: Theme; mode: Mode }) {
     </span>
   )
 }
-
-/**
- * Content-width category Tabs: active uses the secondary pair without a shadow; inactive stays transparent with muted
- * foreground and a text-only hover. The official trigger's radius, vertical padding, focus ring, and ARIA are unchanged.
- */
-const CATEGORY_TRIGGER_CLASS =
-  "h-[calc(100%-7px)] w-auto flex-none shrink-0 cursor-pointer whitespace-nowrap px-2 text-sm text-muted-foreground dark:text-muted-foreground data-[state=inactive]:bg-transparent data-[state=inactive]:hover:text-muted-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-secondary dark:data-[state=active]:text-secondary-foreground"
 
 function TrashIcon() {
   return (
@@ -216,13 +212,34 @@ export function App() {
   const without = <T,>(map: Readonly<Record<string, T>>, ...ids: string[]) => Object.fromEntries(Object.entries(map).filter(([key]) => !ids.includes(key)))
 
   /** Closes the open gesture: one history checkpoint from its captured base when the design changed. */
-  const endGesture: EndGesture = () => {
+  const endManualGesture: EndGesture = () => {
     const open = gesture.current
     if (!open) return
     gesture.current = null
     const now = currentRef.current
     if (now.id === open.base.id) writeTrack(now.id, record(trackOf(now.id), open.base, now))
   }
+
+  // The controller is shared by every semantic and shadow picker. Its callbacks always use this render's
+  // authoritative refs, while a generation rejects timers invalidated by completion or a lifecycle change.
+  const pickerCallbacks = React.useRef({ begin: (_key: string) => {}, end: () => {} })
+  const [picker] = React.useState(() => new ColorPickerController(
+    key => pickerCallbacks.current.begin(key),
+    () => pickerCallbacks.current.end(),
+  ))
+  pickerCallbacks.current = {
+    begin: key => {
+      endManualGesture()
+      if (!locked) gesture.current = { key, base: currentRef.current }
+    },
+    end: endManualGesture,
+  }
+  const endGesture: EndGesture = () => {
+    picker.finish()
+    endManualGesture()
+  }
+  React.useEffect(() => () => picker.cancel(), [picker])
+  React.useLayoutEffect(() => { if (locked) picker.cancel() }, [locked, picker])
 
   /**
    * The one manual-edit path: control value -> typed operation -> core validation -> active in-memory theme -> preview.
@@ -240,7 +257,7 @@ export function App() {
     const result = editTheme(base, build(base))
     if (!result.ok) return result.issues
     const unchanged = sameDesign(base, result.theme)
-    if (key !== undefined) setActive(unchanged ? base : result.theme)
+    if (key !== undefined) setActive({ ...(unchanged ? base : result.theme), revision: Math.max(currentRef.current.revision, unchanged ? base.revision : result.theme.revision) })
     else if (!unchanged) {
       writeTrack(base.id, record(trackOf(base.id), base, result.theme))
       setActive(result.theme)
@@ -290,6 +307,8 @@ export function App() {
   }
 
   const evaluateCommand = async () => {
+    endGesture()
+    const commandBase = currentRef.current
     setCommandEvaluating(true)
     setCommandOutcome(null)
     const result = await evaluateDesignCommandClient(commandText, mode)
@@ -302,8 +321,8 @@ export function App() {
     // are still exactly what they were when the request was issued: the captured base cannot have raced anything.
     const seq = commandSeq + 1
     setCommandSeq(seq)
-    const proposal = buildDesignCommandProposal(commandText, result.outcome.operations, { themeId: current.id, revision: current.revision }, `design-command-${seq}`, new Date().toISOString())
-    const staged = stageProposal(session, current, proposal, new Date().toISOString())
+    const proposal = buildDesignCommandProposal(commandText, result.outcome.operations, { themeId: commandBase.id, revision: commandBase.revision }, `design-command-${seq}`, new Date().toISOString())
+    const staged = stageProposal(session, commandBase, proposal, new Date().toISOString())
     setSession(staged.session)
     setCommandEvaluating(false)
     if (!staged.ok) {
@@ -332,6 +351,7 @@ export function App() {
    * updated in place. The persisted base records which built-in a custom theme descends from.
    */
   const save = (event: React.MouseEvent) => {
+    endGesture()
     if (builtInCopy) {
       setSaveAsName(`${current.name} Custom`)
       setSaveAsIssues([])
@@ -340,7 +360,7 @@ export function App() {
     event.preventDefault()
     endGesture()
     // Saving re-baselines the durable snapshot; session history is kept, so Undo after Save makes the theme dirty again.
-    const result = saveTheme(window.localStorage, saved, current, builtInIds, saved.bases[current.id] ?? DEFAULT_THEME_ID)
+    const result = saveTheme(window.localStorage, saved, currentRef.current, builtInIds, saved.bases[current.id] ?? DEFAULT_THEME_ID)
     if (!result.ok) return setNotice(`Not saved: ${describeIssues(result.issues)}`)
     setSaved(result.saved)
     setNotice(`Saved "${current.name}" locally.`)
@@ -507,6 +527,7 @@ export function App() {
                   disabled={locked}
                   apply={applyManual}
                   endGesture={endGesture}
+                  picker={picker}
                 />
               ))}
             </ControlSection>
@@ -568,6 +589,7 @@ export function App() {
               disabled={locked}
               apply={applyManual}
               endGesture={endGesture}
+              picker={picker}
             />
             {numeric("shadowOpacity")}
             {numeric("shadowBlur")}
@@ -672,21 +694,21 @@ export function App() {
         <div data-testid="workbench-toolbar" className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="size-8 cursor-pointer" />
           <div className="flex items-center gap-2">
-            <Switch id="color-mode-switch" className="cursor-pointer" checked={mode === "dark"} onCheckedChange={(checked) => setMode(checked ? "dark" : "light")} />
+            <Switch id="color-mode-switch" className="cursor-pointer" checked={mode === "dark"} onCheckedChange={(checked) => { endGesture(); setMode(checked ? "dark" : "light") }} />
             <Label htmlFor="color-mode-switch">Dark mode</Label>
           </div>
           <div className="ml-auto flex items-center gap-2">
             {/* Recovery group (PUI-3 owner decision): compact icon buttons immediately before Export and Save. */}
             <div role="group" aria-label="Edit history" data-testid="history-controls" className="flex items-center">
-              <Button variant="ghost" size="icon" className="size-8 cursor-pointer" aria-label="Undo" title="Undo" disabled={locked || track.past.length === 0} onClick={undoEdit}>
+              <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Undo" title="Undo" disabled={locked || track.past.length === 0} onClick={undoEdit}>
                 <Undo2 aria-hidden="true" className="size-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="size-8 cursor-pointer" aria-label="Redo" title="Redo" disabled={locked || track.future.length === 0} onClick={redoEdit}>
+              <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Redo" title="Redo" disabled={locked || track.future.length === 0} onClick={redoEdit}>
                 <Redo2 aria-hidden="true" className="size-3.5" />
               </Button>
               <ResponsiveDialog open={resetOpen} onOpenChange={setResetOpen}>
                 <ResponsiveDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="size-8 cursor-pointer" aria-label="Reset" title="Reset" disabled={locked || !dirty || baseline === undefined}>
+                  <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Reset" title="Reset" disabled={locked || !dirty || baseline === undefined}>
                     <RotateCcw aria-hidden="true" className="size-3.5" />
                   </Button>
                 </ResponsiveDialogTrigger>
@@ -707,10 +729,11 @@ export function App() {
                 </ResponsiveDialogContent>
               </ResponsiveDialog>
             </div>
+            <div role="separator" aria-orientation="vertical" className="h-8 w-px shrink-0 bg-border" />
             {/* Below 640px the recovery group needs the room: Export and Save keep their names but show only their icons. */}
-            <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export JSON" disabled={locked} onClick={() => download(exportThemeJson(current))}>
+            <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={locked} onClick={() => { endGesture(); download(exportThemeJson(currentRef.current)) }}>
               <Download aria-hidden="true" className="size-3.5" />
-              <span className="max-sm:sr-only">Export JSON</span>
+              <span className="max-sm:sr-only">Export</span>
             </Button>
                   <ResponsiveDialog open={saveAsOpen} onOpenChange={setSaveAsOpen}>
                     <ResponsiveDialogTrigger asChild>

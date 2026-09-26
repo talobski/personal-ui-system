@@ -14,6 +14,7 @@ import type { FontCategory, FontOption } from "@personal-ui/ui/lib/fonts"
 
 import { buildFontOperation, fontControlCopy, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep } from "./controls"
 import type { NumericControl } from "./controls"
+import type { ColorPickerController } from "./colorPicker"
 import type { WorkbenchIssue } from "./lifecycle"
 
 /**
@@ -73,15 +74,15 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
   const hasError = invalid.size > 0
   return (
     <Collapsible open={open || hasError} onOpenChange={(next) => setOpen(next || hasError)} data-testid={`section-${id}`} data-has-error={hasError} className="grid gap-2">
-      {/* The section heading opts into the Heading role's family; the compact chip keeps its own weight and tracking. */}
-      <h3 className="type-heading text-sm">
+      {/* Editor section labels inherit Body; content headings retain Heading. */}
+      <h3 className="text-sm">
         <CollapsibleTrigger asChild>
           {/*
             The semantic muted/muted-foreground pair. In Default light it measures about 4.35:1 for this small text:
             known, pre-approved Default-theme debt that is measured and reported, not locally worked around.
             The explicit hover and dark-hover overrides replace the ghost variant's accent hover.
           */}
-          <Button variant="ghost" size="sm" className="h-auto w-fit cursor-pointer rounded-sm bg-muted px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
+          <Button variant="ghost" size="sm" className="h-auto w-fit cursor-pointer rounded-sm bg-muted px-2 py-0.5 quiet-section-trigger text-[0.6875rem] uppercase text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
             {title}
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-3 transition-transform motion-reduce:transition-none">
               <path d="m6 9 6 6 6-6" />
@@ -214,7 +215,8 @@ const COLOR_HINT = "Expected HEX, rgb(a), hsl(a), or oklch inside the Display P3
 /**
  * One colour row: a native colour picker (display sRGB) and the canonical text input, both entering through the same
  * operation (`setColor` for tokens, `setShadowProfile` for the shadow colour), built against the latest active theme.
- * Valid values apply immediately and core normalizes them to canonical OKLCH; a rejected text draft stays visible and
+ * Picker feedback is local and immediate; the shared scheduler debounces canonical writes. Text applies immediately.
+ * Core normalizes valid values to canonical OKLCH; a rejected text draft stays visible and
  * never activates.
  */
 export function LiveColorField({
@@ -227,6 +229,7 @@ export function LiveColorField({
   disabled,
   apply,
   endGesture,
+  picker,
 }: {
   id: string
   label: string
@@ -238,7 +241,38 @@ export function LiveColorField({
   disabled: boolean
   apply: ApplyManual
   endGesture: EndGesture
+  picker: ColorPickerController
 }) {
+  const pickerInput = React.useRef<HTMLInputElement>(null)
+  const nativeChange = React.useRef<(hex: string) => void>(() => {})
+  const [owner] = React.useState(() => ({ key: `${id}-picker` }))
+  const [localHex, setLocalHex] = React.useState(() => pickerHex(value))
+  React.useLayoutEffect(() => {
+    if (disabled) picker.cancel(owner)
+    if (!picker.active(owner)) setLocalHex(pickerHex(value))
+  }, [value, disabled, owner, picker])
+  React.useEffect(() => {
+    const finish = () => picker.finish(owner)
+    const input = pickerInput.current
+    const change = () => nativeChange.current(input!.value)
+    input?.addEventListener("change", change)
+    window.addEventListener("pointerup", finish)
+    window.addEventListener("pointercancel", finish)
+    nativeChange.current = hex => {
+    if (disabled) return
+    setLocalHex(hex)
+    const raw = pickedColorInput(hex, value)
+    picker.move(owner, () => commit(raw, owner.key))
+    picker.finish(owner)
+  }
+
+  return () => {
+      input?.removeEventListener("change", change)
+      window.removeEventListener("pointerup", finish)
+      window.removeEventListener("pointercancel", finish)
+      picker.cancel(owner)
+    }
+  }, [owner, picker])
   const [draft, setDraft] = React.useState(value)
   const [error, setError] = React.useState<string | null>(null)
   const focused = React.useRef(false)
@@ -265,13 +299,23 @@ export function LiveColorField({
       </FieldLabel>
       <div className="flex items-center gap-2">
         <input
+          ref={pickerInput}
           type="color"
           aria-label={`${labelPrefix ? `${labelPrefix} ` : ""}${label} picker`}
           data-testid={`${id}-picker`}
-          value={pickerHex(value)}
+          value={localHex}
           disabled={disabled}
-          onChange={(event) => commit(pickedColorInput(event.target.value, value), `${id}-picker`)}
-          onBlur={endGesture}
+          onInput={(event) => {
+            if (disabled) return
+            const hex = event.currentTarget.value
+            setLocalHex(hex)
+            const raw = pickedColorInput(hex, value)
+            picker.move(owner, () => commit(raw, owner.key))
+          }}
+          // Completion uses a native change listener: React may deduplicate change after input with the same value.
+          onChange={() => {}}
+          onPointerUp={() => picker.finish(owner)}
+          onBlur={() => picker.finish(owner)}
           className="size-8 shrink-0 cursor-pointer appearance-none rounded-md border border-input bg-transparent p-0.5 outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 [&::-moz-color-swatch]:rounded-sm [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
         />
         <Input
@@ -284,13 +328,14 @@ export function LiveColorField({
           aria-invalid={error !== null}
           aria-describedby={error !== null ? errorId : undefined}
           className="quiet-control h-8"
-          onFocus={() => (focused.current = true)}
+          onFocus={() => { picker.finish(); focused.current = true }}
           onBlur={() => {
             focused.current = false
             endGesture()
             if (error === null) setDraft(value)
           }}
           onChange={(event) => {
+            picker.finish()
             setDraft(event.target.value)
             commit(event.target.value.trim(), id)
           }}

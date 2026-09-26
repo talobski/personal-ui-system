@@ -52,7 +52,7 @@ describe("v1 -> v3 migration (TSV2-01, TSV2-03, STHG-04)", () => {
     expect(qe.colors.dark["destructive-foreground"].$value).toBe(V1_MIGRATION_DEFAULTS.destructiveForeground.dark)
     // The v1 -> v2 serif default becomes the v3 Heading font; the v1 -> v2 tracking default reaches both roles.
     expect(qe.typography.heading.font.$value).toEqual([...V1_MIGRATION_DEFAULTS.serif])
-    expect(qe.typography.heading.font.$value).toEqual(defaultFixture.typography.heading.font.$value)
+    expect(qe.typography.heading.font.$value).not.toEqual(defaultFixture.typography.heading.font.$value)
     expect(qe.typography.heading.tracking.$value).toBe("0em")
     expect(qe.typography.body.tracking.$value).toBe("0em")
     expect(qe.typography.heading.weight.$value).toBe(V3_MIGRATION_DEFAULTS.headingWeight)
@@ -155,10 +155,9 @@ describe("v2.1 -> v3 semantic typography migration (STHG-03, STHG-04)", () => {
 
 /**
  * STHG-04 committed fixtures. Both built-ins are canonical v3 files; the v1, v2.0, and v2.1 inputs live in
- * `fixtures/legacy/` so migration coverage never depends on a built-in staying legacy. Each legacy input must migrate to
- * exactly the committed v3 built-in, byte for byte.
+ * `fixtures/legacy/` so migration coverage never depends on a built-in staying legacy. Legacy migration retains serif Heading; NGIP-09 intentionally corrects only canonical built-ins.
  */
-describe("committed built-ins are canonical v3; dedicated legacy inputs migrate to them exactly", () => {
+describe("committed built-ins are canonical v3; legacy inputs preserve their serif Heading", () => {
   const exact = (input: unknown, fixture: unknown) => expect(JSON.stringify(migrate(input))).toBe(JSON.stringify(fixture))
 
   it("keeps the legacy inputs at their frozen versions", () => {
@@ -176,14 +175,20 @@ describe("committed built-ins are canonical v3; dedicated legacy inputs migrate 
     }
   })
 
-  it("v1 Quiet Editorial -> v3 equals the committed Quiet Editorial built-in", () => exact(v1Fixture, quietEditorialFixture))
-  it("v2.1 Default -> v3 equals the committed Default built-in", () => exact(legacyDefaultV2_1, defaultFixture))
-  it("v2.0 Default -> v3 equals the committed Default built-in", () => exact(legacyDefaultV2_0, defaultFixture))
+  for (const [legacy, fixture] of [[v1Fixture, quietEditorialFixture], [legacyDefaultV2_1, defaultFixture], [legacyDefaultV2_0, defaultFixture]]) {
+    it(`NGIP-10 ${legacy.id} ${legacy.schemaVersion} migration differs only in the intentional built-in Heading override`, () => {
+      const migrated = migrate(legacy)
+      expect(migrated.typography.heading.font.$value).toEqual([...V1_MIGRATION_DEFAULTS.serif])
+      const corrected = structuredClone(migrated)
+      corrected.typography.heading.font = structuredClone(corrected.typography.body.font)
+      expect(corrected).toEqual(fixture)
+    })
+  }
 
   it("the committed Quiet Editorial is the approved mapping of its legacy stacks", () => {
     const v1 = v1Fixture as Record<string, any>
     expect(quietEditorialFixture.typography).toEqual({
-      heading: { font: { $type: "fontFamily", $value: [...V1_MIGRATION_DEFAULTS.serif] }, weight: { $type: "fontWeight", $value: 600 }, tracking: { $type: "dimension", $value: "0em" } },
+      heading: { font: v1.typography.sans, weight: { $type: "fontWeight", $value: 600 }, tracking: { $type: "dimension", $value: "0em" } },
       body: { font: v1.typography.sans, weight: { $type: "fontWeight", $value: 400 }, tracking: { $type: "dimension", $value: "0em" } },
       mono: v1.typography.mono,
     })

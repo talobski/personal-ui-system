@@ -28,37 +28,31 @@ function place(layouts: readonly ("default" | "wide")[], columns: number) {
   return cells
 }
 
-describe("STHG-13 composition footprint contract", () => {
-  it("keeps the eight shared compositions in source order with only default | wide footprints", () => {
-    expect(COMPOSITION_IDS).toEqual(["productive-week", "account-profile", "team-access", "workspace-settings", "notifications", "support-request", "recent-activity", "room-to-think"])
-    expect(new Set(PREVIEW_COMPOSITIONS.map((entry) => entry.layout))).toEqual(new Set(["default", "wide"]))
-    expect(PREVIEW_COMPOSITIONS.filter((entry) => entry.layout === "wide").map((entry) => entry.id)).toEqual(["productive-week", "team-access", "workspace-settings"])
+describe("NGIP-03 through NGIP-06 nested gallery", () => {
+  it("reproduces the frozen global-row failure independently of the corrected recipe", () => {
+    const cells = place(["wide", "default", "wide"], 3)
+    expect(cells.map(cell => cell.row)).toEqual([0, 0, 1])
+    const weekHeight = 200, profileHeight = 500, gap = 24
+    expect(Math.max(weekHeight, profileHeight) + gap - weekHeight).toBe(324)
   })
 
-  it("owns the footprint in the Workbench composition entry, never in a public resource or shared composition", () => {
-    expect(read("./Gallery.tsx")).toContain('export type PreviewLayout = "default" | "wide"')
-    expect(code("./Gallery.tsx")).not.toMatch(/colSpan|gridColumn|gridRow|aspect|masonry|tall/i)
-    for (const name of ["card", "chart", "field"]) expect(read(`../../../packages/ui/src/components/${name}.tsx`)).not.toMatch(/data-layout|PreviewLayout|"wide"/)
+  it("keeps eight compositions in coherent region order without per-composition placement metadata", () => {
+    expect(COMPOSITION_IDS).toEqual(["productive-week", "team-access", "account-profile", "notifications", "support-request", "workspace-settings", "recent-activity", "room-to-think"])
+    for (const entry of PREVIEW_COMPOSITIONS) expect(Object.keys(entry)).toEqual(["id", "render"])
+    expect(code("./Gallery.tsx")).not.toMatch(/PreviewLayout|data-layout|gridColumn|gridRow|colSpan/)
     for (const name of ["productive-week", "team-access", "workspace-settings"]) expect(read(`../../../packages/ui/src/compositions/${name}.tsx`)).not.toMatch(/data-layout|PreviewLayout|col-span|span 2/)
-    expect(read("../../../registry.json")).not.toMatch(/PreviewLayout|"layout"/)
   })
 
-  it("renders one source-ordered grid with breakpoints near 40rem and 60rem, row flow, natural heights, and no dense packing", () => {
-    const css = read("./styles.css")
-    const gallery = css.slice(css.indexOf(".quiet-gallery {"), css.indexOf(".quiet-gallery [data-composition] > [data-slot=card]"))
-    expect(gallery).toContain(".quiet-gallery { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; align-items: start; gap: 16px; }")
-    expect(gallery).toContain("@media (min-width: 40rem) {\n  .quiet-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }\n  .quiet-gallery > [data-layout=wide] { grid-column: span 2; }\n}")
-    expect(gallery).toContain("@media (min-width: 60rem) { .quiet-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; } }")
-    expect(code("./styles.css")).not.toMatch(/dense|aspect-ratio|quiet-stack|grid-auto-rows|masonry/)
-    expect(read("./Gallery.tsx")).not.toContain("quiet-stack")
-  })
-
-  it("places wide entries on 1 / 2 / 2 columns at the 1 / 2 / 3 column layouts in source order", () => {
-    const layouts = PREVIEW_COMPOSITIONS.map((entry) => entry.layout)
-    expect(place(layouts, 1).every((cell) => cell.span === 1)).toBe(true)
-    // Two columns: the wide chart, then Account profile alone (Team access cannot share its row), and so on.
-    expect(place(layouts, 2).map((cell) => [cell.row, cell.column, cell.span])).toEqual([[0, 0, 2], [1, 0, 1], [2, 0, 2], [3, 0, 2], [4, 0, 1], [4, 1, 1], [5, 0, 1], [5, 1, 1]])
-    // Three columns: one visible gap after Team access is the accepted cost of never reordering (no dense packing).
-    expect(place(layouts, 3).map((cell) => [cell.row, cell.column, cell.span])).toEqual([[0, 0, 2], [0, 2, 1], [1, 0, 2], [2, 0, 2], [2, 2, 1], [3, 0, 1], [3, 1, 1], [3, 2, 1]])
+  it("renders independent activity and profile stacks, a full region, and one intentional local pair", () => {
+    const source = code("./Gallery.tsx")
+    expect(source).toMatch(/data-gallery-region="activity">\s*<Composition id="productive-week" \/>\s*<Composition id="team-access" \/>/)
+    expect(source).toMatch(/data-gallery-region="profile-actions">\s*<Composition id="account-profile" \/>\s*<Composition id="notifications" \/>\s*<Composition id="support-request" \/>/)
+    expect(source).toMatch(/<Composition id="workspace-settings" \/>\s*<div className="quiet-gallery-pair"/)
+    const css = code("./styles.css")
+    expect(css).toContain(".quiet-gallery, .quiet-stack { display: flex; flex-direction: column; gap: 16px; }")
+    expect(css).toContain("minmax(0, 7fr) minmax(0, 5fr)")
+    expect(css).toContain("@media (min-width: 40rem)")
+    expect(css).toContain("@media (min-width: 60rem)")
+    expect(css).not.toMatch(/dense|aspect-ratio|grid-auto-rows|masonry|grid-column|grid-row/)
   })
 })

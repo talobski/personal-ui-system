@@ -197,7 +197,7 @@ describe("renderShadcnTailwindCss", () => {
     expect(css).toContain(
       '  --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";'
     )
-    expect(css).toContain('  --font-heading: ui-serif, "Georgia", "Cambria", "Times New Roman", "Times", serif;')
+    expect(css.match(/--font-heading: (.*);/)![1]).toBe(css.match(/--font-body: (.*);/)![1])
     expect(css).toContain('  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;')
     for (const line of ["--font-weight-heading: 600;", "--font-weight-body: 400;", "--tracking-heading: 0em;", "--tracking-body: 0em;"]) expect(css).toContain(`  ${line}`)
     expect(css).toContain("  --radius: 0.7rem;")

@@ -82,12 +82,12 @@ describe("built-in Default matches the contract", () => {
     expect(JSON.stringify(theme)).not.toMatch(/sidebar-(?:input|card)/)
   })
 
-  it("typography roles by the approved v3 migration: serif -> Heading, sans -> Body, mono kept, 600/400, shared tracking", () => {
+  it("NGIP-09 built-in sans Heading and Body, mono kept, 600/400, unchanged tracking", () => {
     expect(theme.typography.body.font.$value).toEqual([
       "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial",
       "Noto Sans", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji",
     ])
-    expect(theme.typography.heading.font.$value).toEqual(["ui-serif", "Georgia", "Cambria", "Times New Roman", "Times", "serif"])
+    expect(theme.typography.heading.font.$value).toEqual(theme.typography.body.font.$value)
     expect(theme.typography.mono.$value).toEqual([
       "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace",
     ])

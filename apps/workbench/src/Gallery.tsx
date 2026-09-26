@@ -1,5 +1,3 @@
-import type * as React from "react"
-
 import { ProductiveWeek } from "@personal-ui/ui/compositions/productive-week"
 import { AccountProfile } from "@personal-ui/ui/compositions/account-profile"
 import { TeamAccess } from "@personal-ui/ui/compositions/team-access"
@@ -9,42 +7,45 @@ import { SupportRequest } from "@personal-ui/ui/compositions/support-request"
 import { RecentActivity } from "@personal-ui/ui/compositions/recent-activity"
 import { RoomToThink } from "@personal-ui/ui/compositions/room-to-think"
 
-/**
- * A composition's preview footprint (PUI-64): `default` spans one grid column; `wide` prefers two and spans two
- * whenever at least two columns exist. It is a width preference only: height stays content-driven. The footprint
- * belongs to the preview composition entry, never to Chart, Card, a form, or any other public resource.
- */
-export type PreviewLayout = "default" | "wide"
+/** Gallery configuration only: regions own placement, compositions own content. */
+export const PREVIEW_COMPOSITIONS = [
+  { id: "productive-week", render: () => <ProductiveWeek /> },
+  { id: "team-access", render: () => <TeamAccess /> },
+  { id: "account-profile", render: () => <AccountProfile compact /> },
+  { id: "notifications", render: () => <NotificationPreferences compact /> },
+  { id: "support-request", render: () => <SupportRequest compact /> },
+  { id: "workspace-settings", render: () => <WorkspaceSettings compact /> },
+  { id: "recent-activity", render: () => <RecentActivity /> },
+  { id: "room-to-think", render: () => <RoomToThink /> },
+] as const
 
-type PreviewComposition = { id: string; layout: PreviewLayout; render: () => React.ReactNode }
+export const COMPOSITION_IDS = PREVIEW_COMPOSITIONS.map(composition => composition.id)
 
-/**
- * The eight shared compositions in source order, which is also DOM, reading, and focus order. `wide` marks the
- * compositions whose content is horizontally structured: the week chart, the member list, and the three-panel
- * workspace settings.
- */
-export const PREVIEW_COMPOSITIONS: readonly PreviewComposition[] = [
-  { id: "productive-week", layout: "wide", render: () => <ProductiveWeek /> },
-  { id: "account-profile", layout: "default", render: () => <AccountProfile compact /> },
-  { id: "team-access", layout: "wide", render: () => <TeamAccess /> },
-  { id: "workspace-settings", layout: "wide", render: () => <WorkspaceSettings compact /> },
-  { id: "notifications", layout: "default", render: () => <NotificationPreferences compact /> },
-  { id: "support-request", layout: "default", render: () => <SupportRequest compact /> },
-  { id: "recent-activity", layout: "default", render: () => <RecentActivity /> },
-  { id: "room-to-think", layout: "default", render: () => <RoomToThink /> },
-]
+function Composition({ id }: { id: typeof COMPOSITION_IDS[number] }) {
+  const composition = PREVIEW_COMPOSITIONS.find(entry => entry.id === id)!
+  return <section data-composition={id}>{composition.render()}</section>
+}
 
-export const COMPOSITION_IDS = PREVIEW_COMPOSITIONS.map((composition) => composition.id)
-
-/** One source-ordered CSS grid (`.quiet-gallery` in styles.css): 1, 2, then 3 columns; row flow, never dense. */
+/** Explicit recipe; DOM/focus order follows each stack, then the full region and final local pair. */
 export function Gallery() {
   return (
     <div className="quiet-gallery" aria-label="Workspace compositions">
-      {PREVIEW_COMPOSITIONS.map(({ id, layout, render }) => (
-        <section key={id} data-composition={id} data-layout={layout}>
-          {render()}
-        </section>
-      ))}
+      <div className="quiet-gallery-principal">
+        <div className="quiet-stack" data-gallery-region="activity">
+          <Composition id="productive-week" />
+          <Composition id="team-access" />
+        </div>
+        <div className="quiet-stack" data-gallery-region="profile-actions">
+          <Composition id="account-profile" />
+          <Composition id="notifications" />
+          <Composition id="support-request" />
+        </div>
+      </div>
+      <Composition id="workspace-settings" />
+      <div className="quiet-gallery-pair" data-gallery-region="local-pair">
+        <Composition id="recent-activity" />
+        <Composition id="room-to-think" />
+      </div>
     </div>
   )
 }
