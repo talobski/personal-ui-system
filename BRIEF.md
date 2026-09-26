@@ -1,17 +1,20 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — `workbench-theme-controls-polish-v1-001` completed PUI-31
-through PUI-37 and is accepted at product commit
-`473372c92ad23478c41cc151a79fb8274fea7d9f`. Browser execution remains
-Lead-attributed and the fresh cross-provider verifier independently passed the
-exact-candidate offline, source, contract, boundary, and evidence-integrity
-review. No owner visual-review gate was admitted. The earlier
+Status: ACTIVE — the accepted product is
+`d3ce5ec5822da47db94b509f8848203520154eb6` on `main` control commit
+`25cebd535b6ed133a9dd3a24033b28f142523833`. The next admitted phase,
+`workbench-sidebar-theme-polish-v1-001`, covers PUI-56 through PUI-62 as one
+bounded delivery: canonical Theme v2.1 Sidebar colors and source selection,
+plus related Sidebar, ScrollArea, control-label, tab, selector, and pointer
+polish. Its immutable worker reference packet contains verbatim admission-time
+Linear snapshots and the authoritative reconciled phase contract. No owner
+visual-review gate is admitted. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
-Last updated: 2026-09-25
+Last updated: 2026-09-26
 
 ## Goal
 
