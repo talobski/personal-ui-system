@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "loop-phase-admission/1",
+  "phase": "semantic-typography-history-grid-v1-001",
+  "status": "ADMITTED",
+  "acceptedProductBase": "47d0aebef617f9d936d21f53089c96bd040e70d6",
+  "preparedImplementationBase": "61c4b7f81a4cdcba48e315f4e7fea89ca7685bab",
+  "tickets": ["PUI-3", "PUI-63", "PUI-64"],
+  "criteria": "STHG-01 through STHG-18",
+  "producer": "loop_worker_claude_strong / claude/claude-opus-5-5 / STRONG / medium / auto / included subscription",
+  "verifier": "loop_worker_codex_standard / codex/gpt-5.6-terra / STANDARD / medium / logical read-only",
+  "allocation": {
+    "lifetimeAgentRunCeiling": 64,
+    "phaseAgentRunCeiling": 3,
+    "expectedAgentRuns": 2,
+    "executionTimeMs": 21600000,
+    "concurrency": 1,
+    "paidSpend": 0
+  },
+  "linearPacket": {
+    "snapshotSha256": "f13c24dc5d7d5cd18acb90f8ffbc832452dd8c1becd69f1114d38cc852d12908",
+    "contractSha256": "46f9a14e7a6ed658fc38e2402b87d6fbdea63f002a3c9e69d8d5019bf724be85",
+    "verbatimRequiredInWorkerPrompt": true,
+    "contractAuthoritative": true,
+    "laterLinearEditsMutable": false
+  },
+  "browserEvidenceOwner": "Lead",
+  "protectedVerifierBrowserRequired": false,
+  "ownerVisualReviewRequired": false,
+  "networkAllowed": false,
+  "credentialsAllowed": false,
+  "externalActionsAllowed": false,
+  "paidFallbackAllowed": false,
+  "codexMaxFallbackPreauthorized": false,
+  "automaticCloseout": true,
+  "admittedAt": "2026-09-26T23:32:01+08:00"
+}
