@@ -14,8 +14,8 @@ node packages/core/src/context/bootstrap.mjs capabilities --version personal-ui-
 
 `list` discovers the closed theme and resource ids. `get` returns the selected theme and resource contract. `capabilities` describes the closed theme-token operation union; it does not add operations. In a package-manager workspace, the equivalent public script is `pnpm context -- <same arguments>`.
 
-Two built-in themes are served: `default` (the fresh-state theme) and `quiet-editorial` (the accepted v1 theme,
-served migrated). Every theme is canonical `personal-ui-theme` v3 (`schemaVersion: "3.0"`): colours live at
+Two built-in themes are served: `default` (the fresh-state theme) and `quiet-editorial`, both committed canonical v3
+fixtures (legacy v1/v2.0/v2.1 migration inputs live in `src/theme/fixtures/legacy/`). Every theme is canonical `personal-ui-theme` v3 (`schemaVersion: "3.0"`): colours live at
 `colors.{light,dark}.<token>` as canonical OKLCH; typography has two semantic roles, `heading` and `body`, each with a
 `font` stack, an integer `weight` (100 to 900 in steps of 100), and an em `tracking`, plus a `mono` font primitive for
 code (font size and line height stay component-owned); radius has `base`/`sm`/`md`/`lg`/`xl`, and shadows have eight

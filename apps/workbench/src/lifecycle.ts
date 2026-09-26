@@ -9,11 +9,11 @@ export type WorkbenchIssue = { ruleId: string; path: string }
 
 export type Outcome<T> = ({ ok: true } & T) | { ok: false; issues: WorkbenchIssue[] }
 
-/** Built-in themes in display order. Default is the fresh-state theme; Quiet Editorial is the migrated v1 fixture. */
+/** Built-in themes in display order. Default is the fresh-state theme; both are committed canonical Theme v3 fixtures. */
 export const DEFAULT_THEME_ID = "default"
 const BUILT_IN_FIXTURES = [defaultFixture, quietEditorialFixture] as const
 
-/** The committed built-in fixtures, validated (and, for v1 input, migrated) through core; never edited in place. */
+/** The committed built-in fixtures, validated through core; never edited in place. */
 export function loadBuiltInThemes(): Theme[] {
   return BUILT_IN_FIXTURES.map((fixture) => {
     const result = validateTheme(fixture)

@@ -24,7 +24,7 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "theme:quiet-editorial": {
     sourceId: "packages/core/src/theme/fixtures/valid.json",
-    sha256: "1a1f7e1bd4b8846b686ca39736613f6d690827f9ee292107767bf78c81b025e9",
+    sha256: "1a815114a93b7611b9511dec188c812505c3de54eebe08d788ed7e2eb8f4b41d",
   },
   "resource:button": {
     sourceId: "packages/core/src/contracts/data/button.ts",

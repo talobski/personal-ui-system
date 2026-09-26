@@ -16,7 +16,7 @@ import { buildFontOperation, fontControlCopy, buildShadowColorOperation, COLOR_G
 import type { NumericControlId } from "./controls"
 import { deleteTheme, emptySaved, loadSaved, saveSelection, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
-import v1QuietEditorial from "@personal-ui/core/theme/fixtures/valid.json"
+import v1QuietEditorial from "@personal-ui/core/theme/fixtures/legacy/quiet-editorial.v1.json"
 
 const builtIns = loadBuiltInThemes()
 const BUILT_IN_IDS = builtIns.map((theme) => theme.id)

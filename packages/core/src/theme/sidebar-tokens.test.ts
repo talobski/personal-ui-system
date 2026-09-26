@@ -19,7 +19,7 @@ import {
 } from "../index"
 import type { Theme, ThemeOperation } from "../index"
 import defaultFixture from "./fixtures/default.json"
-import v1Fixture from "./fixtures/valid.json"
+import v1Fixture from "./fixtures/legacy/quiet-editorial.v1.json"
 
 /** WSTP-03 to WSTP-09 at the core boundary: canonical v2.1 Sidebar colours, migration, source selection, mutation. */
 

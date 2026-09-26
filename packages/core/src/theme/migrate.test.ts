@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest"
 import { V1_MIGRATION_DEFAULTS, V3_MIGRATION_DEFAULTS, validateTheme } from "../index"
 import type { Theme } from "../index"
 import defaultFixture from "./fixtures/default.json"
-import v1Fixture from "./fixtures/valid.json"
+import legacyDefaultV2_0 from "./fixtures/legacy/default.v2.0.json"
+import legacyDefaultV2_1 from "./fixtures/legacy/default.v2.1.json"
+import v1Fixture from "./fixtures/legacy/quiet-editorial.v1.json"
+import quietEditorialFixture from "./fixtures/valid.json"
 
 const migrate = (input: unknown): Theme => {
   const result = validateTheme(input)
@@ -147,5 +150,43 @@ describe("v2.1 -> v3 semantic typography migration (STHG-03, STHG-04)", () => {
     const result = validateTheme(bad)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.issues.map((issue) => issue.path)).toEqual(["typography.tracking.$value"])
+  })
+})
+
+/**
+ * STHG-04 committed fixtures. Both built-ins are canonical v3 files; the v1, v2.0, and v2.1 inputs live in
+ * `fixtures/legacy/` so migration coverage never depends on a built-in staying legacy. Each legacy input must migrate to
+ * exactly the committed v3 built-in, byte for byte.
+ */
+describe("committed built-ins are canonical v3; dedicated legacy inputs migrate to them exactly", () => {
+  const exact = (input: unknown, fixture: unknown) => expect(JSON.stringify(migrate(input))).toBe(JSON.stringify(fixture))
+
+  it("keeps the legacy inputs at their frozen versions", () => {
+    expect([v1Fixture.schemaVersion, legacyDefaultV2_0.schemaVersion, legacyDefaultV2_1.schemaVersion]).toEqual(["1.0", "2.0", "2.1"])
+    expect(Object.keys(legacyDefaultV2_1.typography)).toEqual(["sans", "serif", "mono", "tracking"])
+    expect("sidebar" in legacyDefaultV2_0).toBe(false)
+  })
+
+  it("commits Default and Quiet Editorial as canonical v3 built-ins", () => {
+    for (const fixture of [defaultFixture, quietEditorialFixture]) {
+      expect(fixture.schemaVersion).toBe("3.0")
+      expect(fixture.$schema).toBe("https://personal-ui.local/schema/theme-3.json")
+      expect(Object.keys(fixture.typography)).toEqual(["heading", "body", "mono"])
+      exact(fixture, fixture)
+    }
+  })
+
+  it("v1 Quiet Editorial -> v3 equals the committed Quiet Editorial built-in", () => exact(v1Fixture, quietEditorialFixture))
+  it("v2.1 Default -> v3 equals the committed Default built-in", () => exact(legacyDefaultV2_1, defaultFixture))
+  it("v2.0 Default -> v3 equals the committed Default built-in", () => exact(legacyDefaultV2_0, defaultFixture))
+
+  it("the committed Quiet Editorial is the approved mapping of its legacy stacks", () => {
+    const v1 = v1Fixture as Record<string, any>
+    expect(quietEditorialFixture.typography).toEqual({
+      heading: { font: { $type: "fontFamily", $value: [...V1_MIGRATION_DEFAULTS.serif] }, weight: { $type: "fontWeight", $value: 600 }, tracking: { $type: "dimension", $value: "0em" } },
+      body: { font: v1.typography.sans, weight: { $type: "fontWeight", $value: 400 }, tracking: { $type: "dimension", $value: "0em" } },
+      mono: v1.typography.mono,
+    })
+    expect(quietEditorialFixture).toMatchObject({ id: "quiet-editorial", name: "Quiet Editorial", revision: 1, $extensions: v1.$extensions })
   })
 })

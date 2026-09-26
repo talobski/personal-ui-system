@@ -29,9 +29,12 @@ const admitted = new Set([
   "packages/core/README.md", "packages/core/src/index.ts",
   "packages/core/src/theme/schema.ts", "packages/core/src/theme/migrate.ts", "packages/core/src/theme/render.ts",
   "packages/core/src/theme/fixtures/default.json", "packages/core/src/theme/fixtures/default.css", "packages/core/src/theme/fixtures/quiet-editorial.css",
+  "packages/core/src/theme/fixtures/valid.json", "packages/core/src/theme/fixtures/legacy/quiet-editorial.v1.json",
+  "packages/core/src/theme/fixtures/legacy/default.v2.0.json", "packages/core/src/theme/fixtures/legacy/default.v2.1.json",
   "packages/core/src/theme/theme.test.ts", "packages/core/src/theme/default.test.ts", "packages/core/src/theme/migrate.test.ts", "packages/core/src/theme/sidebar-tokens.test.ts",
   "packages/core/src/mutations/mutation.ts", "packages/core/src/mutations/mutation.test.ts", "packages/core/src/mutations/mutation.v2.test.ts",
   "packages/core/src/context/capability-descriptions.ts", "packages/core/src/context/provenance.ts", "packages/core/src/context/context.get.test.ts",
+  "packages/core/src/context/themes.ts", "apps/workbench/src/lifecycle.ts",
   "packages/core/src/jev-design/recipes.ts", "packages/core/src/jev-design/recipes.fixtures.ts", "packages/core/src/jev-design/compose.test.ts",
   // Semantic role adoption in shared compositions, the Workbench-only Panel, the font catalog, base styles, and icons.
   "packages/ui/src/components/panel.tsx", "packages/ui/src/lib/fonts.ts", "packages/ui/src/fonts.test.ts", "packages/ui/src/lib/workbench-icons.ts",
@@ -71,8 +74,8 @@ for (const path of frozen) {
 for (const path of ["package.json", "pnpm-lock.yaml", "registry.json", "packages/ui/package.json", "apps/workbench/package.json", "packages/core/package.json",
   "packages/ui/src/components/card.tsx", "packages/ui/src/components/chart.tsx", "packages/ui/src/components/dialog.tsx", "packages/ui/src/components/drawer.tsx",
   "packages/ui/src/components/button.tsx", "packages/ui/src/components/slider.tsx", "packages/ui/src/components/responsive-dialog.tsx",
-  "apps/workbench/src/persistence.ts", "apps/workbench/src/lifecycle.ts", "apps/workbench/src/designCommand.ts", "apps/workbench/src/server/designCommandHandler.ts",
-  "packages/core/src/mutations/proposal.ts", "packages/core/src/theme/diff.ts", "packages/core/src/theme/fixtures/valid.json", "packages/core/src/theme/schema-v1.ts",
+  "apps/workbench/src/persistence.ts", "apps/workbench/src/designCommand.ts", "apps/workbench/src/server/designCommandHandler.ts",
+  "packages/core/src/mutations/proposal.ts", "packages/core/src/theme/diff.ts", "packages/core/src/theme/fixtures/invalid.json", "packages/core/src/theme/schema-v1.ts",
   "packages/core/src/jev-design/questions.ts", "packages/core/src/jev-design/wire.ts", "packages/core/src/jev-design/evaluate.ts"]) {
   assert.ok(frozen.includes(path), "Expected frozen: " + path)
 }
@@ -104,6 +107,18 @@ assert.deepEqual(defaultTheme.typography.heading, { font: priorDefault.typograph
 assert.deepEqual(defaultTheme.typography.body, { font: priorDefault.typography.sans, weight: { $type: "fontWeight", $value: 400 }, tracking: priorDefault.typography.tracking })
 assert.deepEqual(defaultTheme.typography.mono, priorDefault.typography.mono)
 for (const key of Object.keys(priorDefault).filter(key => !["$schema", "schemaVersion", "typography"].includes(key))) assert.deepEqual(defaultTheme[key], priorDefault[key], "Default value changed: " + key)
+// Correction: both built-ins are committed canonical v3; the legacy inputs are the exact accepted legacy bytes.
+const quiet = JSON.parse(read("packages/core/src/theme/fixtures/valid.json"))
+assert.equal(quiet.schemaVersion, "3.0")
+assert.deepEqual(Object.keys(quiet.typography), ["heading", "body", "mono"])
+const legacyV1 = read("packages/core/src/theme/fixtures/legacy/quiet-editorial.v1.json")
+assert.equal(legacyV1, prior("packages/core/src/theme/fixtures/valid.json"), "legacy v1 input is the accepted v1 Quiet Editorial, byte for byte")
+assert.equal(read("packages/core/src/theme/fixtures/legacy/default.v2.1.json"), prior("packages/core/src/theme/fixtures/default.json"), "legacy v2.1 input is the accepted Default, byte for byte")
+assert.equal(JSON.parse(read("packages/core/src/theme/fixtures/legacy/default.v2.0.json")).schemaVersion, "2.0")
+const v1Stacks = JSON.parse(legacyV1).typography
+assert.deepEqual(quiet.typography.body.font, v1Stacks.sans)
+assert.deepEqual(quiet.typography.mono, v1Stacks.mono)
+assert.deepEqual([quiet.typography.heading.weight.$value, quiet.typography.body.weight.$value], [600, 400])
 const migration = read("packages/core/src/theme/migrate.ts")
 assert.match(migration, /export const V3_MIGRATION_DEFAULTS = Object\.freeze\(\{ headingWeight: 600, bodyWeight: 400 \}\)/)
 assert.match(migration, /heading: role\(serif, V3_MIGRATION_DEFAULTS\.headingWeight\),\s*body: role\(sans, V3_MIGRATION_DEFAULTS\.bodyWeight\),/)

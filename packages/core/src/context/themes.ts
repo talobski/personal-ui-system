@@ -7,8 +7,8 @@ import { compareCodeUnits } from "./ordering"
 export type ThemeSummary = { id: string; name: string; revision: number }
 
 /**
- * The catalog of built-in themes the retrieval surface will validate and serve: the built-in Default (a v2 fixture,
- * the Workbench's fresh-state theme) and Quiet Editorial (the accepted v1 fixture, served migrated to v2). Adding a
+ * The catalog of built-in themes the retrieval surface will validate and serve: the built-in Default (the Workbench's
+ * fresh-state theme) and Quiet Editorial, both committed canonical Theme v3 fixtures. Adding a
  * theme here does not change `registry.json` or any component/contract catalog.
  */
 const loaders = {

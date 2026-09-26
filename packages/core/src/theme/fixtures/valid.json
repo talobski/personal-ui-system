@@ -1,97 +1,491 @@
 {
-  "$schema": "https://personal-ui.local/schema/theme-1.json",
-  "schemaVersion": "1.0",
+  "$schema": "https://personal-ui.local/schema/theme-3.json",
+  "schemaVersion": "3.0",
   "kind": "personal-ui-theme",
   "id": "quiet-editorial",
   "name": "Quiet Editorial",
   "revision": 1,
-  "modes": {
+  "colors": {
     "light": {
-      "color": {
-        "background": { "$type": "color", "$value": "oklch(0.99 0.002 250)" },
-        "foreground": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
-        "card": { "$type": "color", "$value": "oklch(1 0 0)" },
-        "card-foreground": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
-        "popover": { "$type": "color", "$value": "oklch(1 0 0)" },
-        "popover-foreground": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
-        "primary": { "$type": "color", "$value": "oklch(0.35 0.05 260)" },
-        "primary-foreground": { "$type": "color", "$value": "oklch(0.98 0.005 250)" },
-        "secondary": { "$type": "color", "$value": "oklch(0.95 0.01 250)" },
-        "secondary-foreground": { "$type": "color", "$value": "oklch(0.25 0.02 250)" },
-        "muted": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
-        "muted-foreground": { "$type": "color", "$value": "oklch(0.45 0.02 250)" },
-        "accent": { "$type": "color", "$value": "oklch(0.94 0.02 250)" },
-        "accent-foreground": { "$type": "color", "$value": "oklch(0.25 0.02 250)" },
-        "destructive": { "$type": "color", "$value": "oklch(0.5 0.2 27)" },
-        "border": { "$type": "color", "$value": "oklch(0.9 0.005 250)" },
-        "input": { "$type": "color", "$value": "oklch(0.75 0.01 250)" },
-        "ring": { "$type": "color", "$value": "oklch(0.55 0.08 260)" },
-        "chart-1": { "$type": "color", "$value": "oklch(0.6 0.12 40)" },
-        "chart-2": { "$type": "color", "$value": "oklch(0.6 0.1 200)" },
-        "chart-3": { "$type": "color", "$value": "oklch(0.4 0.07 230)" },
-        "chart-4": { "$type": "color", "$value": "oklch(0.8 0.15 90)" },
-        "chart-5": { "$type": "color", "$value": "oklch(0.7 0.15 60)" }
+      "background": {
+        "$type": "color",
+        "$value": "oklch(0.99 0.002 250)"
+      },
+      "foreground": {
+        "$type": "color",
+        "$value": "oklch(0.2 0.01 250)"
+      },
+      "card": {
+        "$type": "color",
+        "$value": "oklch(1 0 0)"
+      },
+      "card-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.2 0.01 250)"
+      },
+      "popover": {
+        "$type": "color",
+        "$value": "oklch(1 0 0)"
+      },
+      "popover-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.2 0.01 250)"
+      },
+      "primary": {
+        "$type": "color",
+        "$value": "oklch(0.35 0.05 260)"
+      },
+      "primary-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.98 0.005 250)"
+      },
+      "secondary": {
+        "$type": "color",
+        "$value": "oklch(0.95 0.01 250)"
+      },
+      "secondary-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.25 0.02 250)"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "oklch(0.96 0.005 250)"
+      },
+      "muted-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.45 0.02 250)"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "oklch(0.94 0.02 250)"
+      },
+      "accent-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.25 0.02 250)"
+      },
+      "destructive": {
+        "$type": "color",
+        "$value": "oklch(0.5 0.2 27)"
+      },
+      "destructive-foreground": {
+        "$type": "color",
+        "$value": "oklch(1 0 0)"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "oklch(0.9 0.005 250)"
+      },
+      "input": {
+        "$type": "color",
+        "$value": "oklch(0.75 0.01 250)"
+      },
+      "ring": {
+        "$type": "color",
+        "$value": "oklch(0.55 0.08 260)"
+      },
+      "chart-1": {
+        "$type": "color",
+        "$value": "oklch(0.6 0.12 40)"
+      },
+      "chart-2": {
+        "$type": "color",
+        "$value": "oklch(0.6 0.1 200)"
+      },
+      "chart-3": {
+        "$type": "color",
+        "$value": "oklch(0.4 0.07 230)"
+      },
+      "chart-4": {
+        "$type": "color",
+        "$value": "oklch(0.8 0.15 90)"
+      },
+      "chart-5": {
+        "$type": "color",
+        "$value": "oklch(0.7 0.15 60)"
+      },
+      "sidebar": {
+        "$type": "color",
+        "$value": "oklch(0.99 0.002 250)"
+      },
+      "sidebar-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.2 0.01 250)"
+      },
+      "sidebar-primary": {
+        "$type": "color",
+        "$value": "oklch(0.35 0.05 260)"
+      },
+      "sidebar-primary-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.98 0.005 250)"
+      },
+      "sidebar-accent": {
+        "$type": "color",
+        "$value": "oklch(0.94 0.02 250)"
+      },
+      "sidebar-accent-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.25 0.02 250)"
+      },
+      "sidebar-border": {
+        "$type": "color",
+        "$value": "oklch(0.9 0.005 250)"
+      },
+      "sidebar-ring": {
+        "$type": "color",
+        "$value": "oklch(0.55 0.08 260)"
       }
     },
     "dark": {
-      "color": {
-        "background": { "$type": "color", "$value": "oklch(0.16 0.01 250)" },
-        "foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
-        "card": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
-        "card-foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
-        "popover": { "$type": "color", "$value": "oklch(0.2 0.01 250)" },
-        "popover-foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
-        "primary": { "$type": "color", "$value": "oklch(0.9 0.03 250)" },
-        "primary-foreground": { "$type": "color", "$value": "oklch(0.2 0.02 250)" },
-        "secondary": { "$type": "color", "$value": "oklch(0.27 0.015 250)" },
-        "secondary-foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
-        "muted": { "$type": "color", "$value": "oklch(0.27 0.015 250)" },
-        "muted-foreground": { "$type": "color", "$value": "oklch(0.75 0.02 250)" },
-        "accent": { "$type": "color", "$value": "oklch(0.3 0.02 250)" },
-        "accent-foreground": { "$type": "color", "$value": "oklch(0.96 0.005 250)" },
-        "destructive": { "$type": "color", "$value": "oklch(0.7 0.19 22)" },
-        "border": { "$type": "color", "$value": "oklch(1 0 0 / 10%)" },
-        "input": { "$type": "color", "$value": "oklch(1 0 0 / 15%)" },
-        "ring": { "$type": "color", "$value": "oklch(0.6 0.08 260)" },
-        "chart-1": { "$type": "color", "$value": "oklch(0.65 0.18 270)" },
-        "chart-2": { "$type": "color", "$value": "oklch(0.7 0.12 170)" },
-        "chart-3": { "$type": "color", "$value": "oklch(0.75 0.15 70)" },
-        "chart-4": { "$type": "color", "$value": "oklch(0.65 0.2 310)" },
-        "chart-5": { "$type": "color", "$value": "oklch(0.65 0.2 20)" }
+      "background": {
+        "$type": "color",
+        "$value": "oklch(0.16 0.01 250)"
+      },
+      "foreground": {
+        "$type": "color",
+        "$value": "oklch(0.96 0.005 250)"
+      },
+      "card": {
+        "$type": "color",
+        "$value": "oklch(0.2 0.01 250)"
+      },
+      "card-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.96 0.005 250)"
+      },
+      "popover": {
+        "$type": "color",
+        "$value": "oklch(0.2 0.01 250)"
+      },
+      "popover-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.96 0.005 250)"
+      },
+      "primary": {
+        "$type": "color",
+        "$value": "oklch(0.9 0.03 250)"
+      },
+      "primary-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.2 0.02 250)"
+      },
+      "secondary": {
+        "$type": "color",
+        "$value": "oklch(0.27 0.015 250)"
+      },
+      "secondary-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.96 0.005 250)"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "oklch(0.27 0.015 250)"
+      },
+      "muted-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.75 0.02 250)"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "oklch(0.3 0.02 250)"
+      },
+      "accent-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.96 0.005 250)"
+      },
+      "destructive": {
+        "$type": "color",
+        "$value": "oklch(0.7 0.19 22)"
+      },
+      "destructive-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.985104 0 0)"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "oklch(1 0 0 / 0.1)"
+      },
+      "input": {
+        "$type": "color",
+        "$value": "oklch(1 0 0 / 0.15)"
+      },
+      "ring": {
+        "$type": "color",
+        "$value": "oklch(0.6 0.08 260)"
+      },
+      "chart-1": {
+        "$type": "color",
+        "$value": "oklch(0.65 0.18 270)"
+      },
+      "chart-2": {
+        "$type": "color",
+        "$value": "oklch(0.7 0.12 170)"
+      },
+      "chart-3": {
+        "$type": "color",
+        "$value": "oklch(0.75 0.15 70)"
+      },
+      "chart-4": {
+        "$type": "color",
+        "$value": "oklch(0.65 0.2 310)"
+      },
+      "chart-5": {
+        "$type": "color",
+        "$value": "oklch(0.65 0.2 20)"
+      },
+      "sidebar": {
+        "$type": "color",
+        "$value": "oklch(0.16 0.01 250)"
+      },
+      "sidebar-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.96 0.005 250)"
+      },
+      "sidebar-primary": {
+        "$type": "color",
+        "$value": "oklch(0.9 0.03 250)"
+      },
+      "sidebar-primary-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.2 0.02 250)"
+      },
+      "sidebar-accent": {
+        "$type": "color",
+        "$value": "oklch(0.3 0.02 250)"
+      },
+      "sidebar-accent-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.96 0.005 250)"
+      },
+      "sidebar-border": {
+        "$type": "color",
+        "$value": "oklch(1 0 0 / 0.1)"
+      },
+      "sidebar-ring": {
+        "$type": "color",
+        "$value": "oklch(0.6 0.08 260)"
       }
     }
   },
   "typography": {
-    "sans": { "$type": "fontFamily", "$value": ["Inter", "system-ui", "sans-serif"] },
-    "mono": { "$type": "fontFamily", "$value": ["JetBrains Mono", "ui-monospace", "monospace"] }
+    "heading": {
+      "font": {
+        "$type": "fontFamily",
+        "$value": [
+          "ui-serif",
+          "Georgia",
+          "Cambria",
+          "Times New Roman",
+          "Times",
+          "serif"
+        ]
+      },
+      "weight": {
+        "$type": "fontWeight",
+        "$value": 600
+      },
+      "tracking": {
+        "$type": "dimension",
+        "$value": "0em"
+      }
+    },
+    "body": {
+      "font": {
+        "$type": "fontFamily",
+        "$value": [
+          "Inter",
+          "system-ui",
+          "sans-serif"
+        ]
+      },
+      "weight": {
+        "$type": "fontWeight",
+        "$value": 400
+      },
+      "tracking": {
+        "$type": "dimension",
+        "$value": "0em"
+      }
+    },
+    "mono": {
+      "$type": "fontFamily",
+      "$value": [
+        "JetBrains Mono",
+        "ui-monospace",
+        "monospace"
+      ]
+    }
   },
   "radius": {
-    "sm": { "$type": "dimension", "$value": "0.25rem" },
-    "md": { "$type": "dimension", "$value": "0.5rem" },
-    "lg": { "$type": "dimension", "$value": "0.75rem" }
+    "base": {
+      "$type": "dimension",
+      "$value": "0.5rem"
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "0.25rem"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "0.5rem"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "0.75rem"
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "0.75rem"
+    }
   },
   "space": {
-    "base": { "$type": "dimension", "$value": "0.25rem" },
-    "density": { "$type": "number", "$value": 1 }
+    "base": {
+      "$type": "dimension",
+      "$value": "0.25rem"
+    },
+    "density": {
+      "$type": "number",
+      "$value": 1
+    }
   },
   "shadow": {
+    "2xs": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "0px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.05)"
+        }
+      ]
+    },
+    "xs": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "2px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.05)"
+        }
+      ]
+    },
     "sm": {
       "$type": "shadow",
-      "$value": [{ "offsetX": "0px", "offsetY": "1px", "blur": "2px", "spread": "0px", "color": "oklch(0 0 0 / 5%)" }]
+      "$value": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "2px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.05)"
+        }
+      ]
+    },
+    "default": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "2px",
+          "spread": "0px",
+          "color": "oklch(0 0 0 / 0.05)"
+        }
+      ]
     },
     "md": {
       "$type": "shadow",
-      "$value": [{ "offsetX": "0px", "offsetY": "4px", "blur": "8px", "spread": "-2px", "color": "oklch(0 0 0 / 10%)" }]
+      "$value": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "4px",
+          "blur": "8px",
+          "spread": "-2px",
+          "color": "oklch(0 0 0 / 0.1)"
+        }
+      ]
     },
     "lg": {
       "$type": "shadow",
-      "$value": [{ "offsetX": "0px", "offsetY": "10px", "blur": "20px", "spread": "-4px", "color": "oklch(0 0 0 / 15%)" }]
+      "$value": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "10px",
+          "blur": "20px",
+          "spread": "-4px",
+          "color": "oklch(0 0 0 / 0.15)"
+        }
+      ]
+    },
+    "xl": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "20px",
+          "blur": "25px",
+          "spread": "-5px",
+          "color": "oklch(0 0 0 / 0.1)"
+        },
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "8px",
+          "blur": "10px",
+          "spread": "-6px",
+          "color": "oklch(0 0 0 / 0.1)"
+        }
+      ]
+    },
+    "2xl": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "inset": false,
+          "offsetX": "0px",
+          "offsetY": "25px",
+          "blur": "50px",
+          "spread": "-12px",
+          "color": "oklch(0 0 0 / 0.25)"
+        }
+      ]
     }
   },
   "motion": {
-    "durationFast": { "$type": "duration", "$value": "150ms" },
-    "durationBase": { "$type": "duration", "$value": "200ms" },
-    "reducedMotion": { "$type": "string", "$value": "reduce" }
+    "durationFast": {
+      "$type": "duration",
+      "$value": "150ms"
+    },
+    "durationBase": {
+      "$type": "duration",
+      "$value": "200ms"
+    },
+    "reducedMotion": {
+      "$type": "string",
+      "$value": "reduce"
+    }
   },
-  "$extensions": { "personal-ui-system": { "displayName": "Quiet Editorial" } }
+  "sidebar": {
+    "useDedicatedTokens": {
+      "$type": "boolean",
+      "$value": false
+    },
+    "dedicatedValuesInitialized": false
+  },
+  "$extensions": {
+    "personal-ui-system": {
+      "displayName": "Quiet Editorial"
+    }
+  }
 }

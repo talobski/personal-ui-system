@@ -101,7 +101,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
   })
 
   test("a stored v1 theme migrates on load, stays selected, and exports as canonical v3 (TSV2-12, WSTP-09, STHG-04)", async ({ page }) => {
-    const v1 = JSON.parse(readFileSync(new URL("../packages/core/src/theme/fixtures/valid.json", import.meta.url), "utf8"))
+    const v1 = JSON.parse(readFileSync(new URL("../packages/core/src/theme/fixtures/legacy/quiet-editorial.v1.json", import.meta.url), "utf8"))
     await page.goto("/")
     await page.evaluate(
       ([key, theme]) => localStorage.setItem(key as string, JSON.stringify({ themes: { "legacy-fork": theme }, activeId: "legacy-fork" })),

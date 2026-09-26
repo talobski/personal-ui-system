@@ -5,6 +5,7 @@ import { COLOR_TOKENS, renderShadcnTailwindCss, SHADOW_TOKENS, THEME_SCHEMA_VERS
 import type { Theme } from "../index"
 import defaultFixture from "./fixtures/default.json"
 import invalidFixture from "./fixtures/invalid.json"
+import v1QuietEditorial from "./fixtures/legacy/quiet-editorial.v1.json"
 import validFixture from "./fixtures/valid.json"
 
 const goldenPath = (name: string) => new URL(`./fixtures/${name}.css`, import.meta.url)
@@ -23,8 +24,15 @@ describe("theme schema v3", () => {
     expect(validateTheme(JSON.parse(JSON.stringify(theme)))).toEqual({ ok: true, theme })
   })
 
-  it("accepts the v1 Quiet Editorial fixture, returns canonical v3, and is idempotent", () => {
+  it("STHG-04 commits the built-in Quiet Editorial as canonical v3 and round-trips it byte-for-byte", () => {
     const theme = valid(validFixture)
+    expect(validFixture.schemaVersion).toBe("3.0")
+    expect(JSON.stringify(theme)).toBe(JSON.stringify(validFixture))
+    expect(validateTheme(JSON.parse(JSON.stringify(theme)))).toEqual({ ok: true, theme })
+  })
+
+  it("accepts the legacy v1 Quiet Editorial input, returns canonical v3, and is idempotent", () => {
+    const theme = valid(v1QuietEditorial)
     expect(theme.schemaVersion).toBe("3.0")
     expect(theme.$schema).toBe("https://personal-ui.local/schema/theme-3.json")
     expect(valid(theme)).toEqual(theme)
@@ -130,7 +138,7 @@ describe("theme schema v3", () => {
   })
 
   it("reports (never drops) a v1 value that v2 cannot represent", () => {
-    const input = structuredClone(validFixture) as Record<string, any>
+    const input = structuredClone(v1QuietEditorial) as Record<string, any>
     input.modes.light.color.primary.$value = "oklch(0.7 0.4 150)"
     const result = validateTheme(input)
     expect(result.ok).toBe(false)
