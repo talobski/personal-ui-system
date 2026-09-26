@@ -32,13 +32,23 @@
     "billing": "included subscription only",
     "paidFallback": false,
     "ownerOneUseAuthorizationRecorded": true,
-    "admissibility": "pending exact provider/workspace check"
+    "providerEnabled": true,
+    "providerStatus": "available",
+    "workspaceModeAvailable": "auto",
+    "billingAdmission": "included subscription route; paid/API fallback prohibited",
+    "admissibility": "PASS"
   },
   "browserReadiness": {
-    "result": "pending",
+    "result": "PASS",
+    "workbenchBuild": "pass",
+    "browser": "Chromium",
+    "transport": "http://127.0.0.1:5292",
+    "matrix": "390x844 and 1440x900",
+    "cases": "2/2 accepted toolbar/history smoke cases passed",
+    "cleanExit": true,
     "acceptanceEvidence": false,
     "externalNetwork": false
   },
-  "result": "PENDING"
+  "taskSha256": "2f7a31987ad2052a032fe6462fbe0dc4b0151d933aff059fa7989915232ce4cc",
+  "result": "PASS"
 }
-
