@@ -17,10 +17,18 @@ import type { NumericControl } from "./controls"
 import type { WorkbenchIssue } from "./lifecycle"
 
 /**
- * Applies one operation built against the *latest* active theme and returns the rejection issues (empty when applied).
- * Manual controls have no Apply step: a valid value becomes active state immediately, an invalid one changes nothing.
+ * Applies one operation and returns the rejection issues (empty when applied). Manual controls have no Apply step: a
+ * valid value becomes active state immediately, an invalid one changes nothing.
+ *
+ * Without `gesture` the operation is built against the latest active theme and is one committed history entry. With a
+ * `gesture` key (a slider drag, or one focus session of a text draft) every step is rebuilt against the theme captured
+ * when that gesture began: the preview stays live, but the revision advances at most once and history records one
+ * entry when the gesture ends (`EndGesture`, or any other control or action).
  */
-export type ApplyManual = (build: (theme: Theme) => ThemeOperation) => WorkbenchIssue[]
+export type ApplyManual = (build: (theme: Theme) => ThemeOperation, gesture?: string) => WorkbenchIssue[]
+
+/** Closes the open manual gesture, recording its one history checkpoint when it changed the design. */
+export type EndGesture = () => void
 
 /** The one ordinary field-label style across every editor tab; group headings stay visually distinct. */
 export const FIELD_LABEL_CLASS = "text-xs font-normal text-muted-foreground"
@@ -98,6 +106,7 @@ export function LiveNumberField({
   theme,
   disabled,
   apply,
+  endGesture,
 }: {
   id: string
   control: NumericControl
@@ -106,6 +115,7 @@ export function LiveNumberField({
   theme: Theme
   disabled: boolean
   apply: ApplyManual
+  endGesture: EndGesture
 }) {
   const value = control.read(theme)
   const formatted = formatNumber(value, control.step)
@@ -120,9 +130,11 @@ export function LiveNumberField({
   }, [formatted, theme.id])
   useReportInvalid(id, error !== null)
 
+  // The slider and the text draft share one gesture key: a drag (pointer down to up, or one key press) or one focus
+  // session of typing is one history entry.
   const commit = (next: number) => {
     const rounded = roundToStep(next, control.step)
-    const issues = apply((latest) => control.build(rounded, latest))
+    const issues = apply((base) => control.build(rounded, base), id)
     setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
   }
 
@@ -154,6 +166,8 @@ export function LiveNumberField({
             setDraft(formatNumber(next, control.step))
             commit(next)
           }}
+          // Radix reports a keyboard step's commit before its value change, so the gesture closes after both have run.
+          onValueCommit={() => queueMicrotask(endGesture)}
         />
 
         <div className="flex items-center gap-[0.375rem]">
@@ -170,6 +184,7 @@ export function LiveNumberField({
             onFocus={() => (focused.current = true)}
             onBlur={() => {
               focused.current = false
+              endGesture()
               if (error === null) setDraft(formatted)
             }}
             onChange={(event) => {
@@ -211,6 +226,7 @@ export function LiveColorField({
   hint = COLOR_HINT,
   disabled,
   apply,
+  endGesture,
 }: {
   id: string
   label: string
@@ -221,6 +237,7 @@ export function LiveColorField({
   hint?: string
   disabled: boolean
   apply: ApplyManual
+  endGesture: EndGesture
 }) {
   const [draft, setDraft] = React.useState(value)
   const [error, setError] = React.useState<string | null>(null)
@@ -234,8 +251,9 @@ export function LiveColorField({
 
   const inputId = `${id}-input`
   const errorId = `${id}-error`
-  const commit = (raw: string) => {
-    const issues = apply((latest) => build(raw, latest))
+  // Picker drags and one focus session of typing are each one gesture, so one history entry.
+  const commit = (raw: string, gesture: string) => {
+    const issues = apply((base) => build(raw, base), gesture)
     setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}. ${hint}` : null)
   }
 
@@ -252,7 +270,8 @@ export function LiveColorField({
           data-testid={`${id}-picker`}
           value={pickerHex(value)}
           disabled={disabled}
-          onChange={(event) => commit(pickedColorInput(event.target.value, value))}
+          onChange={(event) => commit(pickedColorInput(event.target.value, value), `${id}-picker`)}
+          onBlur={endGesture}
           className="size-8 shrink-0 cursor-pointer appearance-none rounded-md border border-input bg-transparent p-0.5 outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 [&::-moz-color-swatch]:rounded-sm [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
         />
         <Input
@@ -268,11 +287,12 @@ export function LiveColorField({
           onFocus={() => (focused.current = true)}
           onBlur={() => {
             focused.current = false
+            endGesture()
             if (error === null) setDraft(value)
           }}
           onChange={(event) => {
             setDraft(event.target.value)
-            commit(event.target.value.trim())
+            commit(event.target.value.trim(), id)
           }}
         />
       </div>

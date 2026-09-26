@@ -799,8 +799,11 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
   it("adds pointer cursors only at bounded enabled call sites; the public Button stays unchanged", () => {
     expect(controls).toMatch(/<Button variant="ghost" size="sm" className="h-auto w-fit cursor-pointer /)
     expect(app).toContain('<SidebarTrigger className="size-8 cursor-pointer" />')
-    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer" disabled={locked} onClick={() => download(exportThemeJson(current))}>')
-    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer" disabled={locked} onClick={save}>')
+    // STHG-12: below 640px Export and Save are icon-only (names kept) so the recovery group fits the toolbar.
+    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export JSON" disabled={locked} onClick={() => download(exportThemeJson(current))}>')
+    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Save" disabled={locked} onClick={save}>')
+    expect(app).toContain('<span className="max-sm:sr-only">Export JSON</span>')
+    for (const name of ["Undo", "Redo", "Reset"]) expect(app).toContain(`<Button variant="ghost" size="icon" className="size-8 cursor-pointer" aria-label="${name}" title="${name}"`)
     // Disabled buttons drop pointer events, so no pointer cursor can show while disabled.
     expect(button).toContain("disabled:pointer-events-none")
     expect(button).not.toContain("cursor-pointer")

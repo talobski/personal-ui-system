@@ -1,7 +1,7 @@
 import * as React from "react"
-import { Download, Save } from "@personal-ui/ui/lib/workbench-icons"
+import { Download, Redo2, RotateCcw, Save, Undo2 } from "@personal-ui/ui/lib/workbench-icons"
 
-import { applyProposal, createProposalSession, diffThemeTokens, discardProposal, isSidebarColorToken, stageProposal } from "@personal-ui/core"
+import { applyProposal, createProposalSession, discardProposal, isSidebarColorToken, stageProposal } from "@personal-ui/core"
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
@@ -33,8 +33,10 @@ import { deleteTheme, loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
 import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, NUMERIC_CONTROLS, readFontStack, readShadowColor, TYPE_ROLE_GROUPS } from "./controls"
 import type { NumericControlId } from "./controls"
+import { EMPTY_TRACK, isDirty, record, redo, reset, sameDesign, undo } from "./history"
+import type { HistoryStep, HistoryTrack } from "./history"
 import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField, SidebarTokensSwitch } from "./LiveControls"
-import type { ApplyManual } from "./LiveControls"
+import type { ApplyManual, EndGesture } from "./LiveControls"
 
 const builtIns = loadBuiltInThemes()
 const builtInIds = builtIns.map((theme) => theme.id)
@@ -127,6 +129,15 @@ export function App() {
   currentRef.current = current
   const [mode, setMode] = React.useState<Mode>("light")
 
+  // Session-local history (PUI-3): one track per theme id, plus the in-session working state of every theme that is not
+  // active, so switching restores each theme's own working state and history. Never persisted; a reload clears both.
+  const tracksRef = React.useRef<Readonly<Record<string, HistoryTrack>>>({})
+  const [tracks, setTracks] = React.useState(tracksRef.current)
+  const working = React.useRef<Readonly<Record<string, Theme>>>({})
+  // The open manual gesture (a slider drag or one text-draft focus session) and the theme it started from.
+  const gesture = React.useRef<{ key: string; base: Theme } | null>(null)
+  const [resetOpen, setResetOpen] = React.useState(false)
+
   const [saveAsOpen, setSaveAsOpen] = React.useState(false)
   const [saveAsName, setSaveAsName] = React.useState("")
   const [saveAsIssues, setSaveAsIssues] = React.useState<WorkbenchIssue[]>([])
@@ -183,26 +194,80 @@ export function App() {
 
   const savedCopy = saved.themes[current.id]
   const builtInCopy = builtInById(current.id)
-  const status = builtInCopy ? (JSON.stringify(builtInCopy) === JSON.stringify(current) ? "built-in" : "built-in, edited") : savedCopy !== undefined && JSON.stringify(savedCopy) === JSON.stringify(current) ? "custom, saved" : "custom, unsaved changes"
+  // The durable baseline: the immutable built-in fixture, or a custom theme's last saved snapshot. Dirty compares design
+  // values only, so an Undo back to the baseline is clean again even though its revision moved on.
+  const baseline = builtInCopy ?? savedCopy
+  const dirty = baseline === undefined || isDirty(current, baseline)
+  const status = builtInCopy ? (dirty ? "built-in, edited" : "built-in") : savedCopy !== undefined && !dirty ? "custom, saved" : "custom, unsaved changes"
+  const track = tracks[current.id] ?? EMPTY_TRACK
   const savedIds = Object.keys(saved.themes)
   const knownIds = [...builtInIds, ...savedIds]
+
+  const setActive = (theme: Theme) => {
+    currentRef.current = theme
+    setCurrent(theme)
+  }
+  const trackOf = (id: string) => tracksRef.current[id] ?? EMPTY_TRACK
+  const writeTracks = (next: Readonly<Record<string, HistoryTrack>>) => {
+    tracksRef.current = next
+    setTracks(next)
+  }
+  const writeTrack = (id: string, next: HistoryTrack) => writeTracks({ ...tracksRef.current, [id]: next })
+  const without = <T,>(map: Readonly<Record<string, T>>, ...ids: string[]) => Object.fromEntries(Object.entries(map).filter(([key]) => !ids.includes(key)))
+
+  /** Closes the open gesture: one history checkpoint from its captured base when the design changed. */
+  const endGesture: EndGesture = () => {
+    const open = gesture.current
+    if (!open) return
+    gesture.current = null
+    const now = currentRef.current
+    if (now.id === open.base.id) writeTrack(now.id, record(trackOf(now.id), open.base, now))
+  }
 
   /**
    * The one manual-edit path: control value -> typed operation -> core validation -> active in-memory theme -> preview.
    * No Apply step and no Save: a rejected value returns its issues and changes nothing; a value that changes no token
-   * creates no revision. Blocked while a proposal is staged or a command is evaluating, so manual edits can never race
-   * or blend into a proposal.
+   * creates no revision and no history. A committed edit is one history checkpoint (and clears Redo); a gesture step
+   * is rebuilt from the gesture's base, so a drag or typing session advances the revision once and records one
+   * checkpoint when it ends. Blocked while a proposal is staged or a command is evaluating, so manual edits can never
+   * race or blend into a proposal.
    */
-  const applyManual: ApplyManual = (build: (theme: Theme) => ThemeOperation) => {
+  const applyManual: ApplyManual = (build: (theme: Theme) => ThemeOperation, key?: string) => {
     if (locked) return [{ ruleId: "workbench.manual.locked", path: "" }]
-    const latest = currentRef.current
-    const result = editTheme(latest, build(latest))
+    if (key === undefined || gesture.current?.key !== key) endGesture()
+    if (key !== undefined && gesture.current === null) gesture.current = { key, base: currentRef.current }
+    const base = key === undefined ? currentRef.current : gesture.current!.base
+    const result = editTheme(base, build(base))
     if (!result.ok) return result.issues
-    if (diffThemeTokens(latest, result.theme).length === 0) return []
-    currentRef.current = result.theme
-    setCurrent(result.theme)
+    const unchanged = sameDesign(base, result.theme)
+    if (key !== undefined) setActive(unchanged ? base : result.theme)
+    else if (!unchanged) {
+      writeTrack(base.id, record(trackOf(base.id), base, result.theme))
+      setActive(result.theme)
+    } else return []
     setNotice("")
     return []
+  }
+
+  /** Undo / Redo / Reset: one revalidated history transition that always advances the revision. */
+  const stepHistory = (step: (track: HistoryTrack, theme: Theme) => HistoryStep | null) => {
+    if (locked) return false
+    endGesture()
+    const theme = currentRef.current
+    const next = step(trackOf(theme.id), theme)
+    if (!next) return false
+    writeTrack(theme.id, next.track)
+    setActive(next.theme)
+    setNotice("")
+    return true
+  }
+  const undoEdit = () => stepHistory(undo)
+  const redoEdit = () => stepHistory(redo)
+  const resetToBaseline = () => {
+    if (!baseline) return
+    const label = builtInCopy ? `the built-in ${builtInCopy.name}` : `the last saved "${current.name}"`
+    if (stepHistory((history, theme) => reset(history, theme, baseline))) setNotice(`Reset to ${label}. Undo restores your edits.`)
+    setResetOpen(false)
   }
 
   const showProposalErrors = (errors: ProposalError[]) => setProposalIssues(errors.map(({ ruleId, path }) => ({ ruleId, path })))
@@ -217,7 +282,9 @@ export function App() {
       return setProposalResult(result.session.records.find((record) => record.proposalId === id)?.status === "stale" ? `Proposal ${id} is stale; nothing was changed.` : "")
     }
     setProposalIssues([])
-    setCurrent(result.theme!)
+    // Apply is one atomic, undoable history checkpoint; staging and Discard never touch history.
+    writeTrack(current.id, record(trackOf(current.id), current, result.theme!))
+    setActive(result.theme!)
     setProposalResult(`Applied ${id}. Revision is now ${result.theme!.revision}; not saved yet.`)
     setNotice("")
   }
@@ -271,6 +338,8 @@ export function App() {
       return
     }
     event.preventDefault()
+    endGesture()
+    // Saving re-baselines the durable snapshot; session history is kept, so Undo after Save makes the theme dirty again.
     const result = saveTheme(window.localStorage, saved, current, builtInIds, saved.bases[current.id] ?? DEFAULT_THEME_ID)
     if (!result.ok) return setNotice(`Not saved: ${describeIssues(result.issues)}`)
     setSaved(result.saved)
@@ -285,7 +354,11 @@ export function App() {
     const result = saveTheme(window.localStorage, saved, copy.theme, builtInIds, builtInCopy.id)
     if (!result.ok) return setSaveAsIssues(result.issues)
     setSaved(result.saved)
-    setCurrent(copy.theme)
+    // The new custom theme starts a clean track; the immutable source built-in returns to its canonical fixture with a
+    // clean track, since its edits now live in the copy.
+    working.current = without(working.current, builtInCopy.id, copy.theme.id)
+    writeTracks(without(tracksRef.current, builtInCopy.id, copy.theme.id))
+    setActive(copy.theme)
     setSaveAsIssues([])
     setSaveAsOpen(false)
     setNotice(`Saved "${copy.theme.name}" as a custom theme. ${builtInCopy.name} is unchanged.`)
@@ -301,22 +374,28 @@ export function App() {
     const result = deleteTheme(window.localStorage, saved, current.id, DEFAULT_THEME_ID)
     if (!result.ok) return setNotice(`Not deleted: ${describeIssues(result.issues)}`)
     setSaved(result.saved)
-    currentRef.current = defaultTheme
-    setCurrent(defaultTheme)
+    const fallback = working.current[DEFAULT_THEME_ID] ?? defaultTheme
+    working.current = without(working.current, current.id, DEFAULT_THEME_ID)
+    writeTracks(without(tracksRef.current, current.id))
+    setActive(fallback)
     setDeleteOpen(false)
     setNotice(`Deleted "${name}". ${defaultTheme.name} is now active.`)
   }
 
+  /** Switching keeps each theme's in-session working state and history: leaving stores it, returning restores it. */
   const load = (id: string) => {
-    const next = builtInById(id) ?? saved.themes[id]
+    endGesture()
+    const leaving = currentRef.current
+    const next = working.current[id] ?? builtInById(id) ?? saved.themes[id]
     if (!next) return
-    setCurrent(next)
+    working.current = { ...without(working.current, id), [leaving.id]: leaving }
+    setActive(next)
     // Only the selection is persisted; selecting never saves theme data.
     setSaved(saveSelection(window.localStorage, saved, id))
     setNotice("")
   }
 
-  const numeric = (id: NumericControlId, labelPrefix?: string) => <LiveNumberField key={`${current.id}-${id}`} id={id} control={NUMERIC_CONTROLS[id]} labelPrefix={labelPrefix} theme={current} disabled={locked} apply={applyManual} />
+  const numeric = (id: NumericControlId, labelPrefix?: string) => <LiveNumberField key={`${current.id}-${id}`} id={id} control={NUMERIC_CONTROLS[id]} labelPrefix={labelPrefix} theme={current} disabled={locked} apply={applyManual} endGesture={endGesture} />
   const manualLockNote = locked ? (
     <p data-testid="manual-locked-note" className="text-sm text-muted-foreground">
       {commandEvaluating ? "Manual controls are paused while a design command is evaluated." : "Manual controls are paused until the staged proposal is applied or discarded. The preview shows the proposal, not your active theme."}
@@ -329,7 +408,7 @@ export function App() {
       : []),
   ]
   // A row shows each theme's own colours; the active row and trigger follow the live (possibly edited) active theme.
-  const rowTheme = (id: string) => (id === current.id ? current : (builtInById(id) ?? saved.themes[id]!))
+  const rowTheme = (id: string) => (id === current.id ? current : (working.current[id] ?? builtInById(id) ?? saved.themes[id]!))
   const activeCustom = !builtInCopy && Object.hasOwn(saved.themes, current.id)
 
   return (
@@ -427,6 +506,7 @@ export function App() {
                   build={(raw) => ({ op: "setColor", mode, token, value: raw })}
                   disabled={locked}
                   apply={applyManual}
+                  endGesture={endGesture}
                 />
               ))}
             </ControlSection>
@@ -487,6 +567,7 @@ export function App() {
               hint="Expected an opaque HEX, rgb, hsl, or oklch color; opacity is set separately."
               disabled={locked}
               apply={applyManual}
+              endGesture={endGesture}
             />
             {numeric("shadowOpacity")}
             {numeric("shadowBlur")}
@@ -595,15 +676,47 @@ export function App() {
             <Label htmlFor="color-mode-switch">Dark mode</Label>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="cursor-pointer" disabled={locked} onClick={() => download(exportThemeJson(current))}>
+            {/* Recovery group (PUI-3 owner decision): compact icon buttons immediately before Export and Save. */}
+            <div role="group" aria-label="Edit history" data-testid="history-controls" className="flex items-center">
+              <Button variant="ghost" size="icon" className="size-8 cursor-pointer" aria-label="Undo" title="Undo" disabled={locked || track.past.length === 0} onClick={undoEdit}>
+                <Undo2 aria-hidden="true" className="size-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="size-8 cursor-pointer" aria-label="Redo" title="Redo" disabled={locked || track.future.length === 0} onClick={redoEdit}>
+                <Redo2 aria-hidden="true" className="size-3.5" />
+              </Button>
+              <ResponsiveDialog open={resetOpen} onOpenChange={setResetOpen}>
+                <ResponsiveDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-8 cursor-pointer" aria-label="Reset" title="Reset" disabled={locked || !dirty || baseline === undefined}>
+                    <RotateCcw aria-hidden="true" className="size-3.5" />
+                  </Button>
+                </ResponsiveDialogTrigger>
+                <ResponsiveDialogContent>
+                  <ResponsiveDialogHeader>
+                    <ResponsiveDialogTitle><span className="type-heading">Reset {current.name}?</span></ResponsiveDialogTitle>
+                    <ResponsiveDialogDescription>
+                      {builtInCopy
+                        ? `Your edits are replaced by the built-in ${builtInCopy.name} values.`
+                        : `Your unsaved edits are replaced by the last saved version of "${current.name}".`}{" "}
+                      You can undo this.
+                    </ResponsiveDialogDescription>
+                  </ResponsiveDialogHeader>
+                  <ResponsiveDialogFooter>
+                    <Button className="cursor-pointer" onClick={resetToBaseline}>Reset theme</Button>
+                    <ResponsiveDialogClose asChild><Button variant="outline" className="cursor-pointer">Cancel</Button></ResponsiveDialogClose>
+                  </ResponsiveDialogFooter>
+                </ResponsiveDialogContent>
+              </ResponsiveDialog>
+            </div>
+            {/* Below 640px the recovery group needs the room: Export and Save keep their names but show only their icons. */}
+            <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export JSON" disabled={locked} onClick={() => download(exportThemeJson(current))}>
               <Download aria-hidden="true" className="size-3.5" />
-              Export JSON
+              <span className="max-sm:sr-only">Export JSON</span>
             </Button>
                   <ResponsiveDialog open={saveAsOpen} onOpenChange={setSaveAsOpen}>
                     <ResponsiveDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="cursor-pointer" disabled={locked} onClick={save}>
+                      <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Save" disabled={locked} onClick={save}>
                         <Save aria-hidden="true" className="size-3.5" />
-                        Save
+                        <span className="max-sm:sr-only">Save</span>
                       </Button>
                     </ResponsiveDialogTrigger>
                     <ResponsiveDialogContent>

@@ -240,9 +240,13 @@ for (const mode of ["light", "dark"] as const) {
         const labelColumn = async (row: Locator) => {
           const label = row.locator(":scope > label")
           const metrics = await label.evaluate(el => {
-            const range = el.ownerDocument.createRange()
-            range.selectNodeContents(el)
-            const lines = new Set(Array.from(range.getClientRects()).filter(r => r.width > 0).map(r => Math.round(r.top))).size
+            // Visible text only: a screen-reader-only group prefix (e.g. "Heading " before "Font") is not a wrapped line.
+            const rects = Array.from(el.childNodes).filter(node => !(node instanceof HTMLElement && node.classList.contains("sr-only"))).flatMap(node => {
+              const range = el.ownerDocument.createRange()
+              range.selectNodeContents(node)
+              return Array.from(range.getClientRects())
+            })
+            const lines = new Set(rects.filter(r => r.width > 0).map(r => Math.round(r.top))).size
             return { width: el.getBoundingClientRect().width, lines, clipped: el.scrollWidth > el.clientWidth }
           })
           close(metrics.width, 80)
@@ -262,14 +266,15 @@ for (const mode of ["light", "dark"] as const) {
           const title = `${role[0]!.toUpperCase()}${role.slice(1)}`
           const row = page.getByTestId(`font-${role}-row`)
           await expect(row.locator(":scope > label")).toHaveText(`${title} Font`)
-          expect(await row.locator(":scope > label").evaluate(el => (el as HTMLElement).innerText.trim())).toBe("Font")
+          await expect(row.locator(":scope > label > .sr-only")).toHaveText(`${title} `)
+          expect(await row.locator(":scope > label").evaluate(el => Array.from(el.childNodes).filter(node => !(node instanceof HTMLElement && node.classList.contains("sr-only"))).map(node => node.textContent).join("").trim())).toBe("Font")
           await labelColumn(row)
           await expect(page.getByRole("combobox", { name: `${title} Font`, exact: true })).toBeVisible()
           expect(await css(page.getByRole("combobox", { name: `${title} Font`, exact: true }), "cursor")).toBe("pointer")
         }
         for (const [id, name] of [["headingWeight", "Heading Weight"], ["headingTracking", "Heading Tracking"], ["bodyWeight", "Body Weight"], ["bodyTracking", "Body Tracking"]] as const) {
           await labelColumn(page.getByTestId(`${id}-row`))
-          expect(await page.getByTestId(`${id}-row`).locator(":scope > label").evaluate(el => (el as HTMLElement).innerText.trim())).toBe(name.split(" ")[1])
+          expect(await page.getByTestId(`${id}-row`).locator(":scope > label").evaluate(el => Array.from(el.childNodes).filter(node => !(node instanceof HTMLElement && node.classList.contains("sr-only"))).map(node => node.textContent).join("").trim())).toBe(name.split(" ")[1])
           await expect(page.getByRole("slider", { name, exact: true })).toBeVisible()
         }
         await expectEditorContainment(page)
