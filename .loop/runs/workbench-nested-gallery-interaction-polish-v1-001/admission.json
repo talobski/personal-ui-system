@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "loop-phase-admission/1",
+  "phase": "workbench-nested-gallery-interaction-polish-v1-001",
+  "status": "ADMITTED",
+  "acceptedProductBase": "a33c3d025fe408593264b96f76f4f6054d83b758",
+  "preparedImplementationBase": "a775794",
+  "tickets": ["PUI-65", "PUI-66", "PUI-67", "PUI-68", "PUI-69", "PUI-70"],
+  "criteria": "NGIP-01 through NGIP-16",
+  "producer": "loop_worker_codex_max / codex/gpt-6-astra / MAX / medium / auto / included subscription / fast off",
+  "verifier": "loop_worker_claude_standard / claude/claude-sonnet-5 / STANDARD / medium / logical read-only",
+  "allocation": {
+    "lifetimeAgentRunCeiling": 66,
+    "phaseAgentRunCeiling": 3,
+    "expectedAgentRuns": 2,
+    "executionTimeMs": 18000000,
+    "concurrency": 1,
+    "paidSpend": 0
+  },
+  "linearPacket": {
+    "ticketPayloadHashManifestSha256": "c417324088a804c9893964c6060e01e2f9edf44ef9efa32545a53e3388c25804",
+    "contractSha256": "927fc86b452ddfd3130d91414ae0321ed1d39d1ed6a37af7a8a2c02d7df93287",
+    "verbatimRequiredInWorkerPrompt": true,
+    "contractAuthoritative": true,
+    "laterLinearEditsMutable": false
+  },
+  "maxAuthorization": {
+    "oneUse": true,
+    "ownerAuthorized": true,
+    "profile": "loop_worker_codex_max",
+    "providerModel": "codex/gpt-6-astra",
+    "effort": "medium",
+    "consumed": false,
+    "secondDispatchAuthorized": false
+  },
+  "browserEvidenceOwner": "Lead",
+  "protectedVerifierBrowserRequired": false,
+  "ownerVisualReviewRequired": false,
+  "networkAllowed": false,
+  "credentialsAllowed": false,
+  "externalActionsAllowed": false,
+  "paidFallbackAllowed": false,
+  "automaticCloseout": true,
+  "admittedAt": "2026-09-27T02:20:10+08:00"
+}
+
