@@ -18,6 +18,7 @@ export default defineConfig({
     "workbench-control-navigation-scroll.spec.ts",
     "workbench-sidebar-preview-followup.spec.ts", "workbench-sidebar-theme-polish.spec.ts",
     "semantic-typography-history-grid.spec.ts",
+    "workbench-nested-gallery-interaction-polish.spec.ts",
   ],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },
