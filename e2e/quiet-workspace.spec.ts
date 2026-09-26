@@ -70,9 +70,9 @@ for (const mode of ["light", "dark"] as const) {
       expect(await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-composition")))).toEqual(ids)
       const geometry = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => { const r = n.getBoundingClientRect(); return { x: r.x, right: r.right, width: r.width, scroll: n.scrollWidth, client: n.clientWidth } }))
       for (const box of geometry) { expect(box.x).toBeGreaterThanOrEqual(0); expect(box.right).toBeLessThanOrEqual(width); expect(box.scroll).toBeLessThanOrEqual(box.client + 1) }
-      // The gallery follows the preview's real width (3 columns from 1000px). With the WSTP-11 28rem sidebar, a 1440px
-      // desktop leaves a 992px preview, so it stacks like mobile; a wider preview still shows three columns.
-      expect(new Set(geometry.map(b => b.x)).size).toBe(width >= 1000 ? 3 : 1)
+      // STHG-14: the gallery follows the preview's real width: 1 column, 2 from 40rem, 3 from 60rem. With the 28rem
+      // sidebar a 1440px desktop leaves a 992px preview, so it shows the three-column grid.
+      expect(new Set(geometry.map(b => b.x)).size).toBe(width >= 960 ? 3 : width >= 640 ? 2 : 1)
     }
     await frame.getByLabel("Display name", { exact: true }).fill("Ada Preview")
     await frame.getByRole("button", { name: "Save profile" }).click()

@@ -9,13 +9,22 @@
 .quiet-preview-body { flex: 1 1 0; display: flex; min-height: 0; padding: 0; }
 .quiet-viewport { flex: 1; min-width: 0; overflow: hidden; }
 .quiet-status { display: flex; flex-shrink: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 16px; background: var(--secondary); color: var(--secondary-foreground); font-size: 14px; }
-.quiet-gallery { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.quiet-stack { display: grid; align-content: start; gap: 16px; min-width: 0; }
-.quiet-gallery section { min-width: 0; }
+/*
+ * PUI-64 composition grid: one source-ordered grid whose columns follow the preview document's own width. Row flow only
+ * (never dense), so visual, DOM, reading, and focus order stay the source order; a wide entry that cannot fit a row's
+ * remaining column starts the next row. Heights are natural and start-aligned: no aspect ratio, equal heights, or
+ * vertical footprint. minmax(0, 1fr) columns and min-width: 0 entries keep any span from overflowing horizontally.
+ */
+.quiet-gallery { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; align-items: start; gap: 16px; }
+.quiet-gallery > [data-composition] { min-width: 0; }
+@media (min-width: 40rem) {
+  .quiet-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quiet-gallery > [data-layout=wide] { grid-column: span 2; }
+}
+@media (min-width: 60rem) { .quiet-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; } }
 .quiet-gallery [data-composition] > [data-slot=card], .quiet-gallery [data-composition] > form > [data-slot=card] { box-shadow: none; }
 .quiet-categories [data-slot=tabs-trigger][data-state=active]:not(:focus-visible) { box-shadow: none; }
 .quiet-preview-view:not(:focus-visible) { box-shadow: none; }
-@media (min-width: 1000px) { .quiet-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; } }
 
 /* Workbench-owned overlay regions inherit the shared ScrollArea thickness and thumb states; Radix handles input. */
 /* Radix's measurement wrapper defaults to display:table. Vertical app panels must stay width constrained. */

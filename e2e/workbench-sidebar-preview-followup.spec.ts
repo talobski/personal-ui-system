@@ -258,8 +258,8 @@ for (const mode of ["light", "dark"] as const) {
       await view.click(); await frame.getByRole("option", { name: "Cards", exact: true }).click()
       await expect(view).toHaveText("Cards")
       const gallery = frame.locator(".quiet-gallery")
-      const wide = await frame.locator("html").evaluate(() => innerWidth >= 1000)
-      expect(await gallery.evaluate(el => [getComputedStyle(el).gridTemplateColumns.split(" ").length, getComputedStyle(el).rowGap])).toEqual(wide ? [3, "24px"] : [1, "16px"])
+      const previewWidth = await frame.locator("html").evaluate(() => innerWidth)
+      expect(await gallery.evaluate(el => [getComputedStyle(el).gridTemplateColumns.split(" ").length, getComputedStyle(el).rowGap])).toEqual(previewWidth >= 960 ? [3, "24px"] : previewWidth >= 640 ? [2, "16px"] : [1, "16px"])
       expect(await frame.locator("html").evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 
