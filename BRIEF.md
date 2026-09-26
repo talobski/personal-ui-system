@@ -1,16 +1,15 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`a33c3d025fe408593264b96f76f4f6054d83b758` on `main`. Phase
-`semantic-typography-history-grid-v1-001` is accepted, promoted, verified, and
-closed for PUI-3, PUI-63, and PUI-64. Phase
-`workbench-nested-gallery-interaction-polish-v1-001` is owner-approved for
-PUI-65 through PUI-70 and is being deterministically admitted against that
-accepted product; it is not yet implementation-accepted. Its immutable
-reference packet preserves verbatim admission-time Linear snapshots alongside
-the authoritative reconciled contract. The prior phase's immutable packet preserves
-verbatim admission-time Linear snapshots alongside the authoritative
-reconciled contract. No owner visual-review gate was admitted. The earlier
+`b15380fd2ad1f221055af382841a9045bbdd84de` on `main`. Phase
+`workbench-nested-gallery-interaction-polish-v1-001` is accepted, promoted,
+verified, and closed for PUI-65 through PUI-70. Its immutable reference packet
+preserves verbatim admission-time Linear snapshots alongside the authoritative
+reconciled contract. No owner visual-review gate was admitted. The phase record
+also preserves a one-time worker execution-envelope violation: Corepack made an
+unauthorized pnpm download during producer verification. The owner accepted the
+documented incident for this phase only; it grants no worker-network authority
+to future phases. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
@@ -106,6 +105,20 @@ with composition-owned default and wide footprints and natural card heights.
 Both built-in themes are committed canonical v3 fixtures. The registry remains
 19 resources, the mutation union remains 12 operations, and no dependency,
 credential, network, or public-component boundary expands.
+
+The accepted nested gallery and interaction polish phase delivers PUI-65
+through PUI-70. It replaces the globally row-coupled preview grid with
+gallery-owned nested regions and independent natural-height stacks, removes the
+obsolete per-composition `PreviewLayout` span model, and restores Cards/States
+as left-aligned shared-style tabs. Workbench collapsible triggers inherit Body
+typography; both built-in themes use sans-serif Heading defaults while arbitrary
+legacy-theme migration remains unchanged. The preview toolbar groups Undo,
+Redo, Reset, Export, and Save with the approved separator and labels. Color
+pickers retain immediate local feedback while debouncing canonical theme writes
+for 120 ms, flushing the latest value at gesture completion, and producing one
+history checkpoint per continuous gesture. The registry remains 19 resources,
+the mutation union remains 12 operations, and no dependency, schema,
+persistence, credential, or product runtime-network boundary expands.
 
 ## V1 product contract
 
