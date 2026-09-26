@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "linear-ticket-snapshot/1",
+  "retrievedAt": "2026-09-26T18:01:03.075Z",
+  "source": "Linear MCP direct issue + comments retrieval",
+  "issue": {
+    "id": "PUI-68",
+    "uuid": "e87089d4-37a5-4c3b-8348-795ae50ecdec",
+    "title": "Polish Workbench toolbar action groups",
+    "description": "Polish the Workbench top toolbar so the recovery actions and persistence/export actions read as two clear visual groups.\n\nOwner direction:\n\n* Add pointer cursor behavior to the new Undo, Redo, and Reset buttons.\n* Add a short vertical separator between the recovery actions and the export/save actions.\n* Rename \"Export JSON\" to \"Export\".\n\nVisual grouping intent:\n\n```\nUndo   Redo   Reset   |   Export   Save\n```\n\nThe separator is visual only. Do not add unnecessary structural wrappers if the current markup can support the divider cleanly.\n\nSeparator requirements:\n\n* vertical line/border;\n* positioned between Reset and Export;\n* approximately the same visual height as the toolbar buttons/icons;\n* do not stretch it to the full toolbar height;\n* keep alignment centered with the action controls;\n* use existing semantic border styling/tokens rather than a hard-coded arbitrary color where possible.\n\nCursor behavior:\n\n* Undo -> cursor pointer when enabled/interactive.\n* Redo -> cursor pointer when enabled/interactive.\n* Reset -> cursor pointer when enabled/interactive.\n* Preserve disabled-state semantics; disabled actions should not misleadingly present as interactive.\n\nLabel change:\n\n* \"Export JSON\" -> \"Export\"\n* Preserve the existing export action, icon, behavior, and file format. This is label-only.\n\nPreserve:\n\n* existing icon sizes;\n* existing toolbar height;\n* current action order;\n* current spacing/alignment unless a minor adjustment is needed to accommodate the separator;\n* existing hover/focus/disabled states;\n* Save label/icon/behavior;\n* keyboard accessibility and focus order.\n\nDo not:\n\n* change undo/redo/reset behavior;\n* change export file format or payload;\n* change save behavior;\n* introduce unrelated toolbar redesign.\n\nAcceptance:\n\n* Undo, Redo, and Reset show pointer cursor when enabled.\n* Disabled recovery actions retain correct disabled cursor/semantics.\n* A short vertical separator appears between Reset and Export.\n* Separator height is approximately button-height, not full toolbar height.\n* \"Export JSON\" is displayed as \"Export\".\n* Toolbar alignment remains visually balanced.\n* No regressions to keyboard navigation, focus states, recovery actions, export, save, or accessibility.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-68/polish-workbench-toolbar-action-groups",
+    "gitBranchName": "emmantalob/pui-68-polish-workbench-toolbar-action-groups",
+    "createdAt": "2026-09-26T17:44:56.269Z",
+    "updatedAt": "2026-09-26T17:54:04.363Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-26T17:44:56.269Z",
+        "endedAt": "2026-09-26T17:54:04.355Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-26T17:54:04.355Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": []
+}

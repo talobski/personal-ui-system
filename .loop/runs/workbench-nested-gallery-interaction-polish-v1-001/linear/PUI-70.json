@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "linear-ticket-snapshot/1",
+  "retrievedAt": "2026-09-26T18:01:03.075Z",
+  "source": "Linear MCP direct issue + comments retrieval",
+  "issue": {
+    "id": "PUI-70",
+    "uuid": "2bc53307-fd00-4c07-be81-c94f195531d6",
+    "title": "Restore Cards and States as left-aligned tabs",
+    "description": "Replace the current centered Cards / States Select control with a left-aligned tab control that visually and behaviorally matches the existing Workbench sidebar tabs.\n\nObserved issue:\n\n* Cards / States is currently implemented as a centered Select/dropdown.\n* There are only two modes, so the Select adds unnecessary interaction and hides the inactive option.\n* The control also feels visually disconnected from the sidebar navigation tabs.\n\nOwner direction:\n\n* Restore Cards / States as tabs.\n* Move the control back to the left side.\n* Reuse the current sidebar tab look and implementation as closely as possible.\n* The result should look like the same tab component/pattern used for:\n  * Colors\n  * Typography\n  * Effects\n  * Command\n\nVisual requirements:\n\n* left aligned;\n* same active tab background treatment as sidebar tabs;\n* same typography;\n* same padding;\n* same radius;\n* same hover/focus behavior;\n* same spacing logic;\n* same active/inactive visual hierarchy;\n* no centered dropdown/select.\n\nInteraction:\n\n* Both Cards and States are always visible.\n* Clicking a tab switches the preview mode immediately.\n* Preserve current Cards/States behavior and content; only change the mode selector presentation/interaction surface.\n\nImplementation preference:\n\n* Reuse an existing shared Tabs implementation/style if one already exists.\n* If sidebar tabs are currently implemented inline/custom, prefer extracting or reusing the same shared pattern rather than duplicating a second visually similar implementation.\n* Keep both tab surfaces synchronized through shared classes/component logic where practical.\n* Preserve shadcn-first architecture.\n\nDo not:\n\n* change Cards or States content;\n* change preview mode semantics;\n* change unrelated sidebar tabs;\n* introduce another custom tab style;\n* keep the old Select in parallel.\n\nAccessibility:\n\n* Use proper tab semantics where supported by the current shared implementation.\n* Preserve keyboard navigation, focus-visible states, and selected-state announcement.\n* Maintain logical DOM/focus order.\n\nAcceptance:\n\n* Cards / States is displayed as a left-aligned two-tab control.\n* The control visually matches the sidebar Colors / Typography / Effects / Command tabs.\n* Active/inactive styling is consistent between both tab surfaces.\n* Cards and States remain functionally equivalent to their current modes.\n* No Select/dropdown remains for this two-mode switcher.\n* Keyboard/focus/accessibility behavior passes without regression.\n* Shared tab styling/implementation is reused rather than duplicated where practical.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-70/restore-cards-and-states-as-left-aligned-tabs",
+    "gitBranchName": "emmantalob/pui-70-restore-cards-and-states-as-left-aligned-tabs",
+    "createdAt": "2026-09-26T17:52:25.432Z",
+    "updatedAt": "2026-09-26T17:54:09.827Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-26T17:52:25.432Z",
+        "endedAt": "2026-09-26T17:54:09.815Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-26T17:54:09.815Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": []
+}

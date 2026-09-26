@@ -3,7 +3,12 @@
 Status: ACTIVE — the accepted product is
 `a33c3d025fe408593264b96f76f4f6054d83b758` on `main`. Phase
 `semantic-typography-history-grid-v1-001` is accepted, promoted, verified, and
-closed for PUI-3, PUI-63, and PUI-64. Its immutable reference packet preserves
+closed for PUI-3, PUI-63, and PUI-64. Phase
+`workbench-nested-gallery-interaction-polish-v1-001` is owner-approved for
+PUI-65 through PUI-70 and is being deterministically admitted against that
+accepted product; it is not yet implementation-accepted. Its immutable
+reference packet preserves verbatim admission-time Linear snapshots alongside
+the authoritative reconciled contract. The prior phase's immutable packet preserves
 verbatim admission-time Linear snapshots alongside the authoritative
 reconciled contract. No owner visual-review gate was admitted. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
