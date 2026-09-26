@@ -24,23 +24,24 @@ const apply = (operation: unknown, base: Theme = theme) => {
 
 const profile = { color: "#000000", opacity: 0.2, blur: "6px", spread: "1px", offsetX: "2px", offsetY: "3px" }
 
-describe("closed operation union (TSV2 additions, then WSTP-08 setSidebarTokensEnabled only)", () => {
-  it("adds exactly setFontFamily, setTracking, setRadiusBase, setSpacingBase, setShadowProfile, setSidebarTokensEnabled", () => {
+describe("closed operation union (STHG-08: Theme v3 typography replaces setSansFamily with setFontWeight)", () => {
+  it("has exactly twelve operations with targeted typography fields", () => {
     expect(describeOperations()).toEqual([
       { name: "setColor", fields: ["op", "mode", "token", "value"] },
       { name: "setRadius", fields: ["op", "value"] },
       { name: "setDensity", fields: ["op", "value"] },
-      { name: "setSansFamily", fields: ["op", "value"] },
+      { name: "setFontWeight", fields: ["op", "target", "value"] },
       { name: "setShadowBlur", fields: ["op", "value"] },
       { name: "setMotionDuration", fields: ["op", "value"] },
-      { name: "setFontFamily", fields: ["op", "family", "value"] },
-      { name: "setTracking", fields: ["op", "value"] },
+      { name: "setFontFamily", fields: ["op", "target", "value"] },
+      { name: "setTracking", fields: ["op", "target", "value"] },
       { name: "setRadiusBase", fields: ["op", "value"] },
       { name: "setSpacingBase", fields: ["op", "value"] },
       { name: "setShadowProfile", fields: ["op", "value"] },
       { name: "setSidebarTokensEnabled", fields: ["op", "value"] },
     ])
     expect(describeOperations()).toHaveLength(12)
+    expect(describeOperations().map((d) => d.name)).not.toContain("setSansFamily")
   })
 })
 
@@ -65,21 +66,33 @@ describe("setColor accepts four input families and stores canonical OKLCH", () =
   })
 })
 
+const stackPath = (target: "heading" | "body" | "mono") => (target === "mono" ? "typography.mono" : `typography.${target}.font`)
+const stackOf = (t: Theme, target: "heading" | "body" | "mono") => (target === "mono" ? t.typography.mono : t.typography[target].font).$value
+
 describe("setFontFamily", () => {
-  it.each(["sans", "serif", "mono"] as const)("replaces the whole %s stack and renders it", (family) => {
-    const result = apply({ op: "setFontFamily", family, value: ["Source Serif 4", "Georgia", "serif"] })
-    expect(result.theme.typography[family].$value).toEqual(["Source Serif 4", "Georgia", "serif"])
-    expect(result.css).toContain(`  --font-family-${family}: "Source Serif 4", "Georgia", serif;`)
-    expect(diffThemeTokens(theme, result.theme).map((d) => d.path)).toEqual([`typography.${family}`])
+  it.each(["heading", "body", "mono"] as const)("replaces the whole %s stack and renders it", (target) => {
+    const result = apply({ op: "setFontFamily", target, value: ["Source Serif 4", "Georgia", "serif"] })
+    expect(stackOf(result.theme, target)).toEqual(["Source Serif 4", "Georgia", "serif"])
+    expect(result.css).toContain(`  --font-${target}: "Source Serif 4", "Georgia", serif;`)
+    expect(diffThemeTokens(theme, result.theme).map((d) => d.path)).toEqual([stackPath(target)])
+  })
+
+  it("lets Heading and Body each choose any stack, including a monospace one", () => {
+    const mono = ["JetBrains Mono Variable", "JetBrains Mono", "ui-monospace", "monospace"]
+    const result = apply({ op: "setFontFamily", target: "heading", value: mono })
+    expect(result.theme.typography.heading.font.$value).toEqual(mono)
+    expect(apply({ op: "setFontFamily", target: "body", value: mono }).theme.typography.body.font.$value).toEqual(mono)
   })
 
   it.each([
-    [{ family: "display", value: ["Inter"] }, "mutation.invalid-family", "operations[0].family"],
-    [{ family: "sans", value: [] }, "mutation.invalid-value", "operations[0].value"],
-    [{ family: "sans", value: "Inter" }, "mutation.invalid-value", "operations[0].value"],
-    [{ family: "sans", value: ['Inter"; } body {'] }, "mutation.invalid-value", "operations[0].value"],
-    [{ family: "sans", value: Array(17).fill("Inter") }, "mutation.invalid-value", "operations[0].value"],
-    [{ family: "sans", value: ["Inter"], css: "x" }, "mutation.unknown-field", "operations[0].css"],
+    [{ target: "display", value: ["Inter"] }, "mutation.invalid-target", "operations[0].target"],
+    [{ target: "sans", value: ["Inter"] }, "mutation.invalid-target", "operations[0].target"],
+    [{ family: "body", value: ["Inter"] }, "mutation.unknown-field", "operations[0].family"],
+    [{ target: "body", value: [] }, "mutation.invalid-value", "operations[0].value"],
+    [{ target: "body", value: "Inter" }, "mutation.invalid-value", "operations[0].value"],
+    [{ target: "body", value: ['Inter"; } body {'] }, "mutation.invalid-value", "operations[0].value"],
+    [{ target: "body", value: Array(17).fill("Inter") }, "mutation.invalid-value", "operations[0].value"],
+    [{ target: "body", value: ["Inter"], css: "x" }, "mutation.unknown-field", "operations[0].css"],
   ])("rejects %j", (fields, ruleId, path) => {
     const result = applyMutation(theme, request([{ op: "setFontFamily", ...fields }]))
     expect(result.ok).toBe(false)
@@ -87,18 +100,51 @@ describe("setFontFamily", () => {
   })
 })
 
-describe("setTracking", () => {
-  it("stores a canonical em value and renders --tracking-base", () => {
-    const result = apply({ op: "setTracking", value: "0.0250em" })
-    expect(result.theme.typography.tracking.$value).toBe("0.025em")
-    expect(result.css).toContain("  --tracking-base: 0.025em;")
+describe("setFontWeight", () => {
+  it.each(["heading", "body"] as const)("sets only the %s weight and renders it", (target) => {
+    const result = apply({ op: "setFontWeight", target, value: 300 })
+    expect(result.theme.typography[target].weight.$value).toBe(300)
+    expect(result.css).toContain(`  --font-weight-${target}: 300;`)
+    expect(diffThemeTokens(theme, result.theme).map((d) => d.path)).toEqual([`typography.${target}.weight`])
   })
 
-  it.each(["0.3em", "-0.3em", "1px", "0.02rem", "normal", 0.02, "0.02em; color: red"])("rejects %j", (value) => {
-    expect(applyMutation(theme, request([{ op: "setTracking", value }]))).toEqual({
+  it.each([100, 900])("admits the bound %d", (value) => expect(apply({ op: "setFontWeight", target: "body", value }).theme.typography.body.weight.$value).toBe(value))
+
+  it.each([0, 50, 450, 1000, 400.5, "400", "bold", null])("rejects %j", (value) => {
+    expect(applyMutation(theme, request([{ op: "setFontWeight", target: "heading", value }]))).toEqual({
       ok: false,
       errors: [{ ruleId: "mutation.invalid-value", path: "operations[0].value" }],
     })
+  })
+
+  it.each([["mono"], ["sans"], [undefined]])("rejects target %j", (target) => {
+    const result = applyMutation(theme, request([{ op: "setFontWeight", target, value: 400 }]))
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.errors).toContainEqual({ ruleId: "mutation.invalid-target", path: "operations[0].target" })
+  })
+})
+
+describe("setTracking", () => {
+  it.each(["heading", "body"] as const)("stores a canonical em value for %s only and renders it", (target) => {
+    const result = apply({ op: "setTracking", target, value: "0.0250em" })
+    expect(result.theme.typography[target].tracking.$value).toBe("0.025em")
+    expect(result.css).toContain(`  --tracking-${target}: 0.025em;`)
+    expect(diffThemeTokens(theme, result.theme).map((d) => d.path)).toEqual([`typography.${target}.tracking`])
+  })
+
+  it.each(["0.3em", "-0.3em", "1px", "0.02rem", "normal", 0.02, "0.02em; color: red"])("rejects %j", (value) => {
+    expect(applyMutation(theme, request([{ op: "setTracking", target: "body", value }]))).toEqual({
+      ok: false,
+      errors: [{ ruleId: "mutation.invalid-value", path: "operations[0].value" }],
+    })
+  })
+
+  it("rejects the retired untargeted v2 shape and a mono target", () => {
+    for (const operation of [{ op: "setTracking", value: "0.01em" }, { op: "setTracking", target: "mono", value: "0.01em" }]) {
+      const result = applyMutation(theme, request([operation]))
+      expect(result.ok).toBe(false)
+      if (!result.ok) expect(result.errors).toContainEqual({ ruleId: "mutation.invalid-target", path: "operations[0].target" })
+    }
   })
 })
 
@@ -193,7 +239,7 @@ describe("setShadowProfile derives every tier from one profile", () => {
 describe("new operations stay atomic in one request", () => {
   it("applies several in one revision and rejects the whole request if one is invalid", () => {
     const ops = [
-      { op: "setTracking", value: "0.01em" },
+      { op: "setTracking", target: "heading", value: "0.01em" },
       { op: "setRadiusBase", value: "0.75rem" },
       { op: "setSpacingBase", value: "0.28rem" },
     ]

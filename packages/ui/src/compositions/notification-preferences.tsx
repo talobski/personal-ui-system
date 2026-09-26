@@ -25,7 +25,7 @@ export function NotificationPreferences({ compact = false }: { compact?: boolean
   return (
     <Card className={compact ? "w-full [&_[data-slot=native-select-wrapper]]:w-full" : "w-full max-w-md"}>
       <CardHeader>
-        <CardTitle className={compact ? "text-lg" : undefined}><h2>{compact ? "Notifications" : "Notification preferences"}</h2></CardTitle>
+        <CardTitle className={compact ? "text-lg" : undefined}><h2 className="type-heading">{compact ? "Notifications" : "Notification preferences"}</h2></CardTitle>
         <CardDescription>Choose which updates reach you and how.</CardDescription>
       </CardHeader>
       <CardContent>

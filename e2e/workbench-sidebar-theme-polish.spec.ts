@@ -151,7 +151,7 @@ for (const mode of ["light", "dark"] as const) {
         await saveTheme(page, "Sidebar Mode")
         await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "sidebar-mode")
         const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes["sidebar-mode"])
-        expect(stored.schemaVersion).toBe("2.1")
+        expect(stored.schemaVersion).toBe("3.0")
         expect(stored.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: false }, dedicatedValuesInitialized: true })
         expect(stored.colors[mode].sidebar.$value).toBe(DEDICATED)
         await page.reload()
@@ -166,7 +166,8 @@ for (const mode of ["light", "dark"] as const) {
 
       test("WSTP-04/06 a saved v2.0 custom theme migrates on load, starts off, and renders its base background", async ({ page }) => {
         const legacy = structuredClone(defaultTheme) as Record<string, any>
-        Object.assign(legacy, { id: "legacy-v20", name: "Legacy V20", revision: 3, schemaVersion: "2.0" })
+        Object.assign(legacy, { id: "legacy-v20", name: "Legacy V20", revision: 3, schemaVersion: "2.0", $schema: "https://personal-ui.local/schema/theme-2.json" })
+        legacy.typography = { sans: legacy.typography.body.font, serif: legacy.typography.heading.font, mono: legacy.typography.mono, tracking: legacy.typography.body.tracking }
         delete legacy.sidebar
         for (const m of ["light", "dark"]) for (const token of SIDEBAR_TOKENS) delete legacy.colors[m][token]
         legacy.colors[mode].background.$value = mode === "light" ? "oklch(0.97 0.01 90)" : "oklch(0.2 0.01 250)"
@@ -179,10 +180,10 @@ for (const mode of ["light", "dark"] as const) {
         const section = await openSidebarGroup(page)
         await expect(section.getByRole("switch", { name: "Use sidebar tokens" })).toHaveAttribute("aria-checked", "false")
         await expect(colorInput(page, "sidebar")).toHaveValue(legacy.colors[mode].background.$value)
-        // Loading never rewrites storage; the next Save persists canonical v2.1.
+        // Loading never rewrites storage; the next Save persists canonical v3.
         expect(await page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes["legacy-v20"].schemaVersion)).toBe("2.0")
         await saveTheme(page)
-        await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes["legacy-v20"].schemaVersion)).toBe("2.1")
+        await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes["legacy-v20"].schemaVersion)).toBe("3.0")
       })
 
       test("WSTP-06/08 a staged Sidebar proposal previews only in the preview and applies through Apply", async ({ page }) => {
@@ -254,18 +255,23 @@ for (const mode of ["light", "dark"] as const) {
         for (const row of await effects.locator('[data-testid$="-row"]').all()) await labelColumn(row)
         await editorCategory(page, "Typography")
         const typography = page.getByRole("tabpanel", { name: "Typography", exact: true })
-        await expect(typography.getByRole("heading", { level: 3 })).toHaveText(["Font families", "Spacing"])
-        expect(await typography.getByRole("heading", { level: 3 }).evaluateAll(els => els.map(el => (el as HTMLElement).innerText.trim()))).toEqual(["FONT FAMILIES", "SPACING"])
-        for (const [family, label] of [["sans", "Sans"], ["serif", "Serif"], ["mono", "Mono"]] as const) {
-          const row = page.getByTestId(`font-${family}-row`)
-          await expect(row.locator(":scope > label")).toHaveText(label)
+        // STHG-06: Heading, Body, then the compact Mono primitive; the old Font families / Spacing groups are gone.
+        await expect(typography.getByRole("heading", { level: 3 })).toHaveText(["Heading", "Body", "Mono"])
+        expect(await typography.getByRole("heading", { level: 3 }).evaluateAll(els => els.map(el => (el as HTMLElement).innerText.trim()))).toEqual(["HEADING", "BODY", "MONO"])
+        for (const role of ["heading", "body", "mono"] as const) {
+          const title = `${role[0]!.toUpperCase()}${role.slice(1)}`
+          const row = page.getByTestId(`font-${role}-row`)
+          await expect(row.locator(":scope > label")).toHaveText(`${title} Font`)
+          expect(await row.locator(":scope > label").evaluate(el => (el as HTMLElement).innerText.trim())).toBe("Font")
           await labelColumn(row)
-          await expect(page.getByRole("combobox", { name: label, exact: true })).toBeVisible()
-          expect(await css(page.getByRole("combobox", { name: label, exact: true }), "cursor")).toBe("pointer")
+          await expect(page.getByRole("combobox", { name: `${title} Font`, exact: true })).toBeVisible()
+          expect(await css(page.getByRole("combobox", { name: `${title} Font`, exact: true }), "cursor")).toBe("pointer")
         }
-        await labelColumn(page.getByTestId("tracking-row"))
-        await expect(page.getByTestId("tracking-row").locator(":scope > label")).toHaveText("Tracking")
-        await expect(page.getByRole("slider", { name: "Tracking" })).toBeVisible()
+        for (const [id, name] of [["headingWeight", "Heading Weight"], ["headingTracking", "Heading Tracking"], ["bodyWeight", "Body Weight"], ["bodyTracking", "Body Tracking"]] as const) {
+          await labelColumn(page.getByTestId(`${id}-row`))
+          expect(await page.getByTestId(`${id}-row`).locator(":scope > label").evaluate(el => (el as HTMLElement).innerText.trim())).toBe(name.split(" ")[1])
+          await expect(page.getByRole("slider", { name, exact: true })).toBeVisible()
+        }
         await expectEditorContainment(page)
 
         // WSTP-13 selector: active and listed theme names compute to 500; other selector styling unchanged.

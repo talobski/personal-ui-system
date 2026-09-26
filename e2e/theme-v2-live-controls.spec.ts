@@ -100,7 +100,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "default")
   })
 
-  test("a stored v1 theme migrates on load, stays selected, and exports as canonical v2.1 (TSV2-12, WSTP-09)", async ({ page }) => {
+  test("a stored v1 theme migrates on load, stays selected, and exports as canonical v3 (TSV2-12, WSTP-09, STHG-04)", async ({ page }) => {
     const v1 = JSON.parse(readFileSync(new URL("../packages/core/src/theme/fixtures/valid.json", import.meta.url), "utf8"))
     await page.goto("/")
     await page.evaluate(
@@ -117,7 +117,8 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await workspaceMode(page, "Preview")
     await page.getByRole("button", { name: "Export JSON" }).click()
     const exported = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
-    expect(exported).toMatchObject({ id: "legacy-fork", schemaVersion: "2.1", $schema: "https://personal-ui.local/schema/theme-2.json" })
+    expect(exported).toMatchObject({ id: "legacy-fork", schemaVersion: "3.0", $schema: "https://personal-ui.local/schema/theme-3.json" })
+    expect(Object.keys(exported.typography)).toEqual(["heading", "body", "mono"])
     expect(exported.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: false }, dedicatedValuesInitialized: false })
     expect(exported.colors.dark.border.$value).toBe("oklch(1 0 0 / 0.1)")
   })
@@ -189,7 +190,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
 
 for (const mode of MODES) {
   test.describe(`TSV2-10/11 live manual controls — ${mode}`, () => {
-    test("typography: sans/serif/mono stacks and tracking change computed styles immediately; invalid drafts are inert", async ({ page }, testInfo) => {
+    test("typography: Heading/Body/Mono fonts, role weights, and tracking change computed styles immediately; invalid drafts are inert (STHG-06/07)", async ({ page }, testInfo) => {
       await openWorkbench(page, mode)
       await previewFrame(page).locator("html").evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true))
       await editorCategory(page, "Typography")
@@ -197,46 +198,60 @@ for (const mode of MODES) {
       await expectNoSeriousViolations(page, `${mode}-typography`, testInfo)
       await expectContained(page)
 
-      for (const [label, testId, name] of [
-        ["Sans", "type-sans", "Lato"],
-        ["Serif", "type-serif", "Lora"],
-        ["Mono", "type-mono", "Geist Mono"],
+      // Heading and Body choose from the whole catalog (a mono family for Heading, a serif for Body); Mono stays mono.
+      for (const [role, testId, name] of [
+        ["Heading", "type-heading", "Geist Mono"],
+        ["Body", "type-body", "Lora"],
+        ["Mono", "type-mono", "Roboto Mono"],
       ] as const) {
         const before = await revisionNumber(page)
-        await page.getByRole("combobox", { name: label, exact: true }).click()
-        await page.getByRole("combobox", { name: `Search ${label} fonts`, exact: true }).fill(name)
+        await page.getByRole("combobox", { name: `${role} Font`, exact: true }).click()
+        await page.getByRole("combobox", { name: `Search ${role} fonts`, exact: true }).fill(name)
         await page.getByRole("option", { name, exact: true }).click()
         await expect(revision(page)).toHaveAttribute("data-revision", String(before + 1))
         await expect.poll(() => previewStyle(page, testId, "fontFamily")).toContain(name)
       }
+      // Body is inherited by ordinary preview text and by the Workbench chrome itself.
+      await expect.poll(() => previewStyle(page, null, "fontFamily")).toContain("Lora")
+      await expect.poll(() => page.locator("body").evaluate((el) => getComputedStyle(el).fontFamily)).toContain("Lora")
       // Search text is never a mutation. No match, Escape, and the selected canonical stack remains intact.
       const before = await revisionNumber(page)
-      const sans = page.getByRole("combobox", { name: "Sans", exact: true })
-      await sans.click()
-      const sansSearch = page.getByRole("combobox", { name: "Search Sans fonts", exact: true })
-      await sansSearch.fill("not-a-local-font")
+      await page.getByRole("combobox", { name: "Body Font", exact: true }).click()
+      const bodySearch = page.getByRole("combobox", { name: "Search Body fonts", exact: true })
+      await bodySearch.fill("not-a-local-font")
       await expect(page.getByText("No fonts found.", { exact: true })).toBeVisible()
       await expect(revision(page)).toHaveAttribute("data-revision", String(before))
-      await expect.poll(() => previewStyle(page, "type-sans", "fontFamily")).toContain("Lato")
-      await sansSearch.press("Escape")
+      await expect.poll(() => previewStyle(page, "type-body", "fontFamily")).toContain("Lora")
+      await bodySearch.press("Escape")
       await expectNoSeriousViolations(page, `${mode}-typography-search`, testInfo)
 
-      // Tracking: numeric field, visible unit, keyboard slider.
-      await expect(page.getByTestId("tracking-unit")).toHaveText("em")
-      await setNumber(page, "Tracking", "0.05")
+      // Role weights are independent.
+      await setNumber(page, "Heading Weight", "800")
+      await expect.poll(() => previewStyle(page, "type-heading", "fontWeight")).toBe("800")
+      expect(await previewStyle(page, "type-body", "fontWeight")).toBe("400")
+      await setNumber(page, "Body Weight", "300")
+      await expect.poll(() => previewStyle(page, "type-body", "fontWeight")).toBe("300")
+      expect(await previewStyle(page, "type-heading", "fontWeight")).toBe("800")
+
+      // Body tracking: numeric field, visible unit, keyboard slider; Heading tracking is independent.
+      await expect(page.getByTestId("bodyTracking-unit")).toHaveText("em")
+      await setNumber(page, "Body Tracking", "0.05")
       await expect.poll(() => previewStyle(page, null, "letterSpacing")).toBe("0.8px")
-      const tracking = slider(page, "Tracking")
+      const tracking = slider(page, "Body Tracking")
       await expect(tracking).toHaveAttribute("aria-valuetext", "0.05 em")
       await tracking.focus()
       const beforeKey = await revisionNumber(page)
       await page.keyboard.press("ArrowLeft")
       await expect(revision(page)).toHaveAttribute("data-revision", String(beforeKey + 1))
-      await expect(numberField(page, "Tracking")).toHaveValue("0.045")
+      await expect(numberField(page, "Body Tracking")).toHaveValue("0.045")
       await expect.poll(() => previewStyle(page, null, "letterSpacing")).toBe("0.72px")
+      await setNumber(page, "Heading Tracking", "-0.02")
+      await expect.poll(() => previewStyle(page, "type-heading", "letterSpacing")).toBe("-0.36px")
+      expect(await previewStyle(page, null, "letterSpacing")).toBe("0.72px")
       for (const draft of ["0.3", "abc", "-"]) {
         const at = await revisionNumber(page)
-        await numberField(page, "Tracking").fill(draft)
-        await expect(page.getByTestId("tracking-error")).toContainText("Not applied")
+        await numberField(page, "Body Tracking").fill(draft)
+        await expect(page.getByTestId("bodyTracking-error")).toContainText("Not applied")
         await expect(revision(page)).toHaveAttribute("data-revision", String(at))
         expect(await previewStyle(page, null, "letterSpacing")).toBe("0.72px")
       }
@@ -487,7 +502,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await expect(slider(page, "Radius")).toHaveAttribute("data-disabled", "")
       await expect(page.getByLabel("Shadow color", { exact: true })).toBeDisabled()
       await editorCategory(page, "Typography")
-      await expect(page.getByLabel("Sans", { exact: true })).toBeDisabled()
+      await expect(page.getByLabel("Body Font", { exact: true })).toBeDisabled()
       await editorCategory(page, "Colors")
       await expect(colorInput(page, "primary")).toBeDisabled()
       await expect(page.getByLabel("Primary picker", { exact: true })).toBeDisabled()

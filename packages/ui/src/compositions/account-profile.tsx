@@ -16,7 +16,7 @@ export function AccountProfile({ invalidEmail = false, compact = false }: { inva
     <form onSubmit={e => { e.preventDefault(); setSaved(true) }}>
     <Card className={compact ? "w-full [&_[data-slot=native-select-wrapper]]:w-full" : "w-full max-w-md"}>
       <CardHeader>
-        <CardTitle className={compact ? "text-lg" : undefined}><h2>Account profile</h2></CardTitle>
+        <CardTitle className={compact ? "text-lg" : undefined}><h2 className="type-heading">Account profile</h2></CardTitle>
         <CardDescription>A familiar face for your workspace.</CardDescription>
       </CardHeader>
       <CardContent>

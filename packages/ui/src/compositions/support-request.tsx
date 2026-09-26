@@ -15,7 +15,7 @@ export function SupportRequest({ invalidMessage = false, compact = false }: { in
   return (
     <Card className={compact ? "w-full [&_[data-slot=native-select-wrapper]]:w-full" : "w-full max-w-md"}>
       <CardHeader>
-        <CardTitle className={compact ? "text-lg" : undefined}><h2>{compact ? "How can we help?" : "Contact support"}</h2></CardTitle>
+        <CardTitle className={compact ? "text-lg" : undefined}><h2 className="type-heading">{compact ? "How can we help?" : "Contact support"}</h2></CardTitle>
         <CardDescription>Local preview only; no message will be sent.</CardDescription>
       </CardHeader>
       <CardContent>

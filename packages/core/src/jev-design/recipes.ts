@@ -3,7 +3,7 @@ import type { DesignCategory, StrengthLevel } from "./questions"
 import { STRENGTH_SCALE } from "./questions"
 import type { ThemeOperation } from "../mutations/mutation"
 
-export const RECIPE_CATALOG_VERSION = "design-command-recipes/1"
+export const RECIPE_CATALOG_VERSION = "design-command-recipes/2"
 
 /**
  * One directional axis per existing theme category, each backed by an already-existing `ThemeOperation`
@@ -42,8 +42,16 @@ const COLOR_PRIMARY: { positive: Preset; negative: Preset } = {
   negative: { subtle: "oklch(0.4 0.06 250)", moderate: "oklch(0.38 0.09 255)", strong: "oklch(0.35 0.12 260)" },
 }
 
-/** Discrete swap, independent of strength: strength is still asked/recorded per the catalog but ignored by this recipe. */
-const TYPOGRAPHY_SANS: { positive: string; negative: string } = { positive: "Source Serif 4", negative: "Inter" }
+/**
+ * Discrete Heading-role swap, independent of strength: strength is still asked/recorded per the catalog but ignored by
+ * this recipe. Each value is exactly a local font-catalog stack (`packages/ui/src/lib/fonts.ts`), so the staged
+ * candidate renders a self-hosted face and the Workbench font control recognizes it. Recipes v2 target the Theme v3
+ * Heading role; v1 replaced the first family of the retired v2 `sans` stack.
+ */
+const TYPOGRAPHY_HEADING: { positive: readonly string[]; negative: readonly string[] } = {
+  positive: ["Newsreader Variable", "Newsreader", "ui-serif", "Georgia", "serif"],
+  negative: ["Inter Variable", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+}
 
 export type RecipeDirection = "positive" | "negative"
 
@@ -57,7 +65,7 @@ export function buildOperation(category: DesignCategory, direction: RecipeDirect
     case "density":
       return { op: "setDensity", value: DENSITY[direction][strength] }
     case "typography":
-      return { op: "setSansFamily", value: TYPOGRAPHY_SANS[direction] }
+      return { op: "setFontFamily", target: "heading", value: [...TYPOGRAPHY_HEADING[direction]] }
     case "shadow":
       return { op: "setShadowBlur", value: SHADOW_BLUR[direction][strength] }
     case "motion":

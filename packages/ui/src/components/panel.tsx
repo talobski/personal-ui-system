@@ -11,7 +11,7 @@ function Panel({ title, className, children }: { title: string; className?: stri
       <Card className="gap-4 py-4">
         <CardHeader className="px-4">
           <CardTitle>
-            <h2 id={id} className="text-base font-semibold">
+            <h2 id={id} className="type-heading text-base">
               {title}
             </h2>
           </CardTitle>

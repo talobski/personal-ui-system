@@ -225,7 +225,7 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
     expect(await sheet.evaluate(el => el.contains(document.activeElement))).toBe(true)
   }
   await expect(sheet.getByRole("combobox", { name: "Active theme" })).toBeVisible()
-  for (const [category, probe] of [["Colors", "Primary"], ["Typography", "Sans"], ["Effects", "Radius"], ["Command", "Command"]] as const) {
+  for (const [category, probe] of [["Colors", "Primary"], ["Typography", "Body Font"], ["Effects", "Radius"], ["Command", "Command"]] as const) {
     await sheet.getByRole("tab", { name: category, exact: true }).click()
     const panel = sheet.getByRole("tabpanel", { name: category, exact: true })
     await expect(panel).toBeVisible()
@@ -466,7 +466,7 @@ for (const mode of ["light", "dark"] as const) {
     await setColorMode(page, mode)
     const styles: unknown[] = []
     // Font labels are intentionally screen-reader-only (WTCP-09); compare the visible Typography numeric label.
-    for (const [category, label] of [["Colors", "Primary"], ["Typography", "Tracking"], ["Effects", "Shadow color"], ["Command", "Command"]] as const) {
+    for (const [category, label] of [["Colors", "Primary"], ["Typography", "Body Tracking"], ["Effects", "Shadow color"], ["Command", "Command"]] as const) {
       await editorCategory(page, category)
       await expect(page.getByRole("tabpanel", { name: category, exact: true })).toBeVisible()
       await expect(page.getByRole("heading", { name: category === "Command" ? "Design command" : category, exact: true })).toHaveCount(0)
@@ -508,10 +508,13 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
   await previewStates(page)
   const frame = page.frameLocator('[data-testid="preview-frame"]')
   await editorCategory(page, "Typography")
-  for (const category of ["sans", "serif", "mono"] as const) {
+  // Every one of the 24 local families is exercised once: sans through Body, serif through Heading, mono through Mono.
+  const targets = [["body", "sans"], ["heading", "serif"], ["mono", "mono"]] as const
+  const stackOf = (theme: any, target: "heading" | "body" | "mono") => (target === "mono" ? theme.typography.mono : theme.typography[target].font).$value
+  for (const [target, category] of targets) {
     for (const option of FONT_OPTIONS[category]) {
-      const label = `${category[0]!.toUpperCase()}${category.slice(1)}`
-      const trigger = page.getByRole("combobox", { name: label, exact: true })
+      const label = `${target[0]!.toUpperCase()}${target.slice(1)}`
+      const trigger = page.getByRole("combobox", { name: `${label} Font`, exact: true })
       await trigger.click()
       const input = page.getByRole("combobox", { name: `Search ${label} fonts`, exact: true })
       await input.fill(option.label)
@@ -520,12 +523,12 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
         await input.press("ArrowDown")
         expect(await input.evaluate(el => el.matches(":focus-visible"))).toBe(true)
         const { violations } = await new AxeBuilder({ page }).analyze()
-        await info.attach(`axe-font-${category}-open.json`, { body: JSON.stringify(violations), contentType: "application/json" })
-        expect(await seriousOutsideKnownDebt(page, violations, info, `font-${category}-open`)).toEqual([])
+        await info.attach(`axe-font-${target}-open.json`, { body: JSON.stringify(violations), contentType: "application/json" })
+        expect(await seriousOutsideKnownDebt(page, violations, info, `font-${target}-open`)).toEqual([])
         await input.press("Enter")
       } else await page.getByRole("option", { name: option.label, exact: true }).click()
-      await expect(page.getByTestId(`control-font-${category}`)).toHaveAttribute("data-font", option.id)
-      await expect.poll(() => frame.getByTestId(`type-${category}`).evaluate(el => getComputedStyle(el).fontFamily)).toContain(option.stack[0])
+      await expect(page.getByTestId(`control-font-${target}`)).toHaveAttribute("data-font", option.id)
+      await expect.poll(() => frame.getByTestId(`type-${target}`).evaluate(el => getComputedStyle(el).fontFamily)).toContain(option.stack[0])
       // FontFaceSet.load must return a registered, loaded local face; check() alone can pass on a fallback.
       for (const context of [page, frame]) {
         const loaded = await context.locator("html").evaluate(async (_, face) => {
@@ -540,24 +543,24 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
       const downloaded = page.waitForEvent("download")
       await page.getByRole("button", { name: "Export JSON" }).click()
       const data = JSON.parse(readFileSync((await (await downloaded).path())!, "utf8"))
-      expect(data.typography[category].$value).toEqual(option.stack)
+      expect(stackOf(data, target)).toEqual(option.stack)
       await saveTheme(page)
       await page.reload()
       await previewStates(page)
       await editorCategory(page, "Typography")
-      await expect(page.getByTestId(`control-font-${category}`)).toHaveAttribute("data-font", option.id)
+      await expect(page.getByTestId(`control-font-${target}`)).toHaveAttribute("data-font", option.id)
       const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes["local-fonts"])
-      expect(saved.typography[category].$value).toEqual(option.stack)
+      expect(stackOf(saved, target)).toEqual(option.stack)
     }
   }
   await saveTheme(page)
   await page.reload()
   await editorCategory(page, "Typography")
-  for (const category of ["sans", "serif", "mono"] as const) {
+  for (const [target, category] of targets) {
     const last = FONT_OPTIONS[category].at(-1)!
-    await expect(page.getByTestId(`control-font-${category}`)).toHaveAttribute("data-font", last.id)
+    await expect(page.getByTestId(`control-font-${target}`)).toHaveAttribute("data-font", last.id)
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes["local-fonts"])
-    expect(saved.typography[category].$value).toEqual(last.stack)
+    expect(stackOf(saved, target)).toEqual(last.stack)
   }
   expect(requests.length).toBeGreaterThan(0)
   expect(external).toEqual([])

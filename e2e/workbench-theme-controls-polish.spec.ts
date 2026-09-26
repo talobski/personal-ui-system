@@ -161,33 +161,36 @@ for (const mode of ["light", "dark"] as const) {
   }
 }
 
-test("WTCP-09 concise default/custom/catalog states retain accessible exact stacks and persistence", async ({ page }) => {
+test("WTCP-09 concise default/custom/catalog states retain accessible exact stacks and persistence (Theme v3 roles)", async ({ page }) => {
+  const stackOf = (theme: typeof defaultTheme, target: "heading" | "body" | "mono") => (target === "mono" ? theme.typography.mono : theme.typography[target].font).$value
   await page.goto("/")
   await editorCategory(page, "Typography")
-  for (const [category, copy] of [["sans", "Sans-serif font..."], ["serif", "Serif font..."], ["mono", "Monospace font..."]] as const) {
-    const field = page.getByTestId(`control-font-${category}`)
+  for (const [target, copy] of [["body", "Sans-serif font..."], ["heading", "Serif font..."], ["mono", "Monospace font..."]] as const) {
+    const field = page.getByTestId(`control-font-${target}`)
     await expect(field.getByRole("combobox")).toHaveText(copy)
-    await expect(field.getByRole("combobox")).toHaveAccessibleDescription(defaultTheme.typography[category].$value.join(", "))
+    await expect(field.getByRole("combobox")).toHaveAccessibleDescription(stackOf(defaultTheme, target).join(", "))
     expect(await field.innerText()).not.toContain("Current stack:")
   }
   const custom = structuredClone(defaultTheme)
   custom.id = "custom-fonts"; custom.name = "Custom Fonts"
-  for (const category of ["sans", "serif", "mono"] as const) custom.typography[category].$value = [`Personal ${category}`, ...custom.typography[category].$value]
+  custom.typography.heading.font.$value = ["Personal heading", ...custom.typography.heading.font.$value]
+  custom.typography.body.font.$value = ["Personal body", ...custom.typography.body.font.$value]
+  custom.typography.mono.$value = ["Personal mono", ...custom.typography.mono.$value]
   await page.evaluate(theme => localStorage.setItem("personal-ui-workbench/v1", JSON.stringify({ themes: { [theme.id]: theme }, activeId: theme.id, bases: { [theme.id]: "default" } })), custom)
   await page.reload(); await editorCategory(page, "Typography")
-  for (const [category, copy] of [["sans", "sans-serif"], ["serif", "serif"], ["mono", "monospace"]] as const) {
-    const trigger = page.getByTestId(`control-font-${category}`).getByRole("combobox")
+  for (const [target, copy] of [["body", "sans-serif"], ["heading", "serif"], ["mono", "monospace"]] as const) {
+    const trigger = page.getByTestId(`control-font-${target}`).getByRole("combobox")
     await expect(trigger).toHaveText(`Custom ${copy} stack`)
-    await expect(trigger).toHaveAccessibleDescription(custom.typography[category].$value.join(", "))
+    await expect(trigger).toHaveAccessibleDescription(stackOf(custom, target).join(", "))
   }
-  const sans = page.getByTestId("control-font-sans").getByRole("combobox")
-  await sans.click(); await page.getByRole("option", { name: "Lato", exact: true }).click()
-  await expect(sans).toHaveText("Lato")
+  const body = page.getByTestId("control-font-body").getByRole("combobox")
+  await body.click(); await page.getByRole("option", { name: "Lato", exact: true }).click()
+  await expect(body).toHaveText("Lato")
   await workspaceMode(page, "Preview")
   await page.getByRole("button", { name: "Save", exact: true }).click()
   await page.reload(); await editorCategory(page, "Typography")
-  await expect(page.getByTestId("control-font-sans").getByRole("combobox")).toHaveText("Lato")
+  await expect(page.getByTestId("control-font-body").getByRole("combobox")).toHaveText("Lato")
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes["custom-fonts"])
-  expect(saved.typography.serif.$value).toEqual(custom.typography.serif.$value)
+  expect(saved.typography.heading.font.$value).toEqual(custom.typography.heading.font.$value)
   expect(saved.typography.mono.$value).toEqual(custom.typography.mono.$value)
 })

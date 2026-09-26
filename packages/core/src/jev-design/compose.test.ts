@@ -92,7 +92,7 @@ describe("composeDesignCommandOutcome", () => {
     if (outcome.kind === "staged") {
       expect(outcome.operations).toHaveLength(6)
       expect(outcome.operations.map((op) => op.op).sort()).toEqual(
-        ["setColor", "setDensity", "setMotionDuration", "setRadius", "setSansFamily", "setShadowBlur"].sort()
+        ["setColor", "setDensity", "setMotionDuration", "setRadius", "setFontFamily", "setShadowBlur"].sort()
       )
       for (const op of outcome.operations) expect(KNOWN_OPERATIONS).toContain(op.op)
     }

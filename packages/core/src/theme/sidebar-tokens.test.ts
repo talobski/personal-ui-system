@@ -32,9 +32,22 @@ const valid = (input: unknown): Theme => {
 const MODES = ["light", "dark"] as const
 const base = valid(defaultFixture)
 
+/**
+ * The frozen v2.1 shape of a migrated-default theme: the inverse of the v2.1 -> v3 typography mapping (Heading font ->
+ * serif, Body font -> sans, shared tracking). Only valid for themes still on the migration weights and one tracking.
+ */
+function asV2_1(theme: Theme): Record<string, any> {
+  const copy = structuredClone(theme) as Record<string, any>
+  const { heading, body, mono } = theme.typography
+  copy.$schema = "https://personal-ui.local/schema/theme-2.json"
+  copy.schemaVersion = "2.1"
+  copy.typography = { sans: body.font, serif: heading.font, mono, tracking: body.tracking }
+  return copy
+}
+
 /** The frozen v2.0 shape of a theme: 24 colours per mode, no Sidebar state. */
 function asV2_0(theme: Theme): Record<string, any> {
-  const copy = structuredClone(theme) as Record<string, any>
+  const copy = asV2_1(theme)
   copy.schemaVersion = "2.0"
   delete copy.sidebar
   for (const mode of MODES) for (const name of SIDEBAR_COLOR_TOKENS) delete copy.colors[mode][name]
@@ -61,9 +74,9 @@ function resolvedSidebar(theme: Theme, mode: "light" | "dark"): Record<string, s
   )
 }
 
-describe("canonical Theme v2.1 (WSTP-03)", () => {
+describe("canonical Sidebar colours, carried unchanged into Theme v3 (WSTP-03, STHG-04)", () => {
   it("has exactly the eight new Sidebar colours per mode and the approved source state", () => {
-    expect(THEME_SCHEMA_VERSION).toBe("2.1")
+    expect(THEME_SCHEMA_VERSION).toBe("3.0")
     expect(SIDEBAR_COLOR_TOKENS).toEqual([
       "sidebar", "sidebar-foreground", "sidebar-primary", "sidebar-primary-foreground",
       "sidebar-accent", "sidebar-accent-foreground", "sidebar-border", "sidebar-ring",
@@ -97,7 +110,8 @@ describe("backward compatibility (WSTP-04)", () => {
       for (const name of SIDEBAR_COLOR_TOKENS) expect(migrated.colors[mode][name].$value).toBe(v20.colors[mode][SIDEBAR_TOKEN_ALIASES[name]].$value)
     }
     expect(migrated.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: false }, dedicatedValuesInitialized: false })
-    for (const key of ["typography", "radius", "space", "shadow", "motion", "$extensions", "id", "name", "revision"] as const) expect(migrated[key]).toEqual(v20[key])
+    for (const key of ["radius", "space", "shadow", "motion", "$extensions", "id", "name", "revision"] as const) expect(migrated[key]).toEqual(v20[key])
+    expect(migrated.typography).toEqual(base.typography)
   })
 
   it("keeps a customized v2.0 theme's values and identity", () => {
@@ -106,7 +120,7 @@ describe("backward compatibility (WSTP-04)", () => {
     v20.colors.light.background.$value = "oklch(0.9 0.02 90)"
     v20.colors.dark.ring.$value = "oklch(0.5 0.1 200)"
     const migrated = valid(v20)
-    expect(migrated).toMatchObject({ id: "my-custom", name: "My Custom", revision: 7, schemaVersion: "2.1" })
+    expect(migrated).toMatchObject({ id: "my-custom", name: "My Custom", revision: 7, schemaVersion: "3.0" })
     expect(migrated.colors.light.sidebar.$value).toBe("oklch(0.9 0.02 90)")
     expect(migrated.colors.dark["sidebar-ring"].$value).toBe("oklch(0.5 0.1 200)")
   })
@@ -120,9 +134,17 @@ describe("backward compatibility (WSTP-04)", () => {
     expect(validateTheme(withState).ok).toBe(false)
   })
 
-  it("migrates v1 through v2.0 to v2.1; the Quiet Editorial result is a complete canonical v2.1 theme", () => {
+  it("migrates v2.1 Sidebar state (initialized and enabled) into v3 unchanged", () => {
+    const on = edit(base, { op: "setSidebarTokensEnabled", value: true }, { op: "setColor", mode: "dark", token: "sidebar-accent", value: "oklch(0.35 0.03 250)" })
+    const migrated = valid(asV2_1(on))
+    expect(migrated).toEqual(on)
+    expect(migrated.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: true }, dedicatedValuesInitialized: true })
+    expect(renderShadcnTailwindCss(migrated)).toBe(renderShadcnTailwindCss(on))
+  })
+
+  it("migrates v1 through v2.0 and v2.1 to v3; the Quiet Editorial result is a complete canonical v3 theme", () => {
     const qe = valid(v1Fixture)
-    expect(qe.schemaVersion).toBe("2.1")
+    expect(qe.schemaVersion).toBe("3.0")
     expect(qe.sidebar.useDedicatedTokens.$value).toBe(false)
     for (const mode of MODES) for (const name of SIDEBAR_COLOR_TOKENS) expect(qe.colors[mode][name].$value).toBe(qe.colors[mode][SIDEBAR_TOKEN_ALIASES[name]].$value)
     expect(validateTheme(JSON.parse(JSON.stringify(qe)))).toEqual({ ok: true, theme: qe })

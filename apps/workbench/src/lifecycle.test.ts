@@ -12,7 +12,7 @@ import {
   loadBuiltInThemes,
   previewVariablesCss,
 } from "./lifecycle"
-import { buildFontOperation, fontControlCopy, buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, FONT_CONTROLS, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readShadowColor } from "./controls"
+import { buildFontOperation, fontControlCopy, buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readFontStack, readShadowColor, TYPE_ROLE_GROUPS } from "./controls"
 import type { NumericControlId } from "./controls"
 import { deleteTheme, emptySaved, loadSaved, saveSelection, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
@@ -21,7 +21,7 @@ import v1QuietEditorial from "@personal-ui/core/theme/fixtures/valid.json"
 const builtIns = loadBuiltInThemes()
 const BUILT_IN_IDS = builtIns.map((theme) => theme.id)
 const defaultTheme = builtIns[0]!
-/** Quiet Editorial, the accepted v1 fixture migrated to v2; most lifecycle tests keep exercising it. */
+/** Quiet Editorial, the accepted v1 fixture migrated to v3; most lifecycle tests keep exercising it. */
 const canonical = builtIns[1]!
 const VALID = "oklch(0.4 0.1 150)"
 
@@ -102,7 +102,7 @@ describe("WRCP-03/04 Other-tab labels and shared shadow colour interaction", () 
   it("shortens only the approved visible labels; ids and operations are unchanged", () => {
     const labels = (["shadowOpacity", "shadowBlur", "shadowSpread", "shadowOffsetX", "shadowOffsetY", "motion"] as const).map(id => NUMERIC_CONTROLS[id].label)
     expect(labels).toEqual(["Opacity", "Blur", "Spread", "Offset X", "Offset Y", "Duration"])
-    expect([NUMERIC_CONTROLS.radius.label, NUMERIC_CONTROLS.spacing.label, NUMERIC_CONTROLS.tracking.label]).toEqual(["Radius", "Spacing", "Tracking"])
+    expect([NUMERIC_CONTROLS.radius.label, NUMERIC_CONTROLS.spacing.label, NUMERIC_CONTROLS.bodyTracking.label, NUMERIC_CONTROLS.headingWeight.label]).toEqual(["Radius", "Spacing", "Tracking", "Weight"])
     expect(NUMERIC_CONTROLS.motion.build(320, defaultTheme)).toEqual({ op: "setMotionDuration", value: "320ms" })
     expect(NUMERIC_CONTROLS.shadowBlur.build(10, defaultTheme)).toMatchObject({ op: "setShadowProfile", value: { blur: "10px" } })
   })
@@ -134,7 +134,7 @@ describe("WTCP-03/09 baseline compatibility and concise font states", () => {
     custom.id = "historical-custom"
     custom.radius = { base: { $type: "dimension", $value: "1.475rem" }, sm: { $type: "dimension", $value: "1.225rem" }, md: { $type: "dimension", $value: "1.35rem" }, lg: { $type: "dimension", $value: "1.475rem" }, xl: { $type: "dimension", $value: "1.725rem" } }
     custom.space.base.$value = "0.3rem"
-    custom.typography.sans.$value = ["My Exact Font", "system-ui", "sans-serif"]
+    custom.typography.body.font.$value = ["My Exact Font", "system-ui", "sans-serif"]
     const oldDefault = { ...custom, id: "default" }
     const storage = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ themes: { [custom.id]: custom, default: oldDefault }, activeId: "default", bases: { [custom.id]: "default" } }) })
     const loaded = loadSaved(storage, BUILT_IN_IDS)
@@ -147,11 +147,12 @@ describe("WTCP-03/09 baseline compatibility and concise font states", () => {
     expect(quiet.ok && quiet.theme).toEqual(canonical)
   })
 
-  it.each([ ["sans", "Sans-serif font...", "Custom sans-serif stack"], ["serif", "Serif font...", "Custom serif stack"], ["mono", "Monospace font...", "Custom monospace stack"] ] as const)("uses exact copy and exact stack equality for %s", (category, placeholder, custom) => {
-    const stack = defaultTheme.typography[category].$value
-    expect(fontControlCopy(category, [...stack], stack)).toBe(placeholder)
-    expect(fontControlCopy(category, ["Personal Font", ...stack], stack)).toBe(custom)
-    expect(fontControlCopy(category, [...stack].reverse(), stack)).toBe(custom)
+  it.each([ ["body", "Sans-serif font...", "Custom sans-serif stack"], ["heading", "Serif font...", "Custom serif stack"], ["mono", "Monospace font...", "Custom monospace stack"] ] as const)("uses exact copy and exact stack equality for %s", (target, placeholder, custom) => {
+    const stack = readFontStack(defaultTheme, target)
+    expect(fontControlCopy([...stack], stack)).toBe(placeholder)
+    expect(fontControlCopy(["Personal Font", ...stack], stack)).toBe(custom)
+    // The copy follows the stack's own generic family, not the stack's slot.
+    expect(fontControlCopy(["Personal Font", "Georgia", "serif"], stack)).toBe("Custom serif stack")
     expect(NUMERIC_CONTROLS.spacing.label).toBe("Spacing")
     expect(NUMERIC_CONTROLS.spacing.build(0.3, defaultTheme)).toEqual({ op: "setSpacingBase", value: "0.3rem" })
   })
@@ -178,11 +179,12 @@ describe("editColor", () => {
 })
 
 describe("built-in themes (TSV2-02, TSV2-03, TSV2-04)", () => {
-  it("offers Default first, then Quiet Editorial, both canonical v2", () => {
+  it("offers Default first, then Quiet Editorial, both canonical v3", () => {
     expect(BUILT_IN_IDS).toEqual([DEFAULT_THEME_ID, "quiet-editorial"])
     for (const theme of builtIns) expect(validateTheme(theme)).toEqual({ ok: true, theme })
     expect(defaultTheme.name).toBe("Default")
-    expect(canonical.schemaVersion).toBe("2.1")
+    expect(canonical.schemaVersion).toBe("3.0")
+    expect(defaultTheme.schemaVersion).toBe("3.0")
   })
 
   it("accepts all four colour families through the manual colour path and stores canonical OKLCH", () => {
@@ -196,7 +198,10 @@ describe("built-in themes (TSV2-02, TSV2-03, TSV2-04)", () => {
 
 describe("manual controls (TSV2-10, TSV2-11)", () => {
   const cases: { id: NumericControlId; value: number; diff: string[]; css: string }[] = [
-    { id: "tracking", value: 0.02, diff: ["typography.tracking"], css: "--tracking-base: 0.02em;" },
+    { id: "headingWeight", value: 700, diff: ["typography.heading.weight"], css: "--font-weight-heading: 700;" },
+    { id: "headingTracking", value: -0.02, diff: ["typography.heading.tracking"], css: "--tracking-heading: -0.02em;" },
+    { id: "bodyWeight", value: 500, diff: ["typography.body.weight"], css: "--font-weight-body: 500;" },
+    { id: "bodyTracking", value: 0.02, diff: ["typography.body.tracking"], css: "--tracking-body: 0.02em;" },
     { id: "radius", value: 0.5, diff: ["radius.base", "radius.lg", "radius.md", "radius.sm", "radius.xl"], css: "--radius: 0.5rem;" },
     { id: "spacing", value: 0.3, diff: ["space.base"], css: "--space-base: 0.3rem;" },
     { id: "density", value: 1.25, diff: ["space.density"], css: "--density: 1.25;" },
@@ -226,7 +231,8 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
 
   it("reads the Default slider values exactly", () => {
     const read = (id: NumericControlId) => NUMERIC_CONTROLS[id].read(defaultTheme)
-    expect([read("tracking"), read("radius"), read("spacing"), read("density"), read("motion")]).toEqual([0, 0.7, 0.25, 1, 200])
+    expect([read("headingWeight"), read("headingTracking"), read("bodyWeight"), read("bodyTracking")]).toEqual([600, 0, 400, 0])
+    expect([read("radius"), read("spacing"), read("density"), read("motion")]).toEqual([0.7, 0.25, 1, 200])
     expect([read("shadowOpacity"), read("shadowBlur"), read("shadowSpread"), read("shadowOffsetX"), read("shadowOffsetY")]).toEqual([0.1, 3, 0, 0, 1])
   })
 
@@ -237,15 +243,19 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
     for (const draft of ["", "-", ".", "abc", "1rem", "3", "-0.1", "1e1", "NaN", "Infinity", "0x1"]) expect(parseNumericDraft(radius, draft), draft).toBeNull()
   })
 
-  it("replaces whole font stacks for sans, serif, and mono and rejects unsafe names", () => {
-    for (const family of ["sans", "serif", "mono"] as const) {
-      const result = editTheme(defaultTheme, buildFontOperation(family, ["Inter Variable", "Inter", "system-ui"]))
+  it("replaces whole font stacks for heading, body, and mono and rejects unsafe names", () => {
+    for (const target of ["heading", "body", "mono"] as const) {
+      const result = editTheme(defaultTheme, buildFontOperation(target, ["Inter Variable", "Inter", "system-ui"]))
       if (!result.ok) throw new Error("font edit failed")
-      expect(result.theme.typography[family].$value).toEqual(["Inter Variable", "Inter", "system-ui"])
-      expect(diffThemeTokens(defaultTheme, result.theme).map((d) => d.path)).toEqual([`typography.${family}`])
+      expect(readFontStack(result.theme, target)).toEqual(["Inter Variable", "Inter", "system-ui"])
+      expect(diffThemeTokens(defaultTheme, result.theme).map((d) => d.path)).toEqual([target === "mono" ? "typography.mono" : `typography.${target}.font`])
     }
+    expect(TYPE_ROLE_GROUPS.map((group) => [group.role, group.title, group.weight, group.tracking])).toEqual([
+      ["heading", "Heading", "headingWeight", "headingTracking"],
+      ["body", "Body", "bodyWeight", "bodyTracking"],
+    ])
     for (const stack of [[], [""], ['x"; } a{'], ["Inter; color: red"]]) {
-      expect(editTheme(defaultTheme, buildFontOperation("sans", stack))).toEqual({ ok: false, issues: [{ ruleId: "mutation.invalid-value", path: "operations[0].value" }] })
+      expect(editTheme(defaultTheme, buildFontOperation("body", stack))).toEqual({ ok: false, issues: [{ ruleId: "mutation.invalid-value", path: "operations[0].value" }] })
     }
   })
 
@@ -265,7 +275,7 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
 
   it("round-trips a manually edited theme through Save As, reload, and export", () => {
     let theme = defaultTheme
-    for (const [id, value] of [["tracking", 0.01], ["radius", 0.75], ["shadowBlur", 8]] as const) {
+    for (const [id, value] of [["bodyTracking", 0.01], ["headingWeight", 800], ["radius", 0.75], ["shadowBlur", 8]] as const) {
       const edited = editTheme(theme, NUMERIC_CONTROLS[id].build(value, theme))
       if (!edited.ok) throw new Error("edit failed")
       theme = edited.theme
@@ -385,12 +395,13 @@ describe("persistence (TSV2-04, TSV2-12)", () => {
     }
   })
 
-  it("migrates a stored v1 theme to v2 on read (TSV2-12)", () => {
+  it("migrates a stored v1 theme to v3 on read (TSV2-12, STHG-04)", () => {
     const v1 = { ...structuredClone(v1QuietEditorial), id: "legacy-fork", name: "Legacy Fork" }
     const storage = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ themes: { "legacy-fork": v1 }, activeId: "legacy-fork" }) })
     const loaded = loadSaved(storage, BUILT_IN_IDS)
     expect(loaded.activeId).toBe("legacy-fork")
-    expect(loaded.themes["legacy-fork"]?.schemaVersion).toBe("2.1")
+    expect(loaded.themes["legacy-fork"]?.schemaVersion).toBe("3.0")
+    expect(loaded.themes["legacy-fork"]?.typography).toEqual(canonical.typography)
     expect(loaded.themes["legacy-fork"]?.colors.light.primary.$value).toBe(canonical.colors.light.primary.$value)
     expect(loaded.bases).toEqual({})
   })
@@ -665,7 +676,7 @@ describe("WSTP-06/07/09 Sidebar tokens in the Workbench", () => {
     expect(diffThemeTokens(editedBase.theme, firstOn.theme)).toEqual([{ path: "sidebar.useDedicatedTokens", before: false, after: true }])
   })
 
-  it("saves, reloads, exports, and re-imports v2.1 Sidebar state under the unchanged storage key", () => {
+  it("saves, reloads, exports, and re-imports v3 Sidebar state under the unchanged storage key", () => {
     const on = editTheme(defaultTheme, { op: "setSidebarTokensEnabled", value: true })
     if (!on.ok) throw new Error("expected edit")
     const copy = createCustomTheme(on.theme, "Sidebar Test", BUILT_IN_IDS)
@@ -681,14 +692,15 @@ describe("WSTP-06/07/09 Sidebar tokens in the Workbench", () => {
     expect(reloaded.themes["sidebar-test"]).toEqual(recolored.theme)
     expect(reloaded.activeId).toBe("sidebar-test")
     const exported = JSON.parse(exportThemeJson(recolored.theme).json)
-    expect(exported.schemaVersion).toBe("2.1")
+    expect(exported.schemaVersion).toBe("3.0")
     expect(exported.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: true }, dedicatedValuesInitialized: true })
     expect(validateTheme(exported)).toEqual({ ok: true, theme: recolored.theme })
   })
 
   it("migrates a saved v2.0 custom theme on read without losing values, selection, or base record", () => {
     const v20 = structuredClone(defaultTheme) as Record<string, any>
-    Object.assign(v20, { id: "legacy-v20", name: "Legacy V20", revision: 4, schemaVersion: "2.0" })
+    Object.assign(v20, { id: "legacy-v20", name: "Legacy V20", revision: 4, schemaVersion: "2.0", $schema: "https://personal-ui.local/schema/theme-2.json" })
+    v20.typography = { sans: v20.typography.body.font, serif: v20.typography.heading.font, mono: v20.typography.mono, tracking: v20.typography.body.tracking }
     delete v20.sidebar
     for (const mode of ["light", "dark"]) for (const name of SIDEBAR_COLOR_TOKENS) delete v20.colors[mode][name]
     v20.colors.light.primary.$value = VALID
@@ -697,12 +709,36 @@ describe("WSTP-06/07/09 Sidebar tokens in the Workbench", () => {
     const theme = loaded.themes["legacy-v20"]!
     expect(loaded.activeId).toBe("legacy-v20")
     expect(loaded.bases).toEqual({ "legacy-v20": "quiet-editorial" })
-    expect(theme).toMatchObject({ schemaVersion: "2.1", revision: 4, name: "Legacy V20" })
+    expect(theme).toMatchObject({ schemaVersion: "3.0", revision: 4, name: "Legacy V20" })
+    expect(theme.typography).toEqual(defaultTheme.typography)
     expect(theme.colors.light.primary.$value).toBe(VALID)
     expect(theme.colors.light["sidebar-primary"].$value).toBe(VALID)
     expect(theme.sidebar.useDedicatedTokens.$value).toBe(false)
     // Rendering is unchanged by migration: the Sidebar follows the same base semantics as before.
     expect(previewVariablesCss(theme)).toContain("  --sidebar: var(--background);")
+  })
+
+  it("STHG-04 migrates a saved v2.1 custom theme with the exact semantic mapping, keeping selection, base, and Sidebar state", () => {
+    const initialized = editTheme(defaultTheme, { op: "setSidebarTokensEnabled", value: true })
+    if (!initialized.ok) throw new Error("expected edit")
+    const v21 = structuredClone(initialized.theme) as Record<string, any>
+    Object.assign(v21, { id: "legacy-v21", name: "Legacy V21", revision: 9, schemaVersion: "2.1", $schema: "https://personal-ui.local/schema/theme-2.json" })
+    v21.typography = {
+      sans: { $type: "fontFamily", $value: ["Manrope Variable", "Manrope", "ui-sans-serif", "system-ui", "sans-serif"] },
+      serif: { $type: "fontFamily", $value: ["Lora Variable", "Lora", "ui-serif", "Georgia", "serif"] },
+      mono: { $type: "fontFamily", $value: ["Roboto Mono Variable", "Roboto Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"] },
+      tracking: { $type: "dimension", $value: "0.015em" },
+    }
+    const storage = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ themes: { "legacy-v21": v21 }, activeId: "legacy-v21", bases: { "legacy-v21": "default" } }) })
+    const loaded = loadSaved(storage, BUILT_IN_IDS)
+    const theme = loaded.themes["legacy-v21"]!
+    expect([loaded.activeId, loaded.bases]).toEqual(["legacy-v21", { "legacy-v21": "default" }])
+    expect(theme).toMatchObject({ schemaVersion: "3.0", revision: 9, name: "Legacy V21" })
+    expect(theme.typography.heading).toEqual({ font: v21.typography.serif, weight: { $type: "fontWeight", $value: 600 }, tracking: { $type: "dimension", $value: "0.015em" } })
+    expect(theme.typography.body).toEqual({ font: v21.typography.sans, weight: { $type: "fontWeight", $value: 400 }, tracking: { $type: "dimension", $value: "0.015em" } })
+    expect(theme.typography.mono).toEqual(v21.typography.mono)
+    expect(theme.sidebar).toEqual(initialized.theme.sidebar)
+    expect(theme.colors).toEqual(initialized.theme.colors)
   })
 
   it("never lets a staged Sidebar proposal reach the active theme before Apply", () => {
@@ -728,8 +764,8 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(readFileSync(new URL("../../../packages/ui/src/components/sidebar.tsx", import.meta.url), "utf8")).toContain('const SIDEBAR_WIDTH_MOBILE = "18rem"')
   })
 
-  it("uses the shared 5rem label geometry for font rows (Sans/Serif/Mono) and numeric rows, and exact Spacing/Tracking copy", () => {
-    expect(FONT_CONTROLS.map((control) => control.label)).toEqual(["Sans", "Serif", "Mono"])
+  it("uses the shared 5rem label geometry for font rows and numeric rows, and exact role Font/Weight/Tracking copy (STHG-06)", () => {
+    expect(TYPE_ROLE_GROUPS.map((group) => group.title)).toEqual(["Heading", "Body"])
     expect(controls).toContain('export const LABELLED_ROW_CLASS = "grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] items-center gap-[0.375rem]"')
     expect(controls).toContain('export const NUMERIC_ROW_CLASS = "grid min-w-0 grid-cols-[5rem_minmax(0,1fr)_max-content] items-center gap-[0.375rem]"')
     expect(controls).toContain("<div className={LABELLED_ROW_CLASS} data-testid={`${id}-row`}>")
@@ -737,9 +773,12 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(controls).not.toMatch(/6rem_minmax|className="sr-only">\s*\{label\}/)
     // Physical rem geometry only: no spacing-scale utilities in the label column contract.
     expect(controls).not.toMatch(/grid-cols-\[(?:var|calc)/)
-    expect(app).toContain('<ControlSection id="tracking" title="Spacing">')
-    expect(NUMERIC_CONTROLS.tracking.label).toBe("Tracking")
-    expect(NUMERIC_CONTROLS.tracking.build(0.02, defaultTheme)).toEqual({ op: "setTracking", value: "0.02em" })
+    expect(app).toContain('<ControlSection key={role} id={`type-${role}`} title={title}>')
+    expect(app).toContain('<ControlSection id="type-mono" title="Mono">')
+    expect(app).not.toMatch(/title="Font families"|id="tracking"|id="fonts"/)
+    expect(NUMERIC_CONTROLS.bodyTracking.label).toBe("Tracking")
+    expect(NUMERIC_CONTROLS.bodyTracking.build(0.02, defaultTheme)).toEqual({ op: "setTracking", target: "body", value: "0.02em" })
+    expect(NUMERIC_CONTROLS.headingWeight.build(700, defaultTheme)).toEqual({ op: "setFontWeight", target: "heading", value: 700 })
   })
 
   it("renders the active theme name and every dropdown theme name at font-medium", () => {

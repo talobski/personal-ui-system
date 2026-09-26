@@ -17,7 +17,7 @@ const week = [
 const config = { tasks: { label: "Tasks", color: "var(--chart-3)" } } satisfies ChartConfig
 
 export function ProductiveWeek() {
-  return <Card><CardHeader><CardTitle className="text-lg"><h2>A productive week</h2></CardTitle><CardDescription>Your workspace, at a glance.</CardDescription></CardHeader>
+  return <Card><CardHeader><CardTitle className="text-lg"><h2 className="type-heading">A productive week</h2></CardTitle><CardDescription>Your workspace, at a glance.</CardDescription></CardHeader>
     <CardContent><p><strong className="text-4xl font-semibold">32</strong> <span className="text-muted-foreground">tasks completed</span></p><p className="mt-2 text-xs text-muted-foreground">8 more than last week</p>
       <figure className="mt-4" data-testid="productive-week-chart"><figcaption className="sr-only">Tasks completed Monday through Sunday: 2, 4, 3, 6, 5, 7, 5. Total 32.</figcaption>
         <ChartContainer config={config} className="aspect-auto h-28 w-full">

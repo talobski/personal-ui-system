@@ -1,6 +1,6 @@
 /**
  * The closed, self-hosted font catalog: exactly 24 families, each served from a pinned local Fontsource package (see
- * `./font-faces.ts`). A choice is only a canonical Theme v2 font stack — the registered local face, the family's plain
+ * `./font-faces.ts`). A choice is only a canonical Theme v3 font stack — the registered local face, the family's plain
  * name for consumers that have it installed, then deterministic generic fallbacks. No runtime font service is used.
  */
 
@@ -12,7 +12,7 @@ export type FontOption = {
   /** Visible family name, e.g. `Inter`. */
   label: string
   category: FontCategory
-  /** The canonical Theme v2 stack written through `setFontFamily`. */
+  /** The canonical Theme v3 stack written through `setFontFamily`. */
   stack: readonly string[]
 }
 
@@ -48,12 +48,21 @@ export const FONT_OPTIONS: Readonly<Record<FontCategory, readonly FontOption[]>>
   mono: CATALOG.mono.map((label) => option("mono", label)),
 }
 
+/**
+ * Every catalog option in category order (sans, serif, mono). The Heading and Body roles choose from all of it: a role
+ * is never constrained to one category.
+ */
+export const FONT_CATALOG: readonly FontOption[] = [...FONT_OPTIONS.sans, ...FONT_OPTIONS.serif, ...FONT_OPTIONS.mono]
+
 const GENERIC = new Set(["serif", "sans-serif", "monospace", "system-ui", "ui-serif", "ui-sans-serif", "ui-monospace"])
 
 /** A stack as a CSS `font-family` value (generic keywords unquoted), for rendering an option in its own face. */
 export const cssFontStack = (stack: readonly string[]) => stack.map((name) => (GENERIC.has(name) ? name : `"${name}"`)).join(", ")
 
-/** The catalog option whose exact stack a theme currently holds, if any. A differing stack is not a catalog choice. */
-export function findFontOption(category: FontCategory, stack: readonly string[]): FontOption | undefined {
-  return FONT_OPTIONS[category].find((entry) => entry.stack.length === stack.length && entry.stack.every((name, i) => name === stack[i]))
+/**
+ * The catalog option whose exact stack a theme currently holds, if any, searched in one category or (`"any"`) the whole
+ * catalog. A differing stack is not a catalog choice.
+ */
+export function findFontOption(category: FontCategory | "any", stack: readonly string[]): FontOption | undefined {
+  return (category === "any" ? FONT_CATALOG : FONT_OPTIONS[category]).find((entry) => entry.stack.length === stack.length && entry.stack.every((name, i) => name === stack[i]))
 }

@@ -15,17 +15,24 @@ node packages/core/src/context/bootstrap.mjs capabilities --version personal-ui-
 `list` discovers the closed theme and resource ids. `get` returns the selected theme and resource contract. `capabilities` describes the closed theme-token operation union; it does not add operations. In a package-manager workspace, the equivalent public script is `pnpm context -- <same arguments>`.
 
 Two built-in themes are served: `default` (the fresh-state theme) and `quiet-editorial` (the accepted v1 theme,
-served migrated). Every theme is canonical `personal-ui-theme` v2.1 (`schemaVersion: "2.1"`): colours live at
-`colors.{light,dark}.<token>` as canonical OKLCH, typography has `sans`/`serif`/`mono` stacks and an em `tracking`,
-radius has `base`/`sm`/`md`/`lg`/`xl`, and shadows have eight layered tiers (`2xs` to `2xl`). `validateTheme` also
-accepts v1 and v2.0 input and returns migrated v2.1; `normalizeColor` turns HEX, rgb(a), hsl(a), or oklch into
-canonical OKLCH. v2.1 adds eight dedicated Sidebar colours per mode (`sidebar`, `sidebar-foreground`,
+served migrated). Every theme is canonical `personal-ui-theme` v3 (`schemaVersion: "3.0"`): colours live at
+`colors.{light,dark}.<token>` as canonical OKLCH; typography has two semantic roles, `heading` and `body`, each with a
+`font` stack, an integer `weight` (100 to 900 in steps of 100), and an em `tracking`, plus a `mono` font primitive for
+code (font size and line height stay component-owned); radius has `base`/`sm`/`md`/`lg`/`xl`, and shadows have eight
+layered tiers (`2xs` to `2xl`). `validateTheme` also accepts v1, v2.0, and v2.1 input and returns migrated v3: the v2
+`serif` stack becomes the Heading font, `sans` the Body font, `mono` stays Mono, the single v2 `tracking` seeds both
+roles, and weights start at Heading 600 / Body 400. The rendered CSS exposes `--font-heading`, `--font-body`,
+`--font-mono`, `--font-weight-heading`, `--font-weight-body`, `--tracking-heading`, `--tracking-body`, and composed
+`type-heading` / `type-body` utilities (`font-*` = primitives, `type-*` = roles, `text-*` = Tailwind size/colour);
+the document body inherits Body. `normalizeColor` turns HEX, rgb(a), hsl(a), or oklch into canonical OKLCH. Themes
+since v2.1 have eight dedicated Sidebar colours per mode (`sidebar`, `sidebar-foreground`,
 `sidebar-primary`, `sidebar-primary-foreground`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-border`,
 `sidebar-ring`) and `sidebar.useDedicatedTokens`: off, the rendered `--sidebar*` variables alias `background`,
 `foreground`, `primary`, `primary-foreground`, `accent`, `accent-foreground`, `border`, and `ring`; on, they render the
-stored dedicated values. The operation union adds `setFontFamily`, `setTracking`, `setRadiusBase` (derives the radius
-scale), `setSpacingBase`, `setShadowProfile` (derives all shadow tiers), and `setSidebarTokensEnabled`; `setColor`
-accepts the same four colour families and the eight Sidebar colours.
+stored dedicated values. The twelve-operation union includes `setFontFamily` (`target`
+`heading | body | mono`), `setFontWeight` and `setTracking` (`target` `heading | body`), `setRadiusBase` (derives the
+radius scale), `setSpacingBase`, `setShadowProfile` (derives all shadow tiers), and `setSidebarTokensEnabled`;
+`setColor` accepts the same four colour families and the eight Sidebar colours.
 
 The catalog contains nineteen resources. `slider` (single-thumb, forwards its name and value text to the Radix
 thumb) and `collapsible` (one named disclosure region) are components; retrieve either with

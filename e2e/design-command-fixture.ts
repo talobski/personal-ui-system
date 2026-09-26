@@ -7,7 +7,7 @@ export async function prepareCommand(page: Page, operations: readonly unknown[])
   await page.route("**/api/design-command/evaluate", (route) => route.fulfill({
     status: 200, contentType: "application/json",
     body: JSON.stringify({ outcome: { kind: "staged", operations, evidence: {
-      questionCatalogVersion: "design-command-questions/1", recipeCatalogVersion: "design-command-recipes/1",
+      questionCatalogVersion: "design-command-questions/1", recipeCatalogVersion: "design-command-recipes/2",
       commandKindSelected: "themeAdjustment", commandKindConfidence: 0.92,
       commandKindProbabilities: { themeAdjustment: 0.92, outOfScope: 0.08 }, categories: [],
       strengthLabel: "moderate", strengthScore: 1, strengthConfidence: 0.9,

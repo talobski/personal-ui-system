@@ -32,10 +32,13 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
-  --font-family-sans: "Inter", system-ui, sans-serif;
-  --font-family-serif: ui-serif, "Georgia", "Cambria", "Times New Roman", "Times", serif;
-  --font-family-mono: "JetBrains Mono", ui-monospace, monospace;
-  --tracking-base: 0em;
+  --font-heading: ui-serif, "Georgia", "Cambria", "Times New Roman", "Times", serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-weight-heading: 600;
+  --font-weight-body: 400;
+  --tracking-heading: 0em;
+  --tracking-body: 0em;
   --shadow-layers-2xs: 0px 1px 0px 0px oklch(0 0 0 / 0.05);
   --shadow-layers-xs: 0px 1px 2px 0px oklch(0 0 0 / 0.05);
   --shadow-layers-sm: 0px 1px 2px 0px oklch(0 0 0 / 0.05);
@@ -123,10 +126,6 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-sans: var(--font-family-sans);
-  --font-serif: var(--font-family-serif);
-  --font-mono: var(--font-family-mono);
-  --tracking-normal: var(--tracking-base);
   --radius-sm: var(--radius-scale-sm);
   --radius-md: var(--radius-scale-md);
   --radius-lg: var(--radius-scale-lg);
@@ -143,9 +142,23 @@
   --default-transition-duration: var(--motion-duration-base);
 }
 
+@utility type-heading {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-heading);
+  letter-spacing: var(--tracking-heading);
+}
+
+@utility type-body {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-body);
+  letter-spacing: var(--tracking-body);
+}
+
 @layer base {
   body {
-    letter-spacing: var(--tracking-base);
+    font-family: var(--font-body);
+    font-weight: var(--font-weight-body);
+    letter-spacing: var(--tracking-body);
   }
 }
 

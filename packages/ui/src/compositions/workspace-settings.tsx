@@ -18,7 +18,7 @@ function GeneralPanel() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>General</CardTitle>
+        <CardTitle><span className="type-heading">General</span></CardTitle>
         <CardDescription>Workspace identity and defaults.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -48,7 +48,7 @@ function NotificationsPanel() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Notifications</CardTitle>
+        <CardTitle><span className="type-heading">Notifications</span></CardTitle>
         <CardDescription>Workspace-wide alert defaults.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -69,7 +69,7 @@ function AppearancePanel() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Appearance</CardTitle>
+        <CardTitle><span className="type-heading">Appearance</span></CardTitle>
         <CardDescription>Layout density for this workspace.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -85,7 +85,7 @@ export function WorkspaceSettings({ compact = false }: { compact?: boolean }) {
   if (compact) return (
     <form onSubmit={e => { e.preventDefault(); setSaved({ ...draft }) }}>
       <Card className="[&_[data-slot=native-select-wrapper]]:w-full">
-        <CardHeader><CardTitle className="text-lg"><h2>Workspace settings</h2></CardTitle><CardDescription>A space for focused work.</CardDescription></CardHeader>
+        <CardHeader><CardTitle className="text-lg"><h2 className="type-heading">Workspace settings</h2></CardTitle><CardDescription>A space for focused work.</CardDescription></CardHeader>
         <CardContent className="grid gap-4" onChange={() => setSaved(null)}>
           <Field>
             <FieldLabel htmlFor="quiet-workspace-name">Workspace name</FieldLabel>

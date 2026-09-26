@@ -31,7 +31,7 @@ import type { DesignCommandOutcome } from "@personal-ui/core"
 import type { PreviewState } from "./messages"
 import { deleteTheme, loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
-import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, FONT_CONTROLS, NUMERIC_CONTROLS, readShadowColor } from "./controls"
+import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, NUMERIC_CONTROLS, readFontStack, readShadowColor, TYPE_ROLE_GROUPS } from "./controls"
 import type { NumericControlId } from "./controls"
 import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField, SidebarTokensSwitch } from "./LiveControls"
 import type { ApplyManual } from "./LiveControls"
@@ -316,7 +316,7 @@ export function App() {
     setNotice("")
   }
 
-  const numeric = (id: NumericControlId) => <LiveNumberField key={`${current.id}-${id}`} id={id} control={NUMERIC_CONTROLS[id]} theme={current} disabled={locked} apply={applyManual} />
+  const numeric = (id: NumericControlId, labelPrefix?: string) => <LiveNumberField key={`${current.id}-${id}`} id={id} control={NUMERIC_CONTROLS[id]} labelPrefix={labelPrefix} theme={current} disabled={locked} apply={applyManual} />
   const manualLockNote = locked ? (
     <p data-testid="manual-locked-note" className="text-sm text-muted-foreground">
       {commandEvaluating ? "Manual controls are paused while a design command is evaluated." : "Manual controls are paused until the staged proposal is applied or discarded. The preview shows the proposal, not your active theme."}
@@ -379,7 +379,7 @@ export function App() {
                   </ResponsiveDialogTrigger>
                   <ResponsiveDialogContent>
                     <ResponsiveDialogHeader>
-                      <ResponsiveDialogTitle>Delete custom theme?</ResponsiveDialogTitle>
+                      <ResponsiveDialogTitle><span className="type-heading">Delete custom theme?</span></ResponsiveDialogTitle>
                       <ResponsiveDialogDescription>
                         “{current.name}” is removed from this browser, including unsaved edits. {defaultTheme.name} becomes the active theme. This cannot be undone.
                       </ResponsiveDialogDescription>
@@ -434,22 +434,39 @@ export function App() {
         </div></TabsContent>
                 <TabsContent className="data-[state=inactive]:hidden" value="typography" forceMount><div className="grid gap-6 px-4 pb-4">
           {manualLockNote}
-          <ControlSection id="fonts" title="Font families">
-            {FONT_CONTROLS.map(({ family, label }) => (
+          {/* Semantic roles (STHG-06): Heading and Body each own Font, Weight, and Tracking; size and line height stay component-owned. */}
+          {TYPE_ROLE_GROUPS.map(({ role, title, weight, tracking }) => (
+            <ControlSection key={role} id={`type-${role}`} title={title}>
               <LiveFontField
-                key={`${current.id}-${family}`}
-                id={`font-${family}`}
-                category={family}
-                label={label}
-                stack={current.typography[family].$value}
-                defaultStack={defaultTheme.typography[family].$value}
+                key={`${current.id}-font-${role}`}
+                id={`font-${role}`}
+                target={role}
+                catalog="any"
+                label="Font"
+                labelPrefix={title}
+                stack={readFontStack(current, role)}
+                defaultStack={readFontStack(defaultTheme, role)}
                 disabled={locked}
                 apply={applyManual}
               />
-            ))}
-          </ControlSection>
-          <ControlSection id="tracking" title="Spacing">
-            {numeric("tracking")}
+              {numeric(weight, title)}
+              {numeric(tracking, title)}
+            </ControlSection>
+          ))}
+          {/* The mono primitive for code and preformatted content: a font choice only, not a third role. */}
+          <ControlSection id="type-mono" title="Mono">
+            <LiveFontField
+              key={`${current.id}-font-mono`}
+              id="font-mono"
+              target="mono"
+              catalog="mono"
+              label="Font"
+              labelPrefix="Mono"
+              stack={readFontStack(current, "mono")}
+              defaultStack={readFontStack(defaultTheme, "mono")}
+              disabled={locked}
+              apply={applyManual}
+            />
           </ControlSection>
         </div></TabsContent>
                 <TabsContent className="data-[state=inactive]:hidden" value="other" forceMount><div className="grid gap-6 px-4 pb-4">
@@ -591,7 +608,7 @@ export function App() {
                     </ResponsiveDialogTrigger>
                     <ResponsiveDialogContent>
                       <ResponsiveDialogHeader>
-                        <ResponsiveDialogTitle>Save as a custom theme</ResponsiveDialogTitle>
+                        <ResponsiveDialogTitle><span className="type-heading">Save as a custom theme</span></ResponsiveDialogTitle>
                         <ResponsiveDialogDescription>{builtInCopy?.name ?? "This built-in"} is built in and stays unchanged. Your edits are saved locally under a new name.</ResponsiveDialogDescription>
                       </ResponsiveDialogHeader>
                       <form id={saveAsFormId} onSubmit={saveAs} className="px-4 sm:px-0" noValidate>

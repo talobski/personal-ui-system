@@ -1,5 +1,5 @@
 import type { ThemeV1 } from "./schema-v1"
-import type { ThemeV2_0 } from "./schema"
+import type { ThemeV2_0, ThemeV2_1 } from "./schema"
 
 /**
  * Declared defaults for the v1 -> v2 migration. Every v1 value is carried over unchanged (colours and lengths are then
@@ -112,5 +112,42 @@ export function migrateThemeV2_0(v2: ThemeV2_0): unknown {
     schemaVersion: "2.1",
     colors: { light: colors("light"), dark: colors("dark") },
     sidebar: { useDedicatedTokens: { $type: "boolean", $value: false }, dedicatedValuesInitialized: false },
+  }
+}
+
+/**
+ * Declared defaults for the v2.1 -> v3 migration: v2 had no weight tokens, so each role starts at a fixed weight.
+ * Heading 600 matches the `font-semibold` titles every v2 composition rendered; Body 400 is the CSS `normal` weight
+ * v2 body text rendered.
+ */
+export const V3_MIGRATION_DEFAULTS = Object.freeze({ headingWeight: 600, bodyWeight: 400 })
+
+/**
+ * Pure v2.1 -> v3 migration, the owner-approved semantic typography mapping. Every value outside `typography` is
+ * carried over unchanged (colours including the dedicated Sidebar set and its state, radius, space, shadow, motion,
+ * identity, revision, and extensions). The three v2 stacks are all preserved:
+ *
+ * - legacy `serif` -> `heading.font`; legacy `sans` -> `body.font`; legacy `mono` -> `mono`;
+ * - legacy global `tracking` -> both `heading.tracking` and `body.tracking`;
+ * - `heading.weight` -> 600 and `body.weight` -> 400 (`V3_MIGRATION_DEFAULTS`).
+ *
+ * The result is v3 *input*: `validateTheme` still parses it with the v3 schema.
+ */
+export function migrateThemeV2_1(v2: ThemeV2_1): unknown {
+  const { sans, serif, mono, tracking } = v2.typography
+  const role = (font: typeof sans, weight: number) => ({
+    font: { $type: "fontFamily", $value: [...font.$value] },
+    weight: { $type: "fontWeight", $value: weight },
+    tracking: { $type: "dimension", $value: tracking.$value },
+  })
+  return {
+    ...v2,
+    $schema: "https://personal-ui.local/schema/theme-3.json",
+    schemaVersion: "3.0",
+    typography: {
+      heading: role(serif, V3_MIGRATION_DEFAULTS.headingWeight),
+      body: role(sans, V3_MIGRATION_DEFAULTS.bodyWeight),
+      mono: { $type: "fontFamily", $value: [...mono.$value] },
+    },
   }
 }

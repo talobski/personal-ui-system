@@ -25,13 +25,17 @@
 .quiet-review { flex: 0 0 auto; min-height: 0; }
 .quiet-review > [data-slot=scroll-area-viewport] { height: auto; max-height: 40dvh; }
 
-/* Explicit opt-in, including portalled Workbench fields. No colours: primitive state semantics stay authoritative. */
+/*
+ * Explicit opt-in, including portalled Workbench fields. Family, weight, and tracking are the active theme's Body role
+ * (STHG-07), so editing Body restyles the Workbench's own controls; size and line height stay the fixed 14px control
+ * geometry. No colours: primitive state semantics stay authoritative.
+ */
 .quiet-control, .quiet-control-group [data-slot=combobox-input] {
-  font-family: var(--font-family-sans);
+  font-family: var(--font-body);
   font-size: 0.875rem;
-  font-weight: 400;
+  font-weight: var(--font-weight-body);
   line-height: 1.25rem;
-  letter-spacing: normal;
+  letter-spacing: var(--tracking-body);
 }
 
 /* Workbench text entry keeps muted placeholders independently of filled/invalid inherited foreground. */

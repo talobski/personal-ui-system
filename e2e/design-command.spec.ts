@@ -98,7 +98,7 @@ test("locks every mutating/load/save/export control while a Design command evalu
           operations: [{ op: "setRadius", value: "0.75rem" }],
           evidence: {
             questionCatalogVersion: "design-command-questions/1",
-            recipeCatalogVersion: "design-command-recipes/1",
+            recipeCatalogVersion: "design-command-recipes/2",
             commandKindSelected: "themeAdjustment",
             commandKindConfidence: 0.92,
             commandKindProbabilities: { themeAdjustment: 0.92, outOfScope: 0.08 },

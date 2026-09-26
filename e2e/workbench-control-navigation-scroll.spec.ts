@@ -99,9 +99,9 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
     await color.fill(originalColor)
     await expect.poll(() => color.evaluate(el => getComputedStyle(el).color)).toBe(filled)
     await editorCategory(page, "Typography")
-    expect(await typography(page.getByLabel("Sans", { exact: true }))).toEqual(commandType)
-    await page.getByLabel("Sans", { exact: true }).click()
-    expect(await typography(page.getByRole("combobox", { name: "Search Sans fonts" }))).toEqual(commandType)
+    expect(await typography(page.getByLabel("Body Font", { exact: true }))).toEqual(commandType)
+    await page.getByLabel("Body Font", { exact: true }).click()
+    expect(await typography(page.getByRole("combobox", { name: "Search Body fonts" }))).toEqual(commandType)
     await page.keyboard.press("Escape")
     await editorCategory(page, "Effects")
     for (const spacing of ["0.1", "0.25", "0.5"]) {

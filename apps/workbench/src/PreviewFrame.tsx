@@ -67,7 +67,7 @@ export function PreviewFrame() {
       <div hidden={view !== "cards"}><Gallery /></div>
       <div hidden={view !== "states"} className={view === "states" ? "grid gap-6" : "hidden"}>
       <section aria-labelledby="pv-buttons" className="grid gap-2">
-        <h2 id="pv-buttons" className="text-sm font-semibold">
+        <h2 id="pv-buttons" className="type-heading text-sm">
           Button
         </h2>
         <div className="flex flex-wrap gap-2">
@@ -88,7 +88,7 @@ export function PreviewFrame() {
       </section>
 
       <section aria-labelledby="pv-inputs" className="grid gap-3">
-        <h2 id="pv-inputs" className="text-sm font-semibold">
+        <h2 id="pv-inputs" className="type-heading text-sm">
           Input
         </h2>
         <label className="grid gap-1 text-sm">
@@ -110,7 +110,7 @@ export function PreviewFrame() {
       </section>
 
       <section aria-labelledby="pv-elevation" className="grid gap-2">
-        <h2 id="pv-elevation" className="text-sm font-semibold">
+        <h2 id="pv-elevation" className="type-heading text-sm">
           Elevation
         </h2>
         <div data-testid="elevation-sample" className="rounded-md bg-card p-3 text-sm text-card-foreground shadow-md">
@@ -119,16 +119,17 @@ export function PreviewFrame() {
       </section>
 
       <section aria-labelledby="pv-typography" className="grid gap-1">
-        <h2 id="pv-typography" className="text-sm font-semibold">
+        <h2 id="pv-typography" className="type-heading text-sm">
           Typography
         </h2>
-        <p data-testid="type-sans" className="font-sans text-sm">Sans: a calm, readable paragraph.</p>
-        <p data-testid="type-serif" className="font-serif text-sm">Serif: a calm, readable paragraph.</p>
+        {/* One sample per semantic role and the mono primitive; sizes stay component-owned. */}
+        <p data-testid="type-heading" className="type-heading text-lg">Heading: a calm, clear title</p>
+        <p data-testid="type-body" className="text-sm">Body: a calm, readable paragraph.</p>
         <p data-testid="type-mono" className="font-mono text-sm">Mono: const revision = 1</p>
       </section>
 
       <section aria-labelledby="pv-dialog" className="grid gap-2">
-        <h2 id="pv-dialog" className="text-sm font-semibold">
+        <h2 id="pv-dialog" className="type-heading text-sm">
           Responsive dialog
         </h2>
         <div>
@@ -138,7 +139,7 @@ export function PreviewFrame() {
             </ResponsiveDialogTrigger>
             <ResponsiveDialogContent>
               <ResponsiveDialogHeader>
-                <ResponsiveDialogTitle>Edit profile</ResponsiveDialogTitle>
+                <ResponsiveDialogTitle><span className="type-heading">Edit profile</span></ResponsiveDialogTitle>
                 <ResponsiveDialogDescription>Change how your name appears to others.</ResponsiveDialogDescription>
               </ResponsiveDialogHeader>
               <div className="grid gap-2 px-4 sm:px-0">

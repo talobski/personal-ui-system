@@ -87,12 +87,12 @@ describe("context get (ACR-03)", () => {
   })
 })
 
-describe("context get serves Theme v2.1 (TSV2-01, WSTP-03, WSTP-09)", () => {
-  it.each(["default", "quiet-editorial"])("returns canonical v2.1 %s with v2.1 identity and fixture provenance", async (theme) => {
+describe("context get serves Theme v3 (TSV2-01, WSTP-03, WSTP-09, STHG-03)", () => {
+  it.each(["default", "quiet-editorial"])("returns canonical v3 %s with v3 identity and fixture provenance", async (theme) => {
     const result = await evaluateContextRequest({ version: "personal-ui-context/1", operation: "get", theme, resource: "responsive-dialog" })
     if (!result.ok || result.operation !== "get") throw new Error("expected get")
-    expect(result.identity.themeSchemaVersion).toBe("2.1")
-    expect(result.theme.schemaVersion).toBe("2.1")
+    expect(result.identity.themeSchemaVersion).toBe("3.0")
+    expect(result.theme.schemaVersion).toBe("3.0")
     // The eight Sidebar colours are published per mode; initialization bookkeeping is internal data only.
     for (const mode of ["light", "dark"] as const) expect(Object.keys(result.theme.colors[mode]).filter((name) => name.startsWith("sidebar"))).toEqual([...SIDEBAR_COLOR_TOKENS])
     expect(result.theme.sidebar.useDedicatedTokens.$value).toBe(false)

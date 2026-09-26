@@ -1,6 +1,6 @@
 {
-  "$schema": "https://personal-ui.local/schema/theme-2.json",
-  "schemaVersion": "2.1",
+  "$schema": "https://personal-ui.local/schema/theme-3.json",
+  "schemaVersion": "3.0",
   "kind": "personal-ui-theme",
   "id": "default",
   "name": "Default",
@@ -268,35 +268,55 @@
     }
   },
   "typography": {
-    "sans": {
-      "$type": "fontFamily",
-      "$value": [
-        "ui-sans-serif",
-        "system-ui",
-        "-apple-system",
-        "BlinkMacSystemFont",
-        "Segoe UI",
-        "Roboto",
-        "Helvetica Neue",
-        "Arial",
-        "Noto Sans",
-        "sans-serif",
-        "Apple Color Emoji",
-        "Segoe UI Emoji",
-        "Segoe UI Symbol",
-        "Noto Color Emoji"
-      ]
+    "heading": {
+      "font": {
+        "$type": "fontFamily",
+        "$value": [
+          "ui-serif",
+          "Georgia",
+          "Cambria",
+          "Times New Roman",
+          "Times",
+          "serif"
+        ]
+      },
+      "weight": {
+        "$type": "fontWeight",
+        "$value": 600
+      },
+      "tracking": {
+        "$type": "dimension",
+        "$value": "0em"
+      }
     },
-    "serif": {
-      "$type": "fontFamily",
-      "$value": [
-        "ui-serif",
-        "Georgia",
-        "Cambria",
-        "Times New Roman",
-        "Times",
-        "serif"
-      ]
+    "body": {
+      "font": {
+        "$type": "fontFamily",
+        "$value": [
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "Noto Sans",
+          "sans-serif",
+          "Apple Color Emoji",
+          "Segoe UI Emoji",
+          "Segoe UI Symbol",
+          "Noto Color Emoji"
+        ]
+      },
+      "weight": {
+        "$type": "fontWeight",
+        "$value": 400
+      },
+      "tracking": {
+        "$type": "dimension",
+        "$value": "0em"
+      }
     },
     "mono": {
       "$type": "fontFamily",
@@ -310,10 +330,6 @@
         "Courier New",
         "monospace"
       ]
-    },
-    "tracking": {
-      "$type": "dimension",
-      "$value": "0em"
     }
   },
   "radius": {

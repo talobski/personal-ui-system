@@ -69,7 +69,7 @@ const theme = (() => {
 
 describe("built-in Default matches the contract", () => {
   it("identity", () => {
-    expect(theme).toMatchObject({ id: "default", name: "Default", revision: 1, schemaVersion: "2.1", kind: "personal-ui-theme" })
+    expect(theme).toMatchObject({ id: "default", name: "Default", revision: 1, schemaVersion: "3.0", kind: "personal-ui-theme" })
   })
 
   it("every light and dark colour; Sidebar colours are uninitialized copies of their base aliases, off (WSTP-04)", () => {
@@ -82,16 +82,19 @@ describe("built-in Default matches the contract", () => {
     expect(JSON.stringify(theme)).not.toMatch(/sidebar-(?:input|card)/)
   })
 
-  it("typography stacks and tracking", () => {
-    expect(theme.typography.sans.$value).toEqual([
+  it("typography roles by the approved v3 migration: serif -> Heading, sans -> Body, mono kept, 600/400, shared tracking", () => {
+    expect(theme.typography.body.font.$value).toEqual([
       "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial",
       "Noto Sans", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji",
     ])
-    expect(theme.typography.serif.$value).toEqual(["ui-serif", "Georgia", "Cambria", "Times New Roman", "Times", "serif"])
+    expect(theme.typography.heading.font.$value).toEqual(["ui-serif", "Georgia", "Cambria", "Times New Roman", "Times", "serif"])
     expect(theme.typography.mono.$value).toEqual([
       "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace",
     ])
-    expect(theme.typography.tracking.$value).toBe("0em")
+    expect(theme.typography.heading.weight.$value).toBe(600)
+    expect(theme.typography.body.weight.$value).toBe(400)
+    expect(theme.typography.heading.tracking.$value).toBe("0em")
+    expect(theme.typography.body.tracking.$value).toBe("0em")
   })
 
   it("radius, spacing, density, and motion", () => {

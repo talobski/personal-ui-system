@@ -1,8 +1,8 @@
 import { normalizeColor, parseLength } from "../theme/color"
 import { admitRemLength, admitShadowProfile, deriveRadiusScale, deriveShadowTiers, MANUAL_CONTROL_BOUNDS, SHADOW_PROFILE_FIELDS } from "../theme/derive"
 import type { ShadowProfile } from "../theme/derive"
-import { COLOR_TOKENS, densitySchema, durationSchema, FONT_FAMILY_TOKENS, fontNameSchema, fontStackSchema, isSidebarColorToken, SHADOW_TOKENS, syncUninitializedSidebarColors, themeSchema, trackingSchema } from "../theme/schema"
-import type { ColorToken, FontFamilyToken, Theme } from "../theme/schema"
+import { COLOR_TOKENS, densitySchema, durationSchema, fontStackSchema, fontWeightSchema, isFontFamilyTarget, isSidebarColorToken, isTypeRole, SHADOW_TOKENS, syncUninitializedSidebarColors, themeSchema, trackingSchema } from "../theme/schema"
+import type { ColorToken, FontFamilyTarget, Theme, TypeRole } from "../theme/schema"
 import { renderShadcnTailwindCss } from "../theme/render"
 
 export const MUTATION_SCHEMA_VERSION = "1.0"
@@ -12,7 +12,8 @@ type Mode = (typeof MODES)[number]
 
 /**
  * Closed operation union. There is no raw-CSS, path, file, bulk, or set-any-path operation. `setColor` selects a mode
- * and token from closed lists and `setFontFamily` a family from a closed list; every other operation edits one fixed
+ * and token from closed lists; the three typography operations select a `target` from a closed list (`heading | body |
+ * mono` for font stacks, `heading | body` for the role-only weight and tracking); every other operation edits one fixed
  * target (documented per operation), so it carries no token or path field to select anything else.
  *
  * `setColor` accepts HEX, RGB(A), HSL(A), or OKLCH input; the stored value is canonical OKLCH. Its token list includes
@@ -23,16 +24,16 @@ export type SetColorOperation = { op: "setColor"; mode: Mode; token: ColorToken;
 export type SetRadiusOperation = { op: "setRadius"; value: string }
 /** Sets `space.density`, the spacing multiplier. Number within the schema range. */
 export type SetDensityOperation = { op: "setDensity"; value: number }
-/** Replaces the primary (first) family of the `typography.sans` stack; the fallbacks are kept. */
-export type SetSansFamilyOperation = { op: "setSansFamily"; value: string }
+/** Sets `typography.<role>.weight`: an integer from 100 to 900 in steps of 100. Replaces the v2 `setSansFamily`. */
+export type SetFontWeightOperation = { op: "setFontWeight"; target: TypeRole; value: number }
 /** Sets the blur of the first layer of `shadow.md`. Non-negative dimension. */
 export type SetShadowBlurOperation = { op: "setShadowBlur"; value: string }
 /** Sets `motion.durationBase`, the default transition duration. */
 export type SetMotionDurationOperation = { op: "setMotionDuration"; value: string }
-/** Replaces the whole `typography.<family>` stack. */
-export type SetFontFamilyOperation = { op: "setFontFamily"; family: FontFamilyToken; value: readonly string[] }
-/** Sets `typography.tracking`, an em value within the tracking bounds. */
-export type SetTrackingOperation = { op: "setTracking"; value: string }
+/** Replaces a whole font stack: `typography.heading.font`, `typography.body.font`, or the `typography.mono` primitive. */
+export type SetFontFamilyOperation = { op: "setFontFamily"; target: FontFamilyTarget; value: readonly string[] }
+/** Sets `typography.<role>.tracking`, an em value within the tracking bounds. */
+export type SetTrackingOperation = { op: "setTracking"; target: TypeRole; value: string }
 /** Sets `radius.base` and derives the full `sm`/`md`/`lg`/`xl` scale from it (`theme/derive.ts`). */
 export type SetRadiusBaseOperation = { op: "setRadiusBase"; value: string }
 /** Sets `space.base`, the length the spacing scale is built on. */
@@ -49,7 +50,7 @@ export type ThemeOperation =
   | SetColorOperation
   | SetRadiusOperation
   | SetDensityOperation
-  | SetSansFamilyOperation
+  | SetFontWeightOperation
   | SetShadowBlurOperation
   | SetMotionDurationOperation
   | SetFontFamilyOperation
@@ -74,7 +75,7 @@ export type MutationRuleId =
   | "mutation.unknown-operation"
   | "mutation.unknown-field"
   | "mutation.invalid-mode"
-  | "mutation.invalid-family"
+  | "mutation.invalid-target"
   | "mutation.unknown-token"
   | "mutation.invalid-value"
   | "mutation.missing-target"
@@ -101,11 +102,11 @@ const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
   ["setColor", new Set(["op", "mode", "token", "value"])],
   ["setRadius", new Set(["op", "value"])],
   ["setDensity", new Set(["op", "value"])],
-  ["setSansFamily", new Set(["op", "value"])],
+  ["setFontWeight", new Set(["op", "target", "value"])],
   ["setShadowBlur", new Set(["op", "value"])],
   ["setMotionDuration", new Set(["op", "value"])],
-  ["setFontFamily", new Set(["op", "family", "value"])],
-  ["setTracking", new Set(["op", "value"])],
+  ["setFontFamily", new Set(["op", "target", "value"])],
+  ["setTracking", new Set(["op", "target", "value"])],
   ["setRadiusBase", new Set(["op", "value"])],
   ["setSpacingBase", new Set(["op", "value"])],
   ["setShadowProfile", new Set(["op", "value"])],
@@ -135,7 +136,7 @@ const VALUE_CHECKS: Record<string, (value: unknown) => boolean> = {
   setColor: (value) => normalizeColor(value).ok,
   setRadius: nonNegativeDimension,
   setDensity: (value) => densitySchema.safeParse(value).success,
-  setSansFamily: (value) => fontNameSchema.safeParse(value).success,
+  setFontWeight: (value) => fontWeightSchema.safeParse(value).success,
   setShadowBlur: nonNegativeDimension,
   setMotionDuration: (value) => durationSchema.safeParse(value).success,
   setFontFamily: (value) => fontStackSchema.safeParse(value).success,
@@ -182,9 +183,8 @@ export function validateMutation(input: unknown, base: Pick<Theme, "id" | "revis
         if (!MODES.includes(operation.mode as Mode)) fail("mutation.invalid-mode", `${at}.mode`)
         if (!COLOR_TOKENS.includes(operation.token as ColorToken)) fail("mutation.unknown-token", `${at}.token`)
       }
-      if (operation.op === "setFontFamily" && !FONT_FAMILY_TOKENS.includes(operation.family as FontFamilyToken)) {
-        fail("mutation.invalid-family", `${at}.family`)
-      }
+      if (operation.op === "setFontFamily" && !isFontFamilyTarget(operation.target)) fail("mutation.invalid-target", `${at}.target`)
+      if ((operation.op === "setFontWeight" || operation.op === "setTracking") && !isTypeRole(operation.target)) fail("mutation.invalid-target", `${at}.target`)
       if (operation.op === "setShadowProfile") {
         const value = operation.value
         if (!isRecord(value)) return fail("mutation.invalid-value", `${at}.value`)
@@ -234,8 +234,8 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
       case "setDensity":
         next.space.density.$value = operation.value
         break
-      case "setSansFamily":
-        next.typography.sans.$value[0] = operation.value
+      case "setFontWeight":
+        next.typography[operation.target].weight.$value = operation.value
         break
       case "setShadowBlur": {
         // v2 tiers are non-empty, so this is defensive only: with no layer there is nothing to edit.
@@ -248,10 +248,11 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
         next.motion.durationBase.$value = operation.value
         break
       case "setFontFamily":
-        next.typography[operation.family].$value = [...operation.value]
+        if (operation.target === "mono") next.typography.mono.$value = [...operation.value]
+        else next.typography[operation.target].font.$value = [...operation.value]
         break
       case "setTracking":
-        next.typography.tracking.$value = trackingSchema.parse(operation.value)
+        next.typography[operation.target].tracking.$value = trackingSchema.parse(operation.value)
         break
       case "setRadiusBase": {
         const scale = deriveRadiusScale(admitRemLength(operation.value, MANUAL_CONTROL_BOUNDS.radiusBase)!)

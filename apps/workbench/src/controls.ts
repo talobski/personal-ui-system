@@ -1,5 +1,5 @@
-import { isSidebarColorToken, MANUAL_CONTROL_BOUNDS, parseCanonicalOklch, parseLength, readShadowProfile, SIDEBAR_COLOR_TOKENS } from "@personal-ui/core"
-import type { ColorToken, FontFamilyToken, ShadowProfile, Theme, ThemeOperation } from "@personal-ui/core"
+import { FONT_WEIGHT_RANGE, isSidebarColorToken, MANUAL_CONTROL_BOUNDS, parseCanonicalOklch, parseLength, readShadowProfile, SIDEBAR_COLOR_TOKENS } from "@personal-ui/core"
+import type { ColorToken, FontFamilyTarget, ShadowProfile, Theme, ThemeOperation, TypeRole } from "@personal-ui/core"
 
 /**
  * Manual-control models. Every control reads its value from the canonical active theme and turns a new value into one
@@ -8,7 +8,10 @@ import type { ColorToken, FontFamilyToken, ShadowProfile, Theme, ThemeOperation 
  */
 
 export type NumericControlId =
-  | "tracking"
+  | "headingWeight"
+  | "headingTracking"
+  | "bodyWeight"
+  | "bodyTracking"
   | "radius"
   | "spacing"
   | "density"
@@ -66,15 +69,29 @@ const durationMs = (value: string) => (value.endsWith("ms") ? Number(value.slice
 
 const B = MANUAL_CONTROL_BOUNDS
 
+/** A semantic role's weight: the admitted 100..900 numeric weights, one step per CSS weight. */
+const weightControl = (role: TypeRole): NumericControl => ({
+  ...FONT_WEIGHT_RANGE,
+  label: "Weight",
+  unit: "",
+  read: (theme) => theme.typography[role].weight.$value,
+  build: (value) => ({ op: "setFontWeight", target: role, value }),
+})
+
+/** A semantic role's tracking (`typography.<role>.tracking`), edited through `setTracking`. */
+const trackingControl = (role: TypeRole): NumericControl => ({
+  ...B.tracking,
+  label: "Tracking",
+  unit: "em",
+  read: (theme) => lengthIn(theme.typography[role].tracking.$value, "em"),
+  build: (value) => ({ op: "setTracking", target: role, value: `${value}em` }),
+})
+
 export const NUMERIC_CONTROLS: Record<NumericControlId, NumericControl> = {
-  tracking: {
-    ...B.tracking,
-    // Visible copy only: the canonical token stays `typography.tracking`, edited through `setTracking`.
-    label: "Tracking",
-    unit: "em",
-    read: (theme) => lengthIn(theme.typography.tracking.$value, "em"),
-    build: (value) => ({ op: "setTracking", value: `${value}em` }),
-  },
+  headingWeight: weightControl("heading"),
+  headingTracking: trackingControl("heading"),
+  bodyWeight: weightControl("body"),
+  bodyTracking: trackingControl("body"),
   radius: {
     ...B.radiusBase,
     label: "Radius",
@@ -128,16 +145,21 @@ export function parseNumericDraft(control: NumericControl, raw: string): number 
   return Number.isFinite(value) && value >= control.min && value <= control.max ? value : null
 }
 
-/** One searchable control per canonical stack; a choice writes the catalog option's full stack through `setFontFamily`. */
-export const FONT_CONTROLS: readonly { family: FontFamilyToken; label: string }[] = [
-  { family: "sans", label: "Sans" },
-  { family: "serif", label: "Serif" },
-  { family: "mono", label: "Mono" },
+/**
+ * The Typography tab: one group per semantic role, each with Font, Weight, and Tracking, then the compact Mono font
+ * primitive. Heading and Body choose from the whole local catalog; Mono stays on the monospace catalog.
+ */
+export const TYPE_ROLE_GROUPS: readonly { role: TypeRole; title: string; weight: NumericControlId; tracking: NumericControlId }[] = [
+  { role: "heading", title: "Heading", weight: "headingWeight", tracking: "headingTracking" },
+  { role: "body", title: "Body", weight: "bodyWeight", tracking: "bodyTracking" },
 ]
+
+/** The canonical stack a font control edits. */
+export const readFontStack = (theme: Theme, target: FontFamilyTarget) => (target === "mono" ? theme.typography.mono : theme.typography[target].font).$value
 
 export const formatFontStack = (families: readonly string[]) => families.join(", ")
 
-export const buildFontOperation = (family: FontFamilyToken, stack: readonly string[]): ThemeOperation => ({ op: "setFontFamily", family, value: [...stack] })
+export const buildFontOperation = (target: FontFamilyTarget, stack: readonly string[]): ThemeOperation => ({ op: "setFontFamily", target, value: [...stack] })
 
 export const readShadowColor = (theme: Theme) => readShadowProfile(theme).color
 
@@ -209,9 +231,18 @@ export function pickedColorInput(hex: string, canonical: string): string {
   return `rgb(${r} ${g} ${b} / ${alpha})`
 }
 
-/** Exact built-in system stacks have invitation copy; unmatched custom stacks are never relabelled as catalog fonts. */
-export function fontControlCopy(category: "sans" | "serif" | "mono", stack: readonly string[], defaultStack: readonly string[]): string {
-  const categoryName = { sans: "sans-serif", serif: "serif", mono: "monospace" }[category]
+/** The CSS generic family a stack ends in (`serif`, `sans-serif`, or `monospace`); stacks without one read as sans-serif. */
+const genericOf = (stack: readonly string[]): "sans-serif" | "serif" | "monospace" => {
+  const generic = [...stack].reverse().find((name) => name === "serif" || name === "sans-serif" || name === "monospace")
+  return (generic as "serif" | "monospace" | undefined) ?? "sans-serif"
+}
+
+/**
+ * Exact built-in system stacks have invitation copy; unmatched custom stacks are never relabelled as catalog fonts. The
+ * category word follows the stack's own generic family, since a role may hold a stack of any category.
+ */
+export function fontControlCopy(stack: readonly string[], defaultStack: readonly string[]): string {
+  const categoryName = genericOf(stack)
   const isDefault = stack.length === defaultStack.length && stack.every((name, index) => name === defaultStack[index])
   return isDefault ? `${categoryName[0]!.toUpperCase()}${categoryName.slice(1)} font...` : `Custom ${categoryName} stack`
 }

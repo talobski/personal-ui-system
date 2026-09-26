@@ -157,7 +157,7 @@ for (const mode of ["light", "dark"] as const) {
         { op: "setColor", mode: "dark", token: "primary", value: "oklch(0.8 0.1 150)" },
         { op: "setRadius", value: "1rem" },
         { op: "setDensity", value: 1.5 },
-        { op: "setSansFamily", value: "Georgia" },
+        { op: "setFontFamily", target: "body", value: ["Georgia", "serif"] },
         { op: "setShadowBlur", value: "20px" },
         { op: "setMotionDuration", value: "320ms" },
       ]
@@ -196,7 +196,7 @@ for (const mode of ["light", "dark"] as const) {
         "radius.md",
         "shadow.md",
         "space.density",
-        "typography.sans",
+        "typography.body.font",
       ])
       await workspaceMode(page, "Preview")
       await expectNoSeriousViolations(page, `${mode}-six-categories-staged`, testInfo)

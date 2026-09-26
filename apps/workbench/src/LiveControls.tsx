@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import type { Theme, ThemeOperation } from "@personal-ui/core"
+import type { FontFamilyTarget, Theme, ThemeOperation } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@personal-ui/ui/components/collapsible"
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxTrigger } from "@personal-ui/ui/components/combobox"
@@ -9,7 +9,7 @@ import { Input } from "@personal-ui/ui/components/input"
 import { Label } from "@personal-ui/ui/components/label"
 import { Slider } from "@personal-ui/ui/components/slider"
 import { Switch } from "@personal-ui/ui/components/switch"
-import { cssFontStack, findFontOption, FONT_OPTIONS } from "@personal-ui/ui/lib/fonts"
+import { cssFontStack, findFontOption, FONT_CATALOG, FONT_OPTIONS } from "@personal-ui/ui/lib/fonts"
 import type { FontCategory, FontOption } from "@personal-ui/ui/lib/fonts"
 
 import { buildFontOperation, fontControlCopy, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep } from "./controls"
@@ -65,7 +65,8 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
   const hasError = invalid.size > 0
   return (
     <Collapsible open={open || hasError} onOpenChange={(next) => setOpen(next || hasError)} data-testid={`section-${id}`} data-has-error={hasError} className="grid gap-2">
-      <h3 className="text-sm font-medium">
+      {/* The section heading opts into the Heading role's family; the compact chip keeps its own weight and tracking. */}
+      <h3 className="type-heading text-sm">
         <CollapsibleTrigger asChild>
           {/*
             The semantic muted/muted-foreground pair. In Default light it measures about 4.35:1 for this small text:
@@ -90,7 +91,22 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
 const formatNumber = (value: number, step: number) => (Number.isFinite(value) ? String(roundToStep(value, step)) : "")
 
 /** Slider + numeric field + visible unit, both bound to one canonical theme value. */
-export function LiveNumberField({ id, control, theme, disabled, apply }: { id: string; control: NumericControl; theme: Theme; disabled: boolean; apply: ApplyManual }) {
+export function LiveNumberField({
+  id,
+  control,
+  labelPrefix,
+  theme,
+  disabled,
+  apply,
+}: {
+  id: string
+  control: NumericControl
+  /** Screen-reader-only group context prepended to the visible label, e.g. `Body` for the visible `Weight`. */
+  labelPrefix?: string
+  theme: Theme
+  disabled: boolean
+  apply: ApplyManual
+}) {
   const value = control.read(theme)
   const formatted = formatNumber(value, control.step)
   const [draft, setDraft] = React.useState(formatted)
@@ -121,6 +137,7 @@ export function LiveNumberField({ id, control, theme, disabled, apply }: { id: s
     <Field data-invalid={error !== null} data-testid={`control-${id}`}>
       <div className={NUMERIC_ROW_CLASS} data-testid={`${id}-row`}>
         <FieldLabel id={labelId} htmlFor={inputId} className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>
+          {labelPrefix && <span className="sr-only">{labelPrefix} </span>}
           {control.label}
         </FieldLabel>
         <Slider
@@ -270,27 +287,34 @@ export function LiveColorField({
 
 /**
  * A searchable font choice over the closed local catalog. Selecting an option writes that option's full canonical stack
- * through `setFontFamily` immediately; typed search text is never a value. A theme whose stack is not a catalog option
- * shows concise category copy with accessible exact-stack detail.
+ * through `setFontFamily` for its `target` immediately; typed search text is never a value. `catalog` is `"any"` for the
+ * Heading and Body roles (every family, whatever its category) and a single category for the Mono primitive. A theme
+ * whose stack is not a catalog option shows concise category copy with accessible exact-stack detail.
  */
 export function LiveFontField({
   id,
-  category,
+  target,
+  catalog,
   label,
+  labelPrefix,
   stack,
   defaultStack,
   disabled,
   apply,
 }: {
   id: string
-  category: FontCategory
+  target: FontFamilyTarget
+  catalog: FontCategory | "any"
   label: string
+  /** Screen-reader-only group context prepended to the visible label, e.g. `Heading` for the visible `Font`. */
+  labelPrefix?: string
   stack: readonly string[]
   defaultStack: readonly string[]
   disabled: boolean
   apply: ApplyManual
 }) {
-  const selected = findFontOption(category, stack) ?? null
+  const selected = findFontOption(catalog, stack) ?? null
+  const items = catalog === "any" ? FONT_CATALOG : FONT_OPTIONS[catalog]
   const [error, setError] = React.useState<string | null>(null)
   useReportInvalid(id, error !== null)
 
@@ -303,11 +327,12 @@ export function LiveFontField({
     <Field data-invalid={error !== null} data-testid={`control-${id}`} data-font={selected?.id ?? ""} className="gap-1.5">
       <div className={LABELLED_ROW_CLASS} data-testid={`${id}-row`}>
         <FieldLabel htmlFor={inputId} className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>
+          {labelPrefix && <span className="sr-only">{labelPrefix} </span>}
           {label}
         </FieldLabel>
         <div className="min-w-0">
           <Combobox
-            items={FONT_OPTIONS[category]}
+            items={items}
             value={selected}
             disabled={disabled}
             itemToStringLabel={(option: FontOption) => option.label}
@@ -315,7 +340,7 @@ export function LiveFontField({
             isItemEqualToValue={(option: FontOption, value: FontOption) => option.id === value.id}
             onValueChange={(next: FontOption | null) => {
               if (next === null) return
-              const issues = apply(() => buildFontOperation(category, next.stack))
+              const issues = apply(() => buildFontOperation(target, next.stack))
               setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
             }}
           >
@@ -326,11 +351,11 @@ export function LiveFontField({
               aria-invalid={error !== null}
               className="quiet-control h-8 w-full cursor-pointer justify-between rounded-md border border-input px-3 text-sm shadow-xs disabled:cursor-not-allowed"
             >
-              <span className="truncate">{selected?.label ?? fontControlCopy(category, stack, defaultStack)}</span>
+              <span className="truncate">{selected?.label ?? fontControlCopy(stack, defaultStack)}</span>
             </ComboboxTrigger>
             <ComboboxContent>
               <div className="p-1">
-                <ComboboxInput id={`${inputId}-search`} aria-label={`Search ${label} fonts`} placeholder="Search fonts" showTrigger={false} className="quiet-control-group h-8" />
+                <ComboboxInput id={`${inputId}-search`} aria-label={`Search ${labelPrefix ?? label} fonts`} placeholder="Search fonts" showTrigger={false} className="quiet-control-group h-8" />
               </div>
               <ComboboxEmpty>No fonts found.</ComboboxEmpty>
               <ComboboxList>

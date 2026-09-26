@@ -9,7 +9,8 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Body typography (family, weight, tracking) comes from the theme's generated base rule: the Body semantic role. */
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
   }
 }

@@ -167,8 +167,8 @@ for (const mode of ["light", "dark"] as const) {
 
       // WRCP-10 font search and Save As name are Workbench editable controls too.
       await editorCategory(page, "Typography")
-      await page.getByTestId("control-font-sans").getByRole("combobox").click()
-      const search = page.getByRole("combobox", { name: "Search Sans fonts" })
+      await page.getByTestId("control-font-body").getByRole("combobox").click()
+      const search = page.getByRole("combobox", { name: "Search Body fonts" })
       await expect(search).toBeVisible()
       expect(await style(search, "font-size")).toBe("14px")
       await search.fill("Lat")

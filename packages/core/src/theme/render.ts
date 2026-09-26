@@ -1,4 +1,4 @@
-import { BASE_COLOR_TOKENS, COLOR_TOKENS, FONT_FAMILY_TOKENS, MOTION_DURATION_TOKENS, RADIUS_SCALE_TOKENS, SHADOW_TOKENS, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, themeSchema } from "./schema"
+import { BASE_COLOR_TOKENS, COLOR_TOKENS, FONT_FAMILY_TARGETS, MOTION_DURATION_TOKENS, RADIUS_SCALE_TOKENS, SHADOW_TOKENS, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, themeSchema, TYPE_ROLES } from "./schema"
 import type { ShadowLayer, ShadowToken, Theme } from "./schema"
 
 /** CSS generic families and system-font keywords, emitted unquoted; every other family name is quoted. */
@@ -31,6 +31,13 @@ const decl = (name: string, value: string) => `  ${name}: ${value};`
 const motionVar = (name: (typeof MOTION_DURATION_TOKENS)[number]) =>
   `--motion-${name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`
 
+/** The composed declarations of one semantic role: family, weight, and tracking only (never size or line height). */
+const roleDecls = (role: (typeof TYPE_ROLES)[number]) => [
+  decl("font-family", `var(--font-${role})`),
+  decl("font-weight", `var(--font-weight-${role})`),
+  decl("letter-spacing", `var(--tracking-${role})`),
+]
+
 /** Tailwind's bare `shadow` utility reads `--shadow`; every other tier is `--shadow-<tier>`. */
 const shadowThemeVar = (tier: ShadowToken) => (tier === "default" ? "--shadow" : `--shadow-${tier}`)
 
@@ -38,9 +45,15 @@ const shadowThemeVar = (tier: ShadowToken) => (tier === "default" ? "--shadow" :
  * The sole theme -> shadcn/Tailwind v4 mapping. `@theme inline` values are substituted literally into utilities at
  * build time, so every category that must change at runtime keeps its value in a plain `:root` custom property and the
  * inline entry only references it, as colour does. Output order comes from the closed token tables above, never from
- * input key order, and the input is re-validated so only schema-conforming canonical values reach the CSS text. The
- * trailing base-layer rule applies the theme's tracking to the document, so a consumer of this CSS alone gets every
- * typography value without any Workbench-specific stylesheet.
+ * input key order, and the input is re-validated so only schema-conforming canonical values reach the CSS text.
+ *
+ * Typography namespaces: `font-*` names font primitives (`--font-heading`, `--font-body`, `--font-mono` families and
+ * `--font-weight-heading`, `--font-weight-body`), `tracking-*` the role tracking, and `type-*` the composed semantic
+ * roles (`type-heading`, `type-body` utilities). `text-*` stays Tailwind's size/colour namespace: no size or line height
+ * is emitted, so both stay component-owned. The role primitives are plain `:root` properties, not `@theme` entries, so
+ * they create no competing `font-*` / `tracking-*` utilities; Tailwind's own `font-mono` utility already reads
+ * `var(--font-mono)`, so code keeps following the theme's mono stack. The base-layer rule applies the Body role to the
+ * document, so ordinary text inherits it from this CSS alone, without any Workbench-specific stylesheet.
  *
  * Sidebar source selection: with `sidebar.useDedicatedTokens` off, each `--sidebar*` variable is emitted in both the
  * `:root` and `.dark` blocks as `var(--<alias>)` of its base semantic (see `SIDEBAR_TOKEN_ALIASES`), so the Sidebar follows
@@ -52,6 +65,7 @@ export function renderShadcnTailwindCss(input: Theme): string {
   const light = theme.colors.light
   const dark = theme.colors.dark
   const dedicated = theme.sidebar.useDedicatedTokens.$value
+  const fontStack = (name: (typeof FONT_FAMILY_TARGETS)[number]) => (name === "mono" ? theme.typography.mono : theme.typography[name].font).$value
   const colorDecls = (set: typeof light) => [
     ...BASE_COLOR_TOKENS.map((name) => decl(`--${name}`, set[name].$value)),
     ...SIDEBAR_COLOR_TOKENS.map((name) => decl(`--${name}`, dedicated ? set[name].$value : `var(--${SIDEBAR_TOKEN_ALIASES[name]})`)),
@@ -59,8 +73,9 @@ export function renderShadcnTailwindCss(input: Theme): string {
 
   const root = [
     ...colorDecls(light),
-    ...FONT_FAMILY_TOKENS.map((name) => decl(`--font-family-${name}`, cssFamily(theme.typography[name].$value))),
-    decl("--tracking-base", theme.typography.tracking.$value),
+    ...FONT_FAMILY_TARGETS.map((name) => decl(`--font-${name}`, cssFamily(fontStack(name)))),
+    ...TYPE_ROLES.map((role) => decl(`--font-weight-${role}`, String(theme.typography[role].weight.$value))),
+    ...TYPE_ROLES.map((role) => decl(`--tracking-${role}`, theme.typography[role].tracking.$value)),
     ...SHADOW_TOKENS.map((name) => decl(`--shadow-layers-${name}`, cssShadow(theme.shadow[name].$value))),
     decl("--radius", theme.radius.base.$value),
     ...RADIUS_SCALE_TOKENS.map((name) => decl(`--radius-scale-${name}`, theme.radius[name].$value)),
@@ -71,8 +86,6 @@ export function renderShadcnTailwindCss(input: Theme): string {
 
   const inline = [
     ...COLOR_TOKENS.map((name) => decl(`--color-${name}`, `var(--${name})`)),
-    ...FONT_FAMILY_TOKENS.map((name) => decl(`--font-${name}`, `var(--font-family-${name})`)),
-    decl("--tracking-normal", "var(--tracking-base)"),
     ...RADIUS_SCALE_TOKENS.map((name) => decl(`--radius-${name}`, `var(--radius-scale-${name})`)),
     ...SHADOW_TOKENS.map((name) => decl(shadowThemeVar(name), `var(--shadow-layers-${name})`)),
     decl("--spacing", "calc(var(--space-base) * var(--density))"),
@@ -95,9 +108,10 @@ export function renderShadcnTailwindCss(input: Theme): string {
     ...inline,
     "}",
     "",
+    ...TYPE_ROLES.flatMap((role) => [`@utility type-${role} {`, ...roleDecls(role), "}", ""]),
     "@layer base {",
     "  body {",
-    "    letter-spacing: var(--tracking-base);",
+    ...roleDecls("body").map((line) => `  ${line}`),
     "  }",
     "}",
     "",

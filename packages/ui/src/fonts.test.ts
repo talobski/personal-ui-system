@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 import { applyMutation, MUTATION_SCHEMA_VERSION, validateTheme } from "@personal-ui/core"
 import defaultFixture from "@personal-ui/core/theme/fixtures/default.json"
 
-import { findFontOption, FONT_OPTIONS } from "./lib/fonts"
+import { findFontOption, FONT_CATALOG, FONT_OPTIONS } from "./lib/fonts"
 
 const require = createRequire(import.meta.url)
 const faces = readFileSync(new URL("./lib/font-faces.ts", import.meta.url), "utf8")
@@ -29,13 +29,19 @@ describe("self-hosted font catalog (WCPR-06)", () => {
       for (const font of FONT_OPTIONS[family]) {
         expect(font.stack.at(-1)).toBe(generic)
         expect(font.stack[1] === font.label || font.stack[0] === font.label).toBe(true)
-        const result = applyMutation(theme, { schemaVersion: MUTATION_SCHEMA_VERSION, requestId: `font-${font.id}`, base: { themeId: theme.id, revision: theme.revision }, operations: [{ op: "setFontFamily", family, value: font.stack }] })
-        expect(result.ok, font.label).toBe(true)
-        if (result.ok) expect(result.theme.typography[family].$value).toEqual(font.stack)
+        // STHG-06: every catalog family is admissible for both semantic roles, whatever its category.
+        for (const target of ["heading", "body"] as const) {
+          const result = applyMutation(theme, { schemaVersion: MUTATION_SCHEMA_VERSION, requestId: `font-${font.id}`, base: { themeId: theme.id, revision: theme.revision }, operations: [{ op: "setFontFamily", target, value: font.stack }] })
+          expect(result.ok, font.label).toBe(true)
+          if (result.ok) expect(result.theme.typography[target].font.$value).toEqual(font.stack)
+        }
         expect(findFontOption(family, font.stack)).toBe(font)
+        expect(findFontOption("any", font.stack)).toBe(font)
       }
     }
-    expect(findFontOption("sans", theme.typography.sans.$value)).toBeUndefined()
+    expect(FONT_CATALOG).toHaveLength(24)
+    expect(FONT_CATALOG.map((f) => f.category)).toEqual([...Array(14).fill("sans"), ...Array(5).fill("serif"), ...Array(5).fill("mono")])
+    expect(findFontOption("any", theme.typography.body.font.$value)).toBeUndefined()
     expect(FONT_OPTIONS.sans.find((f) => f.label === "Inter")!.stack).toEqual(["Inter Variable", "Inter", "ui-sans-serif", "system-ui", "sans-serif"])
     expect(FONT_OPTIONS.mono.find((f) => f.label === "IBM Plex Mono")!.stack).toEqual(["IBM Plex Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"])
   })

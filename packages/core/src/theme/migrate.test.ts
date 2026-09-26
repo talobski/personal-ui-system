@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { V1_MIGRATION_DEFAULTS, validateTheme } from "../index"
+import { V1_MIGRATION_DEFAULTS, V3_MIGRATION_DEFAULTS, validateTheme } from "../index"
 import type { Theme } from "../index"
 import defaultFixture from "./fixtures/default.json"
 import v1Fixture from "./fixtures/valid.json"
@@ -10,7 +10,7 @@ const migrate = (input: unknown): Theme => {
   return result.theme
 }
 
-describe("v1 -> v2 migration (TSV2-01, TSV2-03)", () => {
+describe("v1 -> v3 migration (TSV2-01, TSV2-03, STHG-04)", () => {
   const v1 = v1Fixture as Record<string, any>
   const qe = migrate(v1Fixture)
 
@@ -31,7 +31,8 @@ describe("v1 -> v2 migration (TSV2-01, TSV2-03)", () => {
         expect(migrated, `${mode}.${name}`).toBe(token.$value.replace(/ \/ (\d+)%\)$/, (_m, p) => ` / ${Number(p) / 100})`))
       }
     }
-    expect(qe.typography.sans.$value).toEqual(v1.typography.sans.$value)
+    // v1 sans -> v2 sans -> v3 Body; v1 mono -> v3 mono.
+    expect(qe.typography.body.font.$value).toEqual(v1.typography.sans.$value)
     expect(qe.typography.mono.$value).toEqual(v1.typography.mono.$value)
     for (const name of ["sm", "md", "lg"] as const) expect(qe.radius[name].$value).toBe(v1.radius[name].$value)
     expect(qe.space).toEqual(v1.space)
@@ -46,9 +47,13 @@ describe("v1 -> v2 migration (TSV2-01, TSV2-03)", () => {
   it("adds only the declared defaults for tokens v1 cannot express", () => {
     expect(qe.colors.light["destructive-foreground"].$value).toBe(V1_MIGRATION_DEFAULTS.destructiveForeground.light)
     expect(qe.colors.dark["destructive-foreground"].$value).toBe(V1_MIGRATION_DEFAULTS.destructiveForeground.dark)
-    expect(qe.typography.serif.$value).toEqual([...V1_MIGRATION_DEFAULTS.serif])
-    expect(qe.typography.serif.$value).toEqual(defaultFixture.typography.serif.$value)
-    expect(qe.typography.tracking.$value).toBe("0em")
+    // The v1 -> v2 serif default becomes the v3 Heading font; the v1 -> v2 tracking default reaches both roles.
+    expect(qe.typography.heading.font.$value).toEqual([...V1_MIGRATION_DEFAULTS.serif])
+    expect(qe.typography.heading.font.$value).toEqual(defaultFixture.typography.heading.font.$value)
+    expect(qe.typography.heading.tracking.$value).toBe("0em")
+    expect(qe.typography.body.tracking.$value).toBe("0em")
+    expect(qe.typography.heading.weight.$value).toBe(V3_MIGRATION_DEFAULTS.headingWeight)
+    expect(qe.typography.body.weight.$value).toBe(V3_MIGRATION_DEFAULTS.bodyWeight)
     // v1 rendered `--radius` from radius.md; v2 renders it from radius.base.
     expect(qe.radius.base.$value).toBe(v1.radius.md.$value)
     expect(qe.radius.xl.$value).toBe("0.75rem")
@@ -85,5 +90,62 @@ describe("v1 -> v2 migration (TSV2-01, TSV2-03)", () => {
   it("does not accept v2 shape under a v1 version or v1 shape under a v2 version", () => {
     expect(validateTheme({ ...structuredClone(defaultFixture), schemaVersion: "1.0" }).ok).toBe(false)
     expect(validateTheme({ ...structuredClone(v1Fixture), schemaVersion: "2.0" }).ok).toBe(false)
+  })
+})
+
+/** The exact owner-approved v2.x -> v3 typography mapping, on a v2.1 input with three distinct stacks. */
+describe("v2.1 -> v3 semantic typography migration (STHG-03, STHG-04)", () => {
+  const v21 = {
+    ...structuredClone(defaultFixture),
+    $schema: "https://personal-ui.local/schema/theme-2.json",
+    schemaVersion: "2.1",
+    id: "saved-custom",
+    name: "Saved Custom",
+    revision: 12,
+    typography: {
+      sans: { $type: "fontFamily", $value: ["Inter Variable", "Inter", "ui-sans-serif", "system-ui", "sans-serif"] },
+      serif: { $type: "fontFamily", $value: ["Fraunces Variable", "Fraunces", "ui-serif", "Georgia", "serif"] },
+      mono: { $type: "fontFamily", $value: ["Geist Mono Variable", "Geist Mono", "ui-monospace", "monospace"] },
+      tracking: { $type: "dimension", $value: "-0.0100em" },
+    },
+  }
+  const migrated = migrate(v21)
+
+  it("serif -> Heading font, sans -> Body font, mono -> Mono, tracking -> both roles, weights 600/400", () => {
+    expect(V3_MIGRATION_DEFAULTS).toEqual({ headingWeight: 600, bodyWeight: 400 })
+    expect(migrated.typography).toEqual({
+      heading: {
+        font: { $type: "fontFamily", $value: v21.typography.serif.$value },
+        weight: { $type: "fontWeight", $value: 600 },
+        tracking: { $type: "dimension", $value: "-0.01em" },
+      },
+      body: {
+        font: { $type: "fontFamily", $value: v21.typography.sans.$value },
+        weight: { $type: "fontWeight", $value: 400 },
+        tracking: { $type: "dimension", $value: "-0.01em" },
+      },
+      mono: { $type: "fontFamily", $value: v21.typography.mono.$value },
+    })
+  })
+
+  it("keeps identity, revision, and every non-typography value; output is canonical v3 and idempotent", () => {
+    expect(migrated).toMatchObject({ schemaVersion: "3.0", $schema: "https://personal-ui.local/schema/theme-3.json", id: "saved-custom", name: "Saved Custom", revision: 12 })
+    for (const key of ["colors", "radius", "space", "shadow", "motion", "sidebar", "$extensions"] as const) expect(migrated[key]).toEqual(defaultFixture[key])
+    expect(migrate(JSON.parse(JSON.stringify(migrated)))).toEqual(migrated)
+    expect(JSON.stringify(migrate(structuredClone(v21)))).toBe(JSON.stringify(migrated))
+  })
+
+  it("rejects v2.1 input under the v3 version, v3 input under v2.1, and mixed legacy/semantic typography", () => {
+    expect(validateTheme({ ...structuredClone(v21), schemaVersion: "3.0", $schema: "https://personal-ui.local/schema/theme-3.json" }).ok).toBe(false)
+    expect(validateTheme({ ...structuredClone(migrated), schemaVersion: "2.1", $schema: "https://personal-ui.local/schema/theme-2.json" }).ok).toBe(false)
+    expect(validateTheme({ ...structuredClone(migrated), typography: { ...migrated.typography, sans: v21.typography.sans } }).ok).toBe(false)
+  })
+
+  it("reports (never drops) an invalid legacy value with its v2.1 path", () => {
+    const bad = structuredClone(v21) as Record<string, any>
+    bad.typography.tracking.$value = "0.5em"
+    const result = validateTheme(bad)
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.issues.map((issue) => issue.path)).toEqual(["typography.tracking.$value"])
   })
 })

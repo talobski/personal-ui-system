@@ -87,7 +87,7 @@ export async function assertActiveControls(page: Page, disabled: boolean) {
   await editorCategory(page, "Colors")
   for (const c of [colorInput(page, "primary"), page.getByLabel("Primary picker", { exact: true }), colorInput(page, "chart-5"), colorInput(page, "sidebar"), page.getByRole("switch", { name: "Use sidebar tokens" }), page.getByLabel("Active theme")]) await check(c)
   await editorCategory(page, "Typography")
-  for (const c of [page.getByLabel("Sans", { exact: true }), page.getByLabel("Serif", { exact: true }), page.getByLabel("Mono", { exact: true }), page.getByRole("textbox", { name: "Tracking" }), page.getByRole("slider", { name: "Tracking" })]) await check(c)
+  for (const c of [page.getByLabel("Heading Font", { exact: true }), page.getByLabel("Body Font", { exact: true }), page.getByLabel("Mono Font", { exact: true }), page.getByRole("textbox", { name: "Heading Weight" }), page.getByRole("slider", { name: "Body Tracking" })]) await check(c)
   await editorCategory(page, "Effects")
   for (const c of [page.getByRole("textbox", { name: "Radius" }), page.getByRole("slider", { name: "Radius" }), page.getByLabel("Shadow color", { exact: true }), page.getByLabel("Shadow color picker", { exact: true }), page.getByRole("slider", { name: "Blur", exact: true })]) await check(c)
   // Active-versus-staged clarity: the manual panel says why its controls are paused.
