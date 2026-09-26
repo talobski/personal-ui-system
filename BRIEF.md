@@ -1,11 +1,11 @@
 # Personal UI System — Project Brief
 
-Status: ACTIVE — the accepted product is
+Status: ACTIVE — the accepted product remains
 `47d0aebef617f9d936d21f53089c96bd040e70d6` on `main`. Phase
-`workbench-sidebar-theme-polish-v1-001` is accepted, promoted, and technically
-verified; its immutable reference packet preserves verbatim admission-time
-Linear snapshots alongside the authoritative reconciled contract. No owner
-visual-review gate was admitted. The earlier
+`semantic-typography-history-grid-v1-001` is admitted for PUI-3, PUI-63, and
+PUI-64 against that product base. Its immutable reference packet preserves
+verbatim admission-time Linear snapshots alongside the authoritative
+reconciled contract. No owner visual-review gate is admitted. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
