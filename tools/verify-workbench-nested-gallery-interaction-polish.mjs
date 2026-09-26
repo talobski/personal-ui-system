@@ -68,7 +68,7 @@ const admittedPaths = new Set([
   ...["quiet-workspace", "semantic-typography-history-grid", "theme-v2-live-controls", "workbench-control-navigation-scroll",
     "workbench-rendering-controls-polish", "workbench-sidebar-preview-followup", "workbench-sidebar-theme-polish",
     "workbench-theme-controls-polish", "workbench"].map(name => `e2e/${name}.spec.ts`),
-  "playwright.workbench.config.ts",
+  "playwright.config.ts", "playwright.workbench.config.ts",
   // Phase evidence.
   "tools/verify-workbench-nested-gallery-interaction-polish.mjs", "docs/WORKBENCH_NESTED_GALLERY_INTERACTION_POLISH_CHECKPOINT.md",
   ...eofOnly,
