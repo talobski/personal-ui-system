@@ -62,6 +62,8 @@ test.describe("CGS-03 to CGS-05 container-responsive gallery", () => {
     // Constrain only the gallery's own box: the iframe viewport, and so every media query, is unchanged.
     for (const width of [600, 760, 1000, 1300]) {
       await frame.locator("[data-gallery]").evaluate((el, w) => { el.style.width = `${w}px` }, width)
+      // Let ResizeObserver-driven content (the Recharts containers) settle at the new width before measuring.
+      await expect.poll(async () => { const g = await geometry(frame); return Math.round(g.gallery) === width && !g.overflow }).toBe(true)
       sweep[width] = await geometry(frame)
     }
     await frame.locator("[data-gallery]").evaluate(el => { el.style.width = "" })

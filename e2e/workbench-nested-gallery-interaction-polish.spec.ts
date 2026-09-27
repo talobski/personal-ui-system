@@ -340,8 +340,10 @@ for (const mode of ["light", "dark"] as const) {
     if (isMobileShell(page)) await expect(exportButton.getByText("Export")).toHaveClass(/sr-only/)
     else await expect(exportButton).toHaveText("Export")
 
-    // A semantic vertical separator: button height, centred, border token, between Reset and Export.
-    const separator = toolbar.getByRole("separator")
+    // A semantic vertical separator: button height, centred, border token, between Reset and Export. PUI-80 adds a
+    // matching one after the colour-mode Switch (checked in CGS-10), so this targets the Reset/Export boundary.
+    await expect(toolbar.getByRole("separator")).toHaveCount(2)
+    const separator = toolbar.getByRole("separator").nth(1)
     await expect(separator).toHaveAttribute("aria-orientation", "vertical")
     const s = await box(separator), reset = await box(history(page, "Reset")), exp = await box(exportButton)
     expect(s.width).toBe(1)
