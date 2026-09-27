@@ -28,7 +28,7 @@ function place(layouts: readonly ("default" | "wide")[], columns: number) {
   return cells
 }
 
-describe("NGIP-03 through NGIP-06 nested gallery", () => {
+describe("NGIP-03 nested gallery regression (retained)", () => {
   it("reproduces the frozen global-row failure independently of the corrected recipe", () => {
     const cells = place(["wide", "default", "wide"], 3)
     expect(cells.map(cell => cell.row)).toEqual([0, 0, 1])
@@ -36,23 +36,46 @@ describe("NGIP-03 through NGIP-06 nested gallery", () => {
     expect(Math.max(weekHeight, profileHeight) + gap - weekHeight).toBe(324)
   })
 
-  it("keeps eight compositions in coherent region order without per-composition placement metadata", () => {
-    expect(COMPOSITION_IDS).toEqual(["productive-week", "team-access", "account-profile", "notifications", "support-request", "workspace-settings", "recent-activity", "room-to-think"])
+  it("keeps every composition once in coherent region order without per-composition placement metadata", () => {
+    expect(new Set(COMPOSITION_IDS).size).toBe(COMPOSITION_IDS.length)
     for (const entry of PREVIEW_COMPOSITIONS) expect(Object.keys(entry)).toEqual(["id", "render"])
-    expect(code("./Gallery.tsx")).not.toMatch(/PreviewLayout|data-layout|gridColumn|gridRow|colSpan/)
-    for (const name of ["productive-week", "team-access", "workspace-settings"]) expect(read(`../../../packages/ui/src/compositions/${name}.tsx`)).not.toMatch(/data-layout|PreviewLayout|col-span|span 2/)
+    const source = code("./Gallery.tsx")
+    expect(source).not.toMatch(/PreviewLayout|data-layout|gridColumn|gridRow|colSpan/)
+    // The recipe renders each configured composition exactly once, in configuration (DOM/focus) order.
+    expect(Array.from(source.matchAll(/<Composition id="([a-z-]+)" \/>/g), match => match[1])).toEqual(COMPOSITION_IDS)
+    for (const name of ["productive-week", "team-access", "workspace-settings"]) expect(read(`../../../packages/ui/src/compositions/${name}.tsx`)).not.toMatch(/data-layout|PreviewLayout|span 2/)
+  })
+})
+
+describe("CGS-03/04/06 container-responsive nested gallery (PUI-78)", () => {
+  it("drives the frame from the gallery's own named container with explicit, rebalancing 12-track spans", () => {
+    const source = code("./Gallery.tsx")
+    expect(source).toContain('data-gallery="cards"')
+    expect(source).toContain("@container/gallery")
+    expect(source).toContain("grid grid-cols-1 items-start gap-4 @2xl/gallery:grid-cols-12 @4xl/gallery:gap-6")
+    // Left smaller / right larger at wide sizes: 6/6, then 5/7, then 4/8. Each pair always fills the 12 tracks.
+    expect(source).toContain('side="left" className="@2xl/gallery:col-span-6 @4xl/gallery:col-span-5 @6xl/gallery:col-span-4"')
+    expect(source).toContain('side="right" className="@2xl/gallery:col-span-6 @4xl/gallery:col-span-7 @6xl/gallery:col-span-8"')
+    expect(source.match(/<Region side=/g)).toHaveLength(2)
   })
 
-  it("renders independent activity and profile stacks, a full region, and one intentional local pair", () => {
+  it("makes each region an independent natural-height stack and query container for its local groups", () => {
     const source = code("./Gallery.tsx")
-    expect(source).toMatch(/data-gallery-region="activity">\s*<Composition id="productive-week" \/>\s*<Composition id="team-access" \/>/)
-    expect(source).toMatch(/data-gallery-region="profile-actions">\s*<Composition id="account-profile" \/>\s*<Composition id="notifications" \/>\s*<Composition id="support-request" \/>/)
-    expect(source).toMatch(/<Composition id="workspace-settings" \/>\s*<div className="quiet-gallery-pair"/)
+    expect(source).toContain("@container flex min-w-0 flex-col gap-4 @4xl/gallery:gap-6")
+    expect(source).toContain("grid min-w-0 grid-cols-1 items-start gap-4 @4xl/gallery:gap-6")
+    // Local groups switch on their region's width (unnamed nearest container), independently of each other.
+    expect(source).toMatch(/<LocalGroup className="@(sm|md|lg|xl|2xl|3xl)[:\w-]*grid-cols-2/)
+  })
+
+  it("uses no viewport media query, masonry, dense packing, absolute placement, or legacy semantic layout classes", () => {
+    const source = code("./Gallery.tsx")
     const css = code("./styles.css")
-    expect(css).toContain(".quiet-gallery, .quiet-stack { display: flex; flex-direction: column; gap: 16px; }")
-    expect(css).toContain("minmax(0, 7fr) minmax(0, 5fr)")
-    expect(css).toContain("@media (min-width: 40rem)")
-    expect(css).toContain("@media (min-width: 60rem)")
-    expect(css).not.toMatch(/dense|aspect-ratio|grid-auto-rows|masonry|grid-column|grid-row/)
+    for (const text of [source, css]) {
+      expect(text).not.toMatch(/quiet-gallery|quiet-stack|quiet-gallery-principal|quiet-gallery-pair|masonry|grid-flow-dense|dense|aspect-ratio|aspect-square|grid-auto-rows|auto-rows/)
+      expect(text).not.toMatch(/\babsolute\b|\bfixed\b/)
+    }
+    // Viewport breakpoints (`lg:grid-cols-2`) are absent; only `@`-prefixed container variants place the gallery.
+    expect(source).not.toMatch(/(?<![@\w/-])(sm|md|lg|xl|2xl):(grid|col|flex|gap)/)
+    expect(css).not.toMatch(/data-gallery|data-composition/)
   })
 })

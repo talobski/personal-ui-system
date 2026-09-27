@@ -9,18 +9,6 @@
 .quiet-preview-body { flex: 1 1 0; display: flex; min-height: 0; padding: 0; }
 .quiet-viewport { flex: 1; min-width: 0; overflow: hidden; }
 .quiet-status { display: flex; flex-shrink: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 16px; background: var(--secondary); color: var(--secondary-foreground); font-size: 14px; }
-/* Gallery-owned nested regions. Independent stacks keep unrelated card heights uncoupled. */
-.quiet-gallery, .quiet-stack { display: flex; flex-direction: column; gap: 16px; }
-.quiet-gallery-principal, .quiet-gallery-pair { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 16px; }
-.quiet-gallery [data-composition], .quiet-stack { min-width: 0; }
-@media (min-width: 40rem) {
-  .quiet-gallery-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (min-width: 60rem) {
-  .quiet-gallery-principal { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
-  .quiet-gallery, .quiet-stack, .quiet-gallery-principal, .quiet-gallery-pair { gap: 24px; }
-}
-.quiet-gallery [data-composition] > [data-slot=card], .quiet-gallery [data-composition] > form > [data-slot=card] { box-shadow: none; }
 .quiet-categories [data-slot=tabs-trigger][data-state=active]:not(:focus-visible) { box-shadow: none; }
 
 /* Workbench-owned overlay regions inherit the shared ScrollArea thickness and thumb states; Radix handles input. */
