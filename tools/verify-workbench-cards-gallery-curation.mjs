@@ -8,6 +8,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs"
 const phase = "workbench-cards-gallery-curation-v1-001"
 const accepted = "696e7c4e1af19be88bcac308dda2227acc9323f6"
 const base = "73e2c6e472e393fcf82d25938383a1eeee6eb98f"
+const control = "42dc19eebe31998309908cf6f8d5b6f153134c73"
 const run = `.loop/runs/${phase}`
 const git = (...args) => execFileSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] }).trimEnd()
 const read = path => readFileSync(path, "utf8")
@@ -45,6 +46,9 @@ if (existsSync(`${run}/admission.json`)) {
   const admission = JSON.parse(read(`${run}/admission.json`))
   for (const flag of ["networkAllowed", "credentialsAllowed", "externalActionsAllowed", "paidFallbackAllowed", "ownerVisualReviewRequired"]) if (flag in admission) assert.equal(admission[flag], false, flag)
 }
+for (const path of [`${run}/admission.json`, `${run}/preflight.json`]) {
+  assert.equal(hash(readFileSync(path)), hash(at(control, path)), "Lead control receipt changed: " + path)
+}
 
 // CGCR-02: bounded delivery. Every change since the implementation base is inside the admitted surfaces.
 const curated = ["plan-usage", "quick-find", "productive-week", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]
@@ -62,6 +66,7 @@ const admittedPaths = new Set([
   "playwright.config.ts", "playwright.workbench.config.ts",
   // Phase evidence.
   "tools/verify-workbench-cards-gallery-curation.mjs", "docs/WORKBENCH_CARDS_GALLERY_CURATION_CHECKPOINT.md",
+  `${run}/admission.json`, `${run}/preflight.json`,
 ])
 const tracked = lines(git("ls-tree", "-r", "--name-only", base))
 const changed = [...new Set([...lines(git("diff", "--name-only", base)), ...lines(git("ls-files", "--others", "--exclude-standard"))])].sort()
