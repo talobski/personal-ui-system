@@ -1,7 +1,3 @@
-import { useState } from "react"
-import { Sparkles } from "lucide-react"
-
-import { Button } from "../components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/card"
 
 const CAPACITY = 25
@@ -13,9 +9,8 @@ const USAGE = [
   { label: "Other", gigabytes: 1.5, swatch: "bg-chart-4" },
 ] as const
 
-/** `stable` is the gallery presentation: Upgrade announces its preview-only status without adding a visible line. */
-export function PlanUsage({ stable = false }: { stable?: boolean }) {
-  const [previewed, setPreviewed] = useState(false)
+/** PUI-86: a usage/status card with no promotion; it ends after the category breakdown and has no interaction. */
+export function PlanUsage() {
   const used = USAGE.reduce((sum, item) => sum + item.gigabytes, 0)
   return (
     <Card>
@@ -40,17 +35,6 @@ export function PlanUsage({ stable = false }: { stable?: boolean }) {
             </li>
           ))}
         </ul>
-        <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-background p-3 shadow-md">
-          <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground"><Sparkles className="size-4" /></span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium">Team plan</p>
-            <p className="text-xs text-muted-foreground">100 GB and shared libraries.</p>
-          </div>
-          <Button size="sm" className="cursor-pointer" onClick={() => setPreviewed(true)}>Upgrade</Button>
-        </div>
-        {stable
-          ? <p role="status" className="sr-only">{previewed ? "Upgrade preview only. Nothing was charged." : ""}</p>
-          : previewed && <p role="status" className="text-sm">Upgrade preview only. Nothing was charged.</p>}
       </CardContent>
     </Card>
   )

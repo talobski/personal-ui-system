@@ -3,25 +3,34 @@ import type { ReactNode } from "react"
 import { PlanUsage } from "@personal-ui/ui/compositions/plan-usage"
 import { QuickFind } from "@personal-ui/ui/compositions/quick-find"
 import { ProductiveWeek } from "@personal-ui/ui/compositions/productive-week"
-import { SupportRequest } from "@personal-ui/ui/compositions/support-request"
+import { SignupForm } from "@personal-ui/ui/compositions/signup-form"
+import { LocalWeather } from "@personal-ui/ui/compositions/local-weather"
 import { RevenueOverview } from "@personal-ui/ui/compositions/revenue-overview"
-import { UpcomingSchedule } from "@personal-ui/ui/compositions/upcoming-schedule"
+import { TeamChat } from "@personal-ui/ui/compositions/team-chat"
 import { RecentActivity } from "@personal-ui/ui/compositions/recent-activity"
-import { LaunchBoard } from "@personal-ui/ui/compositions/launch-board"
+import { RecentPayments } from "@personal-ui/ui/compositions/recent-payments"
+import { OffsiteCalendar } from "@personal-ui/ui/compositions/offsite-calendar"
+import { NowPlaying } from "@personal-ui/ui/compositions/now-playing"
 
 /**
  * Gallery configuration only: the recipe below owns placement, compositions own content. Interactive compositions use
- * their `stable` presentation (PUI-84), so normal interaction never changes a card's footprint in the gallery.
+ * their `stable` presentation (PUI-84) or are geometry-stable by construction, so normal interaction never changes a
+ * card's footprint in the gallery. PUI-88/90/91 replace This week, Launch checklist and the support form in their
+ * slots; PUI-92 adds the range calendar, music and weather cards. Music closes the right region (bounded balance
+ * regrouping), so both independent stacks end at similar heights at wide sizes.
  */
 export const PREVIEW_COMPOSITIONS = [
-  { id: "plan-usage", render: () => <PlanUsage stable /> },
+  { id: "plan-usage", render: () => <PlanUsage /> },
   { id: "quick-find", render: () => <QuickFind stable /> },
   { id: "productive-week", render: () => <ProductiveWeek /> },
-  { id: "support-request", render: () => <SupportRequest compact stable /> },
+  { id: "signup-form", render: () => <SignupForm /> },
+  { id: "local-weather", render: () => <LocalWeather /> },
   { id: "revenue-overview", render: () => <RevenueOverview /> },
-  { id: "upcoming-schedule", render: () => <UpcomingSchedule stable /> },
+  { id: "team-chat", render: () => <TeamChat /> },
   { id: "recent-activity", render: () => <RecentActivity /> },
-  { id: "launch-board", render: () => <LaunchBoard stable /> },
+  { id: "recent-payments", render: () => <RecentPayments /> },
+  { id: "offsite-calendar", render: () => <OffsiteCalendar /> },
+  { id: "now-playing", render: () => <NowPlaying /> },
 ] as const
 
 export const COMPOSITION_IDS = PREVIEW_COMPOSITIONS.map(composition => composition.id)
@@ -65,15 +74,18 @@ export function Gallery() {
           <Composition id="plan-usage" />
           <Composition id="quick-find" />
           <Composition id="productive-week" />
-          <Composition id="support-request" />
+          <Composition id="signup-form" />
+          <Composition id="local-weather" />
         </Region>
         <Region side="right" className="@2xl/gallery:col-span-6 @4xl/gallery:col-span-7 @6xl/gallery:col-span-8">
           <Composition id="revenue-overview" />
           <LocalGroup className="@lg:grid-cols-2">
-            <Composition id="upcoming-schedule" />
+            <Composition id="team-chat" />
             <Composition id="recent-activity" />
           </LocalGroup>
-          <Composition id="launch-board" />
+          <Composition id="recent-payments" />
+          <Composition id="offsite-calendar" />
+          <Composition id="now-playing" />
         </Region>
       </div>
     </div>

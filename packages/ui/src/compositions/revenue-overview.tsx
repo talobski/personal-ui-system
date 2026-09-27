@@ -60,6 +60,8 @@ function Delta({ value, unit, label }: { value: number; unit: string; label: str
  * PUI-85: no visible header, so the range tabs lead; the heading remains for assistive technology. The three metrics
  * share one row with semantic dividers instead of nested tiles, and each keeps a fixed label/value/badge structure so
  * switching range never re-wraps the row. The chart shows the primary Revenue series only.
+ * PUI-87: the category axis stays as a hidden scale (so tooltips keep their period labels) but draws no tick row and
+ * reserves no space; the figcaption still lists every period for assistive technology.
  */
 export function RevenueOverview() {
   const [range, setRange] = useState<Range>("month")
@@ -100,7 +102,7 @@ export function RevenueOverview() {
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey="period" tickLine={false} axisLine={false} tickMargin={8} interval={0} padding={{ left: 12, right: 12 }} />
+              <XAxis dataKey="period" hide padding={{ left: 12, right: 12 }} />
               <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
               <Area dataKey="revenue" type="monotone" stroke="var(--color-revenue)" strokeWidth={2} fill="url(#revenue-fill)" isAnimationActive={false} />
             </AreaChart>
