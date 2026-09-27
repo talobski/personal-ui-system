@@ -24,11 +24,11 @@ const css = (el: Locator, property: string) => el.evaluate((node, name) => getCo
 const box = async (el: Locator) => (await el.boundingBox())!
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-/** PUI-78/79 recipe order (migrated from the PUI-65 regions): the left stack, then the right region top to bottom. */
-const GALLERY_ORDER = ["productive-week", "quick-find", "account-profile", "notifications", "plan-usage", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board", "team-access", "workspace-settings", "room-to-think"]
-const REGIONS = { left: ["productive-week", "quick-find", "account-profile", "notifications", "plan-usage", "support-request"], right: ["revenue-overview", "upcoming-schedule", "recent-activity", "launch-board", "team-access", "workspace-settings", "room-to-think"] }
-/** Right-region flow: full items and local groups, each followed by exactly one gap. */
-const RIGHT_FLOW = [["revenue-overview"], ["upcoming-schedule", "recent-activity"], ["launch-board"], ["team-access", "workspace-settings"], ["room-to-think"]]
+/** PUI-83 curated recipe order (migrated from PUI-78/79): the left stack, then the right region top to bottom. */
+const GALLERY_ORDER = ["plan-usage", "quick-find", "productive-week", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]
+const REGIONS = { left: ["plan-usage", "quick-find", "productive-week", "support-request"], right: ["revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"] }
+/** Right-region flow: full items and the local pair, each followed by exactly one gap. */
+const RIGHT_FLOW = [["revenue-overview"], ["upcoming-schedule", "recent-activity"], ["launch-board"]]
 
 async function axe(page: Page, info: TestInfo, label: string) {
   await page.mouse.move(0, 0)
@@ -45,7 +45,7 @@ async function open(page: Page) {
 }
 
 test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
-  test("NGIP-03 the frozen flat grid reproduces global-row dead space; the nested gallery packs Quick Find under Productive Week", async ({ page }, info) => {
+  test("NGIP-03 the frozen flat grid reproduces global-row dead space; the nested gallery packs Quick Find under Storage", async ({ page }, info) => {
     // The frozen a33c3d0 reproduction: a taller default item holds the shared row, so the next wide item waits for it.
     await page.setViewportSize({ width: 1200, height: 900 })
     await page.setContent(flatGalleryRegression)
@@ -64,13 +64,20 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       const r = el.getBoundingClientRect()
       return [el.getAttribute("data-composition")!, { top: r.top, bottom: r.bottom, left: r.left, height: r.height }]
     })))
-    // Productive Week and Revenue Overview start together, yet Quick Find follows Productive Week by exactly one gap
+    // Storage and Revenue Overview start together, yet Quick Find follows Storage by exactly one 16px gap (PUI-81)
     // whatever the right region's height: the regions no longer share a row.
-    const fixed = rects["quick-find"]!.top - rects["productive-week"]!.bottom
+    const fixed = rects["quick-find"]!.top - rects["plan-usage"]!.bottom
     await info.attach("ngip-03-dead-space.json", { body: JSON.stringify({ old: { ...old, gap: oldGap }, nested: { gap: fixed, rects } }, null, 2), contentType: "application/json" })
-    close(rects["revenue-overview"]!.top, rects["productive-week"]!.top)
-    close(fixed, 24)
-    expect(rects["quick-find"]!.top).toBeLessThan(rects["revenue-overview"]!.bottom)
+    close(rects["revenue-overview"]!.top, rects["plan-usage"]!.top)
+    close(fixed, 16)
+    // Storage plus one gap can coincide with Studio revenue's height, so independence is shown directly: a much taller
+    // revenue card leaves Quick Find exactly where it was.
+    const frame = previewFrame(page)
+    await frame.locator('[data-composition="revenue-overview"] > [data-slot="card"]').evaluate(el => { (el as HTMLElement).style.minHeight = "1200px" })
+    const quickFind = await frame.locator('[data-composition="quick-find"]').evaluate(el => el.getBoundingClientRect().top)
+    const revenueBottom = await frame.locator('[data-composition="revenue-overview"]').evaluate(el => el.getBoundingClientRect().bottom)
+    close(quickFind, rects["quick-find"]!.top)
+    expect(quickFind).toBeLessThan(revenueBottom - 600)
   })
 
   const layout = (page: Page) =>
@@ -117,14 +124,17 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       if (size.width === 390) expect([split, wide]).toEqual([false, false])
       if (size.width === 1100) expect([split, wide]).toEqual([false, false])
       if (size.width === 1440) expect([split, wide]).toEqual([true, true])
-      const gap = wide ? 24 : 16
+      // PUI-81: every gallery gap is 16px at every width (the earlier 24px wide gap is superseded).
+      const gap = 16
 
       // Explicit nested regions: a named container, a one-row frame, two independent stacks, and local groups.
       expect(result.gallery).toMatchObject({ container: "inline-size", name: "gallery" })
       expect(result.frame).toMatchObject({ columns: split ? 12 : 1, flow: "row", align: "flex-start", gap: `${gap}px` })
       if (split) expect(result.frame.rows).toBe(1)
       for (const name of ["left", "right"]) expect(result.regions[name]).toMatchObject({ display: "flex", direction: "column", gap: `${gap}px`, container: "inline-size" })
-      for (const group of result.groups) expect(group).toMatchObject({ columns: result.regions.right!.width >= 512 ? 2 : 1, align: "flex-start" })
+      // PUI-82: the one local pair stretches (side by side only; see the pair checks below).
+      expect(result.groups).toHaveLength(1)
+      for (const group of result.groups) expect(group).toMatchObject({ columns: result.regions.right!.width >= 512 ? 2 : 1, align: "stretch" })
       expect(result.items.map(item => item.id)).toEqual(GALLERY_ORDER)
       for (const [region, ids] of Object.entries(REGIONS)) expect(result.items.filter(item => item.region === region).map(item => item.id)).toEqual(ids)
 
@@ -138,7 +148,9 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
         expect(item.right, item.id).toBeLessThanOrEqual(result.gallery.right)
         expect(item.scroll, item.id).toBeLessThanOrEqual(item.client + 1)
       }
-      expect(new Set(result.items.map(item => item.height)).size).toBeGreaterThan(6)
+      // Eight natural-height cards. The side-by-side pair shares a height by design (PUI-82), and Quick find and Studio
+      // revenue can coincide at some widths; exact natural-height proofs are in workbench-cards-gallery-curation.spec.ts.
+      expect(new Set(result.items.map(item => item.height)).size).toBeGreaterThanOrEqual(6)
 
       // Independent stacks: every left card starts one gap after its predecessor; every right step follows the tallest
       // item of the previous full item or local group by one gap.
@@ -160,7 +172,7 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       }
       for (const pair of RIGHT_FLOW.filter(step => step.length === 2)) {
         const [a, b] = pair.map(at)
-        if (result.regions.right!.width >= 512) { close(a!.y, b!.y); expect(b!.x).toBeGreaterThan(a!.right) } else close(b!.y - a!.bottom, gap)
+        if (result.regions.right!.width >= 512) { close(a!.y, b!.y); expect(b!.x).toBeGreaterThan(a!.right); close(a!.cardHeight, b!.cardHeight) } else close(b!.y - a!.bottom, gap)
       }
 
       // DOM order is reading order within each region, and keyboard focus visits compositions in DOM order.
@@ -178,7 +190,8 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       }
       // Every composition that owns a tabbable control is visited once, in gallery DOM order.
       const tabbable = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.filter(node => Array.from(node.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea, [tabindex]")).some(el => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled && el.getClientRects().length > 0)).map(node => node.getAttribute("data-composition")!))
-      expect(tabbable.length).toBeGreaterThanOrEqual(11)
+      // The curated set: the read-only Recent activity and gallery Launch checklist own no tab stop.
+      expect(tabbable).toEqual(["plan-usage", "quick-find", "productive-week", "support-request", "revenue-overview", "upcoming-schedule"])
       expect(visited).toEqual(tabbable)
 
       await axe(page, info, `gallery-${size.width}-light`)

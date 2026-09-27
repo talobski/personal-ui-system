@@ -258,7 +258,7 @@ for (const mode of ["light", "dark"] as const) {
       close((await box(view)).x, m.x + leftInset)
 
       // WSPF-08: the preview root is gap-4 p-4. CGS-03: the gallery frame follows its own container width, one column
-      // below 42rem and a 12-track frame above; the first right-region local group splits from its region's 32rem.
+      // below 42rem and a 12-track frame above; the right-region local pair splits from its region's 32rem.
       expect(await main.evaluate(el => { const s = getComputedStyle(el); return [s.display, s.rowGap, s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft] })).toEqual(["grid", "16px", "16px", "16px", "16px", "16px"])
       await page.keyboard.press("ArrowLeft")
       await expect(cards).toHaveAttribute("aria-selected", "true")
@@ -266,7 +266,8 @@ for (const mode of ["light", "dark"] as const) {
       const galleryWidth = await gallery.evaluate(el => el.getBoundingClientRect().width)
       const rightWidth = await frame.locator('[data-gallery-region="right"]').evaluate(el => el.getBoundingClientRect().width)
       const columns = (selector: string) => frame.locator(selector).first().evaluate(el => getComputedStyle(el).gridTemplateColumns.split(" ").length)
-      expect(await gallery.locator(":scope > div").evaluate(el => [getComputedStyle(el).display, getComputedStyle(el).rowGap])).toEqual(["grid", galleryWidth >= 896 ? "24px" : "16px"])
+      // PUI-81: the frame gap is 16px at every gallery width.
+      expect(await gallery.locator(":scope > div").evaluate(el => [getComputedStyle(el).display, getComputedStyle(el).rowGap, getComputedStyle(el).columnGap])).toEqual(["grid", "16px", "16px"])
       expect(await columns("[data-gallery] > div")).toBe(galleryWidth >= 672 ? 12 : 1)
       expect(await columns('[data-gallery-region="right"] > [data-gallery-group]')).toBe(rightWidth >= 512 ? 2 : 1)
       expect(await frame.locator("html").evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)

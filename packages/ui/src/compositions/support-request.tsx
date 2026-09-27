@@ -68,4 +68,3 @@ export function SupportRequest({ invalidMessage = false, compact = false, stable
     </Card>
   )
 }
-

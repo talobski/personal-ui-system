@@ -6,8 +6,8 @@ import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import { colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
-/** PUI-78/79 gallery DOM order: the left stack, then the right region top to bottom. */
-const ids = ["productive-week", "quick-find", "account-profile", "notifications", "plan-usage", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board", "team-access", "workspace-settings", "room-to-think"]
+/** PUI-83 curated gallery DOM order: the left stack, then the right region top to bottom. */
+const ids = ["plan-usage", "quick-find", "productive-week", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]
 
 /** The preview iframe's box versus the panel content box it should fill (WTEP-02). */
 async function previewFill(page: import("@playwright/test").Page) {
@@ -72,39 +72,34 @@ for (const mode of ["light", "dark"] as const) {
       const geometry = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => { const r = n.getBoundingClientRect(); return { x: r.x, right: r.right, width: r.width, scroll: n.scrollWidth, client: n.clientWidth } }))
       for (const box of geometry) { expect(box.x).toBeGreaterThanOrEqual(0); expect(box.right).toBeLessThanOrEqual(width); expect(box.scroll).toBeLessThanOrEqual(box.client + 1) }
       // CGS-03: distinct left edges follow the gallery container width. From 56rem (896px) the 5/7 and 4/8 frames put
-      // the right region's local groups side by side (three edges); the 6/6 frame gives two; one column gives two once
-      // the region reaches the local groups' 32rem (512px) query, else one.
+      // the right region's local pair side by side (three edges); the 6/6 frame gives two; one column gives two once
+      // the region reaches the local pair's 32rem (512px) query, else one.
       const galleryWidth = await frame.locator("[data-gallery]").evaluate(el => el.getBoundingClientRect().width)
       expect(new Set(geometry.map(b => b.x)).size).toBe(galleryWidth >= 896 ? 3 : galleryWidth >= 512 ? 2 : 1)
     }
-    await frame.getByLabel("Display name", { exact: true }).fill("Ada Preview")
-    await frame.getByRole("button", { name: "Save profile" }).click()
-    await expect(frame.getByRole("status")).toContainText("Profile saved")
-    const notifications = frame.locator('[data-composition="notifications"]')
-    await notifications.getByRole("switch", { name: "Weekly digest" }).click()
-    await notifications.getByRole("switch", { name: "Product updates" }).click()
-    await expect(notifications.getByRole("status")).toHaveCount(0)
-    await notifications.getByRole("button", { name: "Save preferences" }).click()
-    await expect(notifications.getByRole("status")).toContainText("Digest off. Updates on.")
+    // PUI-83 removed Account profile, Notifications, and Team access from the gallery (their workflows remain covered by
+    // their own Storybook composition specs). The surviving gallery keeps light, stable interactions (PUI-84).
     const support = frame.locator('[data-composition="support-request"]')
     await support.getByLabel("Message").fill("")
     await support.getByRole("button", { name: "Send message" }).click()
     await expect(support.getByRole("alert")).toHaveText("Enter a message.")
+    await expect(support.getByLabel("Message")).toHaveAttribute("aria-invalid", "true")
     await support.getByLabel("Message").fill("A local example")
     await support.getByRole("button", { name: "Send message" }).click()
     await expect(support.getByRole("status")).toContainText("Nothing was sent.")
-    await frame.getByRole("button", { name: "Manage access" }).click()
-    await expect(frame.getByRole("dialog")).toBeVisible()
-    await frame.getByLabel("Grace Hopper’s role").selectOption("Viewer")
-    await frame.getByRole("button", { name: "Save access" }).focus()
-    await page.keyboard.press("Enter")
-    await expect(frame.getByRole("dialog")).toHaveCount(0)
-    await expect(frame.locator('[data-composition="team-access"]')).toContainText("Viewer")
+    const revenue = frame.locator('[data-composition="revenue-overview"]')
+    await revenue.getByRole("radio", { name: "Week" }).click()
+    await expect(revenue.getByRole("radio", { name: "Week" })).toHaveAttribute("aria-checked", "true")
+    const schedule = frame.locator('[data-composition="upcoming-schedule"]')
+    await schedule.getByRole("button", { name: /^Friday, October 18/ }).click()
+    await expect(schedule.getByText("Launch v2.0")).toBeVisible()
     await editorCategory(page, "Colors")
     await colorInput(page, "primary").fill("rejected draft retained")
     await expect(page.getByTestId("color-primary-error")).toBeVisible()
     await workspaceMode(page, "Preview")
-    await expect(frame.getByLabel("Display name", { exact: true })).toHaveValue("Ada Preview")
+    // Preview state survives the editor round trip.
+    await expect(frame.getByLabel("Message", { exact: true })).toHaveValue("A local example")
+    await expect(frame.locator('[data-composition="revenue-overview"]').getByRole("radio", { name: "Week" })).toHaveAttribute("aria-checked", "true")
     await workspaceMode(page, "Controls")
     // Desktop keeps the sidebar mounted, so a rejected draft stays visible; the official mobile sheet unmounts on close,
     // so the draft is discarded and the field shows the active value again. Neither path ever activates the draft.
@@ -137,7 +132,7 @@ for (const mode of ["light", "dark"] as const) {
     await workspaceMode(page, "Preview")
     await page.screenshot({ path: info.outputPath(`quiet-${mode}.png`), fullPage: true })
     await page.emulateMedia({ reducedMotion: "reduce" })
-    await expect.poll(() => frame.getByRole("button", { name: "Save profile" }).evaluate(el => getComputedStyle(el).transitionDuration)).toBe("0s")
+    await expect.poll(() => frame.getByRole("button", { name: "Upgrade" }).evaluate(el => getComputedStyle(el).transitionDuration)).toBe("0s")
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width)
   })
 }

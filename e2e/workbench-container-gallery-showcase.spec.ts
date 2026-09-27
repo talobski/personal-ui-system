@@ -18,7 +18,8 @@ const revision = async (page: Page) => Number(await page.locator("#workbench-act
 const toggle = (page: Page) => page.getByRole("switch", { name: "Toggle dark mode", exact: true })
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-const ORDER = ["productive-week", "quick-find", "account-profile", "notifications", "plan-usage", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board", "team-access", "workspace-settings", "room-to-think"]
+/** PUI-83 curated order (workbench-cards-gallery-curation-v1-001): the left stack, then the right region. */
+const ORDER = ["plan-usage", "quick-find", "productive-week", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]
 
 async function open(page: Page) {
   await page.goto("/")
@@ -78,17 +79,17 @@ test.describe("CGS-03 to CGS-05 container-responsive gallery", () => {
     const viewports = new Set(Object.entries(sweep).filter(([key]) => /^\d+$/.test(key)).map(([, g]) => g.viewport))
     expect(viewports.size).toBe(1)
     // < 42rem: one column. 42rem: 6/6. 56rem: 5/7. 72rem: 4/8. Right is larger than left at every wide step.
-    expect(sweep[600]).toMatchObject({ frameColumns: 1, groups: [2, 2], overflow: false })
+    expect(sweep[600]).toMatchObject({ frameColumns: 1, groups: [2], overflow: false })
     close(sweep[600]!.left.width, 600)
-    expect(sweep[760]).toMatchObject({ frameColumns: 12, groups: [1, 1], overflow: false })
+    expect(sweep[760]).toMatchObject({ frameColumns: 12, groups: [1], overflow: false })
     close(sweep[760]!.left.width, sweep[760]!.right.width)
     for (const [width, share] of [[1000, 7 / 5], [1300, 8 / 4]] as const) {
       const g = sweep[width]!
-      expect(g).toMatchObject({ frameColumns: 12, groups: [2, 2], overflow: false })
+      expect(g).toMatchObject({ frameColumns: 12, groups: [2], overflow: false })
       close(g.left.y, g.right.y)
-      // 12 tracks with 11 x 24px gaps: the spans' track ratio shows in the regions' widths.
-      const track = (width - 11 * 24) / 12
-      close(g.right.width, share * (12 / (1 + share)) * track + (share * (12 / (1 + share)) - 1) * 24, 2)
+      // 12 tracks with 11 x 16px gaps (PUI-81): the spans' track ratio shows in the regions' widths.
+      const track = (width - 11 * 16) / 12
+      close(g.right.width, share * (12 / (1 + share)) * track + (share * (12 / (1 + share)) - 1) * 16, 2)
       expect(g.right.width).toBeGreaterThan(g.left.width * 1.3)
     }
     expect(sweep[1300]!.right.width / sweep[1300]!.left.width).toBeGreaterThan(sweep[1000]!.right.width / sweep[1000]!.left.width)
@@ -99,25 +100,26 @@ test.describe("CGS-03 to CGS-05 container-responsive gallery", () => {
     expect(sweep.collapsed!.right.width / sweep.collapsed!.left.width).toBeGreaterThan(sweep.open!.right.width / sweep.open!.left.width + 0.3)
   })
 
-  test("CGS-04 a tall card never holds down an unrelated stack; natural heights and local pairs remain", async ({ page }, info) => {
+  test("CGS-04 a tall card never holds down an unrelated stack; natural heights remain and the local pair matches (PUI-82)", async ({ page }, info) => {
     test.skip(isMobileShell(page), "side-by-side regions need the desktop gallery width")
     await open(page)
     const frame = previewFrame(page)
     const before = await geometry(frame)
     const grow = (id: string, px: number) => frame.locator(`[data-composition="${id}"]`).evaluate((el, h) => { (el.firstElementChild as HTMLElement).style.minHeight = `${h}px` }, px)
-    await grow("productive-week", 1400)
+    await grow("plan-usage", 1400)
     const tallLeft = await geometry(frame)
     // The right region is untouched by a very tall left card.
-    for (const id of ["revenue-overview", "upcoming-schedule", "recent-activity", "launch-board", "team-access"]) close(tallLeft.items[id]!.y, before.items[id]!.y)
-    close(tallLeft.items["quick-find"]!.y - tallLeft.items["productive-week"]!.bottom, 24)
-    await grow("productive-week", 0)
+    for (const id of ["revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]) close(tallLeft.items[id]!.y, before.items[id]!.y)
+    close(tallLeft.items["quick-find"]!.y - tallLeft.items["plan-usage"]!.bottom, 16)
+    await grow("plan-usage", 0)
     await grow("revenue-overview", 1400)
     const tallRight = await geometry(frame)
-    for (const id of ["productive-week", "quick-find", "account-profile", "notifications", "plan-usage", "support-request"]) close(tallRight.items[id]!.y, before.items[id]!.y)
-    close(tallRight.items["upcoming-schedule"]!.y - tallRight.items["revenue-overview"]!.bottom, 24)
-    // An intentional local pair still starts together, each at its own natural height.
+    for (const id of ["plan-usage", "quick-find", "productive-week", "support-request"]) close(tallRight.items[id]!.y, before.items[id]!.y)
+    close(tallRight.items["upcoming-schedule"]!.y - tallRight.items["revenue-overview"]!.bottom, 16)
+    // The intentional local pair starts together and, side by side, shares the taller card's height (PUI-82
+    // supersedes the earlier independent pair heights).
     close(tallRight.items["upcoming-schedule"]!.y, tallRight.items["recent-activity"]!.y)
-    expect(tallRight.items["upcoming-schedule"]!.height).not.toBe(tallRight.items["recent-activity"]!.height)
+    close(tallRight.items["upcoming-schedule"]!.height, tallRight.items["recent-activity"]!.height)
     await info.attach("cgs-04-flow.json", { body: JSON.stringify({ before: before.items, tallLeft: tallLeft.items, tallRight: tallRight.items }, null, 2), contentType: "application/json" })
   })
 
@@ -167,11 +169,9 @@ test.describe("CGS-08 theme responsiveness", () => {
         const resolved = await root.evaluate(() => {
           const as = (value: string) => { const t = document.createElement("span"); t.style.color = value; document.body.append(t); const c = getComputedStyle(t).color; t.remove(); return c }
           const plan = document.querySelector('[data-composition="plan-usage"] [role=img] > span')!
-          const cover = document.querySelector('[data-composition="room-to-think"] [aria-hidden="true"] > span')!
           const day = document.querySelector('[data-composition="upcoming-schedule"] [aria-pressed="true"]')!
           return {
             plan: [getComputedStyle(plan).backgroundColor, as("var(--chart-1)")],
-            cover: [getComputedStyle(cover).backgroundColor, as("var(--chart-1)")],
             day: [getComputedStyle(day).backgroundColor, as("var(--primary)")],
             stroke: [document.querySelector('[data-composition="revenue-overview"] .recharts-area-curve')?.getAttribute("stroke") ?? "", "var(--color-revenue)"],
           }
@@ -192,8 +192,9 @@ test.describe("CGS-08 theme responsiveness", () => {
     const style = (selector: string, property: string) => frame.locator(selector).first().evaluate((el, name) => getComputedStyle(el).getPropertyValue(name), property)
     const segment = '[data-composition="plan-usage"] [role=img] > span'
     const tile = '[data-composition="plan-usage"] .shadow-md'
-    const title = '[data-composition="revenue-overview"] h2'
-    const kpi = '[data-composition="revenue-overview"] dl > div'
+    // Studio revenue no longer shows a title or metric tiles (PUI-85); the Storage title and upgrade tile carry the probes.
+    const title = '[data-composition="plan-usage"] h2'
+    const kpi = tile
     const before = { segment: await style(segment, "background-color"), radius: await style(kpi, "border-top-left-radius"), padding: await style(kpi, "padding-left"), shadow: await style(tile, "box-shadow"), font: await style(title, "font-family") }
 
     await editorCategory(page, "Colors")
@@ -224,7 +225,7 @@ test.describe("CGS-08 theme responsiveness", () => {
 
 test.describe("CGS-09 showcase interactions", () => {
   for (const reducedMotion of ["no-preference", "reduce"] as const) {
-    test(`every new composition is operable with named controls and status feedback (${reducedMotion})`, async ({ page }, info) => {
+    test(`every curated showcase composition is operable with named controls and status feedback (${reducedMotion})`, async ({ page }, info) => {
       test.setTimeout(90_000)
       await page.emulateMedia({ reducedMotion })
       await open(page)
@@ -232,47 +233,35 @@ test.describe("CGS-09 showcase interactions", () => {
       const frame = previewFrame(page)
       const card = (id: string) => frame.locator(`[data-composition="${id}"]`)
 
+      // Gallery presentations are stable (PUI-84); geometry before/after is asserted in workbench-cards-gallery-curation.spec.ts.
       const revenue = card("revenue-overview")
       const monthly = await revenue.locator("dd").first().innerText()
       await revenue.getByRole("radio", { name: "Quarter" }).click()
       await expect(revenue.getByRole("radio", { name: "Quarter" })).toHaveAttribute("aria-checked", "true")
       await expect(revenue.locator("dd").first()).not.toHaveText(monthly)
-      await expect(revenue.getByText("Income against costs, this quarter.")).toBeVisible()
 
       const schedule = card("upcoming-schedule")
       await schedule.getByRole("button", { name: /^Saturday, October 19, no events$/ }).click()
-      await expect(schedule.getByText("Nothing scheduled. A clear day for deep work.")).toBeVisible()
-      await schedule.getByRole("button", { name: "Add focus block" }).click()
-      await expect(schedule.getByRole("button", { name: /^Saturday, October 19, 1 event$/ })).toHaveAttribute("aria-pressed", "true")
-      await expect(schedule.getByText("Focus block", { exact: true })).toBeVisible()
+      await expect(schedule.getByRole("button", { name: /^Saturday, October 19, no events$/ })).toHaveAttribute("aria-pressed", "true")
+      await expect(schedule.getByText("Open time")).toHaveCount(3)
+      await expect(schedule.getByRole("button", { name: "Add focus block" })).toHaveCount(0)
 
       const board = card("launch-board")
-      const progress = board.getByRole("progressbar", { name: "Launch progress" })
-      await expect(progress).toHaveAttribute("aria-valuenow", "3")
-      await board.getByRole("button", { name: "Move “Audit dark-mode contrast” to Done" }).click()
-      await expect(progress).toHaveAttribute("aria-valuenow", "4")
-      await board.getByRole("button", { name: "Move “Write the changelog” to In progress" }).focus()
-      await page.keyboard.press("Enter")
-      await expect(board.getByRole("button", { name: "Move “Write the changelog” to Done" })).toBeVisible()
+      await expect(board.getByRole("progressbar", { name: "Launch progress" })).toHaveAttribute("aria-valuenow", "3")
+      await expect(board.getByRole("button")).toHaveCount(0)
 
       const find = card("quick-find")
       await find.getByRole("searchbox", { name: "Search commands" }).fill("export")
-      await expect(find.getByRole("list", { name: "Commands" }).getByRole("listitem")).toHaveCount(1)
+      await expect(find.getByRole("list", { name: "Commands" }).getByRole("button", { disabled: false })).toHaveCount(1)
       await find.getByRole("button", { name: /Export theme JSON/ }).click()
       await expect(find.getByRole("status")).toHaveText("Opened “Export theme JSON” in this preview only.")
       await find.getByRole("searchbox", { name: "Search commands" }).fill("zzz")
-      await expect(find.getByText("No matches for “zzz”.")).toBeVisible()
+      await expect(find.getByRole("list", { name: "Commands" }).getByRole("button", { disabled: true })).toHaveCount(5)
 
       const plan = card("plan-usage")
       await expect(plan.getByRole("img", { name: /% of storage used$/ })).toBeVisible()
       await plan.getByRole("button", { name: "Upgrade" }).click()
       await expect(plan.getByRole("status")).toHaveText("Upgrade preview only. Nothing was charged.")
-
-      const essay = card("room-to-think")
-      await essay.getByRole("button", { name: "Keep reading" }).click()
-      await expect(essay.getByRole("button", { name: "Show less" })).toHaveAttribute("aria-expanded", "true")
-      await essay.getByRole("button", { name: "Save for later" }).click()
-      await expect(essay.getByRole("button", { name: "Save for later" })).toHaveAttribute("aria-pressed", "true")
 
       await axe(page, info, `interactions-light-${reducedMotion}`)
       await setColorMode(page, "dark")
