@@ -1,15 +1,16 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`b15380fd2ad1f221055af382841a9045bbdd84de` on `main`. Phase
-`workbench-nested-gallery-interaction-polish-v1-001` is accepted, promoted,
-verified, and closed for PUI-65 through PUI-70. Its immutable reference packet
-preserves verbatim admission-time Linear snapshots alongside the authoritative
-reconciled contract. No owner visual-review gate was admitted. The phase record
-also preserves a one-time worker execution-envelope violation: Corepack made an
-unauthorized pnpm download during producer verification. The owner accepted the
-documented incident for this phase only; it grants no worker-network authority
-to future phases. The earlier
+`696e7c4e1af19be88bcac308dda2227acc9323f6` on `main`. Phase
+`workbench-container-gallery-showcase-v1-001` is accepted and promoted for
+PUI-78 through PUI-80. Its immutable packet preserves verbatim admission-time
+Linear snapshots alongside the authoritative reconciled contract. Lead browser
+and technical evidence and independent protected verification passed. No owner
+visual-review gate was admitted. The preceding nested-gallery phase's record
+preserves a one-time worker execution-envelope violation: Corepack made an
+unauthorized pnpm download during its producer verification. The owner accepted
+that documented incident for that phase only; it grants no worker-network
+authority to future phases. The earlier
 `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
@@ -119,6 +120,18 @@ for 120 ms, flushing the latest value at gesture completion, and producing one
 history checkpoint per continuous gesture. The registry remains 19 resources,
 the mutation union remains 12 operations, and no dependency, schema,
 persistence, credential, or product runtime-network boundary expands.
+
+The accepted container gallery showcase phase delivers PUI-78 through PUI-80.
+The gallery now responds to its own container width, with a smaller left and
+larger right region at wide sizes and independent natural-height stacks and
+local groups. Thirteen varied compositions showcase semantic Theme v3 colors,
+typography, spacing, radius, borders, shadows, and chart tokens across light
+and dark modes. The preview toolbar places an accessible sun/moon Switch beside
+the existing recovery and Export/Save actions, using matching short separators.
+The shared Switch gained only an optional backward-compatible thumb-content
+slot; the registry remains 19 resources and the mutation union 12 operations.
+No Theme v3 schema, persistence, Design Command, dependency, credential, or
+product runtime-network boundary changed.
 
 ## V1 product contract
 
