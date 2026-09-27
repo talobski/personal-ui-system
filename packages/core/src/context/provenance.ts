@@ -56,7 +56,7 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "resource:switch": {
     sourceId: "packages/core/src/contracts/data/switch.ts",
-    sha256: "3ad20183f435d069e6b499ba11abf65adf899772e61b72f0c8f8e58d8e9dc0d5",
+    sha256: "dad5bcd192ca9a718726c6545b43c547a9180c177ac5cd5b873143bebf8081bb",
   },
   "resource:textarea": {
     sourceId: "packages/core/src/contracts/data/textarea.ts",

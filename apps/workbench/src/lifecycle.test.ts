@@ -812,13 +812,30 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(app).toContain('<span className="max-sm:sr-only">Export</span>')
     // PUI-68: recovery actions show a pointer only while enabled; disabled ones keep a default cursor.
     for (const name of ["Undo", "Redo", "Reset"]) expect(app).toContain(`<Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="${name}" title="${name}"`)
-    // A short button-height semantic separator sits between the recovery group and Export.
-    expect(app).toMatch(/data-testid="history-controls"[\s\S]*?<\/div>\s*<div role="separator" aria-orientation="vertical" className="h-8 w-px shrink-0 bg-border" \/>[\s\S]*?title="Export"/)
+    // A short button-height semantic separator sits between the recovery group and Export; PUI-80 shares the one
+    // definition with the separator after the colour-mode Switch, so both boundaries match by construction.
+    expect(app).toContain('function ToolbarSeparator() {\n  return <div role="separator" aria-orientation="vertical" className="h-8 w-px shrink-0 bg-border" />\n}')
+    expect(app).toMatch(/data-testid="history-controls"[\s\S]*?<\/div>\s*<ToolbarSeparator \/>[\s\S]*?title="Export"/)
+    expect(app.match(/role="separator" aria-orientation="vertical"/g)).toHaveLength(1)
     expect(app).not.toContain("Export JSON")
     // Disabled buttons drop pointer events, so no pointer cursor can show while disabled.
     expect(button).toContain("disabled:pointer-events-none")
     expect(button).not.toContain("cursor-pointer")
     // Labels, sliders, and static copy receive no pointer cursor.
     expect(controls).not.toMatch(/<(?:FieldLabel|Slider|FieldDescription|span)[^>]*cursor-pointer/)
+  })
+
+  it("CGS-10/11 groups the right toolbar as colour-mode Switch | history | export/save with an icon-only thumb (PUI-80)", () => {
+    const toolbar = app.slice(app.indexOf('data-testid="workbench-toolbar"'), app.indexOf('title="Save"'))
+    const at = (needle: string) => { const index = toolbar.indexOf(needle); expect(index, needle).toBeGreaterThan(-1); return index }
+    const order = ["<SidebarTrigger", 'className="ml-auto flex items-center gap-2"', 'id="color-mode-switch"', "<ToolbarSeparator />", 'data-testid="history-controls"', 'aria-label="Undo"', 'aria-label="Redo"', 'aria-label="Reset"', "</ResponsiveDialog>\n            </div>\n            <ToolbarSeparator />", 'title="Export"'].map(at)
+    expect([...order].sort((a, b) => a - b)).toEqual(order)
+    // No visible label: a stable accessible name, the shared Switch semantics, and a mode-mirroring thumb glyph.
+    expect(app).not.toMatch(/>\s*Dark mode\s*</)
+    expect(app).not.toContain('htmlFor="color-mode-switch"')
+    expect(toolbar).toContain('aria-label="Toggle dark mode"')
+    expect(toolbar).toContain('checked={mode === "dark"}')
+    expect(toolbar).toContain('thumbContent={mode === "dark" ? <Moon aria-hidden="true" data-icon="moon" className="size-2.5" /> : <Sun aria-hidden="true" data-icon="sun" className="size-2.5" />}')
+    expect(toolbar).toContain('onCheckedChange={(checked) => { endGesture(); setMode(checked ? "dark" : "light") }}')
   })
 })

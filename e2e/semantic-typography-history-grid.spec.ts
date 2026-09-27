@@ -71,7 +71,7 @@ test.describe("STHG-09 to STHG-12 manual history and recovery", () => {
     await expect(history(page, "Reset")).toBeEnabled()
     await expect(history(page, "Redo")).toBeDisabled()
 
-    // Keyboard: Tab from the Dark mode switch reaches Undo first (the group follows it), then Enter and Space activate it.
+    // Keyboard: Tab from the colour-mode switch (PUI-80: now just before the history group) reaches Undo first (the group follows it), then Enter and Space activate it.
     await page.getByRole("switch", { name: "Dark mode" }).focus()
     await page.keyboard.press("Tab")
     await expect(history(page, "Undo")).toBeFocused()
@@ -266,7 +266,8 @@ test.describe("STHG-06/07 semantic roles reach Workbench chrome and the preview"
     await expect.poll(() => family(page.getByTestId("section-type-heading").locator("h3 button"))).toContain("Manrope")
     expect(await family(page.getByTestId("section-type-heading").locator("h3 button"))).not.toContain("Playfair Display")
     await workspaceMode(page, "Preview")
-    await expect.poll(() => family(page.getByRole("switch", { name: "Dark mode" }).locator("xpath=following-sibling::label"))).toContain("Manrope")
+    // PUI-80 removed the visible "Dark mode" label; the toolbar's remaining visible chrome text (Export) carries Body.
+    await expect.poll(() => family(page.getByTestId("workbench-toolbar").getByRole("button", { name: "Export", exact: true }).locator("span"))).toContain("Manrope")
     const title = frame.locator('[data-composition="productive-week"] h2')
     await expect.poll(() => family(title)).toContain("Playfair Display")
     await expect.poll(() => family(frame.locator('[data-composition="recent-activity"] [data-slot="card-description"]'))).toContain("Manrope")

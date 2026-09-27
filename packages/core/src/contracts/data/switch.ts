@@ -20,11 +20,13 @@ export const switchContract = {
     "Space toggles a focused Switch; Tab moves focus to and from it in document order.",
     "Requires an accessible name from a visible FieldLabel/FieldTitle, wrapping label, or aria-label — never from surrounding prose alone.",
     "Keep the visible focus-visible ring; disabled switches are natively excluded from the tab order.",
+    "Optional thumbContent is a decorative aria-hidden glyph that mirrors the checked state; it never supplies or replaces the accessible name.",
   ],
   composition: [
     "Extends the shadcn Switch source (Radix Switch primitive); adds no bespoke state machine.",
     "Compose one Switch per Field row; use FieldTitle/FieldLabel plus optional FieldDescription for the setting name and explanation.",
     "Group related Switch rows in a FieldGroup or Card for a settings panel.",
+    "Optional thumbContent renders a small icon centred in the thumb (for example sun/moon for a compact colour-mode toggle); omitted, the thumb is the unchanged shadcn thumb.",
   ],
   examples: [
     '<Field orientation="horizontal"><FieldContent><FieldTitle id="email-notifications-label">Email notifications</FieldTitle><FieldDescription>Get an email for account activity.</FieldDescription></FieldContent><Switch id="email-notifications" aria-labelledby="email-notifications-label" /></Field>',

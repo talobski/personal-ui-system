@@ -211,3 +211,16 @@ describe("shadcn foundation", () => {
     ])
   })
 })
+
+describe("CGS-13 Switch optional thumb slot stays one backward-compatible resource", () => {
+  it("adds only an optional thumbContent rendered inside the Radix thumb", () => {
+    const switchSource = source("switch.tsx")
+    expect(switchSource).toContain("thumbContent?: React.ReactNode")
+    expect(switchSource).toContain('thumbContent != null && "grid place-items-center text-foreground"')
+    expect(switchSource).toMatch(/<SwitchPrimitive\.Thumb[\s\S]*?>\s*\{thumbContent\}\s*<\/SwitchPrimitive\.Thumb>/)
+    // The accepted root and thumb geometry are byte-identical to the shadcn source.
+    expect(switchSource).toContain('"pointer-events-none block size-4 rounded-full bg-background ring-0 transition-transform",')
+    expect(switchSource).toContain('"peer inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs')
+    expect(switchSource.replace(/\/\*[\s\S]*?\*\//g, "")).not.toMatch(/onKeyDown|onPointer|addEventListener|aria-label/)
+  })
+})

@@ -2,10 +2,16 @@ import * as React from "react"
 import { cn } from "cn"
 import { Switch as SwitchPrimitive } from "radix-ui"
 
+/**
+ * `thumbContent` is optional and backward compatible: omitted, the thumb is the unchanged shadcn thumb. When present it
+ * is a small decorative, state-reflecting glyph centred in the thumb; the Switch's accessible name still comes from a
+ * label or `aria-label`, never from the glyph.
+ */
 function Switch({
   className,
+  thumbContent,
   ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
+}: React.ComponentProps<typeof SwitchPrimitive.Root> & { thumbContent?: React.ReactNode }) {
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
@@ -20,9 +26,12 @@ function Switch({
         data-slot="switch-thumb"
         className={cn(
           "pointer-events-none block size-4 rounded-full bg-background ring-0 transition-transform",
-          "data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
+          "data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0",
+          thumbContent != null && "grid place-items-center text-foreground"
         )}
-      />
+      >
+        {thumbContent}
+      </SwitchPrimitive.Thumb>
     </SwitchPrimitive.Root>
   )
 }

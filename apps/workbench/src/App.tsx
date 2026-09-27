@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Download, Redo2, RotateCcw, Save, Undo2 } from "@personal-ui/ui/lib/workbench-icons"
+import { Download, Moon, Redo2, RotateCcw, Save, Sun, Undo2 } from "@personal-ui/ui/lib/workbench-icons"
 
 import { applyProposal, createProposalSession, discardProposal, isSidebarColorToken, stageProposal } from "@personal-ui/core"
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
@@ -7,7 +7,6 @@ import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
-import { Label } from "@personal-ui/ui/components/label"
 import { Panel } from "@personal-ui/ui/components/panel"
 import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogClose } from "@personal-ui/ui/components/responsive-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@personal-ui/ui/components/select"
@@ -89,6 +88,11 @@ function TrashIcon() {
 }
 
 /** Opens the command editor while a command evaluates, otherwise closes the mobile sidebar and shows the staged review. */
+/** The one short toolbar group divider, shared so every group boundary (mode | history | export/save) matches. */
+function ToolbarSeparator() {
+  return <div role="separator" aria-orientation="vertical" className="h-8 w-px shrink-0 bg-border" />
+}
+
 function ReviewChangesButton({ evaluating, showCommand }: { evaluating: boolean; showCommand: () => void }) {
   const { isMobile, setOpen, setOpenMobile } = useSidebar()
   return (
@@ -695,11 +699,17 @@ export function App() {
         <h1 className="sr-only">Personal UI Workbench</h1>
         <div data-testid="workbench-toolbar" className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="size-8 cursor-pointer" />
-          <div className="flex items-center gap-2">
-            <Switch id="color-mode-switch" className="cursor-pointer" checked={mode === "dark"} onCheckedChange={(checked) => { endGesture(); setMode(checked ? "dark" : "light") }} />
-            <Label htmlFor="color-mode-switch">Dark mode</Label>
-          </div>
           <div className="ml-auto flex items-center gap-2">
+            {/* PUI-80: icon-only colour mode Switch leads the right cluster; the thumb glyph mirrors the current mode. */}
+            <Switch
+              id="color-mode-switch"
+              aria-label="Toggle dark mode"
+              className="mx-1 cursor-pointer"
+              checked={mode === "dark"}
+              onCheckedChange={(checked) => { endGesture(); setMode(checked ? "dark" : "light") }}
+              thumbContent={mode === "dark" ? <Moon aria-hidden="true" data-icon="moon" className="size-2.5" /> : <Sun aria-hidden="true" data-icon="sun" className="size-2.5" />}
+            />
+            <ToolbarSeparator />
             {/* Recovery group (PUI-3 owner decision): compact icon buttons immediately before Export and Save. */}
             <div role="group" aria-label="Edit history" data-testid="history-controls" className="flex items-center">
               <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Undo" title="Undo" disabled={locked || track.past.length === 0} onClick={undoEdit}>
@@ -731,7 +741,7 @@ export function App() {
                 </ResponsiveDialogContent>
               </ResponsiveDialog>
             </div>
-            <div role="separator" aria-orientation="vertical" className="h-8 w-px shrink-0 bg-border" />
+            <ToolbarSeparator />
             {/* Below 640px the recovery group needs the room: Export and Save keep their names but show only their icons. */}
             <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={locked} onClick={() => { endGesture(); download(exportThemeJson(currentRef.current)) }}>
               <Download aria-hidden="true" className="size-3.5" />

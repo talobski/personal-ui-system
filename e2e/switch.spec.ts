@@ -52,3 +52,29 @@ test("unchecked and disabled Switch states are correct", async ({ page }, testIn
     })
   }
 })
+
+test("optional thumbContent keeps Switch semantics and swaps a decorative glyph inside the thumb (CGS-11)", async ({ page }, testInfo) => {
+  for (const mode of colorModes) {
+    await test.step(mode, async () => {
+      await page.goto(story("thumb-icon"))
+      await setColorMode(page, mode)
+      const toggle = page.getByRole("switch", { name: "Toggle dark mode", exact: true })
+      const thumb = toggle.locator('[data-slot="switch-thumb"]')
+      await expect(toggle).not.toBeChecked()
+      await expect(thumb.locator('[data-icon="sun"]')).toHaveCount(1)
+      await expect(thumb.locator("svg")).toHaveAttribute("aria-hidden", "true")
+      await toggle.focus()
+      await expect.poll(() => toggle.evaluate(el => el.matches(":focus-visible"))).toBe(true)
+      await page.keyboard.press("Space")
+      await expect(toggle).toBeChecked()
+      await expect(thumb.locator('[data-icon="moon"]')).toHaveCount(1)
+      await expect(thumb.locator('[data-icon="sun"]')).toHaveCount(0)
+      // The glyph is centred within the thumb's box.
+      await page.waitForTimeout(250)
+      const [t, i] = [(await thumb.boundingBox())!, (await thumb.locator("svg").boundingBox())!]
+      expect(Math.abs(t.x + t.width / 2 - (i.x + i.width / 2))).toBeLessThanOrEqual(1)
+      expect(Math.abs(t.y + t.height / 2 - (i.y + i.height / 2))).toBeLessThanOrEqual(1)
+      await assertNoSeriousOrCritical(page, testInfo, mode)
+    })
+  }
+})
