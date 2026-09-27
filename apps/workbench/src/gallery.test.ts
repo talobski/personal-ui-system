@@ -273,7 +273,10 @@ describe("WSCG-07 compact table (PUI-90)", () => {
     expect(Array.from(html.matchAll(/<th [^>]*>([^<]+)<\/th>/g), match => match[1])).toEqual(["Status", "Email", "Amount"])
     expect(html.match(/data-slot="table-row"/g)).toHaveLength(6)
     expect(html).toMatch(/<caption data-slot="table-caption" class="[^"]*sr-only[^"]*">/)
-    expect(html).toContain("max-w-0 truncate")
+    // A fixed layout with truncating cells: the official overflow container can never become a scroll region.
+    expect(html).toMatch(/<table data-slot="table" class="[^"]*table-fixed/)
+    expect(html.match(/data-slot="table-cell" class="[^"]*truncate/g)).toHaveLength(15)
+    expect(html.match(/data-slot="table-head" class="[^"]*truncate/g)).toHaveLength(3)
     expect(html).not.toMatch(/<button|<input/)
   })
 })

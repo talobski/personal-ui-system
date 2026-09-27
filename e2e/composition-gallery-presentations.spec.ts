@@ -5,7 +5,9 @@ import type { Page } from "@playwright/test"
 /**
  * workbench-cards-gallery-curation-v1-001 (CGCR-04): each interactive survivor keeps its fuller standalone story, while
  * its thin `Gallery` story (the `stable` presentation the Workbench gallery uses) responds without changing the card's
- * height. Runs against the static Storybook build at 390x844 and 1440x900.
+ * height. Runs against the static Storybook build at 390x844 and 1440x900. Storage lost its only interaction with the
+ * PUI-86 promotion removal, so it no longer has a Gallery presentation. This week, Launch checklist and the support
+ * form left the gallery in PUI-88/90/91; their standalone and Gallery stories are retained and still covered here.
  */
 
 const story = (component: string, name: string) => `/iframe.html?id=composition-${component}--${name}&viewMode=story`
@@ -14,11 +16,6 @@ const cardHeight = (page: Page) => page.locator('[data-slot="card"]').first().ev
 type Case = { component: string; act: (page: Page) => Promise<void>; full: (page: Page) => Promise<void> }
 
 const CASES: Case[] = [
-  {
-    component: "plan-usage",
-    act: page => page.getByRole("button", { name: "Upgrade" }).click(),
-    full: page => expect(page.getByRole("status")).toBeVisible(),
-  },
   {
     component: "quick-find",
     act: async page => { await page.getByRole("searchbox", { name: "Search commands" }).fill("zzz") },

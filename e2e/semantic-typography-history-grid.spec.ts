@@ -34,9 +34,9 @@ async function open(page: Page) {
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 }
 
-/** One committed Effects-tab radius edit through the numeric draft (focus session ends on blur). */
+/** One committed Geometry-tab radius edit through the numeric draft (focus session ends on blur). */
 async function setRadius(page: Page, value: string) {
-  await editorCategory(page, "Effects")
+  await editorCategory(page, "Geometry")
   const field = page.getByRole("textbox", { name: "Radius", exact: true })
   await field.fill(value)
   await field.blur()
@@ -44,7 +44,7 @@ async function setRadius(page: Page, value: string) {
 }
 
 const radiusValue = async (page: Page) => {
-  await editorCategory(page, "Effects")
+  await editorCategory(page, "Geometry")
   return page.getByRole("textbox", { name: "Radius", exact: true }).inputValue()
 }
 
@@ -101,7 +101,7 @@ test.describe("STHG-09 to STHG-12 manual history and recovery", () => {
     await expect(history(page, "Redo")).toBeDisabled()
     await expect(active(page)).toHaveAttribute("data-revision", String(r0 + 6))
     // Invalid drafts create no history and no revision.
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     await page.getByRole("textbox", { name: "Radius", exact: true }).fill("abc")
     await page.getByRole("textbox", { name: "Radius", exact: true }).blur()
     await expect(active(page)).toHaveAttribute("data-revision", String(r0 + 6))
@@ -109,7 +109,7 @@ test.describe("STHG-09 to STHG-12 manual history and recovery", () => {
 
   test("a slider drag is one checkpoint; typing in one focus session is one checkpoint", async ({ page }) => {
     await open(page)
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     const slider = page.getByRole("slider", { name: "Radius", exact: true })
     const track = page.getByTestId("control-radius").locator('[data-slot="slider-track"]')
     await track.scrollIntoViewIfNeeded()
@@ -133,11 +133,11 @@ test.describe("STHG-09 to STHG-12 manual history and recovery", () => {
 
     await workspaceMode(page, "Preview")
     await history(page, "Undo").click()
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     await expect(spacing).toHaveValue("0.25")
     await workspaceMode(page, "Preview")
     await history(page, "Undo").click()
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     await expect(page.getByRole("textbox", { name: "Radius", exact: true })).toHaveValue("0.7")
     await workspaceMode(page, "Preview")
     await expect(history(page, "Undo")).toBeDisabled()
@@ -268,12 +268,12 @@ test.describe("STHG-06/07 semantic roles reach Workbench chrome and the preview"
     await workspaceMode(page, "Preview")
     // PUI-80 removed the visible "Dark mode" label; the toolbar's remaining visible chrome text (Export) carries Body.
     await expect.poll(() => family(page.getByTestId("workbench-toolbar").getByRole("button", { name: "Export", exact: true }).locator("span"))).toContain("Manrope")
-    const title = frame.locator('[data-composition="productive-week"] h2')
+    const title = frame.locator('[data-composition="plan-usage"] h2')
     await expect.poll(() => family(title)).toContain("Playfair Display")
     await expect.poll(() => family(frame.locator('[data-composition="recent-activity"] [data-slot="card-description"]'))).toContain("Manrope")
     // Component-owned size survives role adoption: the title keeps its text-lg size.
     expect(await title.evaluate(el => getComputedStyle(el).fontSize)).toBe("18px")
-    await expect.poll(() => family(frame.locator('[data-composition="productive-week"] h2'))).not.toContain("Manrope")
+    await expect.poll(() => family(frame.locator('[data-composition="plan-usage"] h2'))).not.toContain("Manrope")
     await axe(page, info, "semantic-roles")
   })
 })

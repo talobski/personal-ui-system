@@ -455,29 +455,33 @@ export function LiveFontField({
 /**
  * The persistent Sidebar source mode (`setSidebarTokensEnabled`), applied immediately like every manual control. It
  * never hides or disables the dedicated colour fields: off, they stay editable but unapplied; on, they are live.
+ * PUI-93: the row sits a small gap below the SIDEBAR trigger with a quieter one-step-smaller muted label; the inactive
+ * note is gone, so the Switch is only described while the active note is rendered.
  */
 export function SidebarTokensSwitch({ enabled, disabled, apply }: { enabled: boolean; disabled: boolean; apply: ApplyManual }) {
   const [error, setError] = React.useState<string | null>(null)
   useReportInvalid("sidebar-tokens", error !== null)
   return (
-    <Field data-invalid={error !== null} data-testid="control-sidebar-tokens" className="gap-1.5">
+    <Field data-invalid={error !== null} data-testid="control-sidebar-tokens" className="mt-2 gap-1.5">
       <div className="flex items-center gap-2">
         <Switch
           id="sidebar-tokens-switch"
           className="cursor-pointer"
           checked={enabled}
           disabled={disabled}
-          aria-describedby="sidebar-tokens-status"
+          aria-describedby={enabled ? "sidebar-tokens-status" : undefined}
           onCheckedChange={(checked) => {
             const issues = apply(() => ({ op: "setSidebarTokensEnabled", value: checked }))
             setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
           }}
         />
-        <Label htmlFor="sidebar-tokens-switch">Use sidebar tokens</Label>
+        <Label htmlFor="sidebar-tokens-switch" className="text-xs text-muted-foreground">Use sidebar tokens</Label>
       </div>
-      <FieldDescription id="sidebar-tokens-status" data-testid="sidebar-tokens-status" data-active={enabled}>
-        {enabled ? "Sidebar tokens are active." : "Sidebar tokens are currently not applied."}
-      </FieldDescription>
+      {enabled && (
+        <FieldDescription id="sidebar-tokens-status" data-testid="sidebar-tokens-status" data-active={enabled}>
+          Sidebar tokens are active.
+        </FieldDescription>
+      )}
       {error !== null && <FieldError data-testid="sidebar-tokens-error">{error}</FieldError>}
     </Field>
   )

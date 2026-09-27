@@ -57,27 +57,30 @@ test("Chart renders themed series with a text summary and a keyboard-reachable a
   }
 })
 
-test("Productive Week keeps its data and summary on the Chart resource with theme chart tokens", async ({ page }, testInfo) => {
+test("Weekly steps (the repurposed Productive Week) keeps its data and summary on the Chart resource with theme chart tokens (PUI-89)", async ({ page }, testInfo) => {
   for (const mode of colorModes) {
     await test.step(mode, async () => {
       await page.goto(weekStory)
       await setColorMode(page, mode)
       const figure = page.getByTestId("productive-week-chart")
-      await expect(figure.locator("figcaption")).toHaveText("Tasks completed Monday through Sunday: 2, 4, 3, 6, 5, 7, 5. Total 32.")
+      await expect(figure.locator("figcaption")).toHaveText("Daily steps Monday through Sunday: 7,820, 9,140, 8,310, 10,260, 9,480, 6,150, 7,340. Average 8,357.")
+      await expect(page.getByText("8,357", { exact: true })).toHaveClass(/(?:^| )type-heading(?: |$)/)
+      await expect(page.getByText("Average steps this week", { exact: true })).toBeVisible()
+      await expect(page.getByText("+12.4% vs last week")).toBeVisible()
+      await expect(page.getByText(/tasks completed|A productive week/)).toHaveCount(0)
       await expect(figure.locator('[data-slot="chart"]')).toHaveCount(1)
       const bars = figure.locator(".recharts-bar-rectangle path")
       await expect(bars).toHaveCount(7)
-      expect(await bars.evaluateAll((paths) => paths.map((p) => p.getAttribute("fill")))).toEqual([...Array(6).fill("var(--chart-3)"), "var(--chart-2)"])
+      expect(await bars.evaluateAll((paths) => paths.map((p) => p.getAttribute("fill")))).toEqual(["var(--chart-3)", "var(--chart-3)", "var(--chart-3)", "var(--chart-2)", "var(--chart-3)", "var(--chart-3)", "var(--chart-3)"])
       const heights = await bars.evaluateAll((paths) => paths.map((p) => Math.round(p.getBoundingClientRect().height)))
-      // Heights follow the data 2, 4, 3, 6, 5, 7, 5.
-      expect(heights[5]).toBeGreaterThan(heights[3]!)
-      expect(heights[3]).toBeGreaterThan(heights[1]!)
-      expect(heights[1]).toBeGreaterThan(heights[0]!)
+      // Heights follow the data: Thursday is tallest, Saturday shortest.
+      expect(heights[3]).toBe(Math.max(...heights))
+      expect(heights[5]).toBe(Math.min(...heights))
       await expect(figure.locator(".recharts-cartesian-axis-tick-value")).toHaveText(["M", "T", "W", "T", "F", "S", "S"])
       await page.keyboard.press("Tab")
       await page.keyboard.press("ArrowRight")
-      await expect(figure.locator(".recharts-tooltip-wrapper")).toContainText("Tasks")
-      await assertNoSeriousOrCritical(page, testInfo, `${mode}-productive-week`)
+      await expect(figure.locator(".recharts-tooltip-wrapper")).toContainText("Steps")
+      await assertNoSeriousOrCritical(page, testInfo, `${mode}-weekly-steps`)
     })
   }
 })

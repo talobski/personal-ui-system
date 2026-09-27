@@ -6,8 +6,8 @@ import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import { colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
-/** PUI-83 curated gallery DOM order: the left stack, then the right region top to bottom. */
-const ids = ["plan-usage", "quick-find", "productive-week", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]
+/** PUI-86–92 eleven-card gallery DOM order: the left stack, then the right region top to bottom. */
+const ids = ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]
 
 /** The preview iframe's box versus the panel content box it should fill (WTEP-02). */
 async function previewFill(page: import("@playwright/test").Page) {
@@ -77,28 +77,25 @@ for (const mode of ["light", "dark"] as const) {
       const galleryWidth = await frame.locator("[data-gallery]").evaluate(el => el.getBoundingClientRect().width)
       expect(new Set(geometry.map(b => b.x)).size).toBe(galleryWidth >= 896 ? 3 : galleryWidth >= 512 ? 2 : 1)
     }
-    // PUI-83 removed Account profile, Notifications, and Team access from the gallery (their workflows remain covered by
-    // their own Storybook composition specs). The surviving gallery keeps light, stable interactions (PUI-84).
-    const support = frame.locator('[data-composition="support-request"]')
-    await support.getByLabel("Message").fill("")
-    await support.getByRole("button", { name: "Send message" }).click()
-    await expect(support.getByRole("alert")).toHaveText("Enter a message.")
-    await expect(support.getByLabel("Message")).toHaveAttribute("aria-invalid", "true")
-    await support.getByLabel("Message").fill("A local example")
-    await support.getByRole("button", { name: "Send message" }).click()
-    await expect(support.getByRole("status")).toContainText("Nothing was sent.")
+    // PUI-83 and PUI-88/90/91 removed cards from the gallery (their workflows remain covered by their own Storybook
+    // composition specs). The current gallery keeps light, stable interactions (PUI-84, PUI-91, PUI-92).
+    const signup = frame.locator('[data-composition="signup-form"]')
+    await signup.getByLabel("Email").fill("a.local@example.com")
+    await signup.getByRole("button", { name: "Create Account" }).click()
+    await expect(signup.getByRole("status")).toHaveText("Preview only. No account was created.")
+    await expect(signup.getByRole("alert")).toHaveCount(0)
     const revenue = frame.locator('[data-composition="revenue-overview"]')
     await revenue.getByRole("radio", { name: "Week" }).click()
     await expect(revenue.getByRole("radio", { name: "Week" })).toHaveAttribute("aria-checked", "true")
-    const schedule = frame.locator('[data-composition="upcoming-schedule"]')
-    await schedule.getByRole("button", { name: /^Friday, October 18/ }).click()
-    await expect(schedule.getByText("Launch v2.0")).toBeVisible()
+    const player = frame.locator('[data-composition="now-playing"]')
+    await player.getByRole("button", { name: "Play" }).click()
+    await expect(player.getByRole("button", { name: "Pause" })).toBeVisible()
     await editorCategory(page, "Colors")
     await colorInput(page, "primary").fill("rejected draft retained")
     await expect(page.getByTestId("color-primary-error")).toBeVisible()
     await workspaceMode(page, "Preview")
     // Preview state survives the editor round trip.
-    await expect(frame.getByLabel("Message", { exact: true })).toHaveValue("A local example")
+    await expect(frame.getByLabel("Email", { exact: true })).toHaveValue("a.local@example.com")
     await expect(frame.locator('[data-composition="revenue-overview"]').getByRole("radio", { name: "Week" })).toHaveAttribute("aria-checked", "true")
     await workspaceMode(page, "Controls")
     // Desktop keeps the sidebar mounted, so a rejected draft stays visible; the official mobile sheet unmounts on close,
@@ -132,7 +129,7 @@ for (const mode of ["light", "dark"] as const) {
     await workspaceMode(page, "Preview")
     await page.screenshot({ path: info.outputPath(`quiet-${mode}.png`), fullPage: true })
     await page.emulateMedia({ reducedMotion: "reduce" })
-    await expect.poll(() => frame.getByRole("button", { name: "Upgrade" }).evaluate(el => getComputedStyle(el).transitionDuration)).toBe("0s")
+    await expect.poll(() => frame.getByRole("button", { name: "Create Account" }).evaluate(el => getComputedStyle(el).transitionDuration)).toBe("0s")
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width)
   })
 }
@@ -223,7 +220,7 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
     expect(await sheet.evaluate(el => el.contains(document.activeElement))).toBe(true)
   }
   await expect(sheet.getByRole("combobox", { name: "Active theme" })).toBeVisible()
-  for (const [category, probe] of [["Colors", "Primary"], ["Typography", "Body Font"], ["Effects", "Radius"], ["Command", "Command"]] as const) {
+  for (const [category, probe] of [["Colors", "Primary"], ["Typography", "Body Font"], ["Geometry", "Radius"], ["Effects", "Shadow color"], ["Command", "Command"]] as const) {
     await sheet.getByRole("tab", { name: category, exact: true }).click()
     const panel = sheet.getByRole("tabpanel", { name: category, exact: true })
     await expect(panel).toBeVisible()
@@ -464,7 +461,7 @@ for (const mode of ["light", "dark"] as const) {
     await setColorMode(page, mode)
     const styles: unknown[] = []
     // Font labels are intentionally screen-reader-only (WTCP-09); compare the visible Typography numeric label.
-    for (const [category, label] of [["Colors", "Primary"], ["Typography", "Body Tracking"], ["Effects", "Shadow color"], ["Command", "Command"]] as const) {
+    for (const [category, label] of [["Colors", "Primary"], ["Typography", "Body Tracking"], ["Geometry", "Radius"], ["Effects", "Shadow color"], ["Command", "Command"]] as const) {
       await editorCategory(page, category)
       await expect(page.getByRole("tabpanel", { name: category, exact: true })).toBeVisible()
       await expect(page.getByRole("heading", { name: category === "Command" ? "Design command" : category, exact: true })).toHaveCount(0)

@@ -59,6 +59,9 @@ for (const mode of ["light", "dark"] as const) {
       // WRCP-08: header px-2 plus selector px-2 resolve the selector content to the same 16px inner edge.
       close((await box(themeSelect)).x - headerBox.x, 8)
       close((await box(themeSelect.getByTestId("theme-swatches"))).x - headerBox.x, 16)
+      // PUI-94's fifth tab can scroll the contained category row to reveal Effects in the mobile sheet; the inset is
+      // measured from the row's start.
+      await page.getByRole("region", { name: "Editor category navigation", exact: true }).evaluate(el => { el.scrollLeft = 0 })
       const tabs = await box(page.getByRole("tablist", { name: "Editor categories" }))
       close(tabs.x - headerBox.x, 16)
 
@@ -87,7 +90,7 @@ for (const mode of ["light", "dark"] as const) {
       for (const option of await page.getByRole("option").all()) await checkSwatches(option.getByTestId("theme-swatches"))
       await page.keyboard.press("Escape")
 
-      for (const category of ["Effects", "Typography", "Colors"] as const) {
+      for (const category of ["Geometry", "Effects", "Typography", "Colors"] as const) {
         await editorCategory(page, category)
         const panel = page.getByRole("tabpanel", { name: category, exact: true })
         for (const row of await panel.locator('[data-testid$="-row"]').all()) {
@@ -148,7 +151,7 @@ for (const mode of ["light", "dark"] as const) {
         expect(await seriousOutsideKnownDebt(page, axe.violations, info, `${category}-${mode}-${reducedMotion}`)).toEqual([])
         expect(await panel.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
       }
-      await editorCategory(page, "Effects")
+      await editorCategory(page, "Geometry")
       const spacing = page.getByRole("slider", { name: "Spacing", exact: true })
       await spacing.focus(); await spacing.press("ArrowRight")
       await expect(page.getByRole("textbox", { name: "Spacing", exact: true })).toHaveValue("0.255")

@@ -14,31 +14,31 @@ const usd = (value: number) => value.toLocaleString("en-US", { style: "currency"
 
 /**
  * PUI-90: a compact recipe on the official Table resource. The table is the whole composition: no toolbar, filter,
- * column menu, selection, row menu, summary or pagination. The Email column absorbs spare width and truncates, so the
- * table never overflows its card and the Table container never becomes a scroll region.
+ * column menu, selection, row menu, summary or pagination. A fixed layout pins the table to its card's width and every
+ * cell truncates, so no theme spacing or card width can make the Table container a (keyboard-unreachable) scroll region.
  */
 export function RecentPayments() {
   return (
     <Card>
       <CardContent>
         <h2 className="sr-only">Recent payments</h2>
-        <Table>
+        <Table className="table-fixed">
           <TableCaption className="sr-only">Five most recent payments with status, email and amount.</TableCaption>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="pl-0">Status</TableHead>
-              <TableHead className="w-full">Email</TableHead>
-              <TableHead className="pr-0 text-right">Amount</TableHead>
+              <TableHead className="w-[32%] truncate pl-0">Status</TableHead>
+              <TableHead className="truncate">Email</TableHead>
+              <TableHead className="w-[26%] truncate pr-0 text-right">Amount</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {PAYMENTS.map(payment => (
               <TableRow key={payment.id}>
-                <TableCell className="pl-0">
+                <TableCell className="truncate pl-0">
                   <span className="inline-flex items-center gap-2"><span aria-hidden="true" className={`size-1.5 shrink-0 rounded-full ${DOT[payment.status]}`} />{payment.status}</span>
                 </TableCell>
-                <TableCell className="max-w-0 truncate text-muted-foreground">{payment.email}</TableCell>
-                <TableCell className="pr-0 text-right font-mono text-xs tabular-nums">{usd(payment.amount)}</TableCell>
+                <TableCell className="truncate text-muted-foreground">{payment.email}</TableCell>
+                <TableCell className="truncate pr-0 text-right font-mono text-xs tabular-nums">{usd(payment.amount)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

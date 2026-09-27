@@ -103,7 +103,7 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
     await page.getByLabel("Body Font", { exact: true }).click()
     expect(await typography(page.getByRole("combobox", { name: "Search Body fonts" }))).toEqual(commandType)
     await page.keyboard.press("Escape")
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     for (const spacing of ["0.1", "0.25", "0.5"]) {
       await page.getByRole("textbox", { name: "Spacing", exact: true }).fill(spacing)
       const row = page.getByTestId("radius-row")
@@ -123,7 +123,7 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
         await expect(svg).toHaveClass(/(?:^| )size-3\.5(?: |$)/)
         expect((await geometry(svg)).width).toBeCloseTo(Number(spacing) * 16 * 3.5, 1)
       }
-      await editorCategory(page, "Effects")
+      await editorCategory(page, "Geometry")
     }
     await page.getByRole("textbox", { name: "Spacing", exact: true }).fill("0.25")
     const section = page.getByRole("button", { name: "Radius", exact: true })

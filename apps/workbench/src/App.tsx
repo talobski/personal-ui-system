@@ -509,6 +509,7 @@ export function App() {
                   <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" aria-label="Editor categories">
                     <TabsTrigger value="colors" className={CATEGORY_TRIGGER_CLASS}>Colors</TabsTrigger>
                     <TabsTrigger value="typography" className={CATEGORY_TRIGGER_CLASS}>Typography</TabsTrigger>
+                    <TabsTrigger value="geometry" className={CATEGORY_TRIGGER_CLASS}>Geometry</TabsTrigger>
                     {/* Visible label only: the internal value stays `other`. */}
                     <TabsTrigger value="other" className={CATEGORY_TRIGGER_CLASS}>Effects</TabsTrigger>
                     <TabsTrigger value="command" className={CATEGORY_TRIGGER_CLASS}>Command</TabsTrigger>
@@ -576,7 +577,8 @@ export function App() {
             />
           </ControlSection>
         </div></TabsContent>
-                <TabsContent className="data-[state=inactive]:hidden" value="other" forceMount><div className="grid gap-6 px-4 pb-4">
+                {/* PUI-94: Radius and Spacing define structure (Geometry); Shadow and Motion stay under Effects. */}
+                <TabsContent className="data-[state=inactive]:hidden" value="geometry" forceMount><div className="grid gap-6 px-4 pb-4">
           {manualLockNote}
           <ControlSection id="radius" title="Radius">
             {numeric("radius")}
@@ -584,6 +586,9 @@ export function App() {
           <ControlSection id="spacing" title="Spacing">
             {numeric("spacing")}
           </ControlSection>
+        </div></TabsContent>
+                <TabsContent className="data-[state=inactive]:hidden" value="other" forceMount><div className="grid gap-6 px-4 pb-4">
+          {manualLockNote}
           <ControlSection id="shadow" title="Shadow">
             <LiveColorField
               key={`${current.id}-shadow-color`}

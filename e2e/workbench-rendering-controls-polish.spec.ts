@@ -125,7 +125,7 @@ for (const mode of ["light", "dark"] as const) {
       await expect.poll(() => content.evaluate(el => el.scrollTop)).toBeGreaterThan(before)
       await content.evaluate(el => { el.scrollTop = 0 })
 
-      for (const category of ["Colors", "Typography", "Effects", "Command"] as const) {
+      for (const category of ["Colors", "Typography", "Geometry", "Effects", "Command"] as const) {
         await editorCategory(page, category)
         const panel = page.getByRole("tabpanel", { name: category, exact: true })
         // WRCP-05 shared section triggers.

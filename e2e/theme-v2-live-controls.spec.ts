@@ -125,7 +125,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
 
   test("built-ins are immutable: Save opens Save As, which saves and selects one custom copy that reloads (WTEP-08)", async ({ page }, testInfo) => {
     await openWorkbench(page)
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     await setNumber(page, "Radius", "0.5")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "built-in, edited")
 
@@ -165,12 +165,12 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     // The built-in itself never changed.
     await selectTheme(page, "default")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "built-in")
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     await expect(numberField(page, "Radius")).toHaveValue("0.7")
     await selectTheme(page, "rounder")
 
     // Saving an existing custom theme updates it in place, without Save As.
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     await setNumber(page, "Radius", "0.75")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "custom, unsaved changes")
     await saveTheme(page)
@@ -182,7 +182,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
 
     await page.reload()
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "rounder")
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     await expect(numberField(page, "Radius")).toHaveValue("0.75")
     await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("10px")
   })
@@ -270,6 +270,7 @@ for (const mode of MODES) {
       await expectNoSeriousViolations(page, `${mode}-other`, testInfo)
       await expectContained(page)
 
+      await editorCategory(page, "Geometry")
       await setNumber(page, "Radius", "0.5")
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("6px")
       expect(await previewVar(page, "--radius")).toBe("0.5rem")
@@ -283,6 +284,7 @@ for (const mode of MODES) {
       await expect(page.locator(".quiet-editor").getByText("Density", { exact: true })).toHaveCount(0)
 
       // Tailwind prefixes four transparent ring/inset layers to every box-shadow; compare only the theme's layers.
+      await editorCategory(page, "Effects")
       const shadow = async () => (await previewStyle(page, "elevation-sample", "boxShadow")).replaceAll("rgba(0, 0, 0, 0) 0px 0px 0px 0px, ", "")
       expect(await shadow()).toBe("oklch(0 0 0 / 0.1) 0px 1px 3px 0px, oklch(0 0 0 / 0.1) 0px 2px 4px -1px")
       await setNumber(page, "Blur", "10")
@@ -312,6 +314,7 @@ for (const mode of MODES) {
       await expect.poll(() => buttonMotion(page)).toBe("0.32s")
 
       // Invalid numeric draft: local only, visible, section forced open, preview unchanged.
+      await editorCategory(page, "Geometry")
       const at = await revisionNumber(page)
       await numberField(page, "Radius").fill("9")
       await expect(page.getByTestId("radius-error")).toContainText("Enter a number from 0 rem to 2.5 rem. Not applied.")
@@ -328,6 +331,7 @@ for (const mode of MODES) {
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("10px")
 
       // A collapsed section hides its controls; expanding restores them.
+      await editorCategory(page, "Effects")
       await page.getByRole("button", { name: "Motion", exact: true }).click()
       await expect(numberField(page, "Duration")).toHaveCount(0)
       await page.getByRole("button", { name: "Motion", exact: true }).click()
@@ -431,7 +435,7 @@ for (const mode of MODES) {
 
 test("sliders respond to keyboard (Tab, Home, End, Page keys) with visible focus, and to pointer click and drag", async ({ page }, testInfo) => {
   await openWorkbench(page)
-  await editorCategory(page, "Effects")
+  await editorCategory(page, "Geometry")
   const radius = slider(page, "Radius")
   // WTCP-06 row order is label / slider / input / unit: forward Tab enters the thumb before the input.
   await page.getByTestId("section-radius").getByRole("button", { name: "Radius", exact: true }).focus()
@@ -480,7 +484,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
   for (const mode of MODES) {
     test(`manual controls pause while a proposal is staged; Discard and Apply resume them — ${mode}`, async ({ page }, testInfo) => {
       await openWorkbench(page, mode)
-      await editorCategory(page, "Effects")
+      await editorCategory(page, "Geometry")
       await setNumber(page, "Spacing", "0.3")
       await expect(revision(page)).toHaveAttribute("data-revision", "2")
       const stage = async (id: string, base: number) => {
@@ -495,11 +499,13 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("6px")
       await expect(revision(page)).toHaveAttribute("data-revision", "2")
       await expect(page.getByTestId("proposal-candidate-revision")).toHaveText("3")
-      await editorCategory(page, "Effects")
+      await editorCategory(page, "Geometry")
       await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toContainText("staged proposal")
       await expect(numberField(page, "Radius")).toBeDisabled()
       await expect(numberField(page, "Radius")).toHaveValue("0.7")
       await expect(slider(page, "Radius")).toHaveAttribute("data-disabled", "")
+      await editorCategory(page, "Effects")
+      await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toContainText("staged proposal")
       await expect(page.getByLabel("Shadow color", { exact: true })).toBeDisabled()
       await editorCategory(page, "Typography")
       await expect(page.getByLabel("Body Font", { exact: true })).toBeDisabled()
@@ -527,7 +533,7 @@ test.describe("TSV2-13 staged proposals stay authoritative alongside manual edit
       await stage("tsv2-2", 3)
       await page.getByRole("button", { name: "Apply proposal" }).click()
       await expect(revision(page)).toHaveAttribute("data-revision", "4")
-      await editorCategory(page, "Effects")
+      await editorCategory(page, "Geometry")
       await expect(numberField(page, "Radius")).toBeEnabled()
       await expect(numberField(page, "Radius")).toHaveValue("0.5")
       await setNumber(page, "Radius", "0.6")
@@ -544,6 +550,7 @@ test("reduced motion: controls stay operable and preview transitions collapse to
   await editorCategory(page, "Effects")
   await setNumber(page, "Duration", "400")
   await expect.poll(() => buttonMotion(page)).toBe("0s")
+  await editorCategory(page, "Geometry")
   await slider(page, "Radius").focus()
   await page.keyboard.press("ArrowRight")
   await expect(numberField(page, "Radius")).toHaveValue("0.725")

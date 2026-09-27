@@ -69,7 +69,7 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
       expect(tabClass.split(" ")).toContain(token)
     }
     expect(tabClass).not.toMatch(/(?:^| )(?:flex-1|flex-wrap|hover:bg-|rounded-|py-|font-)/)
-    expect(app.match(/className=\{CATEGORY_TRIGGER_CLASS\}/g)).toHaveLength(4)
+    expect(app.match(/className=\{CATEGORY_TRIGGER_CLASS\}/g)).toHaveLength(5)
   })
 
   it("adds only a semantic bottom border to the 64px sidebar header", () => {
@@ -652,9 +652,13 @@ describe("WSTP-06/07/09 Sidebar tokens in the Workbench", () => {
 
   it("uses the official Switch with exact label and helper copy, and never gates the colour fields on the mode", () => {
     expect(controls).toContain('import { Switch } from "@personal-ui/ui/components/switch"')
-    expect(controls).toContain("<Label htmlFor=\"sidebar-tokens-switch\">Use sidebar tokens</Label>")
-    expect(controls).toContain('"Sidebar tokens are active."')
-    expect(controls).toContain('"Sidebar tokens are currently not applied."')
+    // PUI-93: one step smaller (text-xs), muted, a small gap below the trigger, and no inactive note or dangling description.
+    expect(controls).toContain('<Label htmlFor="sidebar-tokens-switch" className="text-xs text-muted-foreground">Use sidebar tokens</Label>')
+    expect(controls).toContain('data-testid="control-sidebar-tokens" className="mt-2 gap-1.5"')
+    expect(controls).toContain("Sidebar tokens are active.")
+    expect(controls).not.toContain("Sidebar tokens are currently not applied.")
+    expect(controls).toContain('aria-describedby={enabled ? "sidebar-tokens-status" : undefined}')
+    expect(controls).toMatch(/\{enabled && \(\s*<FieldDescription id="sidebar-tokens-status"/)
     expect(controls).toContain('apply(() => ({ op: "setSidebarTokensEnabled", value: checked }))')
     // The fields render for every token in both states and are disabled only by the shared staging lock.
     expect(app).toContain('{group.id === "sidebar" && <SidebarTokensSwitch enabled={current.sidebar.useDedicatedTokens.$value} disabled={locked} apply={applyManual} />}')
@@ -794,10 +798,24 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(app).toContain('<span className="font-medium">{saved.themes[id]!.name}</span>')
   })
 
-  it("shows Effects for the internal other tab with px-2 triggers, in the original order", () => {
+  it("shows Colors / Typography / Geometry / Effects / Command with px-2 triggers; Effects keeps the internal other value (PUI-94)", () => {
     const tabs = [...app.matchAll(/<TabsTrigger value="([a-z]+)" className=\{CATEGORY_TRIGGER_CLASS\}>([A-Za-z]+)<\/TabsTrigger>/g)].map((match) => [match[1], match[2]])
-    expect(tabs).toEqual([["colors", "Colors"], ["typography", "Typography"], ["other", "Effects"], ["command", "Command"]])
-    expect(app).toContain('<TabsContent className="data-[state=inactive]:hidden" value="other" forceMount>')
+    expect(tabs).toEqual([["colors", "Colors"], ["typography", "Typography"], ["geometry", "Geometry"], ["other", "Effects"], ["command", "Command"]])
+    expect(app.match(/<TabsTrigger /g)).toHaveLength(5)
+    const panel = (value: string) => {
+      const start = app.indexOf(`<TabsContent className="data-[state=inactive]:hidden" value="${value}" forceMount>`)
+      expect(start, value).toBeGreaterThan(-1)
+      return app.slice(start, app.indexOf("</TabsContent>", start))
+    }
+    const sections = (value: string) => [...panel(value).matchAll(/<ControlSection id="([a-z-]+)"/g)].map((match) => match[1])
+    // Each section appears exactly once, in exactly one panel; control IDs and builders are unchanged.
+    expect(sections("geometry")).toEqual(["radius", "spacing"])
+    expect(sections("other")).toEqual(["shadow", "motion"])
+    for (const id of ["radius", "spacing", "shadow", "motion"]) expect(app.match(new RegExp(`<ControlSection id="${id}"`, "g"))).toHaveLength(1)
+    expect(panel("geometry")).toContain('{numeric("radius")}')
+    expect(panel("geometry")).toContain('{numeric("spacing")}')
+    expect(panel("other")).toContain('{numeric("motion")}')
+    expect(panel("other")).toContain('id="shadow-color"')
     const trigger = readFileSync(new URL("./workbenchTabs.ts", import.meta.url), "utf8").match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!.split(" ")
     expect(trigger).toContain("px-2")
     expect(trigger).not.toContain("px-3")

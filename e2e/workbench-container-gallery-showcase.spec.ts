@@ -18,8 +18,8 @@ const revision = async (page: Page) => Number(await page.locator("#workbench-act
 const toggle = (page: Page) => page.getByRole("switch", { name: "Toggle dark mode", exact: true })
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-/** PUI-83 curated order (workbench-cards-gallery-curation-v1-001): the left stack, then the right region. */
-const ORDER = ["plan-usage", "quick-find", "productive-week", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]
+/** PUI-86–92 order (workbench-showcase-components-geometry-v1-001): the left stack, then the right region. */
+const ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]
 
 async function open(page: Page) {
   await page.goto("/")
@@ -109,17 +109,17 @@ test.describe("CGS-03 to CGS-05 container-responsive gallery", () => {
     await grow("plan-usage", 1400)
     const tallLeft = await geometry(frame)
     // The right region is untouched by a very tall left card.
-    for (const id of ["revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]) close(tallLeft.items[id]!.y, before.items[id]!.y)
+    for (const id of ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]) close(tallLeft.items[id]!.y, before.items[id]!.y)
     close(tallLeft.items["quick-find"]!.y - tallLeft.items["plan-usage"]!.bottom, 16)
     await grow("plan-usage", 0)
     await grow("revenue-overview", 1400)
     const tallRight = await geometry(frame)
-    for (const id of ["plan-usage", "quick-find", "productive-week", "support-request"]) close(tallRight.items[id]!.y, before.items[id]!.y)
-    close(tallRight.items["upcoming-schedule"]!.y - tallRight.items["revenue-overview"]!.bottom, 16)
+    for (const id of ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather"]) close(tallRight.items[id]!.y, before.items[id]!.y)
+    close(tallRight.items["team-chat"]!.y - tallRight.items["revenue-overview"]!.bottom, 16)
     // The intentional local pair starts together and, side by side, shares the taller card's height (PUI-82
     // supersedes the earlier independent pair heights).
-    close(tallRight.items["upcoming-schedule"]!.y, tallRight.items["recent-activity"]!.y)
-    close(tallRight.items["upcoming-schedule"]!.height, tallRight.items["recent-activity"]!.height)
+    close(tallRight.items["team-chat"]!.y, tallRight.items["recent-activity"]!.y)
+    close(tallRight.items["team-chat"]!.height, tallRight.items["recent-activity"]!.height)
     await info.attach("cgs-04-flow.json", { body: JSON.stringify({ before: before.items, tallLeft: tallLeft.items, tallRight: tallRight.items }, null, 2), contentType: "application/json" })
   })
 
@@ -169,7 +169,7 @@ test.describe("CGS-08 theme responsiveness", () => {
         const resolved = await root.evaluate(() => {
           const as = (value: string) => { const t = document.createElement("span"); t.style.color = value; document.body.append(t); const c = getComputedStyle(t).color; t.remove(); return c }
           const plan = document.querySelector('[data-composition="plan-usage"] [role=img] > span')!
-          const day = document.querySelector('[data-composition="upcoming-schedule"] [aria-pressed="true"]')!
+          const day = document.querySelector('[data-composition="offsite-calendar"] [data-range-start="true"]')!
           return {
             plan: [getComputedStyle(plan).backgroundColor, as("var(--chart-1)")],
             day: [getComputedStyle(day).backgroundColor, as("var(--primary)")],
@@ -191,10 +191,11 @@ test.describe("CGS-08 theme responsiveness", () => {
     await frame.locator("html").evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true))
     const style = (selector: string, property: string) => frame.locator(selector).first().evaluate((el, name) => getComputedStyle(el).getPropertyValue(name), property)
     const segment = '[data-composition="plan-usage"] [role=img] > span'
-    const tile = '[data-composition="plan-usage"] .shadow-md'
-    // Studio revenue no longer shows a title or metric tiles (PUI-85); the Storage title and upgrade tile carry the probes.
+    // PUI-86 removed Storage's elevated upgrade tile: the music artwork carries elevation, the weather hourly strip radius
+    // and spacing, and the Storage title the Heading font.
+    const tile = '[data-composition="now-playing"] [data-slot="card-content"] .shadow-sm'
     const title = '[data-composition="plan-usage"] h2'
-    const kpi = tile
+    const kpi = '[data-composition="local-weather"] ol'
     const before = { segment: await style(segment, "background-color"), radius: await style(kpi, "border-top-left-radius"), padding: await style(kpi, "padding-left"), shadow: await style(tile, "box-shadow"), font: await style(title, "font-family") }
 
     await editorCategory(page, "Colors")
@@ -210,8 +211,8 @@ test.describe("CGS-08 theme responsiveness", () => {
     await page.getByRole("option", { name: "Playfair Display", exact: true }).click()
     await expect.poll(() => style(title, "font-family")).toContain("Playfair Display")
 
-    await editorCategory(page, "Effects")
-    for (const [name, value] of [["Radius", "1.2"], ["Spacing", "0.3"], ["Blur", "18"]] as const) {
+    for (const [category, name, value] of [["Geometry", "Radius", "1.2"], ["Geometry", "Spacing", "0.3"], ["Effects", "Blur", "18"]] as const) {
+      await editorCategory(page, category)
       const field = page.getByRole("textbox", { name, exact: true })
       await field.fill(value)
       await field.blur()
@@ -240,15 +241,21 @@ test.describe("CGS-09 showcase interactions", () => {
       await expect(revenue.getByRole("radio", { name: "Quarter" })).toHaveAttribute("aria-checked", "true")
       await expect(revenue.locator("dd").first()).not.toHaveText(monthly)
 
-      const schedule = card("upcoming-schedule")
-      await schedule.getByRole("button", { name: /^Saturday, October 19, no events$/ }).click()
-      await expect(schedule.getByRole("button", { name: /^Saturday, October 19, no events$/ })).toHaveAttribute("aria-pressed", "true")
-      await expect(schedule.getByText("Open time")).toHaveCount(3)
-      await expect(schedule.getByRole("button", { name: "Add focus block" })).toHaveCount(0)
+      const calendar = card("offsite-calendar")
+      await calendar.getByRole("button", { name: /October 20th, 2026/ }).click()
+      await expect(calendar.locator('[data-range-start="true"]')).toHaveCount(1)
+      await expect(calendar.getByRole("grid")).toHaveCount(1)
 
-      const board = card("launch-board")
-      await expect(board.getByRole("progressbar", { name: "Launch progress" })).toHaveAttribute("aria-valuenow", "3")
-      await expect(board.getByRole("button")).toHaveCount(0)
+      const table = card("recent-payments")
+      await expect(table.getByRole("table")).toBeVisible()
+      await expect(table.getByRole("columnheader")).toHaveText(["Status", "Email", "Amount"])
+      await expect(table.getByRole("button")).toHaveCount(0)
+
+      const player = card("now-playing")
+      await player.getByRole("button", { name: "Next track" }).click()
+      await expect(player.getByText("Paper Weather", { exact: true })).toBeVisible()
+      await player.getByRole("button", { name: "Repeat" }).click()
+      await expect(player.getByRole("button", { name: "Repeat" })).toHaveAttribute("aria-pressed", "true")
 
       const find = card("quick-find")
       await find.getByRole("searchbox", { name: "Search commands" }).fill("export")
@@ -260,8 +267,10 @@ test.describe("CGS-09 showcase interactions", () => {
 
       const plan = card("plan-usage")
       await expect(plan.getByRole("img", { name: /% of storage used$/ })).toBeVisible()
-      await plan.getByRole("button", { name: "Upgrade" }).click()
-      await expect(plan.getByRole("status")).toHaveText("Upgrade preview only. Nothing was charged.")
+      await expect(plan.getByRole("button")).toHaveCount(0)
+      const signup = card("signup-form")
+      await signup.getByRole("button", { name: "Create Account" }).click()
+      await expect(signup.getByRole("status")).toHaveText("Preview only. No account was created.")
 
       await axe(page, info, `interactions-light-${reducedMotion}`)
       await setColorMode(page, "dark")

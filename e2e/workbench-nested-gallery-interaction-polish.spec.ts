@@ -24,11 +24,11 @@ const css = (el: Locator, property: string) => el.evaluate((node, name) => getCo
 const box = async (el: Locator) => (await el.boundingBox())!
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-/** PUI-83 curated recipe order (migrated from PUI-78/79): the left stack, then the right region top to bottom. */
-const GALLERY_ORDER = ["plan-usage", "quick-find", "productive-week", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]
-const REGIONS = { left: ["plan-usage", "quick-find", "productive-week", "support-request"], right: ["revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"] }
+/** PUI-86–92 recipe order (migrated from PUI-78/79/83): the left stack, then the right region top to bottom. */
+const GALLERY_ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]
+const REGIONS = { left: ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather"], right: ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"] }
 /** Right-region flow: full items and the local pair, each followed by exactly one gap. */
-const RIGHT_FLOW = [["revenue-overview"], ["upcoming-schedule", "recent-activity"], ["launch-board"]]
+const RIGHT_FLOW = [["revenue-overview"], ["team-chat", "recent-activity"], ["recent-payments"], ["offsite-calendar"], ["now-playing"]]
 
 async function axe(page: Page, info: TestInfo, label: string) {
   await page.mouse.move(0, 0)
@@ -148,7 +148,7 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
         expect(item.right, item.id).toBeLessThanOrEqual(result.gallery.right)
         expect(item.scroll, item.id).toBeLessThanOrEqual(item.client + 1)
       }
-      // Eight natural-height cards. The side-by-side pair shares a height by design (PUI-82), and Quick find and Studio
+      // Eleven natural-height cards. The side-by-side pair shares a height by design (PUI-82), and Quick find and Studio
       // revenue can coincide at some widths; exact natural-height proofs are in workbench-cards-gallery-curation.spec.ts.
       expect(new Set(result.items.map(item => item.height)).size).toBeGreaterThanOrEqual(6)
 
@@ -190,8 +190,8 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       }
       // Every composition that owns a tabbable control is visited once, in gallery DOM order.
       const tabbable = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.filter(node => Array.from(node.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea, [tabindex]")).some(el => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled && el.getClientRects().length > 0)).map(node => node.getAttribute("data-composition")!))
-      // The curated set: the read-only Recent activity and gallery Launch checklist own no tab stop.
-      expect(tabbable).toEqual(["plan-usage", "quick-find", "productive-week", "support-request", "revenue-overview", "upcoming-schedule"])
+      // Read-only Storage, Weather, Chat, Recent activity and the compact Table own no tab stop.
+      expect(tabbable).toEqual(["quick-find", "productive-week", "signup-form", "revenue-overview", "offsite-calendar", "now-playing"])
       expect(visited).toEqual(tabbable)
 
       await axe(page, info, `gallery-${size.width}-light`)
@@ -309,7 +309,7 @@ test.describe("NGIP-08/09 Body trigger typography and built-in sans Heading", ()
         if (themeId === "default") await expect(fontCopy("heading")).toHaveText("Sans-serif font...")
         await workspaceMode(page, "Preview")
         const frame = previewFrame(page)
-        const title = frame.locator('[data-composition="productive-week"] h2')
+        const title = frame.locator('[data-composition="plan-usage"] h2')
         const previewBody = await frame.locator("body").evaluate(el => getComputedStyle(el).fontFamily)
         expect(await css(title, "font-family")).toBe(previewBody)
         expect(await css(title, "font-weight")).toBe("600")
@@ -332,7 +332,7 @@ test.describe("NGIP-08/09 Body trigger typography and built-in sans Heading", ()
     await expect(page.getByTestId("control-font-heading")).toHaveAttribute("data-font", "playfair-display")
     expect(await css(trigger(page), "font-family")).not.toContain("Playfair")
     await workspaceMode(page, "Preview")
-    await expect.poll(() => css(previewFrame(page).locator('[data-composition="productive-week"] h2'), "font-family")).toContain("Playfair Display")
+    await expect.poll(() => css(previewFrame(page).locator('[data-composition="plan-usage"] h2'), "font-family")).toContain("Playfair Display")
   })
 })
 
@@ -382,7 +382,7 @@ for (const mode of ["light", "dark"] as const) {
       expect(await css(history(page, name), "cursor"), name).toBe("default")
       expect(await css(history(page, name), "pointer-events"), name).toBe("none")
     }
-    await editorCategory(page, "Effects")
+    await editorCategory(page, "Geometry")
     const radius = page.getByRole("textbox", { name: "Radius", exact: true })
     await radius.fill("0.5")
     await radius.blur()

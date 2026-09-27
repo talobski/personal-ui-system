@@ -21,6 +21,7 @@ export default defineConfig({
     "workbench-nested-gallery-interaction-polish.spec.ts",
     "workbench-container-gallery-showcase.spec.ts",
     "workbench-cards-gallery-curation.spec.ts",
+    "workbench-showcase-components-geometry.spec.ts",
   ],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },

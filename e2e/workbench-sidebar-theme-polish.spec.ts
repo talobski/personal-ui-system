@@ -103,8 +103,10 @@ for (const mode of ["light", "dark"] as const) {
         const toggle = section.getByRole("switch", { name: "Use sidebar tokens" })
         await expect(toggle).toHaveAttribute("aria-checked", "false")
         await expect(toggle).toHaveAttribute("data-slot", "switch")
-        await expect(section.getByTestId("sidebar-tokens-status")).toHaveText("Sidebar tokens are currently not applied.")
-        await expect(toggle).toHaveAccessibleDescription("Sidebar tokens are currently not applied.")
+        // PUI-93: the inactive note is removed and the Switch carries no dangling description.
+        await expect(section.getByTestId("sidebar-tokens-status")).toHaveCount(0)
+        await expect(section.getByText("Sidebar tokens are currently not applied.")).toHaveCount(0)
+        expect(await toggle.getAttribute("aria-describedby")).toBeNull()
         // Visible label text only (each carries a screen-reader-only "Sidebar" prefix).
         const labels = await section.locator('[data-testid^="control-color-"] label').evaluateAll(els => els.map(el => {
           const clone = el.cloneNode(true) as HTMLElement
@@ -124,6 +126,7 @@ for (const mode of ["light", "dark"] as const) {
         await toggle.click()
         await expect(toggle).toHaveAttribute("aria-checked", "true")
         await expect(section.getByTestId("sidebar-tokens-status")).toHaveText("Sidebar tokens are active.")
+        await expect(toggle).toHaveAccessibleDescription("Sidebar tokens are active.")
         expect(await bytes(surface, "background-color")).toEqual(before)
         expect(await bytes(surface, "color")).toEqual(beforeForeground)
         await axe(page, info, `${mode}-sidebar-on`)
@@ -227,14 +230,16 @@ for (const mode of ["light", "dark"] as const) {
           await expect.poll(async () => (await box(page.locator('[data-slot="sidebar-inset"]'))).x).toBeCloseTo(28 * 16, 0)
         }
 
-        // WSTP-13 tabs: Effects label for the internal `other` panel, px-2 triggers, original order.
+        // WSTP-13 tabs: Effects label for the internal `other` panel, px-2 triggers; PUI-94 inserts Geometry before Effects.
         await workspaceMode(page, "Controls")
         const tablist = page.getByRole("tablist", { name: "Editor categories" })
-        await expect(tablist.getByRole("tab")).toHaveText(["Colors", "Typography", "Effects", "Command"])
+        await expect(tablist.getByRole("tab")).toHaveText(["Colors", "Typography", "Geometry", "Effects", "Command"])
         for (const tab of await tablist.getByRole("tab").all()) expect([await css(tab, "padding-left"), await css(tab, "padding-right"), await css(tab, "cursor")]).toEqual(["8px", "8px", "pointer"])
         await editorCategory(page, "Effects")
-        const effects = page.getByRole("tabpanel", { name: "Effects", exact: true })
-        await expect(effects.getByRole("heading", { level: 3 })).toHaveText(["Radius", "Spacing", "Shadow", "Motion"])
+        await expect(page.getByRole("tabpanel", { name: "Effects", exact: true }).getByRole("heading", { level: 3 })).toHaveText(["Shadow", "Motion"])
+        await editorCategory(page, "Geometry")
+        const effects = page.getByRole("tabpanel", { name: "Geometry", exact: true })
+        await expect(effects.getByRole("heading", { level: 3 })).toHaveText(["Radius", "Spacing"])
 
         // WSTP-12: shared 5rem label column, stable across a spacing-token change; no wrapping or clipping.
         const labelColumn = async (row: Locator) => {
@@ -257,6 +262,8 @@ for (const mode of ["light", "dark"] as const) {
         await page.getByRole("textbox", { name: "Spacing", exact: true }).fill("0.5")
         await expect(page.getByRole("textbox", { name: "Spacing", exact: true })).toHaveValue("0.5")
         for (const row of await effects.locator('[data-testid$="-row"]').all()) await labelColumn(row)
+        await editorCategory(page, "Effects")
+        for (const row of await page.getByRole("tabpanel", { name: "Effects", exact: true }).locator('[data-testid$="-row"]').all()) await labelColumn(row)
         await editorCategory(page, "Typography")
         const typography = page.getByRole("tabpanel", { name: "Typography", exact: true })
         // STHG-06: Heading, Body, then the compact Mono primitive; the old Font families / Spacing groups are gone.
@@ -290,7 +297,7 @@ for (const mode of ["light", "dark"] as const) {
         await expect(trigger).toHaveAttribute("aria-expanded", "false")
 
         // WSTP-13 pointer: enabled actions show pointer; labels and sliders do not; disabled actions take no pointer.
-        await editorCategory(page, "Effects")
+        await editorCategory(page, "Geometry")
         expect(await css(page.getByRole("button", { name: "Radius", exact: true }), "cursor")).toBe("pointer")
         expect(await css(effects.locator("label").first(), "cursor")).not.toBe("pointer")
         expect(await css(page.getByRole("slider", { name: "Radius" }), "cursor")).not.toBe("pointer")

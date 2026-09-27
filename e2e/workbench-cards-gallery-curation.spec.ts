@@ -10,17 +10,19 @@ import { isMobileShell, selectTheme, setColorMode, workspaceMode } from "./workb
  * 390x844 and 1440x900; desktop-width sweeps run once, in the desktop project). CGCR-03 exact curation, CGCR-04 stable
  * interaction geometry, CGCR-05 Studio revenue, CGCR-06 16px gaps, CGCR-07 the one equal-height pair, CGCR-08
  * responsiveness, theme, keyboard, reduced motion, and decoded axe (serious/critical outside the known debt must be empty).
+ * Migrated to the PUI-86–92 eleven-card set (workbench-showcase-components-geometry-v1-001): the layout invariants carry
+ * forward; interactions of the replaced cards move to their replacements, and PUI-87 removes the revenue tick row.
  */
 
 const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-const LEFT = ["plan-usage", "quick-find", "productive-week", "support-request"]
-const RIGHT = ["revenue-overview", "upcoming-schedule", "recent-activity", "launch-board"]
+const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather"]
+const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]
 const ORDER = [...LEFT, ...RIGHT]
-const PAIR = ["upcoming-schedule", "recent-activity"]
+const PAIR = ["team-chat", "recent-activity"]
 /** Right-region flow: full items and the local pair, each followed by exactly one gap. */
-const RIGHT_FLOW = [["revenue-overview"], PAIR, ["launch-board"]]
+const RIGHT_FLOW = [["revenue-overview"], PAIR, ["recent-payments"], ["offsite-calendar"], ["now-playing"]]
 const GAP = 16
 
 async function open(page: Page) {
@@ -114,20 +116,20 @@ function expectCuratedLayout(g: Geometry) {
 
 test.describe("CGCR-03/06/07 curated gallery, 16px gaps, and the one equal-height pair", () => {
   for (const size of [{ width: 390, height: 844 }, { width: 1100, height: 900 }, { width: 1440, height: 900 }]) {
-    test(`exact eight-card order, 16px gaps, and pair behaviour at ${size.width}px`, async ({ page }, info) => {
+    test(`exact eleven-card order, 16px gaps, and pair behaviour at ${size.width}px`, async ({ page }, info) => {
       test.skip(size.width === 1100 && isMobileShell(page), "the intermediate width runs once, in the desktop project")
       if (size.width !== page.viewportSize()!.width) await page.setViewportSize(size)
       await open(page)
       await workspaceMode(page, "Preview")
       const frame = previewFrame(page)
-      await expect(frame.locator("[data-composition]")).toHaveCount(8)
+      await expect(frame.locator("[data-composition]")).toHaveCount(11)
       const g = await geometry(frame)
       await info.attach(`cgcr-layout-${size.width}.json`, { body: JSON.stringify(g, null, 2), contentType: "application/json" })
       const shape = expectCuratedLayout(g)
       // 390: one column, pair stacked. 1100 (620px gallery): one column, pair side by side. 1440: 5/7 split, pair side by side.
       expect(shape).toEqual(size.width === 390 ? { split: false, paired: false } : size.width === 1100 ? { split: false, paired: true } : { split: true, paired: true })
       // Removed cards are gone from the gallery; no empty structural hole remains (every region child holds a card).
-      for (const title of ["Account profile", "Notifications", "Team access", "Workspace settings", "Room to think"]) await expect(frame.locator("[data-gallery]").getByRole("heading", { name: title, exact: true })).toHaveCount(0)
+      for (const title of ["Account profile", "Notifications", "Team access", "Workspace settings", "Room to think", "This week", "Launch checklist", "How can we help?", "A productive week"]) await expect(frame.locator("[data-gallery]").getByRole("heading", { name: title, exact: true })).toHaveCount(0)
       expect(await frame.locator("[data-gallery-region] > *, [data-gallery-group] > *").evaluateAll(nodes => nodes.every(node => node.getBoundingClientRect().height > 40))).toBe(true)
       await info.attach(`cgcr-gallery-${size.width}.png`, { body: await page.screenshot(), contentType: "image/png" })
     })
@@ -183,10 +185,10 @@ test.describe("CGCR-03/06/07 curated gallery, 16px gaps, and the one equal-heigh
     await grow("recent-activity", 900)
     const tallPair = await geometry(frame)
     // The pair's other card stretches with it; nothing else changes height, and the left stack does not move.
-    close(tallPair.items["upcoming-schedule"]!.card, 900)
+    close(tallPair.items["team-chat"]!.card, 900)
     for (const id of LEFT) { close(tallPair.items[id]!.y, before.items[id]!.y); close(tallPair.items[id]!.card, before.items[id]!.card) }
-    for (const id of ["revenue-overview", "launch-board"]) close(tallPair.items[id]!.card, before.items[id]!.card)
-    close(tallPair.items["launch-board"]!.y - tallPair.items["recent-activity"]!.bottom, GAP)
+    for (const id of ["revenue-overview", "recent-payments", "offsite-calendar", "now-playing"]) close(tallPair.items[id]!.card, before.items[id]!.card)
+    close(tallPair.items["recent-payments"]!.y - tallPair.items["recent-activity"]!.bottom, GAP)
   })
 })
 
@@ -211,12 +213,8 @@ test.describe("CGCR-04 stable gallery interaction", () => {
         }
       }
 
-      // Storage: Upgrade announces its preview-only status without adding a visible line.
-      const plan = card("plan-usage")
-      await plan.getByRole("button", { name: "Upgrade" }).click()
-      await expect(plan.getByRole("status")).toHaveText("Upgrade preview only. Nothing was charged.")
-      expect(await plan.getByRole("status").evaluate(el => el.getBoundingClientRect().height)).toBeLessThanOrEqual(1)
-      await unchanged("storage-upgrade")
+      // Storage: PUI-86 removed its only control with the promotion.
+      await expect(card("plan-usage").getByRole("button")).toHaveCount(0)
 
       // Quick find: filtering keeps all five rows (non-matches disabled), selection marks the row, empty keeps the rows.
       const find = card("quick-find")
@@ -240,40 +238,34 @@ test.describe("CGCR-04 stable gallery interaction", () => {
       await search.fill("")
       for (const row of await rows.all()) await expect(row).toBeEnabled()
 
-      // This week: every day, busy or empty, fills the same three agenda rows; there is no add action.
-      const schedule = card("upcoming-schedule")
-      await expect(schedule.getByRole("button", { name: "Add focus block" })).toHaveCount(0)
-      for (const day of [/^Saturday, October 19, no events$/, /^Monday, October 14, 1 event$/, /^Thursday, October 17, 2 events$/, /^Tuesday, October 15, 3 events$/]) {
-        await schedule.getByRole("button", { name: day }).click()
-        await expect(schedule.getByRole("button", { name: day })).toHaveAttribute("aria-pressed", "true")
-        await expect(schedule.locator("section ol > li")).toHaveCount(3)
-        await unchanged(`schedule-${String(day).slice(2, 5)}`)
-      }
-      await expect(schedule.getByText("Type pairing review")).toBeVisible()
+      // Signup: typing and submitting announce a preview notice only; no validation region is appended (PUI-91).
+      const signup = card("signup-form")
+      await signup.getByLabel("Email").fill("someone@example.com")
+      await signup.getByLabel("Password", { exact: true }).fill("short")
+      await unchanged("signup-typing")
+      await signup.getByRole("button", { name: "Create Account" }).click()
+      await expect(signup.getByRole("status")).toHaveText("Preview only. No account was created.")
+      await expect(signup.getByRole("alert")).toHaveCount(0)
+      await unchanged("signup-submit")
 
-      // Launch checklist: read-only in the gallery, so tasks never move between columns.
-      const board = card("launch-board")
-      await expect(board.getByRole("button")).toHaveCount(0)
-      await expect(board.getByRole("progressbar", { name: "Launch progress" })).toHaveAttribute("aria-valuenow", "3")
-      for (const [column, count] of [["Up next", 2], ["In progress", 2], ["Done", 3]] as const) await expect(board.getByRole("region", { name: new RegExp(`^${column}`) }).getByRole("listitem")).toHaveCount(count)
+      // Calendar: choosing days and changing month keeps six fixed weeks (PUI-92).
+      const calendar = card("offsite-calendar")
+      await calendar.getByRole("button", { name: /October 20th, 2026/ }).click()
+      await unchanged("calendar-extend")
+      await calendar.getByRole("button", { name: /next month/i }).click()
+      await expect(calendar.getByText("November 2026")).toBeVisible()
+      await unchanged("calendar-next-month")
+      await calendar.getByRole("button", { name: /previous month/i }).click()
+      await expect(calendar.getByText("October 2026")).toBeVisible()
 
-      // Support request: the invalid state stays on the field; its message and the confirmation are announced only.
-      const support = card("support-request")
-      const message = support.getByLabel("Message")
-      await message.fill("")
-      await support.getByRole("button", { name: "Send message" }).click()
-      await expect(message).toHaveAttribute("aria-invalid", "true")
-      await expect(support.getByRole("alert")).toHaveText("Enter a message.")
-      await expect(message).toHaveAccessibleDescription("Enter a message.")
-      await unchanged("support-invalid")
-      await message.fill("A local example that runs long enough to wrap onto several lines of the message box, which keeps its size.")
-      await expect(message).not.toHaveAttribute("aria-invalid", "true")
-      await unchanged("support-typing")
-      await support.getByRole("button", { name: "Send message" }).click()
-      await expect(support.getByRole("status")).toHaveText("Preview saved locally in this example. Nothing was sent.")
-      await unchanged("support-sent")
-      await support.getByLabel("Topic").selectOption("billing")
-      await unchanged("support-topic")
+      // Music: play, track change, like and repeat are local state only.
+      const player = card("now-playing")
+      await player.getByRole("button", { name: "Play" }).click()
+      await player.getByRole("button", { name: "Next track" }).click()
+      await player.getByRole("button", { name: "Like" }).click()
+      await player.getByRole("button", { name: "Repeat" }).click()
+      await expect(player.getByRole("button", { name: "Pause" })).toBeVisible()
+      await unchanged("music-controls")
 
       // Studio revenue: every range keeps the card's height.
       const revenue = card("revenue-overview")
@@ -291,7 +283,7 @@ test.describe("CGCR-04 stable gallery interaction", () => {
 })
 
 test.describe("CGCR-05 Studio revenue", () => {
-  test("range tabs lead, one divided metric row, and a Revenue-only chart with day labels", async ({ page }, info) => {
+  test("range tabs lead, one divided metric row, and a Revenue-only chart with no x-axis labels (PUI-87)", async ({ page }, info) => {
     await open(page)
     await workspaceMode(page, "Preview")
     const frame = previewFrame(page)
@@ -316,6 +308,7 @@ test.describe("CGCR-05 Studio revenue", () => {
         dashed: section.querySelectorAll('.recharts-area-curve[stroke-dasharray]').length,
         stroke: section.querySelector(".recharts-area-curve")?.getAttribute("stroke"),
         ticks: Array.from(section.querySelectorAll(".recharts-cartesian-axis-tick-value"), el => el.textContent),
+        caption: section.querySelector("figcaption")!.textContent,
       }
     })
     const month = await shape()
@@ -332,8 +325,9 @@ test.describe("CGCR-05 Studio revenue", () => {
     expect(month.metrics.map(metric => metric.borderLeft)).toEqual(["0px", "0px", "0px"])
     for (const metric of month.metrics.slice(0, 2)) expect(metric.borderColor).toBe(month.border)
     expect(month.text).toMatch(/Revenue[\s\S]*Margin[\s\S]*Invoices paid/)
-    // One primary Revenue area, no dashed series or legend; the x-axis labels follow the range.
-    expect(month).toMatchObject({ areas: 1, dashed: 0, stroke: "var(--color-revenue)", ticks: ["W1", "W2", "W3", "W4"] })
+    // One primary Revenue area, no dashed series or legend; no x-axis labels in any range, while the text summary follows it.
+    expect(month).toMatchObject({ areas: 1, dashed: 0, stroke: "var(--color-revenue)", ticks: [] })
+    expect(month.caption).toMatch(/^Revenue this month: W1 /)
     // Keyboard: the range group is a single tab stop with arrow roving; Space selects; height is stable for every range.
     await revenue.getByRole("radio", { name: "Month" }).focus()
     await page.keyboard.press("ArrowRight")
@@ -341,7 +335,8 @@ test.describe("CGCR-05 Studio revenue", () => {
     await expect.poll(() => revenue.getByRole("radio", { name: "Quarter" }).evaluate(el => el.matches(":focus-visible") && getComputedStyle(el).boxShadow.includes("3px"))).toBe(true)
     await page.keyboard.press("Space")
     await expect(revenue.getByRole("radio", { name: "Quarter" })).toHaveAttribute("aria-checked", "true")
-    await expect.poll(async () => (await shape()).ticks).toEqual(["Jul", "Aug", "Sep"])
+    await expect.poll(async () => (await shape()).caption).toMatch(/^Revenue this quarter: Jul /)
+    expect((await shape()).ticks).toEqual([])
     close((await shape()).cardHeight, month.cardHeight, 0.5)
     // Roving focus settles asynchronously, so each arrow step is confirmed before the next.
     for (const name of ["Month", "Week"]) {
@@ -349,7 +344,8 @@ test.describe("CGCR-05 Studio revenue", () => {
       await expect(revenue.getByRole("radio", { name })).toBeFocused()
     }
     await page.keyboard.press("Space")
-    await expect.poll(async () => (await shape()).ticks).toEqual(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
+    await expect.poll(async () => (await shape()).caption).toMatch(/^Revenue this week: Mon /)
+    expect((await shape()).ticks).toEqual([])
     close((await shape()).cardHeight, month.cardHeight, 0.5)
     await info.attach("cgcr-05-revenue.json", { body: JSON.stringify(month, null, 2), contentType: "application/json" })
     await info.attach("cgcr-05-revenue.png", { body: await revenue.screenshot(), contentType: "image/png" })
@@ -371,7 +367,7 @@ test.describe("CGCR-08 theme responsiveness", () => {
         const resolved = await frame.locator("html").evaluate(() => {
           const as = (value: string) => { const t = document.createElement("span"); t.style.color = value; document.body.append(t); const c = getComputedStyle(t).color; t.remove(); return c }
           const segment = document.querySelector('[data-composition="plan-usage"] [role=img] > span')!
-          const day = document.querySelector('[data-composition="upcoming-schedule"] [aria-pressed="true"]')!
+          const day = document.querySelector('[data-composition="offsite-calendar"] [data-range-start="true"]')!
           const divider = document.querySelector('[data-composition="revenue-overview"] dl > div')!
           return {
             segment: [getComputedStyle(segment).backgroundColor, as("var(--chart-1)")],
