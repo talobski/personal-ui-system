@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "linear-ticket-snapshot/1",
+  "retrievedAt": "2026-09-27T08:02:08Z",
+  "source": "Linear MCP direct issue and comments retrieval",
+  "issue": {
+    "id": "PUI-78",
+    "uuid": "da028771-3ce0-4ba0-83b0-227aa90b0f25",
+    "title": "Refine gallery with container-responsive nested layout",
+    "description": "Refine the Cards gallery into a more flexible container-responsive nested layout with breakpoint-specific column spans and a larger right-side region.\n\nBackground:\n<issue id=\"d4c9d942-a4d2-4e08-922c-3dd9866ad951\" href=\"https://linear.app/emman-systems/issue/PUI-65/replace-flat-composition-grid-with-nested-gallery-regions\">PUI-65</issue> successfully removed the global row-coupling problem by replacing the flat grid with nested gallery regions. The current implementation is functionally correct, but remains comparatively rigid:\n\n* a mostly fixed two-region structure;\n* viewport-driven breakpoints;\n* a fixed wide-layout proportion;\n* semantic region classes such as activity/profile-actions;\n* less progressive recomposition across available widths.\n\nThe next refinement should use:\n\n* an outer responsive grid;\n* container-query driven breakpoints;\n* region spans that change as the available container width changes;\n* nested local grids/flex stacks that can independently change layout at their own breakpoints;\n* no masonry;\n* no global row synchronization;\n* natural card heights;\n* layout expressed primarily through Tailwind utility classes rather than custom semantic layout class names.\n\nOwner direction:\n\n* Use a container-responsive nested layout for the Cards gallery.\n* Prefer Tailwind utility classes and container-query variants over bespoke semantic layout classes where Tailwind is sufficient.\n* Keep the larger major column on the RIGHT side.\n* Preserve natural card heights and independent vertical stacking.\n* Preserve the existing composition content and behavior unless a small arrangement adjustment is necessary for the responsive layout.\n\n1. Container-driven responsiveness\n\nPrefer container-query based responsive behavior for the gallery rather than relying primarily on viewport media queries.\n\nThe layout should respond to the width actually available to the embedded preview/gallery, so it remains robust when:\n\n* the Workbench sidebar changes width;\n* browser/window width changes;\n* zoom changes;\n* preview chrome changes;\n* the gallery is embedded in another context later.\n\nUse the project/Tailwind-supported container-query syntax and breakpoints that best match current architecture.\n\nAvoid introducing custom CSS media-query wrappers when equivalent Tailwind/container-query utilities are sufficient.\n\n2. Outer gallery structure\n\nUse a responsive nested layout with progressive recomposition:\n\n* small widths -> single column;\n* intermediate widths -> two major regions;\n* larger widths -> multi-track grid with explicit region spans;\n* very wide widths -> spans may rebalance again if visual evidence supports it.\n\nImportant visual requirement:\n\n* the RIGHT region should be the larger major column at wide sizes.\n* the left region should be narrower.\n* exact track counts/spans may be tuned from browser evidence, but the intended hierarchy is left smaller / right larger.\n\nConceptual target:\n\n```\nWide\n┌──────────── left ────────────┬──────────────── right ────────────────┐\n│ smaller region              │ larger region                         │\n│ independent stack/grid      │ independent stack/grid                │\n└─────────────────────────────┴───────────────────────────────────────┘\n```\n\n3. Nested responsive groups\n\nAllow local groups inside each major region to independently switch between:\n\n* vertical stack;\n* local two-column grid;\n* full-width item;\n\nbased on available container width.\n\nInternal composition groups should not be locked to one arrangement across all widths.\n\nDo not introduce masonry or dense packing.\n\n4. Tailwind-first implementation\n\nPrefer direct Tailwind utilities/container variants for layout where practical.\n\nExamples of the intended style:\n\n* `grid`\n* `flex flex-col`\n* responsive/container `grid-cols-*`\n* responsive/container `col-span-*`\n* `gap-*`\n* `min-w-0`\n* `items-start`\n\nDo not create semantic CSS class names purely to wrap simple Tailwind layout behavior.\n\nAvoid classes such as:\n\n* `.activity-region`\n* `.profile-actions-region`\n* `.quiet-gallery-principal`\n* `.quiet-stack`\n\nwhen the same structure can be expressed clearly with local Tailwind utilities.\n\nCustom CSS/classes remain acceptable only when:\n\n* Tailwind cannot express the required behavior cleanly;\n* a repeated shared abstraction genuinely improves maintainability;\n* the class represents a reusable component/system concept rather than a one-off layout nickname.\n\n5. Layout ownership\n\nKeep gallery layout as presentation/configuration, not product taxonomy.\n\nDo not encode semantic business meaning into layout region names.\n\nThe gallery may group compositions for balance and responsiveness, but those groupings should remain implementation/layout concerns.\n\n6. Preserve <issue id=\"d4c9d942-a4d2-4e08-922c-3dd9866ad951\" href=\"https://linear.app/emman-systems/issue/PUI-65/replace-flat-composition-grid-with-nested-gallery-regions\">PUI-65</issue> wins\n\nRetain:\n\n* no global row coupling;\n* independent vertical flow;\n* natural/content-driven heights;\n* no equal-height rows;\n* no forced square aspect ratios;\n* no masonry;\n* no absolute positioning;\n* coherent DOM/focus order;\n* responsive single-column collapse;\n* no horizontal overflow.\n\n7. Composition arrangement\n\nUse the current Cards gallery and its existing eight compositions as the target.\n\nThe worker may adjust the exact grouping/order within the approved layout model if browser evidence shows a better balance, provided:\n\n* every composition renders exactly once;\n* DOM/focus order remains coherent;\n* no composition semantics/content are changed merely for layout;\n* the larger right-side region requirement is preserved at wide sizes.\n\n8. Cleanup\n\nRemove or simplify obsolete layout CSS/classes introduced by <issue id=\"d4c9d942-a4d2-4e08-922c-3dd9866ad951\" href=\"https://linear.app/emman-systems/issue/PUI-65/replace-flat-composition-grid-with-nested-gallery-regions\">PUI-65</issue> if they are no longer needed after the Tailwind/container-query refactor.\n\nDo not keep duplicate old and new layout systems in parallel.\n\nScope:\n\n* Cards gallery layout/container structure;\n* Tailwind/container-query classes;\n* any minimal gallery recipe/configuration required;\n* removal of obsolete semantic layout classes;\n* responsive browser tests;\n* layout documentation.\n\nAcceptance:\n\n* Cards gallery uses a container-responsive nested layout.\n* Wide layout has a smaller left major region and a larger right major region.\n* Outer region spans adapt across container breakpoints rather than using one fixed wide split.\n* Nested local groups can independently change between stack/grid arrangements across widths.\n* Layout responds to gallery/container width, not only browser viewport width.\n* Tailwind utilities/container variants are used directly wherever sufficient.\n* Unnecessary semantic layout class names from the previous implementation are removed.\n* Natural heights and independent vertical stacking remain intact.\n* No global row-coupling dead gaps return.\n* No masonry, dense packing, or absolute positioning is introduced.\n* Every composition renders once with coherent DOM/focus order.\n* Small/mobile collapses cleanly to one column.\n* No horizontal overflow or accessibility regression.\n* Worker documents the final breakpoint/span strategy and any remaining custom CSS with justification.",
+    "priority": {
+      "value": 2,
+      "name": "High"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-78/refine-gallery-with-container-responsive-nested-layout",
+    "gitBranchName": "emmantalob/pui-78-refine-gallery-with-container-responsive-nested-layout",
+    "createdAt": "2026-09-27T07:06:47.893Z",
+    "updatedAt": "2026-09-27T07:52:24.867Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-27T07:06:47.893Z",
+        "endedAt": "2026-09-27T07:52:24.835Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-27T07:52:24.835Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-65",
+          "title": "Replace flat composition grid with nested gallery regions"
+        },
+        {
+          "id": "PUI-79",
+          "title": "Populate the gallery with expressive token-driven UI compositions"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}

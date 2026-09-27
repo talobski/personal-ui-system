@@ -1,0 +1,11 @@
+{
+  "algorithm": "sha256",
+  "retrievedAt": "2026-09-27T08:02:08Z",
+  "tickets": {
+    "PUI-78": "ac3fd9fe14ff5ba3a79bd9c6aaf73f34ddf7db7075ee0553812731ebf0d34bd3",
+    "PUI-79": "ea7aa29da7e3177be26a4a3d60e91a653b293693eb7561ae281369e8e0af551d",
+    "PUI-80": "41fcd54c8e4e99daab23504709b1703f05d4a6bc0d229835668b3ec887334a42"
+  },
+  "index": "cf9c0ed6ce062876e880e2697e4480670b40fe8d02e53cef0b9d1e2a9a20333e",
+  "contract": "c8d3d7a4aa9be6f69f9e0bb8782484c9bd2ae803adb50611ff2b869e9516c072"
+}
