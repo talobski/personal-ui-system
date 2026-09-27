@@ -13,7 +13,8 @@ const USAGE = [
   { label: "Other", gigabytes: 1.5, swatch: "bg-chart-4" },
 ] as const
 
-export function PlanUsage() {
+/** `stable` is the gallery presentation: Upgrade announces its preview-only status without adding a visible line. */
+export function PlanUsage({ stable = false }: { stable?: boolean }) {
   const [previewed, setPreviewed] = useState(false)
   const used = USAGE.reduce((sum, item) => sum + item.gigabytes, 0)
   return (
@@ -47,7 +48,9 @@ export function PlanUsage() {
           </div>
           <Button size="sm" className="cursor-pointer" onClick={() => setPreviewed(true)}>Upgrade</Button>
         </div>
-        {previewed && <p role="status" className="text-sm">Upgrade preview only. Nothing was charged.</p>}
+        {stable
+          ? <p role="status" className="sr-only">{previewed ? "Upgrade preview only. Nothing was charged." : ""}</p>
+          : previewed && <p role="status" className="text-sm">Upgrade preview only. Nothing was charged.</p>}
       </CardContent>
     </Card>
   )

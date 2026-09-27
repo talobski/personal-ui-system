@@ -12,12 +12,17 @@ const COMMANDS = [
   { label: "Keyboard shortcuts", group: "Help", keys: ["?"], icon: Keyboard },
 ] as const
 
-export function QuickFind() {
+/**
+ * `stable` is the gallery presentation: every command row stays in place. Filtering disables and dims non-matching
+ * rows, and opening a command marks its row selected, so the card keeps its footprint while it responds.
+ */
+export function QuickFind({ stable = false }: { stable?: boolean }) {
   const id = useId()
   const [query, setQuery] = useState("")
   const [opened, setOpened] = useState<string | null>(null)
   const needle = query.trim().toLowerCase()
-  const results = COMMANDS.filter(command => `${command.label} ${command.group}`.toLowerCase().includes(needle))
+  const matches = (command: typeof COMMANDS[number]) => `${command.label} ${command.group}`.toLowerCase().includes(needle)
+  const results = COMMANDS.filter(matches)
   return (
     <Card>
       <CardHeader>
@@ -33,12 +38,13 @@ export function QuickFind() {
           <kbd aria-hidden="true" className="rounded border bg-muted px-1.5 font-mono text-[0.6875rem] text-foreground">⌘K</kbd>
         </div>
         <p aria-live="polite" className="sr-only">{results.length === 1 ? "1 result" : `${results.length} results`}</p>
-        {results.length === 0
+        {results.length === 0 && !stable
           ? <p className="px-2 py-6 text-center text-sm text-muted-foreground">No matches for “{query.trim()}”.</p>
           : <ul aria-label="Commands" className="grid gap-0.5">
-              {results.map(command => (
+              {(stable ? COMMANDS : results).map(command => (
                 <li key={command.label}>
-                  <button type="button" onClick={() => setOpened(command.label)} className="flex w-full cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                  <button type="button" disabled={!matches(command)} aria-current={stable && opened === command.label ? "true" : undefined} onClick={() => setOpened(command.label)}
+                    className="flex w-full cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-[current=true]:bg-accent aria-[current=true]:text-accent-foreground">
                     <command.icon aria-hidden="true" className="size-4 shrink-0" />
                     <span className="min-w-0 flex-1 truncate">{command.label}</span>
                     <span className="sr-only">, {command.group}, shortcut {command.keys.join(" ")}</span>
@@ -47,7 +53,9 @@ export function QuickFind() {
                 </li>
               ))}
             </ul>}
-        {opened && <p role="status" className="text-sm">Opened “{opened}” in this preview only.</p>}
+        {stable
+          ? <p role="status" className="sr-only">{opened ? `Opened “${opened}” in this preview only.` : ""}</p>
+          : opened && <p role="status" className="text-sm">Opened “{opened}” in this preview only.</p>}
       </CardContent>
     </Card>
   )

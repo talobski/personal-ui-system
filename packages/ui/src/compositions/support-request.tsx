@@ -7,7 +7,11 @@ import { Input } from "@personal-ui/ui/components/input"
 import { NativeSelect, NativeSelectOption } from "@personal-ui/ui/components/native-select"
 import { Textarea } from "@personal-ui/ui/components/textarea"
 
-export function SupportRequest({ invalidMessage = false, compact = false }: { invalidMessage?: boolean; compact?: boolean }) {
+/**
+ * `stable` is the gallery presentation: the invalid state stays on the field (its message is announced but not added
+ * visibly), the send confirmation is announced only, and the message box keeps its size, so the card never grows.
+ */
+export function SupportRequest({ invalidMessage = false, compact = false, stable = false }: { invalidMessage?: boolean; compact?: boolean; stable?: boolean }) {
   const [message, setMessage] = useState(invalidMessage ? "" : compact ? "I would like to learn more about the workspace." : "I was charged twice for last month's invoice.")
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState(invalidMessage)
@@ -47,8 +51,9 @@ export function SupportRequest({ invalidMessage = false, compact = false }: { in
                 aria-describedby={error ? messageErrorId : undefined}
                 value={message}
                 onChange={e => { setMessage(e.target.value); setSubmitted(false); setError(false) }}
+                className={stable ? "resize-none field-sizing-fixed" : undefined}
               />
-              {error ? <FieldError id={messageErrorId}>Enter a message.</FieldError> : null}
+              {error ? <FieldError id={messageErrorId} className={stable ? "sr-only" : undefined}>Enter a message.</FieldError> : null}
             </FieldContent>
           </Field>
         </FieldGroup>
@@ -57,7 +62,9 @@ export function SupportRequest({ invalidMessage = false, compact = false }: { in
         {!compact && <Button variant="outline" onClick={() => setSubmitted(true)}>Save draft</Button>}
         <Button className={compact ? "w-full" : undefined} onClick={() => { setError(!message.trim()); setSubmitted(Boolean(message.trim())) }}>{compact ? "Send message" : "Send request"}</Button>
       </CardFooter>
-      {submitted && <p role="status" className="px-6 text-sm">Preview saved locally in this example. Nothing was sent.</p>}
+      {stable
+        ? <p role="status" className="sr-only">{submitted ? "Preview saved locally in this example. Nothing was sent." : ""}</p>
+        : submitted && <p role="status" className="px-6 text-sm">Preview saved locally in this example. Nothing was sent.</p>}
     </Card>
   )
 }

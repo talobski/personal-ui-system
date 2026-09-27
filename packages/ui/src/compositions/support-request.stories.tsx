@@ -14,3 +14,4 @@ export const Default: Story = {}
 export const InvalidMessage: Story = { args: { invalidMessage: true } }
 
 export const QuietWorkspace: Story = { args: { compact: true } }
+export const Gallery: Story = { args: { compact: true, stable: true } }

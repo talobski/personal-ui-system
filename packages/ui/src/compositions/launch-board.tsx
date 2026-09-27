@@ -23,7 +23,11 @@ const INITIAL: { id: string; title: string; tag: string; status: Status }[] = [
 
 const NEXT: Record<Status, Status | null> = { next: "doing", doing: "done", done: null }
 
-export function LaunchBoard() {
+/**
+ * `stable` is the gallery presentation: a read-only board whose tasks stay in their columns, so column and card heights
+ * never shift. The default keeps the full board where each open task advances column by column.
+ */
+export function LaunchBoard({ stable = false }: { stable?: boolean }) {
   const [tasks, setTasks] = useState(INITIAL)
   const done = tasks.filter(task => task.status === "done").length
   const advance = (id: string) => setTasks(previous => previous.map(task => task.id === id && NEXT[task.status] ? { ...task, status: NEXT[task.status]! } : task))
@@ -55,7 +59,7 @@ export function LaunchBoard() {
                       </div>
                       {column.status === "done"
                         ? <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-foreground" />
-                        : <Button variant="ghost" size="icon-xs" className="shrink-0 cursor-pointer" aria-label={`Move “${task.title}” to ${column.status === "next" ? "In progress" : "Done"}`} onClick={() => advance(task.id)}>
+                        : !stable && <Button variant="ghost" size="icon-xs" className="shrink-0 cursor-pointer" aria-label={`Move “${task.title}” to ${column.status === "next" ? "In progress" : "Done"}`} onClick={() => advance(task.id)}>
                             <ArrowRight aria-hidden="true" />
                           </Button>}
                     </li>

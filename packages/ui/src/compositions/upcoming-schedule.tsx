@@ -38,7 +38,14 @@ const INITIAL: Record<Day, Event[]> = {
   sun: [],
 }
 
-export function UpcomingSchedule() {
+/** The busiest day's length: the stable agenda always renders this many rows, padding quieter days with open time. */
+const SLOTS = Math.max(...Object.values(INITIAL).map(agenda => agenda.length))
+
+/**
+ * `stable` is the gallery presentation: choosing a day swaps the agenda inside a fixed number of rows and there is no
+ * add action, so the card keeps its footprint. The default keeps the full variable-length agenda and Add focus block.
+ */
+export function UpcomingSchedule({ stable = false }: { stable?: boolean }) {
   const [day, setDay] = useState<Day>("tue")
   const [events, setEvents] = useState(INITIAL)
   const selected = DAYS.find(entry => entry.key === day)!
@@ -73,7 +80,19 @@ export function UpcomingSchedule() {
         </div>
         <section aria-live="polite" aria-label={`${selected.name} agenda`} className="grid gap-3">
           <p className="text-sm font-medium">{selected.name}</p>
-          {agenda.length === 0
+          {stable
+            ? <ol className="grid gap-3">
+                {Array.from({ length: SLOTS }, (_, index) => agenda[index]).map((event, index) => (
+                  <li key={`${day}-${index}`} className="grid grid-cols-[3rem_minmax(0,1fr)] items-start gap-3">
+                    {event ? <time className="pt-0.5 font-mono text-xs text-muted-foreground tabular-nums">{event.time}</time> : <span aria-hidden="true" className="pt-0.5 font-mono text-xs text-muted-foreground">—</span>}
+                    <div className={`grid gap-0.5 border-l-2 pl-3 ${event ? RAIL[event.tone] : "border-dashed border-border"}`}>
+                      <p className={event ? "truncate text-sm font-medium" : "truncate text-sm text-muted-foreground"}>{event?.title ?? "Open time"}</p>
+                      <p className="truncate text-xs text-muted-foreground">{event?.detail ?? "Free for deep work"}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            : agenda.length === 0
             ? <p className="text-sm text-muted-foreground">Nothing scheduled. A clear day for deep work.</p>
             : <ol className="grid gap-3">
                 {agenda.map((event, index) => (
@@ -88,11 +107,11 @@ export function UpcomingSchedule() {
               </ol>}
         </section>
       </CardContent>
-      <CardFooter>
+      {!stable && <CardFooter>
         <Button variant="outline" size="sm" className="w-full cursor-pointer" onClick={addFocusBlock}>
           <CalendarPlus aria-hidden="true" />Add focus block
         </Button>
-      </CardFooter>
+      </CardFooter>}
     </Card>
   )
 }
