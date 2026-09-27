@@ -1,9 +1,9 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`1b6f9e17e305c42af04789a751f1227217f25711` on `main`. Phase
-`workbench-cards-gallery-curation-v1-001` is accepted and promoted for
-PUI-81 through PUI-85. Its immutable packet preserves verbatim admission-time
+`8e405812ffea1f3acd35c17aabb8b0be4bbfd934` on `main`. Phase
+`workbench-showcase-components-geometry-v1-001` is accepted and promoted for
+PUI-86 through PUI-94. Its immutable packet preserves verbatim admission-time
 Linear snapshots alongside the authoritative reconciled contract. Lead browser
 and technical evidence, independent protected verification, and post-promotion
 checks passed. No owner visual-review gate was admitted. The earlier nested-gallery phase's record
@@ -16,7 +16,7 @@ owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
-Last updated: 2026-09-27
+Last updated: 2026-09-28
 
 ## Goal
 
@@ -145,6 +145,21 @@ row and a Revenue-only chart. Inter-card gaps stay at `gap-4`; only the local
 side-by-side pair stretches to equal height, returning to natural heights when
 stacked. Container queries, Theme v3, the 19-resource registry, 12 mutation
 operations, history, persistence and Design Command boundaries are unchanged.
+
+The accepted showcase components and Geometry phase delivers PUI-86 through
+PUI-94. The container-responsive Cards gallery now has eleven compositions:
+Storage without its promotional CTA, Studio revenue without x-axis labels, a
+weekly steps summary, and new compact chat, payment-table, signup, range
+Calendar, music, and illustrative weather compositions alongside Quick find
+and Recent activity. The reusable shadcn-aligned Message, Bubble, Calendar,
+and Table resources raise the registry from 19 to 23. Calendar uses the pinned
+`react-day-picker@10.0.1` dependency; no other direct dependency was added.
+The Sidebar token switch receives bounded label/spacing polish, and the editor
+now separates Radius and Spacing into Geometry while Shadow and Motion remain
+in Effects. Theme v3, the 12-operation mutation union, history/recovery,
+persistence, and staged Design Command semantics remain intact. The phase's
+mobile tab-focus correction keeps keyboard slider input operable after a
+category switch; no worker network or owner visual-review gate was admitted.
 
 ## V1 product contract
 
