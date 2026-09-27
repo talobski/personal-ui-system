@@ -154,7 +154,7 @@ const controls = read("apps/workbench/src/LiveControls.tsx")
 assert.doesNotMatch(controls, /Sidebar tokens are currently not applied\./)
 assert.match(controls, /aria-describedby=\{enabled \? "sidebar-tokens-status" : undefined\}/)
 const app = read("apps/workbench/src/App.tsx")
-assert.deepEqual([...app.matchAll(/<TabsTrigger value="([a-z]+)" className=\{CATEGORY_TRIGGER_CLASS\}>([A-Za-z]+)<\/TabsTrigger>/g)].map(match => match[2]), ["Colors", "Typography", "Geometry", "Effects", "Command"])
+assert.deepEqual([...app.matchAll(/<TabsTrigger value="([a-z]+)" className=\{CATEGORY_TRIGGER_CLASS\} onMouseDown=\{focusCategoryTrigger\}>([A-Za-z]+)<\/TabsTrigger>/g)].map(match => match[2]), ["Colors", "Typography", "Geometry", "Effects", "Command"])
 
 // WSCG-10/14: token-only colour and no network, credential, geolocation, or audio surface in changed product code.
 const rawColour = /#[0-9a-fA-F]{3,8}\b|\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color-mix)\(|\b(bg|text|border|fill|stroke|ring|from|to|via)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone|black|white)\b|\[(#|rgb|hsl|oklch)/

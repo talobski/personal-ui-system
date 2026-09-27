@@ -226,6 +226,33 @@ test.describe("WSCG-12/13 editor polish", () => {
     await axe(page, info, "sidebar-toggle")
   })
 
+  test("switching tabs from a focused panel control keeps focus on the pressed tab, so the next slider step lands (PUI-94)", async ({ page }) => {
+    await open(page)
+    const frames = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    // Focus inside the outgoing panel (the case the mobile sheet's focus restoration used to intercept).
+    await editorCategory(page, "Effects")
+    await page.getByRole("textbox", { name: "Duration", exact: true }).focus()
+    await editorCategory(page, "Geometry")
+    const tab = page.getByRole("tab", { name: "Geometry", exact: true })
+    await expect(tab).toBeFocused()
+    await frames()
+    await expect(tab).toBeFocused()
+    // Pointer activation keeps the browser's pointer focus appearance: no focus-visible ring on the pressed tab.
+    expect(await tab.evaluate(el => el.matches(":focus-visible"))).toBe(false)
+    // A slider focused immediately after the switch keeps focus through later frames and takes the keyboard step.
+    const spacing = page.getByRole("slider", { name: "Spacing", exact: true })
+    await spacing.focus()
+    await frames()
+    await expect(spacing).toBeFocused()
+    await page.keyboard.press("ArrowRight")
+    await expect(page.getByRole("textbox", { name: "Spacing", exact: true })).toHaveValue("0.255")
+    // The same holds from a focused section trigger.
+    await page.getByTestId("section-radius").getByRole("button").first().focus()
+    await editorCategory(page, "Colors")
+    await frames()
+    await expect(page.getByRole("tab", { name: "Colors", exact: true })).toBeFocused()
+  })
+
   test("five top-level tabs; Geometry holds Radius and Spacing, Effects holds Shadow and Motion (PUI-94)", async ({ page }, info) => {
     await open(page)
     await workspaceMode(page, "Controls")

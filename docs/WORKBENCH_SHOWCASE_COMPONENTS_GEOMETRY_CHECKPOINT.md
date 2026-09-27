@@ -72,3 +72,40 @@ These local runs are authoring smoke, not Lead evidence.
   DOM.
 - The Calendar pins `today` to the range start, so the real date never appears in the fixture.
 - The Workbench shell still has the pre-existing large-bundle warning.
+
+## Continuation: intermittent mobile slider keyboard failures
+
+Candidate `150ab50` failed two mobile Lead browser checks:
+
+- `theme-v2-live-controls.spec.ts:546`: the Radius ArrowRight step stayed at 0.7.
+- `workbench-theme-controls-polish.spec.ts:157`: the Spacing ArrowRight step stayed at 0.25.
+
+Both failures were intermittent.
+
+Diagnosis used temporary instrumentation (not committed):
+
+- The slider received focus, but at the key press focus was on the mobile Sidebar sheet's dialog element, so ArrowRight
+  went to the dialog and no value changed.
+- A focus-event timeline showed the cause. Radix Tabs activates on `mousedown`, and React renders synchronously during
+  that event, so the outgoing panel becomes `display:none` before the browser moves focus to the pressed tab.
+- If focus was inside that panel (the Duration input, or a section trigger), it is lost to the body. The Base UI
+  Dialog's `FloatingFocusManager` (`restoreFocus: "popup"`) then focuses the sheet dialog.
+- It also focuses the dialog again one animation frame later. That deferred refocus steals focus from a slider
+  focused in between.
+
+Without the fix, the tab is never focused after such a switch (deterministic). The slider theft depends on frame
+timing (intermittent). PUI-94 made this path more common because Radius is no longer in the same panel as Duration.
+
+Fix (App.tsx only): each category trigger takes focus itself at the start of `mousedown`, with
+`focus({ focusVisible: false })` so pointer clicks still show no ring. Focus is on a visible tab before Radix hides the
+outgoing panel, so the restore path never runs. Keyboard activation, roving focus, tab styling, the 12 operations,
+Theme v3 and history are unchanged.
+
+Regression: `workbench-showcase-components-geometry.spec.ts` "switching tabs from a focused panel control…". Without
+the fix it fails 3/3 on mobile; with the fix it passes 20/20.
+
+Repeats after the fix:
+
+- The two original cases on mobile: 100/100 passed (6 workers).
+- On desktop, together with `workbench-sidebar-preview-followup:78`: 27/27 passed.
+- Full local Workbench suite: 304 passed, 10 skipped by design.

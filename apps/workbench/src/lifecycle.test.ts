@@ -799,9 +799,12 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
   })
 
   it("shows Colors / Typography / Geometry / Effects / Command with px-2 triggers; Effects keeps the internal other value (PUI-94)", () => {
-    const tabs = [...app.matchAll(/<TabsTrigger value="([a-z]+)" className=\{CATEGORY_TRIGGER_CLASS\}>([A-Za-z]+)<\/TabsTrigger>/g)].map((match) => [match[1], match[2]])
+    const tabs = [...app.matchAll(/<TabsTrigger value="([a-z]+)" className=\{CATEGORY_TRIGGER_CLASS\} onMouseDown=\{focusCategoryTrigger\}>([A-Za-z]+)<\/TabsTrigger>/g)].map((match) => [match[1], match[2]])
     expect(tabs).toEqual([["colors", "Colors"], ["typography", "Typography"], ["geometry", "Geometry"], ["other", "Effects"], ["command", "Command"]])
     expect(app.match(/<TabsTrigger /g)).toHaveLength(5)
+    // Every category trigger takes focus before Radix's mousedown activation hides the outgoing panel, so the mobile
+    // sheet's focus restoration never pulls focus off the pressed tab.
+    expect(app).toContain("if (event.button === 0) event.currentTarget.focus({ focusVisible: false })")
     const panel = (value: string) => {
       const start = app.indexOf(`<TabsContent className="data-[state=inactive]:hidden" value="${value}" forceMount>`)
       expect(start, value).toBeGreaterThan(-1)

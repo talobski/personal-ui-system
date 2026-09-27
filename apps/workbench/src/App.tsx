@@ -47,6 +47,17 @@ const defaultTheme = builtInById(DEFAULT_THEME_ID)!
 
 const describeIssues = (issues: WorkbenchIssue[]) => issues.map((i) => `${i.ruleId} at ${i.path || "(root)"}`).join("; ")
 
+/**
+ * Radix Tabs activates on mousedown, so the outgoing panel is hidden before the browser moves focus to the pressed
+ * trigger. When focus was inside that panel, the mobile Sidebar sheet (Base UI Dialog, `restoreFocus: "popup"`) sees it
+ * lost to the body and refocuses the sheet, again one frame later, which can steal focus from the next control. Taking
+ * focus on the trigger first keeps focus on the visible tab; keyboard activation and roving focus are unchanged.
+ * `focusVisible: false` matches the browser's own pointer focus, so a click still shows no focus ring.
+ */
+const focusCategoryTrigger = (event: React.MouseEvent<HTMLButtonElement>) => {
+  if (event.button === 0) event.currentTarget.focus({ focusVisible: false })
+}
+
 function download({ filename, json }: { filename: string; json: string }) {
   const url = URL.createObjectURL(new Blob([json], { type: "application/json" }))
   const link = document.createElement("a")
@@ -507,12 +518,12 @@ export function App() {
                 <div data-testid="category-inset" className="w-max p-4">
                   {/* Triggers keep the accepted 29px height (the former 3px-padded 36px list, less 1px), radius, py-1 and type. */}
                   <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" aria-label="Editor categories">
-                    <TabsTrigger value="colors" className={CATEGORY_TRIGGER_CLASS}>Colors</TabsTrigger>
-                    <TabsTrigger value="typography" className={CATEGORY_TRIGGER_CLASS}>Typography</TabsTrigger>
-                    <TabsTrigger value="geometry" className={CATEGORY_TRIGGER_CLASS}>Geometry</TabsTrigger>
+                    <TabsTrigger value="colors" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Colors</TabsTrigger>
+                    <TabsTrigger value="typography" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Typography</TabsTrigger>
+                    <TabsTrigger value="geometry" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Geometry</TabsTrigger>
                     {/* Visible label only: the internal value stays `other`. */}
-                    <TabsTrigger value="other" className={CATEGORY_TRIGGER_CLASS}>Effects</TabsTrigger>
-                    <TabsTrigger value="command" className={CATEGORY_TRIGGER_CLASS}>Command</TabsTrigger>
+                    <TabsTrigger value="other" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Effects</TabsTrigger>
+                    <TabsTrigger value="command" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Command</TabsTrigger>
                   </TabsList>
                 </div>
               </ScrollArea>
