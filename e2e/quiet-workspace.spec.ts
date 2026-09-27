@@ -6,8 +6,8 @@ import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import { colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
-/** PUI-65 gallery DOM order: the activity stack, the profile/action stack, the full region, then the local pair. */
-const ids = ["productive-week", "team-access", "account-profile", "notifications", "support-request", "workspace-settings", "recent-activity", "room-to-think"]
+/** PUI-78/79 gallery DOM order: the left stack, then the right region top to bottom. */
+const ids = ["productive-week", "quick-find", "account-profile", "notifications", "plan-usage", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board", "team-access", "workspace-settings", "room-to-think"]
 
 /** The preview iframe's box versus the panel content box it should fill (WTEP-02). */
 async function previewFill(page: import("@playwright/test").Page) {
@@ -66,14 +66,16 @@ for (const mode of ["light", "dark"] as const) {
     await expect(frame.getByRole("tab", { name: "Cards", exact: true })).toHaveAttribute("aria-selected", "true")
     {
       const width = await frame.locator("html").evaluate(() => innerWidth)
-      await expect(frame.locator("[data-composition]")).toHaveCount(8)
-      expect(await frame.locator(".quiet-gallery [data-composition]").evaluateAll(nodes => nodes.map(n => getComputedStyle(n.querySelector(":scope > [data-slot=card], :scope > form > [data-slot=card]")!).boxShadow))).toEqual(Array(8).fill("none"))
+      await expect(frame.locator("[data-composition]")).toHaveCount(ids.length)
+      expect(await frame.locator("[data-gallery] [data-composition]").evaluateAll(nodes => nodes.map(n => getComputedStyle(n.querySelector(":scope > [data-slot=card], :scope > form > [data-slot=card]")!).boxShadow))).toEqual(Array(ids.length).fill("none"))
       expect(await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-composition")))).toEqual(ids)
       const geometry = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => { const r = n.getBoundingClientRect(); return { x: r.x, right: r.right, width: r.width, scroll: n.scrollWidth, client: n.clientWidth } }))
       for (const box of geometry) { expect(box.x).toBeGreaterThanOrEqual(0); expect(box.right).toBeLessThanOrEqual(width); expect(box.scroll).toBeLessThanOrEqual(box.client + 1) }
-      // NGIP-05: distinct left edges follow the preview's real width. From 60rem the 7fr/5fr stacks and the local pair
-      // give three; from 40rem only the local pair is side by side; below that everything is one column.
-      expect(new Set(geometry.map(b => b.x)).size).toBe(width >= 960 ? 3 : width >= 640 ? 2 : 1)
+      // CGS-03: distinct left edges follow the gallery container width. From 56rem (896px) the 5/7 and 4/8 frames put
+      // the right region's local groups side by side (three edges); the 6/6 frame gives two; one column gives two once
+      // the region reaches the local groups' 32rem (512px) query, else one.
+      const galleryWidth = await frame.locator("[data-gallery]").evaluate(el => el.getBoundingClientRect().width)
+      expect(new Set(geometry.map(b => b.x)).size).toBe(galleryWidth >= 896 ? 3 : galleryWidth >= 512 ? 2 : 1)
     }
     await frame.getByLabel("Display name", { exact: true }).fill("Ada Preview")
     await frame.getByRole("button", { name: "Save profile" }).click()

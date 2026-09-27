@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { expect, it } from "vitest"
 import { validateComponentState, evaluateContextRequest, getContract } from "@personal-ui/core"
 
@@ -62,8 +62,9 @@ it("retrieves the sole new resource deterministically with provenance", async ()
   expect(result.ok).toBe(true)
   expect(JSON.stringify(result)).toContain("packages/core/src/contracts/data/resizable-panel.ts")
 })
-it("uses exactly eight shared modules and thin stories, preserving accepted fixture variants", async () => {
-  const names = ["productive-week", "account-profile", "team-access", "workspace-settings", "notification-preferences", "support-request", "recent-activity", "room-to-think"]
+it("uses exactly thirteen shared modules and thin stories, preserving accepted fixture variants (CGS-07)", async () => {
+  // The eight accepted modules plus the five PUI-79 showcase compositions; every one is shared with Storybook.
+  const names = ["productive-week", "account-profile", "team-access", "workspace-settings", "notification-preferences", "support-request", "recent-activity", "room-to-think", "revenue-overview", "upcoming-schedule", "plan-usage", "launch-board", "quick-find"]
   const gallery = readFileSync(new URL("../../../apps/workbench/src/Gallery.tsx", import.meta.url), "utf8")
   for (const name of names) {
     const implementation = await import(`./compositions/${name}.tsx`)
@@ -74,7 +75,8 @@ it("uses exactly eight shared modules and thin stories, preserving accepted fixt
     expect(story).toContain(`from "./${name}"`)
     expect(story).not.toMatch(/function |<Card|<Input/)
   }
-  expect(gallery.match(/from "@personal-ui\/ui\/compositions\//g)).toHaveLength(8)
+  expect(gallery.match(/from "@personal-ui\/ui\/compositions\//g)).toHaveLength(13)
+  expect(readdirSync(new URL("./compositions", import.meta.url)).filter(file => !file.endsWith(".stories.tsx")).map(file => file.replace(/\.tsx$/, "")).sort()).toEqual([...names].sort())
   const resize = readFileSync(new URL("./components/resizable-panel.tsx", import.meta.url), "utf8")
   expect(resize).toContain('from "react-resizable-panels"')
   expect(resize).not.toMatch(/onPointer|onKeyDown|addEventListener/)

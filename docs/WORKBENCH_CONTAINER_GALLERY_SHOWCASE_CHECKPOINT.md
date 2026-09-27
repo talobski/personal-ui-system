@@ -50,3 +50,27 @@ Producer smoke (not formal evidence; local `vite preview`, Chromium, fixed 1440�
 
 The 1440 open → collapsed pair proves the frame and local groups recompute from container width at a fixed browser
 viewport. No composition overflowed. Browser definitions are migrated with the final composition set in Unit 2.
+
+## Unit 2 — PUI-79 curated token-driven showcase
+
+Files: `apps/workbench/src/Gallery.tsx`, new `packages/ui/src/compositions/{revenue-overview,upcoming-schedule,plan-usage,launch-board,quick-find}.tsx` plus thin stories, refreshed `recent-activity.tsx` and `room-to-think.tsx`, tests `apps/workbench/src/gallery.test.ts`, `packages/ui/src/quiet-workspace.test.ts`, and migrated browser definitions in `e2e/quiet-workspace.spec.ts`, `e2e/workbench-nested-gallery-interaction-polish.spec.ts`, `e2e/workbench-sidebar-preview-followup.spec.ts`.
+
+Final gallery set (13, each rendered once). Left stack: Productive Week, Quick Find, Account Profile, Notifications, Storage (plan usage), Support Request. Right region: Studio Revenue (full); local group [This Week | Recent Activity]; Launch Checklist (full); local group [Team Access | Workspace Settings]; Room to Think (full).
+
+Main composition choices:
+
+- **Studio revenue** — finance dashboard: range ToggleGroup (Week/Month/Quarter) re-derives KPI tiles and an area/dashed-line Chart; KPI tiles recompose 1→3 columns from the card's own container width. Deltas carry sr-only context.
+- **This week** — agenda: pressed-state day strip (7 buttons with event counts in accessible names), chart-token rails, Mono times, an "Add focus block" action and an empty-day state.
+- **Storage** — commerce/utility: Heading-role numeral, chart-token segmented meter with `role="img"` summary, Mono legend values, and an inner token-elevated (`shadow-md`) upgrade tile with a preview-only status.
+- **Launch checklist** — productivity board: progressbar, three columns that go side by side from the card's own `@md` width, tasks advance column by column with named buttons.
+- **Quick find** — command utility: search field with a focus ring on its wrapper, live filtering, polite result count, Mono key hints, empty state, preview-only status.
+- **Recent activity** (refreshed) — grouped Today/Yesterday timeline with icon badges and Mono times.
+- **Room to think** (refreshed) — editorial media card: a generative cover built only from chart/primary tokens and the radius scale, Heading-role statement, expandable essay (`aria-expanded`), and a pressed-state bookmark; the card goes side by side from its own `@xl` width.
+
+The accepted eight modules keep their interactive behaviors (profile save, notification switches and save, support validation, team-access dialog, workspace save) and public fixture variants. No registry item, dependency, or public resource was added; icons come from the UI package's existing pinned `lucide-react`. All colour is semantic (`primary`, `secondary`, `muted`, `accent`, `border`, `destructive`, `chart-1..5`); no raw colour appears in any composition (unit-guarded). Muted-foreground text is only placed on card/background surfaces, never on muted/secondary/accent fills, so no new instance of the documented muted contrast debt was introduced.
+
+Gallery roots remain shadowless via an explicit `box-shadow:none` arbitrary property on the `Composition` wrapper (Tailwind's `shadow-none` computes to a transparent five-layer stack, which would have weakened the accepted exact `none` assertion).
+
+Test migrations (no assertion weakened): exact 8-id lists became the exact 13-id list; `.quiet-gallery*` selectors became `[data-gallery]`, `data-gallery-region`, and `data-gallery-group`; viewport-width thresholds (640/960) became gallery-container thresholds (512/672/896); the 7fr/5fr ratio check became "right region > 1.3 × left at wide"; NGIP-03's live half now proves Quick Find follows Productive Week by exactly one gap while Revenue Overview starts beside it; independent-stack gap checks now cover the whole left stack and every right-region step; the tabbable-composition floor rose from 6 to 11; `items-start` is asserted as its exact computed value `flex-start`.
+
+Producer smoke (not formal evidence): `WORKBENCH_PORT=5312 corepack pnpm exec playwright test -c playwright.workbench.config.ts quiet-workspace.spec.ts workbench-nested-gallery-interaction-polish.spec.ts workbench-sidebar-preview-followup.spec.ts` — after the fixes above, all previously failing cases pass (NGIP-03/04/05 7 passed, 1 intentional skip; quiet-workspace layout light/dark both projects passed); the remaining 86 cases in that run passed on the first attempt. Screenshots were reviewed at 390 light/dark, 1440 light (Default and Quiet Editorial), and 1440 dark with the sidebar collapsed.

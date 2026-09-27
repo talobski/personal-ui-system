@@ -79,3 +79,39 @@ describe("CGS-03/04/06 container-responsive nested gallery (PUI-78)", () => {
     expect(css).not.toMatch(/data-gallery|data-composition/)
   })
 })
+
+describe("CGS-07/08 curated token-driven showcase (PUI-79)", () => {
+  const MODULES: Record<string, string> = {
+    "productive-week": "productive-week", "quick-find": "quick-find", "account-profile": "account-profile", notifications: "notification-preferences",
+    "plan-usage": "plan-usage", "support-request": "support-request", "revenue-overview": "revenue-overview", "upcoming-schedule": "upcoming-schedule",
+    "recent-activity": "recent-activity", "launch-board": "launch-board", "team-access": "team-access", "workspace-settings": "workspace-settings", "room-to-think": "room-to-think",
+  }
+  const module = (id: string) => read(`../../../packages/ui/src/compositions/${MODULES[id]}.tsx`)
+
+  it("curates thirteen distinct compositions across both regions and every local group", () => {
+    expect(COMPOSITION_IDS).toEqual(["productive-week", "quick-find", "account-profile", "notifications", "plan-usage", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board", "team-access", "workspace-settings", "room-to-think"])
+    expect(Object.keys(MODULES).sort()).toEqual([...COMPOSITION_IDS].sort())
+  })
+
+  it("styles every composition with semantic tokens and Theme v3 roles, never raw colours", () => {
+    const rawColour = /#[0-9a-fA-F]{3,8}\b|\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color-mix)\(|\b(bg|text|border|fill|stroke|ring|from|to|via)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone|black|white)\b|\[(#|rgb|hsl|oklch)/
+    for (const id of COMPOSITION_IDS) {
+      const source = module(id)
+      expect(source, id).not.toMatch(rawColour)
+      // One semantic Heading-role title per composition root.
+      expect(source, id).toMatch(/<h2 className="type-heading">/)
+    }
+    const showcase = ["revenue-overview", "upcoming-schedule", "plan-usage", "launch-board", "quick-find", "recent-activity", "room-to-think"].map(module).join("\n")
+    // Heading (display numerals/statements), Body (default), and Mono (times, sizes, tags, shortcuts) are all exercised.
+    expect(showcase.match(/type-heading text-(2xl|3xl|4xl|sm)/g)!.length).toBeGreaterThanOrEqual(4)
+    expect(showcase.match(/font-mono/g)!.length).toBeGreaterThanOrEqual(6)
+    // Data colour comes only from the five chart tokens; elevation and radius come from the theme scale.
+    for (const token of ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"]) expect(showcase).toContain(token)
+    expect(showcase).toMatch(/shadow-(xs|sm|md)/)
+    expect(showcase).toMatch(/rounded-(sm|md|lg|full)/)
+  })
+
+  it("uses container queries inside compositions so cards recompose from their own width", () => {
+    for (const id of ["revenue-overview", "launch-board", "room-to-think"]) expect(module(id), id).toMatch(/@container[\s\S]*@(sm|md|lg|xl):grid-cols-/)
+  })
+})

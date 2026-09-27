@@ -1,23 +1,33 @@
 import type { ReactNode } from "react"
 
 import { ProductiveWeek } from "@personal-ui/ui/compositions/productive-week"
+import { PlanUsage } from "@personal-ui/ui/compositions/plan-usage"
 import { AccountProfile } from "@personal-ui/ui/compositions/account-profile"
-import { TeamAccess } from "@personal-ui/ui/compositions/team-access"
-import { WorkspaceSettings } from "@personal-ui/ui/compositions/workspace-settings"
 import { NotificationPreferences } from "@personal-ui/ui/compositions/notification-preferences"
 import { SupportRequest } from "@personal-ui/ui/compositions/support-request"
+import { RevenueOverview } from "@personal-ui/ui/compositions/revenue-overview"
+import { UpcomingSchedule } from "@personal-ui/ui/compositions/upcoming-schedule"
 import { RecentActivity } from "@personal-ui/ui/compositions/recent-activity"
+import { LaunchBoard } from "@personal-ui/ui/compositions/launch-board"
+import { TeamAccess } from "@personal-ui/ui/compositions/team-access"
+import { QuickFind } from "@personal-ui/ui/compositions/quick-find"
+import { WorkspaceSettings } from "@personal-ui/ui/compositions/workspace-settings"
 import { RoomToThink } from "@personal-ui/ui/compositions/room-to-think"
 
 /** Gallery configuration only: the recipe below owns placement, compositions own content. */
 export const PREVIEW_COMPOSITIONS = [
   { id: "productive-week", render: () => <ProductiveWeek /> },
+  { id: "quick-find", render: () => <QuickFind /> },
   { id: "account-profile", render: () => <AccountProfile compact /> },
   { id: "notifications", render: () => <NotificationPreferences compact /> },
-  { id: "team-access", render: () => <TeamAccess /> },
-  { id: "recent-activity", render: () => <RecentActivity /> },
-  { id: "workspace-settings", render: () => <WorkspaceSettings compact /> },
+  { id: "plan-usage", render: () => <PlanUsage /> },
   { id: "support-request", render: () => <SupportRequest compact /> },
+  { id: "revenue-overview", render: () => <RevenueOverview /> },
+  { id: "upcoming-schedule", render: () => <UpcomingSchedule /> },
+  { id: "recent-activity", render: () => <RecentActivity /> },
+  { id: "launch-board", render: () => <LaunchBoard /> },
+  { id: "team-access", render: () => <TeamAccess /> },
+  { id: "workspace-settings", render: () => <WorkspaceSettings compact /> },
   { id: "room-to-think", render: () => <RoomToThink /> },
 ] as const
 
@@ -27,7 +37,7 @@ type CompositionId = typeof COMPOSITION_IDS[number]
 /** Gallery roots stay shadowless (accepted presentation); elevation inside a composition remains token-driven. */
 function Composition({ id }: { id: CompositionId }) {
   const composition = PREVIEW_COMPOSITIONS.find(entry => entry.id === id)!
-  return <section data-composition={id} className="min-w-0 [&>[data-slot=card]]:shadow-none [&>form>[data-slot=card]]:shadow-none">{composition.render()}</section>
+  return <section data-composition={id} className="min-w-0 [&>[data-slot=card]]:[box-shadow:none] [&>form>[data-slot=card]]:[box-shadow:none]">{composition.render()}</section>
 }
 
 /** A major region: an independent natural-height stack that is also the query container for its local groups. */
@@ -55,19 +65,24 @@ export function Gallery() {
       <div className="grid grid-cols-1 items-start gap-4 @2xl/gallery:grid-cols-12 @4xl/gallery:gap-6">
         <Region side="left" className="@2xl/gallery:col-span-6 @4xl/gallery:col-span-5 @6xl/gallery:col-span-4">
           <Composition id="productive-week" />
+          <Composition id="quick-find" />
           <Composition id="account-profile" />
           <Composition id="notifications" />
+          <Composition id="plan-usage" />
+          <Composition id="support-request" />
         </Region>
         <Region side="right" className="@2xl/gallery:col-span-6 @4xl/gallery:col-span-7 @6xl/gallery:col-span-8">
+          <Composition id="revenue-overview" />
           <LocalGroup className="@lg:grid-cols-2">
-            <Composition id="team-access" />
+            <Composition id="upcoming-schedule" />
             <Composition id="recent-activity" />
           </LocalGroup>
-          <Composition id="workspace-settings" />
-          <LocalGroup className="@xl:grid-cols-2">
-            <Composition id="support-request" />
-            <Composition id="room-to-think" />
+          <Composition id="launch-board" />
+          <LocalGroup className="@lg:grid-cols-2">
+            <Composition id="team-access" />
+            <Composition id="workspace-settings" />
           </LocalGroup>
+          <Composition id="room-to-think" />
         </Region>
       </div>
     </div>

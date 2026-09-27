@@ -24,9 +24,11 @@ const css = (el: Locator, property: string) => el.evaluate((node, name) => getCo
 const box = async (el: Locator) => (await el.boundingBox())!
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-/** PUI-65 recipe order: activity stack, profile/action stack, full region, local pair. */
-const GALLERY_ORDER = ["productive-week", "team-access", "account-profile", "notifications", "support-request", "workspace-settings", "recent-activity", "room-to-think"]
-const REGIONS = { activity: ["productive-week", "team-access"], "profile-actions": ["account-profile", "notifications", "support-request"], "local-pair": ["recent-activity", "room-to-think"] }
+/** PUI-78/79 recipe order (migrated from the PUI-65 regions): the left stack, then the right region top to bottom. */
+const GALLERY_ORDER = ["productive-week", "quick-find", "account-profile", "notifications", "plan-usage", "support-request", "revenue-overview", "upcoming-schedule", "recent-activity", "launch-board", "team-access", "workspace-settings", "room-to-think"]
+const REGIONS = { left: ["productive-week", "quick-find", "account-profile", "notifications", "plan-usage", "support-request"], right: ["revenue-overview", "upcoming-schedule", "recent-activity", "launch-board", "team-access", "workspace-settings", "room-to-think"] }
+/** Right-region flow: full items and local groups, each followed by exactly one gap. */
+const RIGHT_FLOW = [["revenue-overview"], ["upcoming-schedule", "recent-activity"], ["launch-board"], ["team-access", "workspace-settings"], ["room-to-think"]]
 
 async function axe(page: Page, info: TestInfo, label: string) {
   await page.mouse.move(0, 0)
@@ -43,7 +45,7 @@ async function open(page: Page) {
 }
 
 test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
-  test("NGIP-03 the frozen flat grid reproduces global-row dead space; the nested gallery packs Team Access under Productive Week", async ({ page }, info) => {
+  test("NGIP-03 the frozen flat grid reproduces global-row dead space; the nested gallery packs Quick Find under Productive Week", async ({ page }, info) => {
     // The frozen a33c3d0 reproduction: a taller default item holds the shared row, so the next wide item waits for it.
     await page.setViewportSize({ width: 1200, height: 900 })
     await page.setContent(flatGalleryRegression)
@@ -62,22 +64,24 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       const r = el.getBoundingClientRect()
       return [el.getAttribute("data-composition")!, { top: r.top, bottom: r.bottom, left: r.left, height: r.height }]
     })))
-    const fixed = rects["team-access"]!.top - rects["productive-week"]!.bottom
+    // Productive Week and Revenue Overview start together, yet Quick Find follows Productive Week by exactly one gap
+    // whatever the right region's height: the regions no longer share a row.
+    const fixed = rects["quick-find"]!.top - rects["productive-week"]!.bottom
     await info.attach("ngip-03-dead-space.json", { body: JSON.stringify({ old: { ...old, gap: oldGap }, nested: { gap: fixed, rects } }, null, 2), contentType: "application/json" })
-    // Productive Week and Account Profile start together, yet Team Access follows Productive Week by exactly one gap
-    // whatever Account Profile's height: the regions no longer share a row.
-    close(rects["account-profile"]!.top, rects["productive-week"]!.top)
+    close(rects["revenue-overview"]!.top, rects["productive-week"]!.top)
     close(fixed, 24)
-    expect(rects["team-access"]!.top).toBeLessThan(rects["account-profile"]!.bottom)
+    expect(rects["quick-find"]!.top).toBeLessThan(rects["revenue-overview"]!.bottom)
   })
 
   const layout = (page: Page) =>
     previewFrame(page).locator("html").evaluate(() => {
-      const gallery = document.querySelector(".quiet-gallery")!
+      const gallery = document.querySelector("[data-gallery]")!
+      const frame = gallery.firstElementChild!
       const rect = (el: Element) => { const r = el.getBoundingClientRect(); return { x: Math.round(r.x), y: Math.round(r.y), right: Math.round(r.right), bottom: Math.round(r.bottom), width: Math.round(r.width), height: Math.round(r.height) } }
       const items = Array.from(gallery.querySelectorAll("[data-composition]")).map(el => ({
         id: el.getAttribute("data-composition")!,
-        region: el.parentElement!.getAttribute("data-gallery-region") ?? (el.parentElement === gallery ? "full" : "other"),
+        region: el.closest("[data-gallery-region]")!.getAttribute("data-gallery-region")!,
+        grouped: el.parentElement!.hasAttribute("data-gallery-group"),
         ...rect(el),
         cardHeight: Math.round(el.firstElementChild!.getBoundingClientRect().height),
         aspect: getComputedStyle(el).aspectRatio,
@@ -85,14 +89,15 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
         client: el.clientWidth,
         placement: [getComputedStyle(el).gridColumnStart, getComputedStyle(el).gridRowStart],
       }))
-      const regions = Object.fromEntries(Array.from(gallery.querySelectorAll("[data-gallery-region]")).map(el => [el.getAttribute("data-gallery-region")!, { ...rect(el), display: getComputedStyle(el).display, direction: getComputedStyle(el).flexDirection, columns: getComputedStyle(el).gridTemplateColumns, gap: getComputedStyle(el).rowGap }]))
-      const principal = gallery.querySelector(".quiet-gallery-principal")!
+      const regions = Object.fromEntries(Array.from(gallery.querySelectorAll("[data-gallery-region]")).map(el => [el.getAttribute("data-gallery-region")!, { ...rect(el), display: getComputedStyle(el).display, direction: getComputedStyle(el).flexDirection, gap: getComputedStyle(el).rowGap, container: getComputedStyle(el).containerType }]))
+      const groups = Array.from(gallery.querySelectorAll("[data-gallery-group]")).map(el => ({ columns: getComputedStyle(el).gridTemplateColumns.split(" ").length, align: getComputedStyle(el).alignItems }))
       return {
         width: innerWidth,
         overflow: document.documentElement.scrollWidth > innerWidth,
-        gallery: { ...rect(gallery), display: getComputedStyle(gallery).display, direction: getComputedStyle(gallery).flexDirection, gap: getComputedStyle(gallery).rowGap },
-        principal: { columns: getComputedStyle(principal).gridTemplateColumns.split(" ").length, flow: getComputedStyle(principal).gridAutoFlow, align: getComputedStyle(principal).alignItems },
+        gallery: { ...rect(gallery), container: getComputedStyle(gallery).containerType, name: getComputedStyle(gallery).containerName },
+        frame: { columns: getComputedStyle(frame).gridTemplateColumns.split(" ").length, rows: getComputedStyle(frame).gridTemplateRows.split(" ").length, flow: getComputedStyle(frame).gridAutoFlow, align: getComputedStyle(frame).alignItems, gap: getComputedStyle(frame).rowGap },
         regions,
+        groups,
         items,
       }
     })
@@ -100,27 +105,28 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
   for (const size of [{ width: 390, height: 844 }, { width: 1100, height: 900 }, { width: 1440, height: 900 }]) {
     test(`NGIP-04/05 regions, order, natural heights, containment, focus order at ${size.width}px`, async ({ page }, info) => {
       test.skip(size.width === 1100 && isMobileShell(page), "the 1100px medium check runs once, in the desktop project")
-      test.setTimeout(90_000)
+      test.setTimeout(120_000)
       if (size.width !== page.viewportSize()!.width) await page.setViewportSize(size)
       await open(page)
       await workspaceMode(page, "Preview")
       const result = await layout(page)
       await info.attach(`ngip-layout-${size.width}.json`, { body: JSON.stringify(result, null, 2), contentType: "application/json" })
-      const wide = result.width >= 960, medium = result.width >= 640
-      if (size.width === 390) expect([wide, medium]).toEqual([false, false])
-      if (size.width === 1100) expect([wide, medium]).toEqual([false, true])
-      if (size.width === 1440) expect([wide, medium]).toEqual([true, true])
+      // Thresholds are the gallery container's own width (CGS-03), not the viewport.
+      const w = result.gallery.width
+      const split = w >= 672, wide = w >= 896
+      if (size.width === 390) expect([split, wide]).toEqual([false, false])
+      if (size.width === 1100) expect([split, wide]).toEqual([false, false])
+      if (size.width === 1440) expect([split, wide]).toEqual([true, true])
       const gap = wide ? 24 : 16
 
-      // Explicit nested regions: an outer column, two independent stacks, a full region, and one local pair.
-      expect(result.gallery).toMatchObject({ display: "flex", direction: "column", gap: `${gap}px` })
-      expect(result.principal).toMatchObject({ columns: wide ? 2 : 1, flow: "row", align: "start" })
-      for (const name of ["activity", "profile-actions"]) expect(result.regions[name]).toMatchObject({ display: "flex", direction: "column", gap: `${gap}px` })
-      expect(result.regions["local-pair"]!.display).toBe("grid")
-      expect(result.regions["local-pair"]!.columns.split(" ").length).toBe(medium ? 2 : 1)
+      // Explicit nested regions: a named container, a one-row frame, two independent stacks, and local groups.
+      expect(result.gallery).toMatchObject({ container: "inline-size", name: "gallery" })
+      expect(result.frame).toMatchObject({ columns: split ? 12 : 1, flow: "row", align: "flex-start", gap: `${gap}px` })
+      if (split) expect(result.frame.rows).toBe(1)
+      for (const name of ["left", "right"]) expect(result.regions[name]).toMatchObject({ display: "flex", direction: "column", gap: `${gap}px`, container: "inline-size" })
+      for (const group of result.groups) expect(group).toMatchObject({ columns: result.regions.right!.width >= 512 ? 2 : 1, align: "flex-start" })
       expect(result.items.map(item => item.id)).toEqual(GALLERY_ORDER)
       for (const [region, ids] of Object.entries(REGIONS)) expect(result.items.filter(item => item.region === region).map(item => item.id)).toEqual(ids)
-      expect(result.items.find(item => item.id === "workspace-settings")!.region).toBe("full")
 
       // Natural heights, no per-item placement, and containment.
       expect(result.overflow).toBe(false)
@@ -132,46 +138,47 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
         expect(item.right, item.id).toBeLessThanOrEqual(result.gallery.right)
         expect(item.scroll, item.id).toBeLessThanOrEqual(item.client + 1)
       }
-      expect(new Set(result.items.map(item => item.height)).size).toBeGreaterThan(3)
+      expect(new Set(result.items.map(item => item.height)).size).toBeGreaterThan(6)
 
-      // Independent stacks: every stacked card starts exactly one gap after its predecessor in the same region.
+      // Independent stacks: every left card starts one gap after its predecessor; every right step follows the tallest
+      // item of the previous full item or local group by one gap.
       const at = (id: string) => result.items.find(item => item.id === id)!
-      for (const ids of [REGIONS.activity, REGIONS["profile-actions"]]) {
-        for (let i = 1; i < ids.length; i++) close(at(ids[i]!).y - at(ids[i - 1]!).bottom, gap)
+      for (let i = 1; i < REGIONS.left.length; i++) close(at(REGIONS.left[i]!).y - at(REGIONS.left[i - 1]!).bottom, gap)
+      for (let i = 1; i < RIGHT_FLOW.length; i++) {
+        const previous = Math.max(...RIGHT_FLOW[i - 1]!.map(id => at(id).bottom))
+        // A side-by-side group starts together; a stacked group's second item is checked with the pairs below.
+        for (const id of result.regions.right!.width >= 512 ? RIGHT_FLOW[i]! : RIGHT_FLOW[i]!.slice(0, 1)) close(at(id).y - previous, gap)
       }
-      const activity = result.regions.activity!, profile = result.regions["profile-actions"]!
-      if (wide) {
-        // The ~7fr/5fr split: side-by-side stacks that start together and size independently.
-        close(activity.y, profile.y)
-        close(activity.width / profile.width, 7 / 5, 0.02)
-        close(profile.x - activity.right, gap)
+      const left = result.regions.left!, right = result.regions.right!
+      if (split) {
+        close(left.y, right.y)
+        close(right.x - left.right, gap)
+        if (wide) expect(right.width).toBeGreaterThan(left.width * 1.3)
       } else {
-        close(activity.x, profile.x)
-        close(profile.y - activity.bottom, gap)
+        close(left.x, right.x)
+        close(right.y - left.bottom, gap)
       }
-      const pair = REGIONS["local-pair"].map(at)
-      if (medium) { close(pair[0]!.y, pair[1]!.y); expect(pair[1]!.x).toBeGreaterThan(pair[0]!.right) } else close(pair[1]!.y - pair[0]!.bottom, gap)
-      // Workspace Settings spans its whole region below the taller principal stack.
-      const settings = at("workspace-settings")
-      close(settings.width, result.gallery.width)
-      close(settings.y - Math.max(activity.bottom, profile.bottom), gap)
+      for (const pair of RIGHT_FLOW.filter(step => step.length === 2)) {
+        const [a, b] = pair.map(at)
+        if (result.regions.right!.width >= 512) { close(a!.y, b!.y); expect(b!.x).toBeGreaterThan(a!.right) } else close(b!.y - a!.bottom, gap)
+      }
 
       // DOM order is reading order within each region, and keyboard focus visits compositions in DOM order.
       const frame = previewFrame(page)
       await frame.getByRole("tabpanel", { name: "Cards", exact: true }).focus()
       const visited: string[] = []
-      for (let step = 0; step < 250; step++) {
+      for (let step = 0; step < 400; step++) {
         await page.keyboard.press("Tab")
         const where = await frame.locator("html").evaluate(() => {
           const active = document.activeElement
-          return active?.closest(".quiet-gallery") ? active.closest("[data-composition]")?.getAttribute("data-composition") ?? "gallery" : null
+          return active?.closest("[data-gallery]") ? active.closest("[data-composition]")?.getAttribute("data-composition") ?? "gallery" : null
         })
         if (where === null) { if (visited.length > 0) break; continue }
         if (visited.at(-1) !== where) visited.push(where)
       }
       // Every composition that owns a tabbable control is visited once, in gallery DOM order.
       const tabbable = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.filter(node => Array.from(node.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea, [tabindex]")).some(el => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled && el.getClientRects().length > 0)).map(node => node.getAttribute("data-composition")!))
-      expect(tabbable.length).toBeGreaterThanOrEqual(6)
+      expect(tabbable.length).toBeGreaterThanOrEqual(11)
       expect(visited).toEqual(tabbable)
 
       await axe(page, info, `gallery-${size.width}-light`)
@@ -228,10 +235,10 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
     await states.click()
     await expect(states).toHaveAttribute("aria-selected", "true")
     await expect(frame.getByRole("heading", { name: "Button", exact: true })).toBeVisible()
-    await expect(frame.locator(".quiet-gallery")).toBeHidden()
+    await expect(frame.locator("[data-gallery]")).toBeHidden()
     await cards.click()
-    await expect(frame.locator("[data-composition]")).toHaveCount(8)
-    await expect(frame.locator(".quiet-gallery")).toBeVisible()
+    await expect(frame.locator("[data-composition]")).toHaveCount(GALLERY_ORDER.length)
+    await expect(frame.locator("[data-gallery]")).toBeVisible()
 
     // Keyboard: automatic activation with arrows/Home/End, a visible focus ring, and a single tab stop.
     await page.keyboard.press("Tab")
