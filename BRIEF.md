@@ -1,12 +1,12 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`696e7c4e1af19be88bcac308dda2227acc9323f6` on `main`. Phase
-`workbench-container-gallery-showcase-v1-001` is accepted and promoted for
-PUI-78 through PUI-80. Its immutable packet preserves verbatim admission-time
+`1b6f9e17e305c42af04789a751f1227217f25711` on `main`. Phase
+`workbench-cards-gallery-curation-v1-001` is accepted and promoted for
+PUI-81 through PUI-85. Its immutable packet preserves verbatim admission-time
 Linear snapshots alongside the authoritative reconciled contract. Lead browser
-and technical evidence and independent protected verification passed. No owner
-visual-review gate was admitted. The preceding nested-gallery phase's record
+and technical evidence, independent protected verification, and post-promotion
+checks passed. No owner visual-review gate was admitted. The earlier nested-gallery phase's record
 preserves a one-time worker execution-envelope violation: Corepack made an
 unauthorized pnpm download during its producer verification. The owner accepted
 that documented incident for that phase only; it grants no worker-network
@@ -132,6 +132,19 @@ The shared Switch gained only an optional backward-compatible thumb-content
 slot; the registry remains 19 resources and the mutation union 12 operations.
 No Theme v3 schema, persistence, Design Command, dependency, credential, or
 product runtime-network boundary changed.
+
+The accepted Cards gallery curation phase delivers PUI-81 through PUI-85.
+The eight-card showcase places Storage and Quick find first in the smaller left
+region, keeps A productive week and Support request there, and places Studio
+revenue, the This week / Recent activity pair, and Launch checklist in the
+larger right region. Five weaker compositions leave the Cards gallery while
+their independently used standalone modules and stories remain. Gallery-only
+interaction modes keep ordinary card geometry stable without weakening the
+standalone demos. Studio revenue now leads with range tabs, one divided metrics
+row and a Revenue-only chart. Inter-card gaps stay at `gap-4`; only the local
+side-by-side pair stretches to equal height, returning to natural heights when
+stacked. Container queries, Theme v3, the 19-resource registry, 12 mutation
+operations, history, persistence and Design Command boundaries are unchanged.
 
 ## V1 product contract
 
