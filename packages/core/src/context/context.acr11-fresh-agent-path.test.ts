@@ -41,13 +41,16 @@ describe("fresh-agent-verifiable path (ACR-11)", () => {
     if (!list.ok || list.operation !== "list") throw new Error("expected list")
     expect(list.resources.map((resource) => resource.id)).toEqual([
       "avatar",
+      "bubble",
       "button",
+      "calendar",
       "card",
       "chart",
       "collapsible",
       "combobox",
       "field",
       "input",
+      "message",
       "native-select",
       "resizable-panel",
       "responsive-dialog",
@@ -57,6 +60,7 @@ describe("fresh-agent-verifiable path (ACR-11)", () => {
       "single-toggle-group",
       "slider",
       "switch",
+      "table",
       "tabs",
       "textarea",
     ])

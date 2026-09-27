@@ -127,5 +127,9 @@
   {"kind": "sidebar", "providerCount": 1, "sidebarCount": 1, "insetPresent": true, "triggerName": "Toggle Sidebar", "mobilePresentation": "off-canvas-sheet", "menuActions": [{"accessibleName": "Delete Studio", "insidePrimaryControl": false}], "colorTokens": ["card", "card-foreground", "accent", "accent-foreground", "border", "ring"]},
   {"kind": "sidebar", "providerCount": 1, "sidebarCount": 1, "insetPresent": true, "triggerName": "Toggle Sidebar", "mobilePresentation": "off-canvas-sheet", "menuActions": [], "colorTokens": ["sidebar", "sidebar-foreground", "sidebar-primary", "sidebar-primary-foreground", "sidebar-accent", "sidebar-accent-foreground", "sidebar-border", "sidebar-ring", "input"]},
   {"kind": "avatar", "displayName": "Ada Lovelace", "fallbackText": "A", "fallbackBackground": "muted", "fallbackForeground": "muted-foreground", "decorative": true, "accessibleName": null},
-  {"kind": "avatar", "displayName": "  émile borel", "fallbackText": "É", "fallbackBackground": "muted", "fallbackForeground": "muted-foreground", "decorative": false, "accessibleName": "Émile Borel"}
+  {"kind": "avatar", "displayName": "  émile borel", "fallbackText": "É", "fallbackBackground": "muted", "fallbackForeground": "muted-foreground", "decorative": false, "accessibleName": "Émile Borel"},
+  {"kind": "message", "messages": [{"sender": "Maya Chen", "align": "start", "contentCount": 1}, {"sender": "You", "align": "end", "contentCount": 2}]},
+  {"kind": "bubble", "variant": "muted", "bounded": true, "wraps": true, "text": "Draft is ready for review."},
+  {"kind": "calendar", "mode": "range", "numberOfMonths": 1, "range": {"from": "2026-10-12", "to": "2026-10-16"}, "keyboardGrid": true, "visibleFocus": true},
+  {"kind": "table", "columns": ["Status", "Email", "Amount"], "accessibleName": "Recent payments", "rowCellCounts": [3, 3, 3]}
 ]

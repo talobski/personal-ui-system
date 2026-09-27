@@ -232,6 +232,73 @@
           "type": "registry:ui"
         }
       ]
+    },
+    {
+      "name": "message",
+      "type": "registry:ui",
+      "title": "Message",
+      "description": "Official shadcn Message layout for one conversational turn: group, avatar slot, content, header and footer with start/end alignment.",
+      "dependencies": [
+        "cn"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/message.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "bubble",
+      "type": "registry:ui",
+      "title": "Bubble",
+      "description": "Official shadcn Bubble message surface with bounded width, semantic cva variants and Slot-backed content.",
+      "dependencies": [
+        "class-variance-authority",
+        "cn",
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/bubble.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "calendar",
+      "type": "registry:ui",
+      "title": "Calendar",
+      "description": "Official shadcn Calendar over react-day-picker with Button-based day and navigation controls.",
+      "dependencies": [
+        "cn",
+        "lucide-react",
+        "react-day-picker@10.0.1"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/calendar.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "title": "Table",
+      "description": "Official shadcn Table: native table parts inside a horizontally contained wrapper.",
+      "dependencies": [
+        "cn"
+      ],
+      "files": [
+        {
+          "path": "packages/ui/src/components/table.tsx",
+          "type": "registry:ui"
+        }
+      ]
     }
   ]
 }

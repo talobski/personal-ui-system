@@ -94,6 +94,22 @@ const RAW_PROVENANCE_MANIFEST = {
     sourceId: "packages/core/src/contracts/data/avatar.ts",
     sha256: "d701b6941df858b637bb193064db1fc8cfd07a36a8cedbaf12d1db18ad0c5544",
   },
+  "resource:message": {
+    sourceId: "packages/core/src/contracts/data/message.ts",
+    sha256: "7edf1a505791aea9c507d8393e2fcde2d22e5d60feb565d70889b3405ed9a7a1",
+  },
+  "resource:bubble": {
+    sourceId: "packages/core/src/contracts/data/bubble.ts",
+    sha256: "7c57e38e1d8976a9a9a45e0dd9b437126102016f9be5b1ef31e08bf68faf509e",
+  },
+  "resource:calendar": {
+    sourceId: "packages/core/src/contracts/data/calendar.ts",
+    sha256: "c1f1e72ad53cdb0a609a116847076acf44142a233304ddd57ccc271f2e402353",
+  },
+  "resource:table": {
+    sourceId: "packages/core/src/contracts/data/table.ts",
+    sha256: "f50847cd646d11d33397781a0bb565cfba39a2386a0e32f0971e8da6ec4ab62e",
+  },
 } as const satisfies Record<string, ProvenanceEntry>
 
 export const PROVENANCE_MANIFEST = Object.freeze(

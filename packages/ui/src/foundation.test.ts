@@ -188,15 +188,23 @@ describe("shadcn foundation", () => {
     expect(item("sidebar")?.dependencies).toEqual(["cn", "class-variance-authority", "lucide-react", "radix-ui", "@base-ui/react@1.8.0"])
     expect(item("sidebar")?.registryDependencies).toEqual(["button", "input", "separator"])
     expect(item("avatar")?.dependencies).toEqual(["cn", "radix-ui"])
+    expect(item("message")?.dependencies).toEqual(["cn"])
+    expect(item("bubble")?.dependencies).toEqual(["class-variance-authority", "cn", "radix-ui"])
+    expect(item("calendar")?.dependencies).toEqual(["cn", "lucide-react", "react-day-picker@10.0.1"])
+    expect(item("calendar")?.registryDependencies).toEqual(["button"])
+    expect(item("table")?.dependencies).toEqual(["cn"])
     expect(registry.items.map((entry) => entry.name).sort()).toEqual([
       "avatar",
+      "bubble",
       "button",
+      "calendar",
       "card",
       "chart",
       "collapsible",
       "combobox",
       "field",
       "input",
+      "message",
       "native-select",
       "resizable-panel",
       "responsive-dialog",
@@ -206,6 +214,7 @@ describe("shadcn foundation", () => {
       "single-toggle-group",
       "slider",
       "switch",
+      "table",
       "tabs",
       "textarea",
     ])

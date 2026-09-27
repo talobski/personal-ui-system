@@ -177,6 +177,38 @@ const avatarStateSchema = z.strictObject({
   accessibleName: z.string().max(200).nullable(),
 })
 
+const messageStateSchema = z.strictObject({
+  kind: z.literal("message"),
+  messages: z.array(z.strictObject({ sender: z.string().max(200).nullable(), align: z.enum(["start", "end"]), contentCount: z.number().int().nonnegative().max(12) })).min(1).max(50),
+})
+
+const bubbleStateSchema = z.strictObject({
+  kind: z.literal("bubble"),
+  variant: z.string().min(1).max(40),
+  bounded: z.boolean(),
+  wraps: z.boolean(),
+  text: z.string().max(2000),
+})
+
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+const calendarStateSchema = z.strictObject({
+  kind: z.literal("calendar"),
+  mode: z.enum(["single", "multiple", "range"]),
+  numberOfMonths: z.number().int().nonnegative().max(24),
+  range: z.strictObject({ from: isoDate, to: isoDate }).nullable(),
+  keyboardGrid: z.boolean(),
+  visibleFocus: z.boolean(),
+})
+
+const tableStateSchema = z.strictObject({
+  kind: z.literal("table"),
+  columns: z.array(z.string().max(80)).max(20),
+  accessibleName: z.string().max(200).nullable(),
+  rowCellCounts: z.array(z.number().int().nonnegative().max(40)).max(200),
+})
+
+const BUBBLE_VARIANTS = new Set(["default", "secondary", "muted", "outline"])
+
 /**
  * Semantic theme colour tokens a sidebar may use: the canonical Theme v2.1 Sidebar tokens plus the base semantics a
  * sidebar legitimately shares (for example `input` for a SidebarInput). Literal colours and non-canonical sidebar tokens
@@ -220,6 +252,10 @@ export const componentStateSchema = z.discriminatedUnion("kind", [
   chartStateSchema,
   sidebarStateSchema,
   avatarStateSchema,
+  messageStateSchema,
+  bubbleStateSchema,
+  calendarStateSchema,
+  tableStateSchema,
   z.strictObject({
     kind: z.literal("scroll-area"),
     bounded: z.boolean(),
@@ -291,6 +327,18 @@ export type ComponentConstraintRuleId =
   | "avatar.single-initial"
   | "avatar.semantic-colors"
   | "avatar.accessible-name"
+  | "message.alignment"
+  | "message.sender-name"
+  | "message.content-required"
+  | "bubble.semantic-variant"
+  | "bubble.bounded-width"
+  | "bubble.content-required"
+  | "calendar.valid-range"
+  | "calendar.keyboard-grid"
+  | "calendar.month-count"
+  | "table.column-headers"
+  | "table.accessible-name"
+  | "table.row-shape"
 
 export type ComponentConstraintIssue = { ruleId: ComponentConstraintRuleId; path: string }
 
@@ -459,6 +507,36 @@ export function validateComponentState(input: unknown): ComponentStateValidation
     if ([...state.fallbackText].length !== 1 || state.fallbackText !== avatarInitial(state.displayName)) issues.push({ ruleId: "avatar.single-initial", path: "fallbackText" })
     if (state.fallbackBackground !== "muted" || state.fallbackForeground !== "muted-foreground") issues.push({ ruleId: "avatar.semantic-colors", path: state.fallbackBackground !== "muted" ? "fallbackBackground" : "fallbackForeground" })
     if (!state.decorative && (state.accessibleName === null || !state.accessibleName.trim())) issues.push({ ruleId: "avatar.accessible-name", path: "accessibleName" })
+  }
+
+  if (state.kind === "message") {
+    const alignBySender = new Map<string, string>()
+    for (const message of state.messages) {
+      if (message.sender === null || !message.sender.trim()) continue
+      const align = alignBySender.get(message.sender.trim())
+      if (align !== undefined && align !== message.align) issues.push({ ruleId: "message.alignment", path: "messages" })
+      alignBySender.set(message.sender.trim(), message.align)
+    }
+    if (state.messages.some((message) => message.sender === null || !message.sender.trim())) issues.push({ ruleId: "message.sender-name", path: "messages" })
+    if (state.messages.some((message) => message.contentCount < 1)) issues.push({ ruleId: "message.content-required", path: "messages" })
+  }
+
+  if (state.kind === "bubble") {
+    if (!BUBBLE_VARIANTS.has(state.variant)) issues.push({ ruleId: "bubble.semantic-variant", path: "variant" })
+    if (!state.bounded || !state.wraps) issues.push({ ruleId: "bubble.bounded-width", path: state.bounded ? "wraps" : "bounded" })
+    if (!state.text.trim()) issues.push({ ruleId: "bubble.content-required", path: "text" })
+  }
+
+  if (state.kind === "calendar") {
+    if (state.range !== null && state.range.from > state.range.to) issues.push({ ruleId: "calendar.valid-range", path: "range" })
+    if (!state.keyboardGrid || !state.visibleFocus) issues.push({ ruleId: "calendar.keyboard-grid", path: state.keyboardGrid ? "visibleFocus" : "keyboardGrid" })
+    if (state.numberOfMonths < 1 || state.numberOfMonths > 12) issues.push({ ruleId: "calendar.month-count", path: "numberOfMonths" })
+  }
+
+  if (state.kind === "table") {
+    if (state.columns.length === 0 || state.columns.some((column) => !column.trim())) issues.push({ ruleId: "table.column-headers", path: "columns" })
+    if (state.accessibleName === null || !state.accessibleName.trim()) issues.push({ ruleId: "table.accessible-name", path: "accessibleName" })
+    if (state.rowCellCounts.some((count) => count !== state.columns.length)) issues.push({ ruleId: "table.row-shape", path: "rowCellCounts" })
   }
 
   if (state.kind === "responsive-dialog") {

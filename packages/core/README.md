@@ -34,7 +34,7 @@ stored dedicated values. The twelve-operation union includes `setFontFamily` (`t
 radius scale), `setSpacingBase`, `setShadowProfile` (derives all shadow tiers), and `setSidebarTokensEnabled`;
 `setColor` accepts the same four colour families and the eight Sidebar colours.
 
-The catalog contains nineteen resources. `slider` (single-thumb, forwards its name and value text to the Radix
+The catalog contains twenty-three resources. `slider` (single-thumb, forwards its name and value text to the Radix
 thumb) and `collapsible` (one named disclosure region) are components; retrieve either with
 `get --version personal-ui-context/1 --theme default --resource slider`. `select` (grouped rich single choice over
 Base UI Select), `combobox` (searchable single choice over `@base-ui/react@1.8.0`), and `chart` (Recharts 3 with theme
@@ -56,6 +56,14 @@ same-axis scrollers. Its closed `scroll-area.*` constraints enforce these duties
 Retrieve it with `get --version personal-ui-context/1 --theme default --resource scroll-area`.
 Browser documents, preview documents, choice listboxes, and transient dialogs keep
 native scrolling.
+`message`, `bubble`, `calendar`, and `table` are the official shadcn component resources for
+conversations, dates, and small record sets. Compose `Message` (`align="start" | "end"`) with `MessageAvatar`,
+`MessageContent`, and `Bubble`/`BubbleContent` from `@personal-ui/ui/components/message` and `bubble`; use
+`Calendar` (react-day-picker@10.0.1, `mode="single" | "multiple" | "range"`) and `Table` with a caption and one header
+per column. Their closed `message.*`, `bubble.*`, `calendar.*`, and `table.*` constraints enforce sender names,
+semantic bubble variants, ordered ranges with a keyboard grid, and headed, named, rectangular tables. The Data Table
+guide is a recipe on `Table`, not a resource. Retrieve any of them with
+`get --version personal-ui-context/1 --theme default --resource calendar`.
 
 Numeric bounds are pixels. Use the library separator with an accessible name
 and visible focus; replace the desktop split with full-width Tabs on mobile.

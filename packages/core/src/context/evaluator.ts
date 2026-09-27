@@ -36,6 +36,10 @@ const RESOURCE_KINDS = Object.freeze({
   sidebar: "pattern",
   avatar: "component",
   "scroll-area": "component",
+  message: "component",
+  bubble: "component",
+  calendar: "component",
+  table: "component",
 } as const)
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value)

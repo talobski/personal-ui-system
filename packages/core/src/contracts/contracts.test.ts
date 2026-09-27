@@ -3,13 +3,16 @@ import { contractByteLength, contractSchema, CONTRACT_MAX_BYTES, getContract, li
 
 const ALL_RESOURCE_IDS = [
   "avatar",
+  "bubble",
   "button",
+  "calendar",
   "card",
   "chart",
   "collapsible",
   "combobox",
   "field",
   "input",
+  "message",
   "native-select",
   "resizable-panel",
   "responsive-dialog",
@@ -19,12 +22,13 @@ const ALL_RESOURCE_IDS = [
   "single-toggle-group",
   "slider",
   "switch",
+  "table",
   "tabs",
   "textarea",
 ]
 
 describe("contract lookup", () => {
-  it("lists exactly the nineteen public resources", () => {
+  it("lists exactly the twenty-three public resources", () => {
     expect(listContractIds().sort()).toEqual([...ALL_RESOURCE_IDS].sort())
   })
 

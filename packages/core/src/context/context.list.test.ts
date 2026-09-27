@@ -27,7 +27,13 @@ describe("context list (ACR-02)", () => {
         kind: "component",
         purpose: "Represent a person or account with an optional image and a one-character initial fallback on a muted surface.",
       },
+      { id: "bubble", kind: "component", purpose: "Present one message body as a bounded-width conversational surface with semantic colour variants." },
       { id: "button", kind: "component", purpose: "Trigger a single, clearly named action or navigation." },
+      {
+        id: "calendar",
+        kind: "component",
+        purpose: "Show a month grid of days for choosing a single date, several dates, or a date range with full keyboard support.",
+      },
       { id: "card", kind: "component", purpose: "Group related panel content — a title, description, body, and actions — inside one bordered surface." },
       {
         id: "chart",
@@ -46,6 +52,11 @@ describe("context list (ACR-02)", () => {
       },
       { id: "field", kind: "pattern", purpose: "Compose a label, control, description, and validation message as one accessible form field." },
       { id: "input", kind: "component", purpose: "Capture a single line of user-entered text or a native input type." },
+      {
+        id: "message",
+        kind: "component",
+        purpose: "Lay out one sender's turn in a conversation: an optional avatar beside content aligned to the start or end of the thread.",
+      },
       { id: "native-select", kind: "component", purpose: "Choose one value from a small, fixed set with the platform native select control." },
       { id: "resizable-panel", kind: "pattern", purpose: "Divide a desktop workspace into bounded panels with an accessible pointer and keyboard separator." },
       {
@@ -80,6 +91,7 @@ describe("context list (ACR-02)", () => {
         purpose:
           "Toggle a single boolean setting on or off. The visible on/off state always updates immediately; whether that change is persisted immediately or held for an explicit Save is one commit model declared for the whole surface.",
       },
+      { id: "table", kind: "component", purpose: "Present a small set of structured records in rows and labelled columns with native table semantics." },
       { id: "tabs", kind: "component", purpose: "Switch the visible content of one region between a small set of related panels." },
       { id: "textarea", kind: "component", purpose: "Capture multiple lines of free-form user-entered text." },
     ])

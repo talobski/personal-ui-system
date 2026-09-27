@@ -25,6 +25,10 @@ const loaders = {
   sidebar: () => import("./data/sidebar").then((m) => m.sidebar),
   "scroll-area": () => import("./data/scroll-area").then((m) => m.scrollArea),
   avatar: () => import("./data/avatar").then((m) => m.avatar),
+  message: () => import("./data/message").then((m) => m.message),
+  bubble: () => import("./data/bubble").then((m) => m.bubble),
+  calendar: () => import("./data/calendar").then((m) => m.calendar),
+  table: () => import("./data/table").then((m) => m.table),
 } as const satisfies Record<string, () => Promise<unknown>>
 
 export type ContractId = keyof typeof loaders
