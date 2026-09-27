@@ -1,0 +1,13 @@
+# Cards gallery curation — worker task
+
+Implement PUI-83, PUI-84, PUI-85, PUI-81, PUI-82 in that order as one bounded phase. Accepted product base is `696e7c4e1af19be88bcac308dda2227acc9323f6`. Work only on this phase branch/worktree. The prepared implementation base will be recorded in admission.json before dispatch.
+
+Read completely before editing product files: `AGENTS.md`, `BRIEF.md`, this phase's `linear-ticket-snapshots.md`, all five full `linear/PUI-*.json` issue payloads and `linear/PUI-*.comments.json` responses, and `docs/WORKBENCH_CARDS_GALLERY_CURATION_CONTRACT.md`. The verbatim Linear packet is planning context; the reconciled contract governs conflicts. Never revise the frozen packet or contract in response to later Linear edits.
+
+Deliver CGCR-01 through CGCR-09 and a clean committed candidate with a provider-neutral checkpoint. CGCR-10 browser execution, CGCR-11 fresh protected verification, and CGCR-12 acceptance/promotion/closeout are Lead-owned. The worker may run local browser smoke checks, but they are not Lead acceptance evidence.
+
+Final Cards gallery: left Storage, Quick find, A productive week, Support request; right Studio revenue, This week / Recent activity paired, Launch checklist. Remove the five owner-named cards from gallery configuration only; keep independently used modules/stories and public primitives. Simplify only height-changing interaction in surviving gallery presentations; retain useful simple states. Revenue tabs first, three separated metrics on one row, primary Revenue chart only. Gallery inter-card/region gaps are `gap-4`; only the surviving pair stretches equal-height when two-column and returns to natural heights when stacked. Do not change container-query breakpoints, left/right proportions, Theme v3, persistence, mutation, Design Command, history/recovery, public registry, credentials or network behavior.
+
+Workers may read this immutable worktree-local task packet but must not read/write the canonical checkout's live `.loop` runtime state. No worker network, credentials, paid/API fallback, external effects, agent/subagent launches or permission escalation. For Corepack set `COREPACK_ENABLE_NETWORK=0` and use only existing installed dependencies. Stop a blocked subtask rather than creating an approval loop. Do not call `respond_to_permission`.
+
+Checkpoint after each coherent bounded unit, preserving exact changed files, commands, results and risks. No worker acceptance or promotion claim. Concurrency 1; phase hard ceiling 3 runs (expected 2; third for bounded recovery/reverification); execution ceiling 300 minutes; paid spend $0. The approved Claude-to-Codex STRONG handoff, if needed, is Lead-controlled and must not restart or replay completed work. No MAX route.
