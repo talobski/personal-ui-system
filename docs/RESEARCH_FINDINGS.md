@@ -2,7 +2,7 @@
 
 Research date: 2026-09-20
 
-Scope: existing approaches relevant to a local, agent-native personal UI system. Primary/official sources were preferred; tweakcn's own repository is used for its claims.
+Scope: existing approaches relevant to a local, agent-native personal UI system. Primary/official sources were preferred; the findings below focus on reusable architectural lessons.
 
 ## Findings that affect V1
 
@@ -34,15 +34,11 @@ Sources:
 - https://ui.shadcn.com/docs/changelog/2026-04-preset-commands
 - https://tailwindcss.com/docs/theme
 
-### 3. tweakcn validates the visual-editor demand but is not the personal-rule layer
+### 3. Mature visual editors establish the scope boundary for V1
 
-tweakcn is an Apache-2.0 local-capable visual editor for Tailwind/shadcn themes with presets and extensive customization. Its mature editor makes a full clone a poor V1 target.
+Local-capable visual editors for Tailwind/shadcn themes already offer presets and extensive customization. Recreating a complete editor would duplicate established capability rather than prove this project's personal-rule layer.
 
-Implication: borrow interaction ideas and evaluate interoperability later. Build only the editing controls needed to prove this project's structured state and contracts.
-
-Source:
-
-- https://github.com/jnsahaj/tweakcn
+Implication: adopt useful interaction patterns and evaluate interoperability later. Build only the editing controls needed to prove this project's structured state and contracts.
 
 ### 4. Storybook already covers component states, executable examples, manifests, tests, and MCP
 
