@@ -1,0 +1,70 @@
+{
+  "retrievedAtUtc": "2026-09-27T16:12:08Z",
+  "issue": {
+    "id": "PUI-90",
+    "uuid": "609cbe0c-e845-450b-b5ae-ba4b214b9ce3",
+    "title": "Replace Launch checklist with a compact shadcn data table",
+    "description": "Replace the current \"Launch checklist\" gallery composition with a compact data-table composition based on shadcn's Data Table pattern.\n\nReference:\n\n* Use the current shadcn Data Table component/pattern as the implementation reference:\n  [https://ui.shadcn.com/docs/components/base/data-table](<https://ui.shadcn.com/docs/components/base/data-table>)\n\nOwner direction:\n\n* Remove the existing Launch checklist composition from the Cards gallery.\n* Replace it in the same general gallery slot with a compact data table.\n* The table itself should be the composition; do not include the surrounding table-management UI from the full shadcn example.\n\nInclude:\n\n* row selection checkbox column if it fits naturally;\n* Status column;\n* Email column;\n* Amount column;\n* row action / ellipsis menu if useful;\n* a small realistic set of example rows;\n* clear table borders/dividers using semantic tokens;\n* responsive containment appropriate for the gallery.\n\nDo not include:\n\n* table title/header above the table;\n* filter/search input;\n* Columns select/menu;\n* \"0 of 5 row(s) selected\" or equivalent selection summary;\n* Previous / Next pagination controls;\n* other toolbar/footer controls from the full shadcn example.\n\nVisual intent:\n\n* clean, compact, polished table composition;\n* the table should feel complete on its own inside the gallery card;\n* avoid unnecessary surrounding chrome;\n* preserve stable composition height.\n\nImplementation constraints:\n\n* Prefer the existing shadcn Table/Data Table architecture and primitives.\n* Use TanStack Table only if already required by the current shadcn implementation or clearly warranted by the accepted project architecture.\n* Do not add unrelated dependencies or a generic data-grid system solely for this gallery example.\n* Keep styling driven by Personal UI semantic tokens.\n* Preserve Heading / Body / Mono typography roles where relevant.\n* Keep light/dark mode coherent.\n* Avoid arbitrary raw colors when semantic tokens exist.\n* Do not expand the public resource registry unless the table primitive/resource is already part of accepted architecture or a genuinely reusable addition is justified.\n\nInteraction:\n\n* Simple row selection and row-action affordances may remain functional.\n* Do not add pagination/filtering workflows.\n* Interaction should not materially change card height or overall geometry.\n\nGallery/layout:\n\n* Preserve the accepted container-responsive Cards gallery architecture.\n* Keep the replacement in the intended Launch checklist position unless another admitted ticket explicitly changes ordering.\n* Preserve coherent DOM/focus order and responsive behavior.\n* No masonry, dense packing, or global row-coupling changes.\n\nAcceptance:\n\n* Launch checklist no longer appears in the Cards gallery.\n* A compact data table replaces it in the intended gallery slot.\n* The composition contains only the table surface, without filter, Columns selector, selection-summary footer, or pagination controls.\n* Table includes Status, Email, and Amount columns, with optional row selection/actions as appropriate.\n* Styling remains driven by Personal UI semantic tokens.\n* Light/dark rendering is coherent.\n* Interaction remains lightweight and geometry-stable.\n* No overflow, focus-order, keyboard, accessibility, or responsive regression.\n* No unnecessary public component/resource expansion is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-90/replace-launch-checklist-with-a-compact-shadcn-data-table",
+    "gitBranchName": "emmantalob/pui-90-replace-launch-checklist-with-a-compact-shadcn-data-table",
+    "createdAt": "2026-09-27T15:04:55.508Z",
+    "updatedAt": "2026-09-27T15:44:38.771Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Feature"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-27T15:04:55.508Z",
+        "endedAt": "2026-09-27T15:44:38.765Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-27T15:44:38.765Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "retrievedAtUtc": "2026-09-27T16:12:08Z",
+  "issue": {
+    "id": "PUI-91",
+    "uuid": "2052222e-350d-471b-a92f-bf557bbf1fbe",
+    "title": "Replace support form with a compact shadcn signup composition",
+    "description": "Replace the current \"How can we help?\" gallery composition with a compact signup form based on shadcn's official signup block.\n\nReference:\n\n* Use the current official shadcn signup block as the implementation basis:\n  [https://ui.shadcn.com/blocks/signup](<https://ui.shadcn.com/blocks/signup>)\n\nOwner direction:\n\n* Remove the existing \"How can we help?\" composition from the Cards gallery.\n* Replace it in the same general gallery slot with a signup composition.\n* Use the signup form portion of the referenced shadcn block.\n* Do NOT include the large right-side illustration/graphic panel from the full-page block.\n* Adapt the signup form so it works cleanly as a self-contained gallery card rather than a full-page auth layout.\n\nKeep the core signup structure:\n\n* \"Create your account\" heading\n* supporting copy\n* Email field\n* Password field\n* Confirm Password field\n* concise helper text\n* Create Account button\n* \"Or continue with\" divider\n* social auth buttons\n* \"Already have an account? Sign in\" footer/link\n\nImplementation basis:\n\n* Reuse the official shadcn block structure/components as closely as practical.\n* Prefer existing project primitives for Input, Button, Label/Field, Separator, etc.\n* Keep the form token-driven and theme-responsive.\n* Do not invent a parallel custom auth pattern when the shadcn block already provides the intended composition.\n\nGallery adaptation:\n\n* Remove full-page wrappers, min-height behavior, and two-column page layout.\n* Do not include the right-side decorative/media panel.\n* Keep only the signup form card/surface.\n* Fit the composition naturally within the accepted Cards gallery width and container behavior.\n* Preserve stable geometry; form interactions should not materially change card height.\n\nInteraction:\n\n* Inputs, focus states, buttons, and links may remain lightweight and functional.\n* No real authentication/network flow is required.\n* Do not add validation flows that append large error regions or reshape the card.\n* Keep interactions suitable for a design-system showcase.\n\nDesign-system constraints:\n\n* Use Personal UI semantic colors and tokens.\n* Use Heading / Body / Mono typography roles appropriately.\n* Preserve light/dark mode.\n* Avoid arbitrary raw colors when semantic tokens exist.\n* Reuse shadcn primitives where available.\n* Add no new public resource unless the official shadcn block genuinely requires a reusable primitive not yet present.\n\nGallery/layout constraints:\n\n* Preserve the accepted container-responsive Cards gallery architecture.\n* Keep the replacement in the intended support-form position unless another admitted ticket changes ordering.\n* Preserve coherent DOM/focus order and responsive containment.\n\nAcceptance:\n\n* \"How can we help?\" no longer appears in the Cards gallery.\n* A compact signup composition replaces it in the intended gallery slot.\n* The composition uses the shadcn signup block as its structural basis.\n* The right-side graphic/media panel is omitted.\n* The signup form includes the expected heading, email/password fields, primary CTA, social-auth row, and sign-in footer.\n* No full-page auth layout behavior leaks into the gallery.\n* Styling remains token-driven and coherent in light/dark mode.\n* Interaction remains lightweight and geometry-stable.\n* No overflow, keyboard, focus, accessibility, or responsive regression.\n* No unnecessary public component/resource expansion is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-91/replace-support-form-with-a-compact-shadcn-signup-composition",
+    "gitBranchName": "emmantalob/pui-91-replace-support-form-with-a-compact-shadcn-signup",
+    "createdAt": "2026-09-27T15:23:12.683Z",
+    "updatedAt": "2026-09-27T15:44:46.962Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Feature"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-27T15:23:12.683Z",
+        "endedAt": "2026-09-27T15:44:46.955Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-27T15:44:46.955Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

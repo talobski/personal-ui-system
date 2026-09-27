@@ -1,0 +1,69 @@
+{
+  "retrievedAtUtc": "2026-09-27T16:12:08Z",
+  "issue": {
+    "id": "PUI-93",
+    "uuid": "36798378-caec-4b9e-8f4c-d11a84837552",
+    "title": "Polish Sidebar token toggle spacing and label styling",
+    "description": "Polish the Sidebar token controls so the toggle row feels quieter and has clearer spacing from the SIDEBAR collapsible trigger.\n\nOwner direction:\n\n* Make the \"Use sidebar tokens\" label one text step smaller.\n* Use the muted-foreground semantic token for the label color.\n* Remove the helper note below the toggle:\n  \"Sidebar tokens are currently not applied.\"\n* Add a small amount of vertical space above the toggle row so it is visually separated from the SIDEBAR collapsible trigger.\n\nVisual intent:\n\n* Keep the toggle row visually secondary to the actual sidebar token fields.\n* Reduce clutter in the section.\n* Improve vertical rhythm between the collapsible trigger and the toggle.\n\nPreserve:\n\n* existing Switch behavior;\n* existing useDedicatedTokens semantics;\n* current enabled/disabled behavior;\n* keyboard/focus states;\n* light/dark behavior;\n* sidebar token field order and values;\n* collapsible trigger styling and behavior.\n\nDo not:\n\n* change sidebar token architecture;\n* change helper copy elsewhere;\n* change token values;\n* add new controls;\n* alter the SIDEBAR trigger itself beyond the spacing relationship needed below it.\n\nAcceptance:\n\n* \"Use sidebar tokens\" renders one text step smaller than before.\n* The label uses muted-foreground styling.\n* The \"Sidebar tokens are currently not applied.\" note is removed.\n* There is a small clear gap between the SIDEBAR collapsible trigger and the toggle row.\n* Toggle behavior and accessibility remain unchanged.\n* No unrelated sidebar control styling changes.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-93/polish-sidebar-token-toggle-spacing-and-label-styling",
+    "gitBranchName": "emmantalob/pui-93-polish-sidebar-token-toggle-spacing-and-label-styling",
+    "createdAt": "2026-09-27T15:37:00.082Z",
+    "updatedAt": "2026-09-27T15:44:56.437Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-27T15:37:00.082Z",
+        "endedAt": "2026-09-27T15:44:56.433Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-27T15:44:56.433Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

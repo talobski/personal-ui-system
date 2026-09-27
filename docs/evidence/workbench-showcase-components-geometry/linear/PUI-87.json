@@ -1,0 +1,74 @@
+{
+  "retrievedAtUtc": "2026-09-27T16:12:08Z",
+  "issue": {
+    "id": "PUI-87",
+    "uuid": "885762e0-8cb4-47c2-90e1-09ec8b14bb8e",
+    "title": "Remove x-axis labels from the Studio revenue chart",
+    "description": "Further simplify the Studio revenue composition by removing the x-axis labels from its primary Revenue chart across all range selections.\n\nBackground:\n<issue id=\"6644c25f-7710-478c-96d6-64069a76ce49\" href=\"https://linear.app/emman-systems/issue/PUI-85/simplify-the-studio-revenue-composition\">PUI-85</issue> simplified Studio revenue by removing the title/subtitle, nested metric cards, legend, and secondary Costs series. This follow-up continues that visual simplification.\n\nOwner direction:\n\n* Remove the x-axis/category labels shown below the chart.\n* Apply the change consistently across Week, Month, and Quarter views.\n* Keep the range tabs functional and keep the primary Revenue visualization itself.\n\nRemove:\n\n* Week view day labels such as Mon / Tue / Wed / Thu / Fri / Sat / Sun\n* Month-view x-axis/date labels\n* Quarter-view x-axis/period labels\n* any equivalent visible x-axis label row used by this composition\n\nKeep:\n\n* Week / Month / Quarter tabs\n* primary Revenue line/area visualization\n* current chart data behavior when switching ranges\n* existing grid/reference lines if they remain part of the accepted visual treatment\n* token-driven chart styling\n* responsive behavior\n* light/dark theme behavior\n\nIntent:\nThe chart should read as a cleaner visual trend surface rather than a fully annotated analytics chart.\n\nDo not:\n\n* remove the primary Revenue series;\n* reintroduce the Costs series or legend;\n* change the range-tab behavior;\n* change shared chart primitives globally unless a local composition-level configuration cannot achieve the result;\n* alter other gallery charts;\n* change gallery ordering or layout.\n\nAcceptance:\n\n* Week view shows no x-axis/day labels.\n* Month view shows no x-axis/date labels.\n* Quarter view shows no x-axis/period labels.\n* Range tabs continue to change the chart data correctly.\n* Primary Revenue line/area remains visible and responsive.\n* No stale empty axis space remains after label removal.\n* Light/dark/theme-token responsiveness remains intact.\n* No keyboard, focus, containment, or accessibility regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-87/remove-x-axis-labels-from-the-studio-revenue-chart",
+    "gitBranchName": "emmantalob/pui-87-remove-x-axis-labels-from-the-studio-revenue-chart",
+    "createdAt": "2026-09-27T14:49:44.687Z",
+    "updatedAt": "2026-09-27T15:44:17.557Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-27T14:49:44.687Z",
+        "endedAt": "2026-09-27T15:44:17.546Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-27T15:44:17.546Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-85",
+          "title": "Simplify the Studio revenue composition"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

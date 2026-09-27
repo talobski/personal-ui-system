@@ -1,0 +1,69 @@
+{
+  "retrievedAtUtc": "2026-09-27T16:12:08Z",
+  "issue": {
+    "id": "PUI-86",
+    "uuid": "cd4c516d-1bd2-4cef-8944-47172c6df410",
+    "title": "Remove the promotional CTA from the Storage composition",
+    "description": "Simplify the Storage gallery composition by removing the promotional Team plan / Upgrade CTA block from the bottom of the card.\n\nOwner direction:\n\n* Keep the Storage composition focused on storage usage and category breakdown.\n* Remove the entire promotional CTA section at the bottom.\n\nKeep:\n\n* \"Storage\" title\n* plan/renewal subtitle\n* primary usage value (for example 18.4 of 25 GB used)\n* storage progress bar\n* Design files / Video / Documents / Other breakdown\n* current token-driven styling\n* current responsive behavior\n* current light/dark behavior\n\nRemove:\n\n* promotional icon tile\n* \"Team plan\" label\n* \"100 GB and shared libraries.\" supporting copy\n* \"Upgrade\" button\n* the CTA container/surface/shadow that groups those elements\n\nIntent:\nThe Storage card should read as a clean usage/status composition rather than a storage upsell surface.\n\nDo not:\n\n* redesign the storage chart/progress visualization;\n* change the data model or category values;\n* change gallery placement/order;\n* alter shared Button/Card/Icon primitives;\n* replace the CTA with a different promotion;\n* add new functionality.\n\nAcceptance:\n\n* The Team plan / Upgrade CTA block no longer appears in the Storage composition.\n* The card ends naturally after the storage category breakdown.\n* Remaining content spacing is rebalanced so the card does not retain dead space where the CTA was removed.\n* Storage title, subtitle, usage value, progress visualization, and category breakdown remain intact.\n* Light/dark/theme-token responsiveness remains correct.\n* No accessibility, containment, or responsive regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-86/remove-the-promotional-cta-from-the-storage-composition",
+    "gitBranchName": "emmantalob/pui-86-remove-the-promotional-cta-from-the-storage-composition",
+    "createdAt": "2026-09-27T14:45:29.872Z",
+    "updatedAt": "2026-09-27T15:44:12.762Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-27T14:45:29.872Z",
+        "endedAt": "2026-09-27T15:44:12.753Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-27T15:44:12.753Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

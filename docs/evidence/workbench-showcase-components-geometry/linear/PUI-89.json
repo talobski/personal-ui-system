@@ -1,0 +1,70 @@
+{
+  "retrievedAtUtc": "2026-09-27T16:12:08Z",
+  "issue": {
+    "id": "PUI-89",
+    "uuid": "34122d81-02c3-42f8-86c2-d54d6a66ca29",
+    "title": "Repurpose Productive week into a weekly steps summary",
+    "description": "Repurpose the current \"A productive week\" gallery composition into a simple weekly steps/fitness summary while preserving the strong bar-chart composition.\n\nOwner direction:\n\n* Remove the existing productivity framing.\n* Reinterpret the composition as a weekly steps summary.\n* Keep the card visually simple and focused on one primary metric plus the 7-day bar visualization.\n\nRemove:\n\n* \"A productive week\" title\n* \"Your workspace, at a glance.\" subtitle\n* \"tasks completed\" label\n\nPrimary metric:\n\n* Use a realistic four-digit steps value to illustrate thousands of steps, for example around 8,000–9,000.\n* The large number should use the semantic Heading typography role (type-heading) rather than Body typography.\n* Keep the number visually prominent.\n\nSupporting copy:\n\n* Add a label such as \"Average steps this week\" or equivalent concise copy.\n* Add a secondary comparison such as \"+12.4% vs last week\" or similar positive weekly delta.\n\nChart:\n\n* Keep the seven-bar weekly chart structure.\n* Reinterpret the bars as daily step counts.\n* Preserve weekday labels M / T / W / T / F / S / S.\n* Adjust bar heights/data so they feel plausible for the new steps context.\n* Preserve token-driven chart colors and responsive behavior.\n\nDesign-system constraints:\n\n* Keep all styling driven by Personal UI semantic tokens.\n* Use Heading / Body / Mono roles appropriately.\n* Preserve light/dark theme behavior.\n* Do not hard-code arbitrary colors when semantic tokens exist.\n* Do not introduce a new public component/resource solely for this composition.\n\nInteraction:\n\n* No new workflow behavior is needed.\n* Preserve stable card geometry.\n* Keep any existing lightweight hover/focus behavior if relevant.\n\nDo not:\n\n* change gallery ordering/layout;\n* change shared chart primitives unless strictly necessary;\n* add extra fitness widgets or secondary charts;\n* add workflow-heavy interactions;\n* change unrelated compositions.\n\nAcceptance:\n\n* The composition no longer uses the productivity/workspace framing.\n* No title/subtitle remains above the primary metric.\n* The large steps value is a realistic four-digit number and uses Heading typography.\n* \"tasks completed\" is removed.\n* Supporting copy communicates average weekly steps.\n* A weekly percentage comparison is shown.\n* The seven-bar chart reads as daily steps and keeps weekday labels.\n* Light/dark/theme-token responsiveness remains intact.\n* Card geometry remains stable and responsive.\n* No accessibility or containment regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-89/repurpose-productive-week-into-a-weekly-steps-summary",
+    "gitBranchName": "emmantalob/pui-89-repurpose-productive-week-into-a-weekly-steps-summary",
+    "createdAt": "2026-09-27T15:00:07.590Z",
+    "updatedAt": "2026-09-27T15:44:28.249Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-27T15:00:07.590Z",
+        "endedAt": "2026-09-27T15:44:28.235Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-27T15:44:28.235Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

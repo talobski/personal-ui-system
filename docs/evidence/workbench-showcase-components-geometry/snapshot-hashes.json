@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "linear-admission-packet/1",
+  "phase": "workbench-showcase-components-geometry-v1-001",
+  "retrievedAtUtc": "2026-09-27T16:12:08Z",
+  "authoritativeContract": "docs/WORKBENCH_SHOWCASE_COMPONENTS_GEOMETRY_CONTRACT.md",
+  "contractSha256": "918714d39f17cb8ed590a6f4fbcc516471d19e245646dcb0728f0f4421663800",
+  "officialSourceAudit": "docs/evidence/workbench-showcase-components-geometry/shadcn-source-audit.md",
+  "officialSourceAuditSha256": "159afedd38fabee8c9d77734ae329d9b92ceb56b867a14666c72243e2a074ec9",
+  "acceptedProductBase": "1b6f9e17e305c42af04789a751f1227217f25711",
+  "preparedDependencyBase": "be4eca8e13728d49fbcfef2c773705c59a4599ad",
+  "tickets": [
+    {
+      "id": "PUI-86",
+      "file": "linear/PUI-86.json",
+      "sha256": "ab68cb61dd22f18e9fc9e3d9f1dbf22119b357da952cd1cba048e73f0cc8cbab",
+      "criteria": "WSCG-03",
+      "commentCount": 0,
+      "issueAttachmentCount": 0,
+      "issueDocumentCount": 0
+    },
+    {
+      "id": "PUI-87",
+      "file": "linear/PUI-87.json",
+      "sha256": "83f3d3308ec30c39667ae3244ae5d870e704a323100b20294e06481ad2ce1fe7",
+      "criteria": "WSCG-04",
+      "commentCount": 0,
+      "issueAttachmentCount": 0,
+      "issueDocumentCount": 0
+    },
+    {
+      "id": "PUI-88",
+      "file": "linear/PUI-88.json",
+      "sha256": "2de04fa292b19b4a58841050d474b2e8e83d7b1f6b5a990761bc31651c960be7",
+      "criteria": "WSCG-06",
+      "commentCount": 0,
+      "issueAttachmentCount": 0,
+      "issueDocumentCount": 0
+    },
+    {
+      "id": "PUI-89",
+      "file": "linear/PUI-89.json",
+      "sha256": "691e6f6dc8d2cf087ab940a046dffad404be3ea3b28b721f638fdf9fd27de194",
+      "criteria": "WSCG-05",
+      "commentCount": 0,
+      "issueAttachmentCount": 0,
+      "issueDocumentCount": 0
+    },
+    {
+      "id": "PUI-90",
+      "file": "linear/PUI-90.json",
+      "sha256": "448769f47dd9c6678c784cdc60090858a160687414488ca90049d5269f1f42e5",
+      "criteria": "WSCG-07",
+      "commentCount": 0,
+      "issueAttachmentCount": 0,
+      "issueDocumentCount": 0
+    },
+    {
+      "id": "PUI-91",
+      "file": "linear/PUI-91.json",
+      "sha256": "efca6d28040b728d4362b55fd844df79024ee8f4aa3b3da28baf37ae093492c8",
+      "criteria": "WSCG-08",
+      "commentCount": 0,
+      "issueAttachmentCount": 0,
+      "issueDocumentCount": 0
+    },
+    {
+      "id": "PUI-92",
+      "file": "linear/PUI-92.json",
+      "sha256": "700c0b96d45cf0ab39b1ac9146ce48904ee2ff201ed482e629a40c09578b4c5d",
+      "criteria": "WSCG-09, WSCG-10, WSCG-11",
+      "commentCount": 0,
+      "issueAttachmentCount": 0,
+      "issueDocumentCount": 0
+    },
+    {
+      "id": "PUI-93",
+      "file": "linear/PUI-93.json",
+      "sha256": "a6e5f768fa2faa0e0e125e0d68859ac2b86284da57f03f6c5598efe10f90ccfa",
+      "criteria": "WSCG-12",
+      "commentCount": 0,
+      "issueAttachmentCount": 0,
+      "issueDocumentCount": 0
+    },
+    {
+      "id": "PUI-94",
+      "file": "linear/PUI-94.json",
+      "sha256": "20410e228964f0f285c587d5dfca6528d278293dbd789315b09402ed7fe9953e",
+      "criteria": "WSCG-13",
+      "commentCount": 0,
+      "issueAttachmentCount": 0,
+      "issueDocumentCount": 0
+    }
+  ],
+  "laterLinearEdits": "Do not mutate admitted phase; reconciled contract authoritative"
+}

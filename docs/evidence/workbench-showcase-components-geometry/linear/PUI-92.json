@@ -1,0 +1,70 @@
+{
+  "retrievedAtUtc": "2026-09-27T16:12:08Z",
+  "issue": {
+    "id": "PUI-92",
+    "uuid": "5279440a-568a-4052-9a5d-076f1f8d3d7e",
+    "title": "Add calendar, music, and weather showcase compositions",
+    "description": "Add three new showcase compositions to the Cards gallery: a range calendar, a music player, and a location/weather widget.\n\nIntent:\nExpand the gallery with three visually distinct compositions that demonstrate different interaction and content patterns while remaining fully driven by Personal UI semantic tokens.\n\nThe exact visual treatment of the music and weather cards is intentionally left open so the worker can exercise design judgment.\n\n1. Range calendar composition\n\nUse shadcn's current Calendar component as the implementation basis:\n[https://ui.shadcn.com/docs/components/base/calendar](<https://ui.shadcn.com/docs/components/base/calendar>)\n\nRequirements:\n\n* Use range selection (mode=\"range\").\n* Display a single month only.\n* Show a clearly selected date range with active start/end/intermediate days.\n* Keep the composition compact enough to work as a gallery card.\n* Prefer the existing official shadcn Calendar architecture rather than inventing a custom date grid.\n* Calendar navigation may remain functional if it does not destabilize the card geometry.\n* Do not turn this into a full date-picker form, booking flow, or multi-month calendar.\n\nPreserve:\n\n* keyboard accessibility;\n* focus-visible states;\n* semantic theme tokens;\n* light/dark coherence;\n* stable card geometry.\n\n2. Music player composition\n\nCreate a simple, elegant music-player widget.\n\nCreative freedom:\nThe worker may choose the exact composition, but it should feel polished and intentionally designed rather than like a generic media control.\n\nPossible elements:\n\n* track title / artist;\n* artwork or abstract token-driven cover surface;\n* play/pause control;\n* previous/next controls;\n* progress indicator;\n* current time / duration;\n* volume or secondary control if it improves the design.\n\nThese are suggestions, not a mandatory checklist.\n\nInteraction:\n\n* basic play/pause and lightweight control states are acceptable;\n* no real streaming/network integration is required;\n* no dynamic behavior should materially alter card height;\n* avoid unnecessary complex playback logic.\n\nDesign constraints:\n\n* use Personal UI semantic colors/tokens;\n* use Heading / Body / Mono roles appropriately;\n* use existing Button/Slider/Icon primitives where they fit;\n* custom composition markup is allowed;\n* do not introduce a new public audio-player resource solely for this card unless it is genuinely reusable.\n\n3. Location and weather composition\n\nCreate a simple, elegant widget centered on place + weather.\n\nCreative freedom:\nThe worker may interpret the exact visual direction.\n\nPossible elements:\n\n* location name;\n* current-style temperature;\n* weather condition;\n* weather icon;\n* compact high/low;\n* short hourly/forecast strip;\n* sunrise/sunset, wind, humidity, or other restrained secondary detail.\n\nThese are inspiration only.\n\nImportant:\n\n* This is a gallery showcase, not a real weather product.\n* Use deterministic local illustrative data.\n* Do not add geolocation, weather APIs, network calls, or external credentials.\n* Do not imply the data is live.\n* Keep interactions minimal and geometry-stable.\n\nDesign constraints:\n\n* use Personal UI semantic tokens;\n* use existing icons/primitives where useful;\n* custom UI is allowed;\n* keep light/dark mode coherent;\n* no unnecessary public resource expansion.\n\nGallery integration\n\n* Add all three compositions to the accepted container-responsive Cards gallery.\n* Place them where they create the best visual balance across the existing smaller-left / larger-right structure.\n* The worker may choose exact placement/order unless another admitted ticket explicitly constrains it.\n* Every composition must render exactly once.\n* Preserve independent vertical flow, container-query behavior, and responsive collapse.\n* No masonry, dense packing, or absolute positioning.\n\nGeneral quality bar\n\nAim for:\n\n* strong visual hierarchy;\n* restrained, elegant styling;\n* meaningful variation between the three cards;\n* portfolio-quality composition;\n* semantic-token responsiveness;\n* stable geometry;\n* accessible interaction.\n\nAvoid:\n\n* generic placeholder UI;\n* arbitrary raw colors;\n* excessive decorative effects;\n* workflow-heavy behavior;\n* network-backed functionality;\n* card-height changes caused by interaction.\n\nAcceptance:\n\n* A single-month range Calendar composition exists and visibly demonstrates selected range states.\n* A polished music-player composition exists with lightweight media controls.\n* A polished location/weather composition exists using deterministic illustrative data only.\n* All three compositions are token-driven and respond correctly to theme changes.\n* Light/dark rendering is coherent.\n* Basic interactions remain stable and accessible.\n* No network, geolocation, external API, or credential dependency is introduced.\n* No unnecessary public resource/component expansion is introduced.\n* Gallery containment, focus order, responsiveness, and accessibility remain sound.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-92/add-calendar-music-and-weather-showcase-compositions",
+    "gitBranchName": "emmantalob/pui-92-add-calendar-music-and-weather-showcase-compositions",
+    "createdAt": "2026-09-27T15:30:38.116Z",
+    "updatedAt": "2026-09-27T15:44:51.927Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Feature"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-27T15:30:38.116Z",
+        "endedAt": "2026-09-27T15:44:51.919Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-27T15:44:51.919Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

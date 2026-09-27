@@ -1,0 +1,75 @@
+{
+  "retrievedAtUtc": "2026-09-27T16:12:08Z",
+  "issue": {
+    "id": "PUI-88",
+    "uuid": "57a71107-55c1-4878-a998-b436f6ecab7f",
+    "title": "Replace This week with a chat conversation composition",
+    "description": "Replace the current \"This week\" gallery composition with a simple chat conversation composition built directly from shadcn's official Message component family.\n\nReference:\n\n* Use the current official shadcn Message component/pattern as the implementation basis:\n  [https://ui.shadcn.com/docs/components/base/message](<https://ui.shadcn.com/docs/components/base/message>)\n\nOwner direction:\n\n* Remove the existing \"This week\" composition from the Cards gallery.\n* Replace it in the same general gallery slot with a chat/messaging composition.\n* Use shadcn's Message component architecture directly rather than inventing a custom chat-message system.\n* Prefer the official Message / MessageAvatar / MessageContent / MessageHeader / MessageFooter composition and Bubble for visible message surfaces where appropriate.\n* Keep the result compact, polished, and suitable for the gallery.\n\nImplementation basis:\n\n* Follow the current shadcn Message API and composition.\n* Use start/end alignment for sender/receiver rows.\n* Use MessageAvatar where an avatar improves the composition.\n* Use MessageGroup for consecutive messages from the same sender if useful.\n* Use MessageHeader / MessageFooter only where they improve the gallery composition.\n* Use Bubble / BubbleContent for message surfaces.\n* Do not add MessageScroller unless the card genuinely needs scrolling; the goal is a small static showcase conversation, not a full chat application.\n\nCreative freedom:\n\n* The worker may choose the conversation copy, participant treatment, avatar usage, message count, alignment, and any lightweight metadata.\n* Keep the composition visually balanced and simple rather than reproducing a specific screenshot pixel-for-pixel.\n\nInteraction boundaries:\n\n* Keep interaction minimal and geometry-stable.\n* No dynamic message insertion, streaming, expanding threads, drawers, or workflow-heavy messaging logic.\n* A static or lightweight input affordance is not required.\n* Prefer the composition to function primarily as a visual design-system showcase.\n\nDesign-system constraints:\n\n* Styling must remain driven by Personal UI semantic tokens.\n* Use Heading / Body / Mono roles appropriately.\n* Preserve light/dark mode behavior.\n* Do not hard-code arbitrary colors when semantic tokens exist.\n* Reuse existing Avatar/Button/etc. shadcn primitives as required by the official Message pattern.\n\nResource/registry:\n\n* If Message, Bubble, or another required official shadcn primitive is not yet present in the project, audit the current shadcn implementation and add only the minimal official resources needed.\n* Any new public resource must be genuinely reusable and reflected correctly in the registry/tests.\n* Do not introduce a custom public chat primitive when the official shadcn component already covers the need.\n\nGallery/layout constraints:\n\n* Preserve the accepted container-responsive Cards gallery architecture.\n* Keep the replacement in the intended \"This week\" slot unless another admitted ticket changes ordering.\n* Preserve coherent DOM/focus order and responsive containment.\n\nAcceptance:\n\n* \"This week\" no longer appears in the Cards gallery.\n* A polished chat conversation composition replaces it in the intended position.\n* The composition uses shadcn's official Message component family as its implementation basis.\n* No custom parallel message architecture is introduced unnecessarily.\n* The chat card remains responsive to Personal UI theme/token edits.\n* Light/dark rendering is coherent.\n* Interaction remains minimal and does not materially change card height.\n* No overflow, focus-order, accessibility, or responsive regression.\n* Any new shadcn public resources added are minimal, reusable, registered, and tested.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-88/replace-this-week-with-a-chat-conversation-composition",
+    "gitBranchName": "emmantalob/pui-88-replace-this-week-with-a-chat-conversation-composition",
+    "createdAt": "2026-09-27T14:53:14.901Z",
+    "updatedAt": "2026-09-27T15:44:22.044Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Feature"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-27T14:53:14.901Z",
+        "endedAt": "2026-09-27T15:44:22.037Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-27T15:44:22.037Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-84",
+          "title": "Simplify gallery card interactions and preserve stable geometry"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}
