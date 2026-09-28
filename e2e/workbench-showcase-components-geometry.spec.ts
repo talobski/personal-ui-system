@@ -179,7 +179,7 @@ test.describe("WSCG-06 to WSCG-10 new compositions", () => {
     await expect(weather.getByRole("list", { name: "Five-day forecast" }).getByRole("listitem")).toHaveCount(5)
     await expect(weather.getByRole("list", { name: "Next hours" })).toHaveCount(0)
 
-    // Containment for all eleven cards at this viewport.
+    // Containment for all twelve cards (PUI-108 adds Bitcoin) at this viewport.
     const overflow = await frame.locator("[data-gallery]").evaluate(gallery => Array.from(gallery.querySelectorAll<HTMLElement>("[data-composition]")).filter(el => el.scrollWidth > el.clientWidth + 1).map(el => el.dataset.composition))
     expect(overflow).toEqual([])
     // A doubled spacing token never turns the compact table into an unreachable scroll region.
@@ -202,11 +202,16 @@ test.describe("WSCG-11 gallery balance", () => {
     const g = await previewFrame(page).locator("[data-gallery]").evaluate(gallery => ({
       ids: Array.from(gallery.querySelectorAll("[data-composition]"), el => el.getAttribute("data-composition")),
       heights: Object.fromEntries(Array.from(gallery.querySelectorAll("[data-gallery-region]"), el => [el.getAttribute("data-gallery-region"), el.getBoundingClientRect().height])),
+      bitcoin: gallery.querySelector('[data-composition="bitcoin-price"]')!.getBoundingClientRect().height,
     }))
     await info.attach("wscg-11-balance.json", { body: JSON.stringify(g, null, 2), contentType: "application/json" })
-    expect(new Set(g.ids).size).toBe(11)
-    expect(g.ids).toHaveLength(11)
-    expect(Math.abs(g.heights.left! - g.heights.right!)).toBeLessThanOrEqual(200)
+    expect(new Set(g.ids).size).toBe(12)
+    expect(g.ids).toHaveLength(12)
+    // PUI-108 (workbench-bitcoin-designsystem-shells-v1-001) mandates one more full-width card in the right region
+    // without reordering the accepted eleven. The accepted balance still holds for those eleven; the only added
+    // difference is exactly the admitted Bitcoin card and its one 16px gap (recorded as a phase residual).
+    expect(Math.abs(g.heights.left! - (g.heights.right! - g.bitcoin - 16))).toBeLessThanOrEqual(200)
+    expect(g.heights.right!).toBeGreaterThan(g.heights.left!)
   })
 })
 

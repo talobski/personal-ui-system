@@ -19,7 +19,7 @@ const close = (actual: number, expected: number, tolerance = 1) => expect(Math.a
 const box = async (el: Locator) => (await el.boundingBox())!
 
 const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"]
-const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
+const RIGHT = ["revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
 
 async function open(page: Page) {
   await page.goto("/")
@@ -394,9 +394,9 @@ test.describe("WGPE-08 Sidebar switch (PUI-98)", () => {
   })
 })
 
-test.describe("WGPE-09 Design system view (PUI-101)", () => {
+test.describe("WGPE-09 Design system view (PUI-101; superseded layout per PUI-109)", () => {
   for (const mode of ["light", "dark"] as const) {
-    test(`live read-only colours, effective Sidebar values, semantic type samples (${mode})`, async ({ page }, info) => {
+    test(`live read-only colours, effective Sidebar values, live Body type scale (${mode})`, async ({ page }, info) => {
       test.setTimeout(120_000)
       await open(page)
       await setColorMode(page, mode)
@@ -406,8 +406,10 @@ test.describe("WGPE-09 Design system view (PUI-101)", () => {
       await expect(panel).toBeVisible()
       // Read-only: no controls of any kind in the view.
       await expect(panel.locator("input, button, select, textarea, [role=slider], [role=switch], [role=combobox]")).toHaveCount(0)
-      await expect(panel.getByRole("heading", { level: 2 })).toHaveText(["Colors", "Typography"])
-      await expect(panel.getByRole("heading", { level: 3 })).toHaveText(["Base", "Surfaces", "Intent", "Boundaries", "Charts", "Sidebar · base aliases", "Heading", "Body", "Mono"])
+      // PUI-109 (workbench-bitcoin-designsystem-shells-v1-001): Type scale replaces Typography, and Colors mirrors the
+      // Workbench sidebar's groups.
+      await expect(panel.getByRole("heading", { level: 2 })).toHaveText(["Colors", "Type scale"])
+      await expect(panel.getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar · base aliases"])
       const swatch = (name: string) => panel.locator(`[data-token="${name}"]`)
       await expect(panel.locator("[data-token]")).toHaveCount(32)
       // Values are what the iframe CSS resolves to right now, and the swatch paints the same token.
@@ -436,20 +438,24 @@ test.describe("WGPE-09 Design system view (PUI-101)", () => {
       await expect(panel.getByRole("heading", { name: "Sidebar · dedicated", level: 3 })).toBeVisible()
       await expect(swatch("sidebar").getByTestId("sidebar-alias")).toHaveCount(0)
       await expect(swatch("sidebar").getByTestId("token-value")).toHaveText(EDITS[mode].sidebar)
-      // Typography: the samples use the live roles, and a Heading font edit updates the sample and its label.
-      const headingSample = panel.locator('[data-role="heading"] p.type-heading').first()
-      expect(await css(headingSample, "font-family")).toBe(await css(frame.locator('[data-composition="plan-usage"] h2'), "font-family"))
-      expect(await css(panel.locator('[data-role="body"] p').nth(1), "font-family")).toBe(await frame.locator("body").evaluate(el => getComputedStyle(el).fontFamily))
-      expect(await css(panel.locator('[data-role="mono"] p.font-mono.text-sm'), "font-family")).toBe(await property(frame, "--font-mono").then(v => frame.locator("html").evaluate((_, stack) => { const p = document.createElement("span"); p.style.fontFamily = stack; document.body.append(p); const f = getComputedStyle(p).fontFamily; p.remove(); return f }, v)))
-      expect(await css(panel.locator('[data-role="muted"]'), "color")).toBe(await token(frame, "muted-foreground"))
-      await expect(panel.locator('[data-role="heading"]').getByTestId("role-meta")).toContainText(await property(frame, "--font-weight-heading"))
+      // Type scale: every specimen uses the live Body role (family, weight, tracking), the class labels are muted, and a
+      // Body font edit updates the specimens and the Body line immediately.
+      // Letter spacing is em-based, so it is compared as the rendered Body tracking property rather than in pixels.
+      const bodyStyle = () => frame.locator("body").evaluate(el => { const c = getComputedStyle(el); return [c.fontFamily, c.fontWeight] })
+      const specimen = panel.locator('[data-type-size="text-base"] > span').last()
+      const specimenStyle = () => specimen.evaluate(el => { const c = getComputedStyle(el); return [c.fontFamily, c.fontWeight] })
+      expect(await specimenStyle()).toEqual(await bodyStyle())
+      expect(await specimen.evaluate(el => getComputedStyle(el).letterSpacing)).toBe(await specimen.evaluate(el => { const probe = document.createElement("span"); probe.style.letterSpacing = "var(--tracking-body)"; el.append(probe); const value = getComputedStyle(probe).letterSpacing; probe.remove(); return value }))
+      expect(await css(panel.locator('[data-type-size="text-5xl"] > span').first(), "color")).toBe(await token(frame, "muted-foreground"))
+      await expect(panel.getByTestId("type-scale-meta")).toContainText(await property(frame, "--font-weight-body"))
       await editorCategory(page, "Typography")
-      await page.getByRole("combobox", { name: "Heading Font", exact: true }).click()
-      await page.getByRole("combobox", { name: "Search Heading fonts", exact: true }).fill("Playfair Display")
-      await page.getByRole("option", { name: "Playfair Display", exact: true }).click()
+      await page.getByRole("combobox", { name: "Body Font", exact: true }).click()
+      await page.getByRole("combobox", { name: "Search Body fonts", exact: true }).fill("Manrope")
+      await page.getByRole("option", { name: "Manrope", exact: true }).click()
       await workspaceMode(page, "Preview")
-      await expect.poll(() => css(headingSample, "font-family")).toContain("Playfair Display")
-      await expect(panel.locator('[data-role="heading"]').getByTestId("role-meta")).toContainText("Playfair Display")
+      await expect.poll(() => css(specimen, "font-family")).toContain("Manrope")
+      expect(await specimenStyle()).toEqual(await bodyStyle())
+      await expect(panel.getByTestId("type-scale-meta")).toContainText("Manrope")
       // The light/dark switch updates the reported values without any other state.
       const background = await swatch("background").getByTestId("token-value").innerText()
       await setColorMode(page, mode === "light" ? "dark" : "light")
@@ -462,7 +468,7 @@ test.describe("WGPE-09 Design system view (PUI-101)", () => {
   }
 })
 
-test.describe("WGPE-10 App shells view (PUI-102)", () => {
+test.describe("WGPE-10 App shells view (PUI-102; standardized per PUI-110)", () => {
   for (const mode of ["light", "dark"] as const) {
     test(`three contained shadcn Sidebar shells that follow the live theme and Sidebar source (${mode})`, async ({ page }, info) => {
       test.setTimeout(120_000)
@@ -490,7 +496,10 @@ test.describe("WGPE-10 App shells view (PUI-102)", () => {
         await expect(shell.locator('[aria-current="page"]')).toHaveCount(1)
       }
       await expect(panel.locator('[data-slot="sidebar-container"], [data-slot="sidebar-gap"], [data-slot="sidebar-inset"]')).toHaveCount(0)
-      expect(await panel.evaluate(root => Array.from(root.querySelectorAll("*")).filter(el => getComputedStyle(el).position === "fixed").length)).toBe(0)
+      // PUI-110 switchers use the accepted Select, whose closed popup positioner is hidden and whose native mirror input
+      // is aria-hidden; no other element is viewport-fixed.
+      expect(await panel.evaluate(root => Array.from(root.querySelectorAll("*")).filter(el => getComputedStyle(el).position === "fixed" && el.getClientRects().length > 0 && !el.matches('input[aria-hidden="true"]')).length)).toBe(0)
+      await expect(panel.getByRole("combobox")).toHaveCount(3)
       // Distinct compositions: three different Sidebar widths.
       const widths = await panel.locator('[data-slot="sidebar"]').evaluateAll(els => els.map(el => Math.round(el.getBoundingClientRect().width)))
       expect(new Set(widths).size).toBeGreaterThanOrEqual(2)
@@ -534,7 +543,7 @@ test.describe("WGPE-10 App shells view (PUI-102)", () => {
       await expect.poll(() => css(classic.locator('[data-active="true"]'), "border-top-left-radius")).not.toBe(radius)
       expect(await css(panel.getByRole("heading", { level: 2 }).first(), "font-family")).toBe(await css(frame.locator('[data-composition="plan-usage"] h2'), "font-family"))
       // Main areas stay abstract: no forms, tables, charts or content controls beyond the Sidebar navigation.
-      await expect(panel.locator("table, form, input, textarea, .recharts-surface")).toHaveCount(0)
+      await expect(panel.locator('table, form, input:not([aria-hidden="true"]), textarea, .recharts-surface')).toHaveCount(0)
       expect(await panel.getByRole("button").count()).toBe(await panel.getByRole("navigation").getByRole("button").count())
       expect(await overflowing(frame)).toEqual([])
       await axe(page, info, `app-shells-${mode}`)
@@ -543,7 +552,7 @@ test.describe("WGPE-10 App shells view (PUI-102)", () => {
 })
 
 test.describe("WGPE-11 four-view preview and gallery integrity", () => {
-  test("Cards / Design system / App shells / States, each view working, eleven cards once, no overflow", async ({ page }, info) => {
+  test("Cards / Design system / App shells / States, each view working, twelve cards once (PUI-108), no overflow", async ({ page }, info) => {
     await open(page)
     await workspaceMode(page, "Preview")
     const frame = previewFrame(page)

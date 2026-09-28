@@ -4,6 +4,7 @@ import type { Page, TestInfo } from "@playwright/test"
 
 const chartStory = "/iframe.html?id=pilot-chart--default&viewMode=story"
 const weekStory = "/iframe.html?id=composition-productive-week--default&viewMode=story"
+const bitcoinStory = "/iframe.html?id=composition-bitcoin-price--default&viewMode=story"
 const colorModes = ["light", "dark"] as const
 
 async function setColorMode(page: Page, mode: (typeof colorModes)[number]) {
@@ -85,6 +86,36 @@ test("Weekly steps (the repurposed Productive Week) keeps its data and summary o
       await assertNoSeriousOrCritical(page, testInfo, `${mode}-weekly-steps`)
     })
   }
+})
+
+test("Bitcoin 1Y draws one static line with thirteen dots on the Chart resource and chart tokens, with no grid, axes or legend (PUI-108)", async ({ page }, testInfo) => {
+  const external: string[] = []
+  page.on("request", (request) => { if (!request.url().startsWith("http://127.0.0.1") && !request.url().startsWith("data:")) external.push(request.url()) })
+  for (const mode of colorModes) {
+    await test.step(mode, async () => {
+      await page.goto(bitcoinStory)
+      await setColorMode(page, mode)
+      const figure = page.getByTestId("btc-chart")
+      await expect(figure.locator('[data-slot="chart"]')).toHaveCount(1)
+      await expect(figure.locator(".recharts-line")).toHaveCount(1)
+      await expect(figure.locator(".recharts-line-dots .recharts-dot")).toHaveCount(13)
+      await expect(figure.locator(".recharts-line-curve")).toHaveAttribute("stroke", "var(--color-price)")
+      await expect(figure.locator(".recharts-cartesian-grid, .recharts-xAxis, .recharts-yAxis, .recharts-cartesian-axis-tick-value, .recharts-legend-wrapper")).toHaveCount(0)
+      await expect(page.getByTestId("btc-price")).toHaveText("$88,642.88")
+      await expect(page.getByTestId("btc-change")).toHaveText("−8.52% over one year")
+      await expect(figure.locator("figcaption")).toContainText("Jan 1, 2025 $96,903.19; Feb 1, 2025 $97,676.52;")
+      // The dots follow the data: the October 2025 observation is the highest point and April 2025 the lowest.
+      const ys = await figure.locator(".recharts-line-dots .recharts-dot").evaluateAll((dots) => dots.map((dot) => Number(dot.getAttribute("cy"))))
+      expect(ys.indexOf(Math.min(...ys))).toBe(9)
+      expect(ys.indexOf(Math.max(...ys))).toBe(3)
+      // The accepted lightweight keyboard tooltip names each observation's date.
+      await page.keyboard.press("Tab")
+      await page.keyboard.press("ArrowRight")
+      await expect(figure.locator(".recharts-tooltip-wrapper")).toContainText(/[A-Z][a-z]{2} 1, 202[56]/)
+      await assertNoSeriousOrCritical(page, testInfo, `${mode}-bitcoin`)
+    })
+  }
+  expect(external).toEqual([])
 })
 
 test("Chart fills a narrow viewport without overflow and renders with reduced motion", async ({ page }) => {

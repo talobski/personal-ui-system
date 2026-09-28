@@ -24,6 +24,7 @@ export default defineConfig({
     "workbench-showcase-components-geometry.spec.ts",
     "workbench-gallery-preview-expansion.spec.ts",
     "workbench-gallery-card-polish.spec.ts",
+    "workbench-bitcoin-designsystem-shells.spec.ts",
   ],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },

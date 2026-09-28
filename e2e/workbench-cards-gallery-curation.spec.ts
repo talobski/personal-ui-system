@@ -20,15 +20,16 @@ const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-fr
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
 // workbench-gallery-preview-expansion-v1-001 (PUI-97): Music closes the left region, and Calendar / Weather is a second
-// local pair closing the right region. The single-pair invariants below now hold for each pair.
+// local pair closing the right region. The single-pair invariants below now hold for each pair. PUI-108
+// (workbench-bitcoin-designsystem-shells-v1-001) inserts the full-width Bitcoin 1Y card directly after Studio revenue.
 const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"]
-const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
+const RIGHT = ["revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
 const ORDER = [...LEFT, ...RIGHT]
 const PAIR = ["team-chat", "recent-activity"]
 const CALENDAR_PAIR = ["offsite-calendar", "local-weather"]
 const PAIRS = [PAIR, CALENDAR_PAIR]
 /** Right-region flow: full items and the local pairs, each followed by exactly one gap. */
-const RIGHT_FLOW = [["revenue-overview"], PAIR, ["recent-payments"], CALENDAR_PAIR]
+const RIGHT_FLOW = [["revenue-overview"], ["bitcoin-price"], PAIR, ["recent-payments"], CALENDAR_PAIR]
 const GAP = 16
 
 async function open(page: Page) {
@@ -134,13 +135,13 @@ function expectCuratedLayout(g: Geometry) {
 
 test.describe("CGCR-03/06/07 curated gallery, 16px gaps, and the one equal-height pair", () => {
   for (const size of [{ width: 390, height: 844 }, { width: 1100, height: 900 }, { width: 1440, height: 900 }]) {
-    test(`exact eleven-card order, 16px gaps, and pair behaviour at ${size.width}px`, async ({ page }, info) => {
+    test(`exact twelve-card order, 16px gaps, and pair behaviour at ${size.width}px`, async ({ page }, info) => {
       test.skip(size.width === 1100 && isMobileShell(page), "the intermediate width runs once, in the desktop project")
       if (size.width !== page.viewportSize()!.width) await page.setViewportSize(size)
       await open(page)
       await workspaceMode(page, "Preview")
       const frame = previewFrame(page)
-      await expect(frame.locator("[data-composition]")).toHaveCount(11)
+      await expect(frame.locator("[data-composition]")).toHaveCount(12)
       const g = await geometry(frame)
       await info.attach(`cgcr-layout-${size.width}.json`, { body: JSON.stringify(g, null, 2), contentType: "application/json" })
       const shape = expectCuratedLayout(g)

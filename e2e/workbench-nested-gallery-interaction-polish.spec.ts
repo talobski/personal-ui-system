@@ -24,11 +24,11 @@ const css = (el: Locator, property: string) => el.evaluate((node, name) => getCo
 const box = async (el: Locator) => (await el.boundingBox())!
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-/** PUI-86–92 recipe in the PUI-97 order (migrated from PUI-78/79/83): the left stack, then the right region top to bottom. */
-const GALLERY_ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
-const REGIONS = { left: ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"], right: ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"] }
+/** PUI-86–92 recipe in the PUI-97 order (migrated from PUI-78/79/83) with the PUI-108 Bitcoin card after Studio revenue: the left stack, then the right region top to bottom. */
+const GALLERY_ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
+const REGIONS = { left: ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"], right: ["revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"] }
 /** Right-region flow: full items and the local pairs, each followed by exactly one gap. */
-const RIGHT_FLOW = [["revenue-overview"], ["team-chat", "recent-activity"], ["recent-payments"], ["offsite-calendar", "local-weather"]]
+const RIGHT_FLOW = [["revenue-overview"], ["bitcoin-price"], ["team-chat", "recent-activity"], ["recent-payments"], ["offsite-calendar", "local-weather"]]
 /** Each local pair's own region-width query: chat 32rem (512px), Calendar / Weather 42rem (672px, PUI-97). */
 const PAIR_QUERY: Record<string, number> = { "team-chat": 512, "offsite-calendar": 672 }
 
@@ -196,8 +196,8 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       // Every composition that owns a tabbable control is visited once, in gallery DOM order.
       const tabbable = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.filter(node => Array.from(node.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea, [tabindex]")).some(el => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled && el.getClientRects().length > 0)).map(node => node.getAttribute("data-composition")!))
       // Read-only Storage, Weather and Recent activity own no tab stop; PUI-95/96 give Chat a composer and the compact
-      // Table its checkboxes and row actions.
-      expect(tabbable).toEqual(["quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-payments", "offsite-calendar"])
+      // Table its checkboxes and row actions. PUI-108's Bitcoin chart keeps the accepted Chart's keyboard-readable surface.
+      expect(tabbable).toEqual(["quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "bitcoin-price", "team-chat", "recent-payments", "offsite-calendar"])
       expect(visited).toEqual(tabbable)
 
       await axe(page, info, `gallery-${size.width}-light`)
