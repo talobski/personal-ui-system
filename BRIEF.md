@@ -1,16 +1,16 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`c4393ebbebe587ae18216f524b56b16ad1f9df35` on `main`. Phase
-`workbench-gallery-card-polish-v1-001` is accepted and promoted for
-PUI-103 through PUI-107. It simplifies Cards gallery metadata and chat,
-refines table and music controls, gives Calendar and Weather independent
-heights, and makes Studio revenue's chart full-bleed without changing Theme v3,
-the 23-resource registry, or the 12 mutation operations. Its immutable packet
-preserves verbatim admission-time Linear snapshots alongside the authoritative
-reconciled contract. Lead browser
-and technical evidence, independent protected verification, and post-promotion
-checks passed. No owner visual-review gate was admitted. The earlier nested-gallery phase's record
+`256c1c7490843c09294753271abc7e39024857bd` on `main`. Phase
+`workbench-bitcoin-designsystem-shells-v1-001` is accepted and promoted for
+PUI-108 through PUI-110. It adds a static, source-dated Bitcoin 1Y gallery
+card, a live flat Colors/Type scale reference, and three standardized shadcn
+Sidebar shell previews. Theme v3, the 23-resource registry, and the 12 mutation
+operations are unchanged. Its immutable packet preserves verbatim
+admission-time Linear snapshots and frozen BTC data alongside the authoritative
+reconciled contract. Lead browser and technical evidence, independent protected
+verification, and post-promotion checks passed. No owner visual-review gate was
+admitted. The earlier nested-gallery phase's record
 preserves a one-time worker execution-envelope violation: Corepack made an
 unauthorized pnpm download during its producer verification. The owner accepted
 that documented incident for that phase only; it grants no worker-network
@@ -20,7 +20,7 @@ owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 ## Goal
 
