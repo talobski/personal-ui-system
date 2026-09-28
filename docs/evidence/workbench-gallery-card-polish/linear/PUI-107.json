@@ -1,0 +1,69 @@
+{
+  "retrievedAtUtc": "2026-09-28T14:56:42Z",
+  "issue": {
+    "id": "PUI-107",
+    "uuid": "a3ba1e88-29f9-4ef5-9b60-440f9f1cce10",
+    "title": "Make Studio revenue chart full-bleed within the card",
+    "description": "Refine the Studio revenue composition so the chart becomes full-bleed horizontally and extends to the card's bottom edge, while tabs and metrics retain intentional inner padding.\n\nOwner direction:\n\n* Remove the card's current overall outer padding.\n* Reapply padding only to the non-chart content blocks.\n* Let the chart occupy the full available width of the card and extend all the way to the bottom edge.\n\nTarget structure:\n\nCard\n\n* no general outer padding;\n* preserve border/radius;\n* use overflow clipping if needed so the chart fill respects rounded bottom corners.\n\nPadded top content:\n\n* Week / Month / Quarter tabs;\n* Revenue / Margin / Invoices paid metric row.\n\nFull-bleed chart:\n\n* chart reaches the card's left edge;\n* chart reaches the card's right edge;\n* chart extends to the bottom edge of the card;\n* remove chart-side and chart-bottom inset spacing that currently prevents this;\n* keep any intentional vertical separation above the chart if visually needed.\n\nImplementation preference:\n\n* Prefer card-level p-0 (or equivalent) with inner wrappers providing spacing for tabs/metrics.\n* Keep chart wrapper outside the padded inner content so it can span edge-to-edge.\n* Use overflow-hidden or equivalent only if needed to clip the chart cleanly to the card radius.\n* Do not fake full-bleed behavior with negative margins if a cleaner structural wrapper change is available.\n\nPreserve:\n\n* current Week / Month / Quarter behavior;\n* current Revenue / Margin / Invoices paid metrics;\n* current Revenue chart data and interaction;\n* current semantic tokens;\n* light/dark behavior;\n* responsive behavior;\n* current card border/radius.\n\nDo not:\n\n* remove padding from the tabs/metrics themselves;\n* change the chart data/series;\n* change card ordering/layout;\n* alter other gallery cards;\n* add new tokens or public resources.\n\nAcceptance:\n\n* Studio revenue card no longer relies on one uniform outer padding.\n* Tabs and metrics remain comfortably padded.\n* Chart spans fully from left to right inside the card.\n* Chart reaches the card's bottom edge with no stale bottom inset.\n* Chart clips cleanly to the card's rounded bottom corners if applicable.\n* No overflow, focus-order, accessibility, responsive, or theme regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-107/make-studio-revenue-chart-full-bleed-within-the-card",
+    "gitBranchName": "emmantalob/pui-107-make-studio-revenue-chart-full-bleed-within-the-card",
+    "createdAt": "2026-09-28T13:10:10.730Z",
+    "updatedAt": "2026-09-28T14:35:19.435Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T13:10:10.730Z",
+        "endedAt": "2026-09-28T14:35:19.425Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T14:35:19.425Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

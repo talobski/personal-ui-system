@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "linear-snapshot-hashes/1",
+  "phase": "workbench-gallery-card-polish-v1-001",
+  "retrievedAtUtc": "2026-09-28T14:56:42Z",
+  "contract": {
+    "path": "docs/WORKBENCH_GALLERY_CARD_POLISH_CONTRACT.md",
+    "sha256": "03a8884005a77faa8463acdacf0a1065846f1763d32eefb713c1d29e74362220"
+  },
+  "index": {
+    "path": "docs/evidence/workbench-gallery-card-polish/linear/index.md",
+    "sha256": "64a4c6908356cac28d069c0443136419a353fa2afad582171bb5a2b802db75d3"
+  },
+  "tickets": {
+    "PUI-103": {
+      "path": "docs/evidence/workbench-gallery-card-polish/linear/PUI-103.json",
+      "sha256": "48f54142b9a5b2c1d7a841be3921eaee272dacad94e00e1ec3b9cf9bddecc520"
+    },
+    "PUI-104": {
+      "path": "docs/evidence/workbench-gallery-card-polish/linear/PUI-104.json",
+      "sha256": "6aa7b412997ae776543a68be06116b2365f7622fce85a574fff9d6f6e04911c0"
+    },
+    "PUI-105": {
+      "path": "docs/evidence/workbench-gallery-card-polish/linear/PUI-105.json",
+      "sha256": "f0a07646541d567397d32e3374461ebde97484727142ff17c48cb54796b6d6f1"
+    },
+    "PUI-106": {
+      "path": "docs/evidence/workbench-gallery-card-polish/linear/PUI-106.json",
+      "sha256": "1b07917a1c99bcb037d9d70103ccf3891182ae488f2fde70ea7358542575daad"
+    },
+    "PUI-107": {
+      "path": "docs/evidence/workbench-gallery-card-polish/linear/PUI-107.json",
+      "sha256": "e0c0e5c69327906ad6554f2d3d862d93ad258c329b9546c92902fab1aae3ce48"
+    }
+  }
+}

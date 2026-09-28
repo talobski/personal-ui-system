@@ -1,0 +1,69 @@
+{
+  "retrievedAtUtc": "2026-09-28T14:56:42Z",
+  "issue": {
+    "id": "PUI-105",
+    "uuid": "ef3ea66a-b5b9-4cda-b642-8fc5a29c96cd",
+    "title": "Use body typography in Weather and natural heights for Calendar pair",
+    "description": "Refine the Weather typography and make the Calendar + Weather local pair use natural content-driven heights instead of stretching to equal height.\n\n1. Weather typography\n\nOwner direction:\n\n* Keep the current visual sizes/weights of the main temperature and location name.\n* Change the font-family role so both use the Sans/Body typography family rather than Heading.\n* The goal is for the entire Weather composition to use Sans/Body typography while preserving visual hierarchy through size and weight.\n\nSpecifically:\n\n* current temperature (for example 21°) -> Body/Sans family;\n* location name (for example Lisbon) -> Body/Sans family;\n* keep their current size/weight unless a tiny adjustment is required to preserve the accepted visual balance;\n* do not convert supporting weather copy to Mono or introduce a new type role.\n\nPreserve:\n\n* current Weather layout;\n* current iconography;\n* high/low values;\n* condition text;\n* multi-day forecast;\n* semantic token styling;\n* light/dark behavior.\n\n2. Calendar + Weather local row height behavior\n\nOwner direction:\n\n* The Calendar and Weather pair should no longer stretch vertically to match each other's height.\n* Each card should follow its own natural/content-driven height.\n* Calendar should end when its content ends.\n* Weather should end when its content ends.\n\nImportant scope boundary:\n\n* This is a local exception only for the Calendar + Weather pair.\n* Do not change the equal-height/stretch behavior of other intentional paired cards on the right column.\n* Do not globally change gallery row alignment or card-height rules.\n\nImplementation preference:\n\n* Use local grid/flex alignment such as items-start or equivalent where appropriate.\n* Remove h-full/min-h-full/stretch behavior only from this specific pair if that is what currently forces equal height.\n* Do not use fixed pixel heights.\n* Preserve the existing narrower-Calendar / wider-Weather relationship.\n* Preserve responsive stacking at narrower container widths.\n\nAcceptance:\n\n* Weather current temperature uses Body/Sans typography while keeping its current visual prominence.\n* Weather location name uses Body/Sans typography while keeping its current visual prominence.\n* Weather composition no longer relies on Heading font-family for those two elements.\n* Calendar and Weather render at independent natural heights when side-by-side.\n* The shorter card is not stretched to match the taller card.\n* Other paired rows that intentionally use equal-height behavior remain unchanged.\n* Responsive stacking remains correct.\n* No overflow, clipping, focus-order, accessibility, theme, or layout regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-105/use-body-typography-in-weather-and-natural-heights-for-calendar-pair",
+    "gitBranchName": "emmantalob/pui-105-use-body-typography-in-weather-and-natural-heights-for",
+    "createdAt": "2026-09-28T12:52:57.967Z",
+    "updatedAt": "2026-09-28T14:35:06.720Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T12:52:57.967Z",
+        "endedAt": "2026-09-28T14:35:06.712Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T14:35:06.712Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "retrievedAtUtc": "2026-09-28T14:56:42Z",
+  "issue": {
+    "id": "PUI-103",
+    "uuid": "de6c7c9c-ea30-480c-bc2a-829fde0da624",
+    "title": "Simplify gallery card metadata and chat composer",
+    "description": "Further simplify several Cards gallery compositions by removing secondary labels/metadata, and refine the chat composer so the disabled send action sits inside the field.\n\nOwner direction:\n\n* Remove the highlighted secondary elements from Storage, Quick find, Recent activity, Weekly steps, and Chat.\n* Keep each card's primary visual purpose intact.\n* Do not redesign unrelated composition structure.\n\n1. Storage simplification\n\nRemove:\n\n* the plan/renewal subtitle, e.g. \"Pro plan · renews October 31\";\n* the numeric values displayed beside the storage categories:\n  * Design files value (for example 8.6);\n  * Documents value (for example 3.1);\n  * Video value (for example 5.2);\n  * Other value (for example 1.5).\n\nKeep:\n\n* Storage title;\n* primary usage value;\n* progress bar;\n* category dots;\n* category names.\n\nThe category breakdown should read as labels/colors only, without per-category numbers.\nAfter removing the subtitle, rebalance spacing so the card does not retain dead space beneath the title.\n\n2. Quick find simplification\n\nRemove:\n\n* \"Quick find\" title;\n* \"Jump anywhere without leaving the keyboard.\" subtitle.\n\nKeep:\n\n* search/command field;\n* command rows/actions;\n* shortcut keycaps/icons;\n* existing lightweight interaction.\n\nThe search field should become the first visible content in the card.\n\n3. Recent activity simplification\n\nRemove:\n\n* the subtitle \"Small steps, steady progress.\";\n* the right-aligned timestamps from each activity row, such as:\n  * 10:42;\n  * 09:15;\n  * 16:08;\n  * 14:18.\n\nKeep:\n\n* Recent activity title;\n* Today / Yesterday grouping;\n* activity icons;\n* names/actions/content;\n* existing semantic styling.\n\nDo not replace the subtitle or timestamps with other metadata.\nRebalance spacing naturally after subtitle removal.\n\n4. Weekly steps simplification\n\nRemove the weekday labels beneath the bar chart:\n\n* M / T / W / T / F / S / S.\n\nKeep:\n\n* primary step value;\n* \"Average steps this week\" copy;\n* weekly comparison badge;\n* seven-bar visualization.\n\nDo not leave unnecessary reserved space where the weekday labels were removed.\n\n5. Chat composition simplification\n\nRemove the entire contact header area at the top:\n\n* avatar;\n* contact name;\n* any header container/divider that exists only for that identity row.\n\nKeep:\n\n* incoming/outgoing message bubbles;\n* conversation order/alignment;\n* bottom composer.\n\nComposer refinement:\n\n* Keep placeholder text: \"Type your message...\"\n* Move the send icon button inside the input/composer field on the far right.\n* The send button must be disabled.\n* Disabled button should render using the existing muted/disabled visual treatment so it appears gray/inactive.\n* No send behavior or message insertion is required.\n* Preserve an accessible name for the disabled icon-only send button.\n\nPrefer existing Input/Button composition patterns rather than inventing a new public composer primitive.\n\nGlobal constraints:\n\n* Preserve Personal UI semantic tokens.\n* Preserve light/dark behavior.\n* Preserve Heading / Body / Mono roles where still relevant.\n* Do not change card ordering/layout in this ticket.\n* Do not add new public resources.\n* Do not alter Theme v3, history, persistence, Design Command, or mutation behavior.\n* Keep responsive containment and stable outer geometry.\n\nAcceptance:\n\n* Storage plan/renewal subtitle is removed.\n* Storage category values are removed while category names/dots remain.\n* Quick find title/subtitle are removed and the search field is first.\n* Recent activity subtitle is removed.\n* Recent activity timestamps are removed.\n* Weekly steps weekday labels are removed without leaving stale spacing.\n* Chat contact header/avatar/name are removed.\n* Chat composer keeps \"Type your message...\".\n* Send icon button is inside the composer field on the far right.\n* Send button is disabled and visually muted/gray.\n* Chat bubbles remain unchanged in order/alignment.\n* No overflow, focus-order, keyboard, accessibility, responsive, or theme regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-103/simplify-gallery-card-metadata-and-chat-composer",
+    "gitBranchName": "emmantalob/pui-103-simplify-gallery-card-metadata-and-chat-composer",
+    "createdAt": "2026-09-28T12:41:42.748Z",
+    "updatedAt": "2026-09-28T14:34:56.183Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T12:41:42.748Z",
+        "endedAt": "2026-09-28T14:34:56.177Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T14:34:56.177Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}
