@@ -1,9 +1,9 @@
 # Workbench Bitcoin, Design system and App shells — phase contract
 
-Phase: `workbench-bitcoin-designsystem-shells-v1-001`  
-Tickets: PUI-108 through PUI-110  
-Risk: Tier 2, not the LOOP-16 Tier 1 pilot  
-Accepted product base: `c4393ebbebe587ae18216f524b56b16ad1f9df35`  
+Phase: `workbench-bitcoin-designsystem-shells-v1-001`
+Tickets: PUI-108 through PUI-110
+Risk: Tier 2, not the LOOP-16 Tier 1 pilot
+Accepted product base: `c4393ebbebe587ae18216f524b56b16ad1f9df35`
 Accepted control base: `d8867047ea9f6a837ae729deca1deb5d60496eff`
 
 The three complete admission-time Linear JSON snapshots in `docs/evidence/workbench-bitcoin-designsystem-shells/linear/` are the verbatim worker reference packet. They record full descriptions and metadata, comments, attachments/documents/relations and retrieval time. `snapshot-hashes.json` pins the packet and this contract. Linear remains planning/status context; this reconciled contract governs conflicts, and later Linear edits cannot silently mutate execution. All three were Todo with no comments, attachments, documents or relations at admission. No owner visual-review gate is admitted.
