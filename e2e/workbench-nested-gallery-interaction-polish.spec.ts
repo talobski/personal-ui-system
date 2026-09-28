@@ -24,11 +24,13 @@ const css = (el: Locator, property: string) => el.evaluate((node, name) => getCo
 const box = async (el: Locator) => (await el.boundingBox())!
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-/** PUI-86–92 recipe order (migrated from PUI-78/79/83): the left stack, then the right region top to bottom. */
-const GALLERY_ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]
-const REGIONS = { left: ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather"], right: ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"] }
-/** Right-region flow: full items and the local pair, each followed by exactly one gap. */
-const RIGHT_FLOW = [["revenue-overview"], ["team-chat", "recent-activity"], ["recent-payments"], ["offsite-calendar"], ["now-playing"]]
+/** PUI-86–92 recipe in the PUI-97 order (migrated from PUI-78/79/83): the left stack, then the right region top to bottom. */
+const GALLERY_ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
+const REGIONS = { left: ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"], right: ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"] }
+/** Right-region flow: full items and the local pairs, each followed by exactly one gap. */
+const RIGHT_FLOW = [["revenue-overview"], ["team-chat", "recent-activity"], ["recent-payments"], ["offsite-calendar", "local-weather"]]
+/** Each local pair's own region-width query: chat 32rem (512px), Calendar / Weather 42rem (672px, PUI-97). */
+const PAIR_QUERY: Record<string, number> = { "team-chat": 512, "offsite-calendar": 672 }
 
 async function axe(page: Page, info: TestInfo, label: string) {
   await page.mouse.move(0, 0)
@@ -132,9 +134,9 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       expect(result.frame).toMatchObject({ columns: split ? 12 : 1, flow: "row", align: "flex-start", gap: `${gap}px` })
       if (split) expect(result.frame.rows).toBe(1)
       for (const name of ["left", "right"]) expect(result.regions[name]).toMatchObject({ display: "flex", direction: "column", gap: `${gap}px`, container: "inline-size" })
-      // PUI-82: the one local pair stretches (side by side only; see the pair checks below).
-      expect(result.groups).toHaveLength(1)
-      for (const group of result.groups) expect(group).toMatchObject({ columns: result.regions.right!.width >= 512 ? 2 : 1, align: "stretch" })
+      // PUI-82: each local pair stretches (side by side only; see the pair checks below). PUI-97 adds the second pair.
+      expect(result.groups).toHaveLength(2)
+      result.groups.forEach((group, index) => expect(group).toMatchObject({ columns: result.regions.right!.width >= [512, 672][index]! ? 2 : 1, align: "stretch" }))
       expect(result.items.map(item => item.id)).toEqual(GALLERY_ORDER)
       for (const [region, ids] of Object.entries(REGIONS)) expect(result.items.filter(item => item.region === region).map(item => item.id)).toEqual(ids)
 
@@ -159,7 +161,8 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       for (let i = 1; i < RIGHT_FLOW.length; i++) {
         const previous = Math.max(...RIGHT_FLOW[i - 1]!.map(id => at(id).bottom))
         // A side-by-side group starts together; a stacked group's second item is checked with the pairs below.
-        for (const id of result.regions.right!.width >= 512 ? RIGHT_FLOW[i]! : RIGHT_FLOW[i]!.slice(0, 1)) close(at(id).y - previous, gap)
+        const step = RIGHT_FLOW[i]!
+        for (const id of step.length === 2 && result.regions.right!.width >= PAIR_QUERY[step[0]!]! ? step : step.slice(0, 1)) close(at(id).y - previous, gap)
       }
       const left = result.regions.left!, right = result.regions.right!
       if (split) {
@@ -172,7 +175,7 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       }
       for (const pair of RIGHT_FLOW.filter(step => step.length === 2)) {
         const [a, b] = pair.map(at)
-        if (result.regions.right!.width >= 512) { close(a!.y, b!.y); expect(b!.x).toBeGreaterThan(a!.right); close(a!.cardHeight, b!.cardHeight) } else close(b!.y - a!.bottom, gap)
+        if (result.regions.right!.width >= PAIR_QUERY[pair[0]!]!) { close(a!.y, b!.y); expect(b!.x).toBeGreaterThan(a!.right); close(a!.cardHeight, b!.cardHeight) } else close(b!.y - a!.bottom, gap)
       }
 
       // DOM order is reading order within each region, and keyboard focus visits compositions in DOM order.
@@ -190,8 +193,9 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       }
       // Every composition that owns a tabbable control is visited once, in gallery DOM order.
       const tabbable = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.filter(node => Array.from(node.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea, [tabindex]")).some(el => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled && el.getClientRects().length > 0)).map(node => node.getAttribute("data-composition")!))
-      // Read-only Storage, Weather, Chat, Recent activity and the compact Table own no tab stop.
-      expect(tabbable).toEqual(["quick-find", "productive-week", "signup-form", "revenue-overview", "offsite-calendar", "now-playing"])
+      // Read-only Storage, Weather and Recent activity own no tab stop; PUI-95/96 give Chat a composer and the compact
+      // Table its checkboxes and row actions.
+      expect(tabbable).toEqual(["quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-payments", "offsite-calendar"])
       expect(visited).toEqual(tabbable)
 
       await axe(page, info, `gallery-${size.width}-light`)
@@ -223,7 +227,9 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
     const frame = previewFrame(page)
     const list = frame.getByRole("tablist", { name: "Preview views" })
     const cards = list.getByRole("tab", { name: "Cards", exact: true }), states = list.getByRole("tab", { name: "States", exact: true })
-    await expect(list.getByRole("tab")).toHaveCount(2)
+    const designSystem = list.getByRole("tab", { name: "Design system", exact: true }), appShells = list.getByRole("tab", { name: "App shells", exact: true })
+    // PUI-101/102: the final order is Cards / Design system / App shells / States.
+    await expect(list.getByRole("tab")).toHaveText(["Cards", "Design system", "App shells", "States"])
     // The preview's first theme message transitions colours; compare only settled styles.
     await expect.poll(() => frame.locator("html").evaluate(() => document.getAnimations().length)).toBe(0)
     await expect(frame.getByRole("combobox", { name: "Preview views" })).toHaveCount(0)
@@ -237,7 +243,10 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
     // Left aligned at the preview inset on every viewport.
     const main = frame.getByTestId("preview")
     close((await box(list)).x, (await box(main)).x + parseFloat(await css(main, "padding-left")))
-    expect((await box(list)).width).toBeLessThan((await box(main)).width / 2)
+    // Content width, never stretched: the four triggers (PUI-101/102) fill the list exactly and fit inside the inset.
+    const triggers = await list.getByRole("tab").evaluateAll(els => els.reduce((sum, el) => sum + el.getBoundingClientRect().width, 0))
+    close((await box(list)).width, triggers, 2)
+    expect((await box(list)).width).toBeLessThanOrEqual((await box(main)).width - 2 * parseFloat(await css(main, "padding-left")))
     if (sidebar) {
       expect(await shape(cards)).toEqual(sidebar.active)
       expect(await shape(states)).toEqual(sidebar.inactive)
@@ -260,6 +269,13 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
     await expect.poll(() => css(cards, "box-shadow")).toContain("3px")
     expect(await states.getAttribute("tabindex")).toBe("-1")
     await page.keyboard.press("ArrowRight")
+    await expect(designSystem).toBeFocused()
+    await expect(designSystem).toHaveAttribute("aria-selected", "true")
+    await expect(frame.getByRole("tabpanel", { name: "Design system", exact: true })).toBeVisible()
+    await page.keyboard.press("ArrowRight")
+    await expect(appShells).toBeFocused()
+    await expect(frame.getByRole("tabpanel", { name: "App shells", exact: true })).toBeVisible()
+    await page.keyboard.press("ArrowRight")
     await expect(states).toBeFocused()
     await expect(states).toHaveAttribute("aria-selected", "true")
     await expect(frame.getByRole("tabpanel", { name: "States", exact: true })).toBeVisible()
@@ -269,6 +285,8 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
     await page.keyboard.press("End")
     await expect(states).toHaveAttribute("aria-selected", "true")
     await page.keyboard.press("ArrowLeft")
+    await expect(appShells).toHaveAttribute("aria-selected", "true")
+    await page.keyboard.press("Home")
     await expect(cards).toHaveAttribute("aria-selected", "true")
     await page.keyboard.press("Tab")
     await expect(panel).toBeFocused()

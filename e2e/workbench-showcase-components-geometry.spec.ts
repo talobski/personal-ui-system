@@ -116,24 +116,25 @@ test.describe("WSCG-06 to WSCG-10 new compositions", () => {
     const frame = previewFrame(page)
     const card = (id: string) => frame.locator(`[data-composition="${id}"]`)
 
-    // Chat (PUI-88): official Message rows aligned start/end, named senders, Bubble surfaces on semantic tokens.
+    // Chat (PUI-88, superseded in detail by PUI-95): official Message rows aligned start/end, named senders, Bubble
+    // surfaces on semantic tokens; the one header avatar is decorative and the PUI-95 composer is its only textbox.
     const chat = card("team-chat")
-    const log = chat.getByRole("log", { name: "Design review conversation" })
+    const log = chat.getByRole("log", { name: "Conversation with Maya Chen" })
     await expect(log.locator('[data-slot="message"]')).toHaveCount(4)
     await expect(log.locator('[data-slot="message"][data-align="end"] [data-slot="bubble"]').first()).toHaveCSS("background-color", await token(page, "primary"))
     await expect(log.locator('[data-slot="message"][data-align="start"] [data-slot="bubble"]').first()).toHaveCSS("background-color", await token(page, "muted"))
     const rows = await log.locator('[data-slot="message"]').evaluateAll(nodes => nodes.map(node => { const bubble = node.querySelector('[data-slot="bubble"]')!.getBoundingClientRect(); const r = node.getBoundingClientRect(); return { left: bubble.left - r.left, right: r.right - bubble.right } }))
     expect(rows[1]!.right).toBeLessThanOrEqual(1)
-    expect(rows[0]!.left).toBeGreaterThan(20)
+    expect(rows[0]!.left).toBeLessThanOrEqual(1)
     for (const avatar of await chat.locator('[data-slot="avatar"]').all()) await expect(avatar).toHaveAttribute("aria-hidden", "true")
-    await expect(chat.getByRole("textbox")).toHaveCount(0)
+    await expect(chat.getByRole("textbox")).toHaveCount(1)
 
-    // Table (PUI-90): only the table, with its caption, headers and five rows, never a scroll region.
+    // Table (PUI-90, with the PUI-96 select and action columns): caption, headers and five rows, never a scroll region.
     const table = card("recent-payments").getByRole("table", { name: "Five most recent payments with status, email and amount." })
-    await expect(table.getByRole("columnheader")).toHaveText(["Status", "Email", "Amount"])
+    await expect(table.getByRole("columnheader")).toHaveText(["", "Status", "Email", "Amount", ""])
     await expect(table.getByRole("row")).toHaveCount(6)
     for (const absent of ["Filter emails...", "Columns", "Previous", "Next"]) await expect(card("recent-payments").getByText(absent)).toHaveCount(0)
-    await expect(card("recent-payments").getByRole("checkbox")).toHaveCount(0)
+    await expect(card("recent-payments").getByRole("checkbox")).toHaveCount(6)
     expect(await card("recent-payments").locator('[data-slot="table-container"]').evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true)
 
     // Signup (PUI-91): the block's form only.
@@ -165,11 +166,11 @@ test.describe("WSCG-06 to WSCG-10 new compositions", () => {
     await player.getByRole("button", { name: "Play" }).press("Enter")
     await expect(player.getByRole("button", { name: "Pause" })).toBeFocused()
 
-    // Weather: sample data declared, no controls.
+    // Weather (PUI-100 two-zone redesign): no controls, a five-day forecast list, no hourly strip.
     const weather = card("local-weather")
-    await expect(weather.getByText("Sample forecast · not live data")).toBeVisible()
     await expect(weather.getByRole("button")).toHaveCount(0)
-    await expect(weather.getByRole("list", { name: "Next hours" }).getByRole("listitem")).toHaveCount(5)
+    await expect(weather.getByRole("list", { name: "Five-day forecast" }).getByRole("listitem")).toHaveCount(5)
+    await expect(weather.getByRole("list", { name: "Next hours" })).toHaveCount(0)
 
     // Containment for all eleven cards at this viewport.
     const overflow = await frame.locator("[data-gallery]").evaluate(gallery => Array.from(gallery.querySelectorAll<HTMLElement>("[data-composition]")).filter(el => el.scrollWidth > el.clientWidth + 1).map(el => el.dataset.composition))
@@ -203,7 +204,7 @@ test.describe("WSCG-11 gallery balance", () => {
 })
 
 test.describe("WSCG-12/13 editor polish", () => {
-  test("Sidebar toggle: smaller muted label, gap below the trigger, no inactive note (PUI-93)", async ({ page }, info) => {
+  test("Sidebar toggle: smaller muted label, gap below the trigger, no note in either state (PUI-93, PUI-98)", async ({ page }, info) => {
     await open(page)
     await editorCategory(page, "Colors")
     const section = page.getByTestId("section-colors-sidebar")
@@ -220,7 +221,9 @@ test.describe("WSCG-12/13 editor polish", () => {
     await toggle.focus()
     await page.keyboard.press("Space")
     await expect(toggle).toHaveAttribute("aria-checked", "true")
-    await expect(toggle).toHaveAccessibleDescription("Sidebar tokens are active.")
+    // PUI-98 supersedes the PUI-93 active note: no description in either state.
+    expect(await toggle.getAttribute("aria-describedby")).toBeNull()
+    await expect(section.getByText("Sidebar tokens are active.")).toHaveCount(0)
     await page.keyboard.press("Space")
     await expect(toggle).toHaveAttribute("aria-checked", "false")
     await axe(page, info, "sidebar-toggle")

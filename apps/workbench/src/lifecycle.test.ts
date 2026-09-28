@@ -79,7 +79,10 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
   it("NGIP-07 uses official Tabs with shared trigger styling, left alignment, and mounted state panels", () => {
     expect(preview).toContain('<Tabs value={view} onValueChange={setView}')
     expect(preview).toContain('className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0"')
-    expect(preview.match(/className=\{CATEGORY_TRIGGER_CLASS\}/g)).toHaveLength(2)
+    // PUI-101/102: the final four-view order is Cards / Design system / App shells / States, every panel force-mounted.
+    expect(Array.from(preview.matchAll(/<TabsTrigger value="([a-z-]+)" className=\{CATEGORY_TRIGGER_CLASS\}>([^<]+)<\/TabsTrigger>/g), match => [match[1], match[2]])).toEqual([["cards", "Cards"], ["design-system", "Design system"], ["app-shells", "App shells"], ["states", "States"]])
+    expect(preview.match(/className=\{CATEGORY_TRIGGER_CLASS\}/g)).toHaveLength(4)
+    expect(Array.from(preview.matchAll(/<TabsContent value="([a-z-]+)" forceMount className="[^"]*data-\[state=inactive\]:hidden"/g), match => match[1])).toEqual(["cards", "design-system", "app-shells", "states"])
     expect(preview).not.toMatch(/<Select|justify-center/)
     expect(preview).toContain('className="grid gap-4 p-4"')
     expect(preview).toContain('<TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">')
@@ -652,13 +655,16 @@ describe("WSTP-06/07/09 Sidebar tokens in the Workbench", () => {
 
   it("uses the official Switch with exact label and helper copy, and never gates the colour fields on the mode", () => {
     expect(controls).toContain('import { Switch } from "@personal-ui/ui/components/switch"')
-    // PUI-93: one step smaller (text-xs), muted, a small gap below the trigger, and no inactive note or dangling description.
+    // PUI-93: one step smaller (text-xs), muted, a small gap below the trigger. PUI-98: no helper or status note in
+    // either state and no description reference on the Switch.
     expect(controls).toContain('<Label htmlFor="sidebar-tokens-switch" className="text-xs text-muted-foreground">Use sidebar tokens</Label>')
     expect(controls).toContain('data-testid="control-sidebar-tokens" className="mt-2 gap-1.5"')
-    expect(controls).toContain("Sidebar tokens are active.")
+    expect(controls).not.toContain("Sidebar tokens are active.")
     expect(controls).not.toContain("Sidebar tokens are currently not applied.")
-    expect(controls).toContain('aria-describedby={enabled ? "sidebar-tokens-status" : undefined}')
-    expect(controls).toMatch(/\{enabled && \(\s*<FieldDescription id="sidebar-tokens-status"/)
+    expect(controls).not.toContain("sidebar-tokens-status")
+    const sidebarSwitch = controls.slice(controls.indexOf("export function SidebarTokensSwitch"))
+    expect(sidebarSwitch).not.toMatch(/aria-describedby|FieldDescription/)
+    expect(sidebarSwitch).toContain('{error !== null && <FieldError data-testid="sidebar-tokens-error">{error}</FieldError>}')
     expect(controls).toContain('apply(() => ({ op: "setSidebarTokensEnabled", value: checked }))')
     // The fields render for every token in both states and are disabled only by the shared staging lock.
     expect(app).toContain('{group.id === "sidebar" && <SidebarTokensSwitch enabled={current.sidebar.useDedicatedTokens.$value} disabled={locked} apply={applyManual} />}')

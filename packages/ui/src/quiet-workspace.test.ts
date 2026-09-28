@@ -62,9 +62,11 @@ it("retrieves the sole new resource deterministically with provenance", async ()
   expect(result.ok).toBe(true)
   expect(JSON.stringify(result)).toContain("packages/core/src/contracts/data/resizable-panel.ts")
 })
-it("keeps nineteen shared modules and thin stories; the Cards gallery consumes exactly the eleven current ones (CGS-07, WSCG-11)", async () => {
+it("keeps twenty shared modules and thin stories; the Cards gallery consumes exactly the eleven current ones (CGS-07, WSCG-11, WGPE-10)", async () => {
   // Every composition module is shared with Storybook through a thin story.
-  const names = ["productive-week", "account-profile", "team-access", "workspace-settings", "notification-preferences", "support-request", "recent-activity", "room-to-think", "revenue-overview", "upcoming-schedule", "plan-usage", "launch-board", "quick-find", "team-chat", "recent-payments", "signup-form", "offsite-calendar", "now-playing", "local-weather"]
+  const names = ["productive-week", "account-profile", "team-access", "workspace-settings", "notification-preferences", "support-request", "recent-activity", "room-to-think", "revenue-overview", "upcoming-schedule", "plan-usage", "launch-board", "quick-find", "team-chat", "recent-payments", "signup-form", "offsite-calendar", "now-playing", "local-weather", "app-shells"]
+  // PUI-102: App shells is its own preview view, never a gallery card.
+  const views = ["app-shells"]
   // PUI-83 and PUI-88/90/91 remove cards from the gallery only; their standalone modules and stories remain independently used.
   const removed = ["account-profile", "team-access", "workspace-settings", "notification-preferences", "room-to-think", "upcoming-schedule", "launch-board", "support-request"]
   const gallery = readFileSync(new URL("../../../apps/workbench/src/Gallery.tsx", import.meta.url), "utf8")
@@ -73,7 +75,7 @@ it("keeps nineteen shared modules and thin stories; the Cards gallery consumes e
     const storyModule = await import(`./compositions/${name}.stories.tsx`)
     expect(Object.values(implementation)).toContain(storyModule.default.component)
     const story = readFileSync(new URL(`./compositions/${name}.stories.tsx`, import.meta.url), "utf8")
-    expect(gallery.includes(`@personal-ui/ui/compositions/${name}"`), name).toBe(!removed.includes(name))
+    expect(gallery.includes(`@personal-ui/ui/compositions/${name}"`), name).toBe(!removed.includes(name) && !views.includes(name))
     expect(story).toContain(`from "./${name}"`)
     expect(story).not.toMatch(/function |<Card|<Input/)
   }

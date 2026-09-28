@@ -1,4 +1,6 @@
 import { Gallery } from "./Gallery"
+import { DesignSystemPreview } from "./DesignSystemPreview"
+import { AppShells } from "@personal-ui/ui/compositions/app-shells"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
 import { CATEGORY_TRIGGER_CLASS } from "./workbenchTabs"
 import * as React from "react"
@@ -61,9 +63,14 @@ export function PreviewFrame() {
       <Tabs value={view} onValueChange={setView} className="min-w-0 gap-4">
         <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" aria-label="Preview views">
           <TabsTrigger value="cards" className={CATEGORY_TRIGGER_CLASS}>Cards</TabsTrigger>
+          <TabsTrigger value="design-system" className={CATEGORY_TRIGGER_CLASS}>Design system</TabsTrigger>
+          <TabsTrigger value="app-shells" className={CATEGORY_TRIGGER_CLASS}>App shells</TabsTrigger>
           <TabsTrigger value="states" className={CATEGORY_TRIGGER_CLASS}>States</TabsTrigger>
         </TabsList>
         <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden"><Gallery /></TabsContent>
+        {/* PUI-101/102: read-only views of the same posted CSS; the Workbench sidebar remains the only editor. */}
+        <TabsContent value="design-system" forceMount className="data-[state=inactive]:hidden"><DesignSystemPreview source={`${state?.mode ?? ""}\n${state?.css ?? ""}`} /></TabsContent>
+        <TabsContent value="app-shells" forceMount className="data-[state=inactive]:hidden"><AppShells /></TabsContent>
         <TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">
       <section aria-labelledby="pv-buttons" className="grid gap-2">
         <h2 id="pv-buttons" className="type-heading text-sm">

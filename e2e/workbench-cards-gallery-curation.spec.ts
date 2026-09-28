@@ -17,12 +17,16 @@ import { isMobileShell, selectTheme, setColorMode, workspaceMode } from "./workb
 const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather"]
-const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]
+// workbench-gallery-preview-expansion-v1-001 (PUI-97): Music closes the left region, and Calendar / Weather is a second
+// local pair closing the right region. The single-pair invariants below now hold for each pair.
+const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"]
+const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
 const ORDER = [...LEFT, ...RIGHT]
 const PAIR = ["team-chat", "recent-activity"]
-/** Right-region flow: full items and the local pair, each followed by exactly one gap. */
-const RIGHT_FLOW = [["revenue-overview"], PAIR, ["recent-payments"], ["offsite-calendar"], ["now-playing"]]
+const CALENDAR_PAIR = ["offsite-calendar", "local-weather"]
+const PAIRS = [PAIR, CALENDAR_PAIR]
+/** Right-region flow: full items and the local pairs, each followed by exactly one gap. */
+const RIGHT_FLOW = [["revenue-overview"], PAIR, ["recent-payments"], CALENDAR_PAIR]
 const GAP = 16
 
 async function open(page: Page) {
@@ -81,13 +85,14 @@ type Geometry = Awaited<ReturnType<typeof geometry>>
 function expectCuratedLayout(g: Geometry) {
   const split = g.frame.columns === 12
   const paired = g.groups[0]!.columns === 2
+  const calendarPaired = g.groups[1]!.columns === 2
   expect(g.order).toEqual(ORDER)
   expect(g.regions.left!.ids).toEqual(LEFT)
   expect(g.regions.right!.ids).toEqual(RIGHT)
-  expect(g.groups.map(group => group.ids)).toEqual([PAIR])
+  expect(g.groups.map(group => group.ids)).toEqual(PAIRS)
   expect(g.overflow).toBe(false)
   // Every declared gallery gap is 16px, and every measured inter-card and inter-region distance is 16px.
-  for (const gap of [g.frame.rowGap, g.frame.columnGap, g.regions.left!.rowGap, g.regions.right!.rowGap, g.groups[0]!.rowGap, g.groups[0]!.columnGap]) expect(gap).toBe(`${GAP}px`)
+  for (const gap of [g.frame.rowGap, g.frame.columnGap, g.regions.left!.rowGap, g.regions.right!.rowGap, ...g.groups.flatMap(group => [group.rowGap, group.columnGap])]) expect(gap).toBe(`${GAP}px`)
   const at = (id: string) => g.items[id]!
   for (let i = 1; i < LEFT.length; i++) close(at(LEFT[i]!).y - at(LEFT[i - 1]!).bottom, GAP)
   for (let i = 1; i < RIGHT_FLOW.length; i++) {
@@ -95,23 +100,28 @@ function expectCuratedLayout(g: Geometry) {
     close(at(RIGHT_FLOW[i]![0]!).y - previous, GAP)
   }
   if (split) { close(g.regions.left!.y, g.regions.right!.y); close(g.regions.right!.x - g.regions.left!.right, GAP) } else close(g.regions.right!.y - g.regions.left!.bottom, GAP)
-  const [a, b] = PAIR.map(at)
-  if (paired) {
-    // Side by side: one row, one 16px column gap, and both card surfaces stretched to the taller natural height.
-    close(a!.y, b!.y)
-    close(b!.x - a!.right, GAP)
-    close(a!.card, b!.card)
-    close(a!.card, Math.max(g.natural[PAIR[0]!]!, g.natural[PAIR[1]!]!))
-    expect(g.groups[0]!.align).toBe("stretch")
-  } else {
-    // Stacked: 16px apart, each back at its own natural height.
-    close(b!.y - a!.bottom, GAP)
-    for (const id of PAIR) close(at(id).card, g.natural[id]!)
-  }
-  // Nothing outside the pair is equalized: every other card is at its natural height and fills its wrapper exactly.
-  for (const id of ORDER.filter(id => !PAIR.includes(id))) { close(at(id).card, g.natural[id]!); close(at(id).height, at(id).card) }
-  if (split) expect(new Set(ORDER.filter(id => !PAIR.includes(id)).map(id => Math.round(at(id).card))).size).toBeGreaterThan(3)
-  return { split, paired }
+  PAIRS.forEach((pair, index) => {
+    const [a, b] = pair.map(at)
+    if (g.groups[index]!.columns === 2) {
+      // Side by side: one row, one 16px column gap, and both card surfaces stretched to the taller natural height.
+      close(a!.y, b!.y)
+      close(b!.x - a!.right, GAP)
+      close(a!.card, b!.card)
+      close(a!.card, Math.max(g.natural[pair[0]!]!, g.natural[pair[1]!]!))
+      expect(g.groups[index]!.align).toBe("stretch")
+    } else {
+      // Stacked: 16px apart, each back at its own natural height.
+      close(b!.y - a!.bottom, GAP)
+      for (const id of pair) close(at(id).card, g.natural[id]!)
+    }
+  })
+  // PUI-97: side by side, the calendar keeps its compact natural width and Weather takes the larger residual share.
+  if (calendarPaired) expect(at("offsite-calendar").width).toBeLessThan(at("local-weather").width)
+  // Nothing outside the pairs is equalized: every other card is at its natural height and fills its wrapper exactly.
+  const single = ORDER.filter(id => !PAIRS.flat().includes(id))
+  for (const id of single) { close(at(id).card, g.natural[id]!); close(at(id).height, at(id).card) }
+  if (split) expect(new Set(single.map(id => Math.round(at(id).card))).size).toBeGreaterThan(3)
+  return { split, paired, calendarPaired }
 }
 
 test.describe("CGCR-03/06/07 curated gallery, 16px gaps, and the one equal-height pair", () => {
@@ -126,8 +136,9 @@ test.describe("CGCR-03/06/07 curated gallery, 16px gaps, and the one equal-heigh
       const g = await geometry(frame)
       await info.attach(`cgcr-layout-${size.width}.json`, { body: JSON.stringify(g, null, 2), contentType: "application/json" })
       const shape = expectCuratedLayout(g)
-      // 390: one column, pair stacked. 1100 (620px gallery): one column, pair side by side. 1440: 5/7 split, pair side by side.
-      expect(shape).toEqual(size.width === 390 ? { split: false, paired: false } : size.width === 1100 ? { split: false, paired: true } : { split: true, paired: true })
+      // 390: one column, pairs stacked. 1100 (620px gallery): one column, chat pair side by side. 1440: 5/7 split, chat
+      // pair side by side. The Calendar / Weather pair needs its region's 42rem, which none of these widths reach.
+      expect(shape).toEqual(size.width === 390 ? { split: false, paired: false, calendarPaired: false } : size.width === 1100 ? { split: false, paired: true, calendarPaired: false } : { split: true, paired: true, calendarPaired: false })
       // Removed cards are gone from the gallery; no empty structural hole remains (every region child holds a card).
       for (const title of ["Account profile", "Notifications", "Team access", "Workspace settings", "Room to think", "This week", "Launch checklist", "How can we help?", "A productive week"]) await expect(frame.locator("[data-gallery]").getByRole("heading", { name: title, exact: true })).toHaveCount(0)
       expect(await frame.locator("[data-gallery-region] > *, [data-gallery-group] > *").evaluateAll(nodes => nodes.every(node => node.getBoundingClientRect().height > 40))).toBe(true)
@@ -153,14 +164,16 @@ test.describe("CGCR-03/06/07 curated gallery, 16px gaps, and the one equal-heigh
     await expect.poll(async () => { const g = await geometry(frame); return g.gallery > sweep.open!.gallery + 300 && !g.overflow }).toBe(true)
     sweep.collapsed = await geometry(frame)
     await info.attach("cgcr-sweep.json", { body: JSON.stringify(sweep, null, 2), contentType: "application/json" })
-    // The accepted breakpoints are unchanged: <42rem one column, 42rem 6/6, 56rem 5/7, 72rem 4/8; the pair goes side by
-    // side from its region's 32rem.
-    const expected: Record<string, [number, boolean]> = { 360: [1, false], 500: [1, false], 600: [1, true], 700: [12, false], 760: [12, false], 900: [12, true], 1000: [12, true], 1160: [12, true], 1300: [12, true] }
-    for (const [width, [columns, paired]] of Object.entries(expected)) {
+    // The accepted breakpoints are unchanged: <42rem one column, 42rem 6/6, 56rem 5/7, 72rem 4/8; the chat pair goes side
+    // by side from its region's 32rem, the Calendar / Weather pair (PUI-97) from its region's 42rem (4/8 frames here).
+    const expected: Record<string, [number, boolean, boolean]> = { 360: [1, false, false], 500: [1, false, false], 600: [1, true, false], 700: [12, false, false], 760: [12, false, false], 900: [12, true, false], 1000: [12, true, false], 1160: [12, true, true], 1300: [12, true, true] }
+    for (const [width, [columns, paired, calendarPaired]] of Object.entries(expected)) {
       const g = sweep[width]!
       expect(g.frame.columns, width).toBe(columns)
-      expect(expectCuratedLayout(g).paired, width).toBe(paired)
+      expect(expectCuratedLayout(g), width).toMatchObject({ paired, calendarPaired })
     }
+    // Sidebar collapsed at 1440 (4/8), the Calendar / Weather pair is side by side with the calendar the compact member.
+    expect(expectCuratedLayout(sweep.collapsed!).calendarPaired).toBe(true)
     // Region proportions are unchanged, now with 16px tracks: 6/6, 5/7, and 4/8 of 12 tracks with 11 x 16px gaps.
     for (const [width, span] of [[760, 6], [1000, 7], [1300, 8]] as const) {
       const track = (width - 11 * GAP) / 12
@@ -187,7 +200,7 @@ test.describe("CGCR-03/06/07 curated gallery, 16px gaps, and the one equal-heigh
     // The pair's other card stretches with it; nothing else changes height, and the left stack does not move.
     close(tallPair.items["team-chat"]!.card, 900)
     for (const id of LEFT) { close(tallPair.items[id]!.y, before.items[id]!.y); close(tallPair.items[id]!.card, before.items[id]!.card) }
-    for (const id of ["revenue-overview", "recent-payments", "offsite-calendar", "now-playing"]) close(tallPair.items[id]!.card, before.items[id]!.card)
+    for (const id of ["revenue-overview", "recent-payments", "offsite-calendar", "local-weather"]) close(tallPair.items[id]!.card, before.items[id]!.card)
     close(tallPair.items["recent-payments"]!.y - tallPair.items["recent-activity"]!.bottom, GAP)
   })
 })
@@ -258,11 +271,12 @@ test.describe("CGCR-04 stable gallery interaction", () => {
       await calendar.getByRole("button", { name: /previous month/i }).click()
       await expect(calendar.getByText("October 2026")).toBeVisible()
 
-      // Music: play, track change, like and repeat are local state only.
+      // Music: play, track change, favourite, shuffle and repeat are local state only (PUI-99).
       const player = card("now-playing")
       await player.getByRole("button", { name: "Play" }).click()
       await player.getByRole("button", { name: "Next track" }).click()
-      await player.getByRole("button", { name: "Like" }).click()
+      await player.getByRole("button", { name: "Favorite" }).click()
+      await player.getByRole("button", { name: "Shuffle" }).click()
       await player.getByRole("button", { name: "Repeat" }).click()
       await expect(player.getByRole("button", { name: "Pause" })).toBeVisible()
       await unchanged("music-controls")

@@ -125,8 +125,10 @@ for (const mode of ["light", "dark"] as const) {
         const beforeForeground = await bytes(surface, "color")
         await toggle.click()
         await expect(toggle).toHaveAttribute("aria-checked", "true")
-        await expect(section.getByTestId("sidebar-tokens-status")).toHaveText("Sidebar tokens are active.")
-        await expect(toggle).toHaveAccessibleDescription("Sidebar tokens are active.")
+        // PUI-98: no helper or status note while active either, and still no description reference.
+        await expect(section.getByTestId("sidebar-tokens-status")).toHaveCount(0)
+        await expect(section.getByText("Sidebar tokens are active.")).toHaveCount(0)
+        expect(await toggle.getAttribute("aria-describedby")).toBeNull()
         expect(await bytes(surface, "background-color")).toEqual(before)
         expect(await bytes(surface, "color")).toEqual(beforeForeground)
         await axe(page, info, `${mode}-sidebar-on`)

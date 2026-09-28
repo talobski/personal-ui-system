@@ -39,8 +39,8 @@ export async function editorCategory(page: Page, category: "Colors" | "Typograph
   await workspaceMode(page, "Controls")
   await page.getByRole("tab", { name: category, exact: true }).click()
 }
-/** Selects a preview view through the left-aligned Cards / States Tabs (PUI-70) and waits for its panel. */
-export async function previewView(page: Page, view: "Cards" | "States") {
+/** Selects a preview view through the left-aligned Cards / Design system / App shells / States Tabs (PUI-70, PUI-101/102). */
+export async function previewView(page: Page, view: "Cards" | "Design system" | "App shells" | "States") {
   await workspaceMode(page, "Preview")
   const tab = page.frameLocator('[data-testid="preview-frame"]').getByRole("tablist", { name: "Preview views" }).getByRole("tab", { name: view, exact: true })
   await tab.click()

@@ -455,8 +455,8 @@ export function LiveFontField({
 /**
  * The persistent Sidebar source mode (`setSidebarTokensEnabled`), applied immediately like every manual control. It
  * never hides or disables the dedicated colour fields: off, they stay editable but unapplied; on, they are live.
- * PUI-93: the row sits a small gap below the SIDEBAR trigger with a quieter one-step-smaller muted label; the inactive
- * note is gone, so the Switch is only described while the active note is rendered.
+ * PUI-93: the row sits a small gap below the SIDEBAR trigger with a quieter one-step-smaller muted label. PUI-98: no
+ * helper or status note renders in either state, so the Switch carries only its label and no description reference.
  */
 export function SidebarTokensSwitch({ enabled, disabled, apply }: { enabled: boolean; disabled: boolean; apply: ApplyManual }) {
   const [error, setError] = React.useState<string | null>(null)
@@ -469,7 +469,6 @@ export function SidebarTokensSwitch({ enabled, disabled, apply }: { enabled: boo
           className="cursor-pointer"
           checked={enabled}
           disabled={disabled}
-          aria-describedby={enabled ? "sidebar-tokens-status" : undefined}
           onCheckedChange={(checked) => {
             const issues = apply(() => ({ op: "setSidebarTokensEnabled", value: checked }))
             setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
@@ -477,11 +476,6 @@ export function SidebarTokensSwitch({ enabled, disabled, apply }: { enabled: boo
         />
         <Label htmlFor="sidebar-tokens-switch" className="text-xs text-muted-foreground">Use sidebar tokens</Label>
       </div>
-      {enabled && (
-        <FieldDescription id="sidebar-tokens-status" data-testid="sidebar-tokens-status" data-active={enabled}>
-          Sidebar tokens are active.
-        </FieldDescription>
-      )}
       {error !== null && <FieldError data-testid="sidebar-tokens-error">{error}</FieldError>}
     </Field>
   )

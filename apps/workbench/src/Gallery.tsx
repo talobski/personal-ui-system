@@ -4,33 +4,33 @@ import { PlanUsage } from "@personal-ui/ui/compositions/plan-usage"
 import { QuickFind } from "@personal-ui/ui/compositions/quick-find"
 import { ProductiveWeek } from "@personal-ui/ui/compositions/productive-week"
 import { SignupForm } from "@personal-ui/ui/compositions/signup-form"
-import { LocalWeather } from "@personal-ui/ui/compositions/local-weather"
+import { NowPlaying } from "@personal-ui/ui/compositions/now-playing"
 import { RevenueOverview } from "@personal-ui/ui/compositions/revenue-overview"
 import { TeamChat } from "@personal-ui/ui/compositions/team-chat"
 import { RecentActivity } from "@personal-ui/ui/compositions/recent-activity"
 import { RecentPayments } from "@personal-ui/ui/compositions/recent-payments"
 import { OffsiteCalendar } from "@personal-ui/ui/compositions/offsite-calendar"
-import { NowPlaying } from "@personal-ui/ui/compositions/now-playing"
+import { LocalWeather } from "@personal-ui/ui/compositions/local-weather"
 
 /**
  * Gallery configuration only: the recipe below owns placement, compositions own content. Interactive compositions use
  * their `stable` presentation (PUI-84) or are geometry-stable by construction, so normal interaction never changes a
  * card's footprint in the gallery. PUI-88/90/91 replace This week, Launch checklist and the support form in their
- * slots; PUI-92 adds the range calendar, music and weather cards. Music closes the right region (bounded balance
- * regrouping), so both independent stacks end at similar heights at wide sizes.
+ * slots; PUI-92 adds the range calendar, music and weather cards. PUI-97 moves Music to the end of the smaller left
+ * region and pairs the compact Calendar with the wider Weather card at the end of the right region.
  */
 export const PREVIEW_COMPOSITIONS = [
   { id: "plan-usage", render: () => <PlanUsage /> },
   { id: "quick-find", render: () => <QuickFind stable /> },
   { id: "productive-week", render: () => <ProductiveWeek /> },
   { id: "signup-form", render: () => <SignupForm /> },
-  { id: "local-weather", render: () => <LocalWeather /> },
+  { id: "now-playing", render: () => <NowPlaying /> },
   { id: "revenue-overview", render: () => <RevenueOverview /> },
   { id: "team-chat", render: () => <TeamChat /> },
   { id: "recent-activity", render: () => <RecentActivity /> },
   { id: "recent-payments", render: () => <RecentPayments /> },
   { id: "offsite-calendar", render: () => <OffsiteCalendar /> },
-  { id: "now-playing", render: () => <NowPlaying /> },
+  { id: "local-weather", render: () => <LocalWeather /> },
 ] as const
 
 export const COMPOSITION_IDS = PREVIEW_COMPOSITIONS.map(composition => composition.id)
@@ -50,7 +50,9 @@ function Region({ side, className, children }: { side: "left" | "right"; classNa
 /**
  * An intentional local pair recomposes from its own region's width: a stack when narrow, side by side when there is
  * room. Side by side, both card surfaces stretch to the taller one (PUI-82); stacked, each sits in its own grid row,
- * so stretch resolves to its natural height. Nothing outside the pair is equalized.
+ * so stretch resolves to its natural height. Nothing outside the pair is equalized. The pair's own class sets its
+ * columns: Chat / Recent activity splits evenly; Calendar / Weather (PUI-97) gives the calendar its natural (auto)
+ * width and Weather the residual track, only once the region is wide enough for Weather's two zones.
  */
 function LocalGroup({ className, children }: { className: string; children: ReactNode }) {
   return <div data-gallery-group className={`grid min-w-0 grid-cols-1 items-stretch gap-4 [&>[data-composition]>[data-slot=card]]:h-full ${className}`}>{children}</div>
@@ -75,7 +77,7 @@ export function Gallery() {
           <Composition id="quick-find" />
           <Composition id="productive-week" />
           <Composition id="signup-form" />
-          <Composition id="local-weather" />
+          <Composition id="now-playing" />
         </Region>
         <Region side="right" className="@2xl/gallery:col-span-6 @4xl/gallery:col-span-7 @6xl/gallery:col-span-8">
           <Composition id="revenue-overview" />
@@ -84,8 +86,10 @@ export function Gallery() {
             <Composition id="recent-activity" />
           </LocalGroup>
           <Composition id="recent-payments" />
-          <Composition id="offsite-calendar" />
-          <Composition id="now-playing" />
+          <LocalGroup className="@2xl:grid-cols-[auto_minmax(0,1fr)]">
+            <Composition id="offsite-calendar" />
+            <Composition id="local-weather" />
+          </LocalGroup>
         </Region>
       </div>
     </div>

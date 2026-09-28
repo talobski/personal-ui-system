@@ -6,8 +6,8 @@ import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import { colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
-/** PUI-86–92 eleven-card gallery DOM order: the left stack, then the right region top to bottom. */
-const ids = ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]
+/** PUI-86–92 eleven-card gallery DOM order after PUI-97: the left stack, then the right region top to bottom. */
+const ids = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
 
 /** The preview iframe's box versus the panel content box it should fill (WTEP-02). */
 async function previewFill(page: import("@playwright/test").Page) {
@@ -72,10 +72,12 @@ for (const mode of ["light", "dark"] as const) {
       const geometry = await frame.locator("[data-composition]").evaluateAll(nodes => nodes.map(n => { const r = n.getBoundingClientRect(); return { x: r.x, right: r.right, width: r.width, scroll: n.scrollWidth, client: n.clientWidth } }))
       for (const box of geometry) { expect(box.x).toBeGreaterThanOrEqual(0); expect(box.right).toBeLessThanOrEqual(width); expect(box.scroll).toBeLessThanOrEqual(box.client + 1) }
       // CGS-03: distinct left edges follow the gallery container width. From 56rem (896px) the 5/7 and 4/8 frames put
-      // the right region's local pair side by side (three edges); the 6/6 frame gives two; one column gives two once
-      // the region reaches the local pair's 32rem (512px) query, else one.
+      // the right region's chat pair side by side (three edges), and once that region reaches 42rem (4/8 from 72rem) the
+      // PUI-97 Calendar / Weather pair adds a fourth; the 6/6 frame gives two; one column (always below 42rem, so the
+      // calendar pair stays stacked) gives two once the region reaches the chat pair's 32rem (512px) query, else one.
       const galleryWidth = await frame.locator("[data-gallery]").evaluate(el => el.getBoundingClientRect().width)
-      expect(new Set(geometry.map(b => b.x)).size).toBe(galleryWidth >= 896 ? 3 : galleryWidth >= 512 ? 2 : 1)
+      const rightWidth = await frame.locator('[data-gallery-region="right"]').evaluate(el => el.getBoundingClientRect().width)
+      expect(new Set(geometry.map(b => b.x)).size).toBe(galleryWidth >= 896 ? (rightWidth >= 672 ? 4 : 3) : galleryWidth >= 512 ? 2 : 1)
     }
     // PUI-83 and PUI-88/90/91 removed cards from the gallery (their workflows remain covered by their own Storybook
     // composition specs). The current gallery keeps light, stable interactions (PUI-84, PUI-91, PUI-92).

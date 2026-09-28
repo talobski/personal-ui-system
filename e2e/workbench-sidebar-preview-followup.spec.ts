@@ -250,7 +250,8 @@ for (const mode of ["light", "dark"] as const) {
       await cards.focus()
       await expect.poll(() => cards.evaluate(el => el.matches(":focus-visible"))).toBe(true)
       await expect.poll(() => css(cards, "box-shadow")).toContain("3px")
-      await page.keyboard.press("ArrowRight")
+      // PUI-101/102 put Design system and App shells between Cards and States, so End reaches States.
+      await page.keyboard.press("End")
       await expect(states).toBeFocused()
       await expect(states).toHaveAttribute("aria-selected", "true")
       await expect(frame.getByRole("heading", { name: "Button", exact: true })).toBeVisible()
@@ -260,7 +261,7 @@ for (const mode of ["light", "dark"] as const) {
       // WSPF-08: the preview root is gap-4 p-4. CGS-03: the gallery frame follows its own container width, one column
       // below 42rem and a 12-track frame above; the right-region local pair splits from its region's 32rem.
       expect(await main.evaluate(el => { const s = getComputedStyle(el); return [s.display, s.rowGap, s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft] })).toEqual(["grid", "16px", "16px", "16px", "16px", "16px"])
-      await page.keyboard.press("ArrowLeft")
+      await page.keyboard.press("Home")
       await expect(cards).toHaveAttribute("aria-selected", "true")
       const gallery = frame.locator("[data-gallery]")
       const galleryWidth = await gallery.evaluate(el => el.getBoundingClientRect().width)

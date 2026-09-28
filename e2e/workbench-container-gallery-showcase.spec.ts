@@ -18,8 +18,8 @@ const revision = async (page: Page) => Number(await page.locator("#workbench-act
 const toggle = (page: Page) => page.getByRole("switch", { name: "Toggle dark mode", exact: true })
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-/** PUI-86–92 order (workbench-showcase-components-geometry-v1-001): the left stack, then the right region. */
-const ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]
+/** PUI-86–92 set in the PUI-97 order (workbench-gallery-preview-expansion-v1-001): the left stack, then the right region. */
+const ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
 
 async function open(page: Page) {
   await page.goto("/")
@@ -78,14 +78,15 @@ test.describe("CGS-03 to CGS-05 container-responsive gallery", () => {
 
     const viewports = new Set(Object.entries(sweep).filter(([key]) => /^\d+$/.test(key)).map(([, g]) => g.viewport))
     expect(viewports.size).toBe(1)
-    // < 42rem: one column. 42rem: 6/6. 56rem: 5/7. 72rem: 4/8. Right is larger than left at every wide step.
-    expect(sweep[600]).toMatchObject({ frameColumns: 1, groups: [2], overflow: false })
+    // < 42rem: one column. 42rem: 6/6. 56rem: 5/7. 72rem: 4/8. Right is larger than left at every wide step. The chat
+    // pair splits from its region's 32rem; the Calendar / Weather pair (PUI-97) from its region's 42rem.
+    expect(sweep[600]).toMatchObject({ frameColumns: 1, groups: [2, 1], overflow: false })
     close(sweep[600]!.left.width, 600)
-    expect(sweep[760]).toMatchObject({ frameColumns: 12, groups: [1], overflow: false })
+    expect(sweep[760]).toMatchObject({ frameColumns: 12, groups: [1, 1], overflow: false })
     close(sweep[760]!.left.width, sweep[760]!.right.width)
-    for (const [width, share] of [[1000, 7 / 5], [1300, 8 / 4]] as const) {
+    for (const [width, share, groups] of [[1000, 7 / 5, [2, 1]], [1300, 8 / 4, [2, 2]]] as const) {
       const g = sweep[width]!
-      expect(g).toMatchObject({ frameColumns: 12, groups: [2], overflow: false })
+      expect(g).toMatchObject({ frameColumns: 12, groups, overflow: false })
       close(g.left.y, g.right.y)
       // 12 tracks with 11 x 16px gaps (PUI-81): the spans' track ratio shows in the regions' widths.
       const track = (width - 11 * 16) / 12
@@ -109,12 +110,12 @@ test.describe("CGS-03 to CGS-05 container-responsive gallery", () => {
     await grow("plan-usage", 1400)
     const tallLeft = await geometry(frame)
     // The right region is untouched by a very tall left card.
-    for (const id of ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]) close(tallLeft.items[id]!.y, before.items[id]!.y)
+    for (const id of ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]) close(tallLeft.items[id]!.y, before.items[id]!.y)
     close(tallLeft.items["quick-find"]!.y - tallLeft.items["plan-usage"]!.bottom, 16)
     await grow("plan-usage", 0)
     await grow("revenue-overview", 1400)
     const tallRight = await geometry(frame)
-    for (const id of ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather"]) close(tallRight.items[id]!.y, before.items[id]!.y)
+    for (const id of ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"]) close(tallRight.items[id]!.y, before.items[id]!.y)
     close(tallRight.items["team-chat"]!.y - tallRight.items["revenue-overview"]!.bottom, 16)
     // The intentional local pair starts together and, side by side, shares the taller card's height (PUI-82
     // supersedes the earlier independent pair heights).
@@ -191,11 +192,11 @@ test.describe("CGS-08 theme responsiveness", () => {
     await frame.locator("html").evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true))
     const style = (selector: string, property: string) => frame.locator(selector).first().evaluate((el, name) => getComputedStyle(el).getPropertyValue(name), property)
     const segment = '[data-composition="plan-usage"] [role=img] > span'
-    // PUI-86 removed Storage's elevated upgrade tile: the music artwork carries elevation, the weather hourly strip radius
-    // and spacing, and the Storage title the Heading font.
+    // PUI-86 removed Storage's elevated upgrade tile: the music artwork carries elevation, the chat composer's official
+    // Input radius and spacing (PUI-100 removed the weather hourly strip), and the Storage title the Heading font.
     const tile = '[data-composition="now-playing"] [data-slot="card-content"] .shadow-sm'
     const title = '[data-composition="plan-usage"] h2'
-    const kpi = '[data-composition="local-weather"] ol'
+    const kpi = '[data-composition="team-chat"] input'
     const before = { segment: await style(segment, "background-color"), radius: await style(kpi, "border-top-left-radius"), padding: await style(kpi, "padding-left"), shadow: await style(tile, "box-shadow"), font: await style(title, "font-family") }
 
     await editorCategory(page, "Colors")
@@ -248,8 +249,9 @@ test.describe("CGS-09 showcase interactions", () => {
 
       const table = card("recent-payments")
       await expect(table.getByRole("table")).toBeVisible()
-      await expect(table.getByRole("columnheader")).toHaveText(["Status", "Email", "Amount"])
-      await expect(table.getByRole("button")).toHaveCount(0)
+      // PUI-96: a select column and a blank-headed row-action column around Status / Email / Amount.
+      await expect(table.getByRole("columnheader")).toHaveText(["", "Status", "Email", "Amount", ""])
+      await expect(table.getByRole("button")).toHaveCount(5)
 
       const player = card("now-playing")
       await player.getByRole("button", { name: "Next track" }).click()

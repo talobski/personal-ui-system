@@ -88,8 +88,8 @@ const MODULES: Record<string, string> = {
   "offsite-calendar": "offsite-calendar", "now-playing": "now-playing",
 }
 const module = (id: string) => read(`../../../packages/ui/src/compositions/${MODULES[id]}.tsx`)
-const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "local-weather"]
-const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "now-playing"]
+const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"]
+const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
 const REMOVED = {
   "account-profile": "account-profile", notifications: "notification-preferences", "team-access": "team-access", "workspace-settings": "workspace-settings", "room-to-think": "room-to-think",
   "upcoming-schedule": "upcoming-schedule", "launch-board": "launch-board", "support-request": "support-request",
@@ -99,7 +99,8 @@ const regions = () => {
   const source = code("./Gallery.tsx")
   const body = (side: string) => source.slice(source.indexOf(`<Region side="${side}"`), source.indexOf("</Region>", source.indexOf(`<Region side="${side}"`)))
   const ids = (text: string) => Array.from(text.matchAll(/<Composition id="([a-z-]+)" \/>/g), match => match[1])
-  return { left: ids(body("left")), right: ids(body("right")), pair: ids(source.slice(source.indexOf("<LocalGroup"), source.indexOf("</LocalGroup>"))), source }
+  const groups = Array.from(source.matchAll(/<LocalGroup className="([^"]+)">([\s\S]*?)<\/LocalGroup>/g), match => ({ className: match[1]!, ids: ids(match[2]!) }))
+  return { left: ids(body("left")), right: ids(body("right")), pair: groups[0]!.ids, groups, source }
 }
 const section = (id: string) => {
   const html = renderToStaticMarkup(createElement(Gallery))
@@ -108,15 +109,22 @@ const section = (id: string) => {
   return html.slice(start, next === -1 ? undefined : next)
 }
 
-describe("WSCG-11 eleven-card gallery (PUI-86–92)", () => {
-  it("renders exactly the eleven compositions once, with the replacements in their slots and Music balancing the right stack", () => {
+describe("WSCG-11/WGPE-06/11 eleven-card gallery (PUI-86–92, PUI-97)", () => {
+  it("renders exactly the eleven compositions once: Music closes the left region and Calendar / Weather is the second local pair", () => {
     expect(COMPOSITION_IDS).toEqual([...LEFT, ...RIGHT])
-    const { left, right, pair, source } = regions()
+    const { left, right, pair, groups, source } = regions()
     expect(left).toEqual(LEFT)
     expect(right).toEqual(RIGHT)
     // Chat replaces This week inside the surviving local pair; the table follows it where Launch checklist was.
     expect(pair).toEqual(["team-chat", "recent-activity"])
-    expect(source.match(/<LocalGroup /g)).toHaveLength(1)
+    // PUI-97: the only new pair. The calendar keeps its natural (auto) width and Weather takes the residual track, with
+    // no fixed percentage or equal columns; below the region's @2xl query both stack.
+    expect(groups).toEqual([
+      { className: "@lg:grid-cols-2", ids: ["team-chat", "recent-activity"] },
+      { className: "@2xl:grid-cols-[auto_minmax(0,1fr)]", ids: ["offsite-calendar", "local-weather"] },
+    ])
+    expect(source.match(/<LocalGroup /g)).toHaveLength(2)
+    expect(source).not.toMatch(/grid-cols-\[\d|%|fr_1fr|grid-cols-\[1fr/)
     expect(Object.keys(MODULES).sort()).toEqual([...COMPOSITION_IDS].sort())
   })
 
@@ -138,7 +146,7 @@ describe("WSCG-11 eleven-card gallery (PUI-86–92)", () => {
 describe("CGS-07/08 token-driven showcase (current set)", () => {
   it("styles every composition with semantic tokens and Theme v3 roles, never raw colours", () => {
     const rawColour = /#[0-9a-fA-F]{3,8}\b|\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color-mix)\(|\b(bg|text|border|fill|stroke|ring|from|to|via)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone|black|white)\b|\[(#|rgb|hsl|oklch)/
-    const HIDDEN_HEADING = { "revenue-overview": "Studio revenue", "productive-week": "Weekly steps", "recent-payments": "Recent payments" } as Record<string, string>
+    const HIDDEN_HEADING = { "revenue-overview": "Studio revenue", "productive-week": "Weekly steps", "recent-payments": "Recent payments", "offsite-calendar": "Offsite dates" } as Record<string, string>
     for (const id of COMPOSITION_IDS) {
       const source = module(id)
       expect(source, id).not.toMatch(rawColour)
@@ -146,13 +154,13 @@ describe("CGS-07/08 token-driven showcase (current set)", () => {
       const headings = source.match(/<h2 /g) ?? []
       expect(headings, id).toHaveLength(1)
       if (HIDDEN_HEADING[id]) expect(source, id).toContain(`<h2 className="sr-only">${HIDDEN_HEADING[id]}</h2>`)
-      else if (id === "now-playing") expect(source).toContain('<h2 className="font-mono text-xs text-muted-foreground uppercase">Now playing</h2>')
       else expect(source, id).toMatch(/<h2 className="type-heading[ "]/)
     }
     const showcase = COMPOSITION_IDS.map(module).join("\n")
-    // Heading (display numerals), Body (default), and Mono (times, sizes, amounts, shortcuts) are all exercised.
+    // Heading (display numerals), Body (default), and Mono (sizes, amounts, shortcuts) are all exercised. PUI-99 moves
+    // the music times to Body and PUI-100 drops the weather's mono hour strip, so Mono remains where it is data-like.
     expect(showcase.match(/type-heading text-(4xl|5xl)/g)!.length).toBeGreaterThanOrEqual(3)
-    expect(showcase.match(/font-mono/g)!.length).toBeGreaterThanOrEqual(10)
+    expect(showcase.match(/font-mono/g)!.length).toBeGreaterThanOrEqual(5)
     for (const token of ["chart-1", "chart-2", "chart-3", "chart-4"]) expect(showcase).toContain(token)
     expect(showcase).toMatch(/shadow-(xs|sm|md)/)
     expect(showcase).toMatch(/rounded-(sm|md|lg|full)/)
@@ -160,7 +168,8 @@ describe("CGS-07/08 token-driven showcase (current set)", () => {
 
   it("uses container queries inside compositions so cards recompose from their own width", () => {
     expect(module("revenue-overview")).toMatch(/@container[\s\S]*@md:text-2xl/)
-    expect(module("offsite-calendar")).toMatch(/@container[\s\S]*@md:grid-cols-\[auto_minmax\(0,1fr\)\]/)
+    // PUI-97: the calendar card is the calendar alone; its pair recomposes from the region's container width instead.
+    expect(code("./Gallery.tsx")).toContain('<LocalGroup className="@2xl:grid-cols-[auto_minmax(0,1fr)]">')
   })
 })
 
@@ -247,37 +256,83 @@ describe("WSCG-05 weekly steps (PUI-89)", () => {
   })
 })
 
-describe("WSCG-06 chat conversation (PUI-88)", () => {
-  it("builds a static, named thread from official Message, Bubble and Avatar parts", () => {
+describe("WSCG-06/WGPE-03 chat conversation (PUI-88, PUI-95)", () => {
+  it("builds a static two-party thread from official Message, Bubble and Avatar parts under one contact header", () => {
     const source = module("team-chat")
     expect(source).toContain('from "../components/message"')
     expect(source).toContain('from "../components/bubble"')
     expect(source).toContain('from "../components/avatar"')
-    expect(source).not.toMatch(/useState|useEffect|setInterval|MessageScroller|<Textarea|<Input|onClick/)
+    // No second chat architecture, no insertion, streaming, timers or per-message metadata parts.
+    expect(source).not.toMatch(/useState|useEffect|setInterval|setTimeout|MessageScroller|MessageAvatar|MessageHeader|MessageFooter|<Textarea|CardTitle|CardDescription/)
     const html = section("team-chat")
-    expect(html).toContain('role="log" aria-label="Design review conversation"')
+    const header = html.slice(html.indexOf('data-slot="card-header"'), html.indexOf('data-slot="card-content"'))
+    // Header: exactly one avatar and the contact name only; no title, subtitle, email, status or time.
+    expect(header.match(/data-slot="avatar"/g)).toHaveLength(1)
+    expect(header).toMatch(/<h2 class="type-heading truncate text-base">Maya Chen<\/h2>/)
+    expect(header).not.toMatch(/\w@\w|Design review|Maya, Jonah|online|<time/)
+    expect(html.match(/data-slot="avatar"/g)).toHaveLength(1)
+    expect(html).toContain('role="log" aria-label="Conversation with Maya Chen"')
     expect(html.match(/data-slot="message" data-align="start"/g)).toHaveLength(2)
     expect(html.match(/data-slot="message" data-align="end"/g)).toHaveLength(2)
-    expect(html.match(/data-slot="avatar"/g)).toHaveLength(2)
+    expect(html.match(/data-slot="bubble"/g)).toHaveLength(4)
+    // Sender context stays accessible for every turn; only two parties exist.
+    expect(html.match(/<span class="sr-only">Maya Chen<\/span>/g)).toHaveLength(2)
     expect(html.match(/<span class="sr-only">You<\/span>/g)).toHaveLength(2)
-    expect(html).not.toContain("This week")
+    for (const text of ["Headings sit at 600 now.", "Jonah", ">Read<", "Delivered", "09:4", "<time", "This week", "@example"]) expect(html, text).not.toContain(text)
+    expect(html).not.toMatch(/>Read( \d|<)|data-slot="message-(footer|header|avatar)"/)
+  })
+
+  it("ends with a labelled composer and a far-right icon-only named send button that never inserts content", () => {
+    const html = section("team-chat")
+    const footer = html.slice(html.indexOf('data-slot="card-footer"'))
+    expect(footer).toMatch(/<form class="flex w-full min-w-0 items-center gap-2">/)
+    const input = footer.match(/<input [^>]*>/g)!
+    expect(input).toHaveLength(1)
+    expect(input[0]).toContain('placeholder="Type your message..."')
+    const id = input[0]!.match(/id="([^"]+)"/)![1]
+    expect(footer).toContain(`for="${id}"`)
+    expect(footer).toMatch(/<label [^>]*class="[^"]*sr-only[^"]*"[^>]*>Message Maya Chen<\/label>/)
+    // The send button is the composer's last element: icon only, with an accessible name.
+    expect(footer).toMatch(/<button [^>]*type="submit"[^>]*aria-label="Send message"[^>]*><svg [^>]*aria-hidden="true"[^>]*>[\s\S]*<\/svg><\/button><\/form><\/div><\/div><\/section>$/)
+    expect(module("team-chat")).toContain("onSubmit={event => event.preventDefault()}")
   })
 })
 
-describe("WSCG-07 compact table (PUI-90)", () => {
-  it("is only a Table with Status, Email and Amount over five fixed rows", () => {
+describe("WSCG-07/WGPE-04 compact table (PUI-90, PUI-96)", () => {
+  it("sits flush in its card: only the card's py-6 and the content's px-6 are overridden, cells keep their padding", () => {
     const source = module("recent-payments")
-    expect(source).toContain('from "../components/table"')
-    expect(source).not.toMatch(/tanstack|Checkbox|DropdownMenu|<Input|Previous|Next|row\(s\) selected|Columns|useState/)
+    expect(source).toContain('<Card className="overflow-hidden py-0">')
+    expect(source).toContain('<CardContent className="px-0">')
+    // Ordinary Table cell padding is never zeroed.
+    expect(source.match(/\b(p|pl|pr|px|py)-0\b/g)).toEqual(["py-0", "px-0"])
+    expect(source).not.toMatch(/tanstack|DropdownMenu|<Input|Previous|Next|row\(s\) selected|Columns|selected-summary|TableFooter|rounded-full|DOT|bg-chart/)
+    expect(source).not.toMatch(/from "\.\.\/components\/checkbox"/)
+  })
+
+  it("keeps Status, Email and Amount over five rows between a select column and a blank-headed action column", () => {
     const html = section("recent-payments")
-    expect(Array.from(html.matchAll(/<th [^>]*>([^<]+)<\/th>/g), match => match[1])).toEqual(["Status", "Email", "Amount"])
+    const heads = Array.from(html.matchAll(/<th [^>]*>([\s\S]*?)<\/th>/g), match => match[1]!)
+    expect(heads).toHaveLength(5)
+    expect(heads[0]).toMatch(/^<input [^>]*type="checkbox"[^>]*aria-label="Select all payments"/)
+    expect(heads.slice(1, 4)).toEqual(["Status", "Email", "Amount"])
+    // The far-right header is truly blank: no text, icon, button or sr-only label.
+    expect(heads[4]).toBe("")
     expect(html.match(/data-slot="table-row"/g)).toHaveLength(6)
+    const rows = html.slice(html.indexOf('data-slot="table-body"'))
+    expect(rows.match(/<input [^>]*type="checkbox"/g)).toHaveLength(5)
+    for (const email of ["ken99@example.com", "abe45@example.com", "monserrat44@example.com", "silas22@example.com", "carmella@example.com"]) {
+      expect(rows).toContain(`aria-label="Select payment from ${email}"`)
+      expect(rows).toContain(`aria-label="Actions for ${email}"`)
+    }
+    expect(rows.match(/<button /g)).toHaveLength(5)
+    expect(html.match(/<button /g)).toHaveLength(5)
+    for (const status of ["Success", "Processing", "Failed"]) expect(rows).toContain(`>${status}<`)
+    for (const amount of ["$316.00", "$242.00", "$837.00", "$874.00", "$721.00"]) expect(rows).toContain(amount)
     expect(html).toMatch(/<caption data-slot="table-caption" class="[^"]*sr-only[^"]*">/)
-    // A fixed layout with truncating cells: the official overflow container can never become a scroll region.
+    // A fixed layout with truncating text cells: the official overflow container can never become a scroll region.
     expect(html).toMatch(/<table data-slot="table" class="[^"]*table-fixed/)
     expect(html.match(/data-slot="table-cell" class="[^"]*truncate/g)).toHaveLength(15)
     expect(html.match(/data-slot="table-head" class="[^"]*truncate/g)).toHaveLength(3)
-    expect(html).not.toMatch(/<button|<input/)
   })
 })
 
@@ -293,34 +348,82 @@ describe("WSCG-08 signup form (PUI-91)", () => {
   })
 })
 
-describe("WSCG-09/10 calendar, music and weather (PUI-92)", () => {
-  it("renders one single-month range Calendar with a deterministic start, middle and end and fixed weeks", () => {
+describe("WSCG-09/WGPE-06 calendar only (PUI-92, PUI-97)", () => {
+  it("renders one single-month range Calendar with a deterministic start, middle and end and fixed weeks, and nothing else", () => {
     const source = module("offsite-calendar")
     expect(source.match(/<Calendar /g)).toHaveLength(1)
     expect(source).toContain('mode="range" numberOfMonths={1} fixedWeeks')
-    expect(source).not.toMatch(/new Date\(\)|Date\.now/)
+    expect(source).not.toMatch(/new Date\(\)|Date\.now|CardHeader|CardTitle|CardDescription|<dl|Starts|Ends|Length/)
     const html = section("offsite-calendar")
     expect(html.match(/role="grid"/g)).toHaveLength(1)
     expect(html.match(/data-range-start="true"/g)).toHaveLength(1)
     expect(html.match(/data-range-middle="true"/g)).toHaveLength(3)
     expect(html.match(/data-range-end="true"/g)).toHaveLength(1)
     expect(html.match(/<tr[^>]*class="[^"]*rdp-week(?![a-z_])/g)).toHaveLength(6)
+    for (const text of ["Studio offsite", "Pick the days away", "Starts", "Ends", "Length", "Not set"]) expect(html, text).not.toContain(text)
+    // Navigation is kept.
+    expect(html).toMatch(/aria-label="Go to the Previous Month"|aria-label="Go to the previous month"/i)
+  })
+})
+
+describe("WSCG-10/WGPE-05 music (PUI-92, PUI-99)", () => {
+  it("shows only artwork, title, artist and a far-right favourite for every track", () => {
+    const source = module("now-playing")
+    const queue = source.slice(source.indexOf("const QUEUE"), source.indexOf("] as const"))
+    const tracks = Array.from(queue.matchAll(/\{ ([^}]+) \}/g), match => Array.from(match[1]!.matchAll(/(\w+):/g), key => key[1]))
+    expect(tracks).toHaveLength(3)
+    for (const keys of tracks) expect(keys).toEqual(["title", "artist", "duration", "position"])
+    expect(source).not.toMatch(/Now playing|NOW PLAYING|Side [AB]|album|\b0\d \/ 0\d\b|index \+ 1|font-mono/i)
+    const html = section("now-playing")
+    const meta = html.slice(0, html.indexOf('role="slider"'))
+    expect(meta).toMatch(/<h2 class="type-heading truncate text-lg">Slow Light<\/h2><p class="truncate text-sm text-muted-foreground">Harbor Lines<\/p><\/div><button [^>]*aria-label="Favorite" aria-pressed="true"/)
+  })
+
+  it("puts Body-role elapsed and remaining times above the slider, then five equal controls in the owner's order", () => {
+    const html = section("now-playing")
+    const times = html.indexOf('<div class="flex justify-between text-xs text-muted-foreground tabular-nums"><span>1:24</span><span>-2:28</span></div>')
+    expect(times).toBeGreaterThan(-1)
+    expect(times).toBeLessThan(html.indexOf('role="slider"'))
+    const row = html.slice(html.indexOf('<div class="grid grid-cols-5 items-center justify-items-center">'))
+    expect(row.length).toBeLessThan(html.length)
+    const buttons = Array.from(row.matchAll(/<button [^>]*>/g), match => match[0])
+    expect(buttons.map(button => button.match(/aria-label="([^"]+)"/)![1])).toEqual(["Shuffle", "Previous track", "Play", "Next track", "Repeat"])
+    for (const button of buttons) {
+      expect(button).toContain('data-size="icon-lg"')
+      expect(button).toMatch(/class="[^"]*\bsize-10\b/)
+    }
+    expect(buttons[0]).toContain('aria-pressed="false"')
+    expect(buttons[4]).toContain('aria-pressed="false"')
+  })
+})
+
+describe("WSCG-10/WGPE-07 weather (PUI-92, PUI-100)", () => {
+  it("is a two-zone summary and five-day forecast with no removed content", () => {
+    const source = module("local-weather")
+    expect(source).not.toMatch(/MapPin|Wind|Droplets|Sunset|Humidity|HOURS|Now"|14:00|Sample forecast|not live|CardHeader|CardDescription|divide-x/)
+    const html = section("local-weather")
+    const [top, bottom] = html.split("<ol ")
+    // Top: icon, large temperature, stacked high/low, then place and condition right-aligned.
+    expect(top).toMatch(/<svg [^>]*aria-hidden="true"[\s\S]*<p class="type-heading text-5xl shrink-0 tabular-nums"><span class="sr-only">Now <\/span>21°<\/p><p class="grid shrink-0 text-xs text-muted-foreground tabular-nums"><span>H 24°<\/span><span>L 16°<\/span><\/p><div class="ml-auto grid min-w-0 justify-items-end text-right"><h2 class="type-heading max-w-full truncate text-base">Lisbon<\/h2><p [^>]*>Partly cloudy<\/p><\/div>/)
+    // Bottom: evenly distributed columns of day, icon, high and low only.
+    expect(bottom).toMatch(/^aria-label="Five-day forecast" class="grid grid-cols-5 gap-1">/)
+    const days = bottom!.split("<li ").slice(1)
+    expect(days).toHaveLength(5)
+    for (const day of days) {
+      const visible = day.replace(/<span class="sr-only">[^<]*<\/span>/g, "")
+      expect(Array.from(visible.matchAll(/>([^<]+)</g), match => match[1]).filter(text => text.trim())).toEqual([expect.stringMatching(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/), expect.stringMatching(/^\d+°$/), expect.stringMatching(/^\d+°$/)])
+      expect(day.match(/<svg /g)).toHaveLength(1)
+    }
+    expect(html).not.toMatch(/<button|<input|<hr|data-slot="separator"/)
   })
 
   it("keeps music and weather local, deterministic and free of external effects", () => {
     for (const id of ["now-playing", "local-weather"]) {
       const source = module(id)
-      expect(source, id).not.toMatch(/fetch\(|https?:\/\/|<audio|new Audio|geolocation|navigator\.|setInterval|setTimeout|new Date\(|Date\.now|Math\.random|localStorage/)
+      expect(source, id).not.toMatch(/fetch\(|https?:\/\/|<audio|new Audio|geolocation|navigator\.|setInterval|setTimeout|new Date\(|Date\.now|Math\.random|localStorage|live data/)
     }
-    const music = section("now-playing")
-    for (const name of ["Like", "Previous track", "Play", "Next track", "Repeat"]) expect(music).toContain(`aria-label="${name}"`)
-    expect(music).toContain('role="slider"')
-    expect(module("now-playing")).toMatch(/type-heading truncate/)
+    expect(section("now-playing")).toContain('role="slider"')
     expect(module("now-playing")).toContain('from "../components/slider"')
-    const weather = section("local-weather")
-    expect(weather).toContain("Sample forecast · not live data")
-    expect(weather).not.toMatch(/<button|<input/)
-    expect(weather.match(/<li /g)).toHaveLength(5)
   })
 })
 
