@@ -1,0 +1,75 @@
+{
+  "retrievedAtUtc": "2026-09-28T08:43:37Z",
+  "issue": {
+    "id": "PUI-97",
+    "uuid": "96367743-1b69-4c38-8db5-a83f3b2818cc",
+    "title": "Simplify calendar card and pair it with the weather composition",
+    "description": "Refine the Calendar, Weather, and Music showcase placement so the Calendar becomes a compact standalone calendar surface paired with a wider Weather card, while the Music player moves to the left gallery column.\n\nOwner direction:\n\n* Move the Music player out of its current row and place it in the smaller/left gallery column as its own standalone composition.\n* Pair the Calendar and Weather compositions side-by-side in one local row at wider container sizes.\n* The Calendar should be visually smaller/compact.\n* The Weather composition should receive the larger share of the paired row.\n* Do not hard-code a specific percentage split; let the worker tune the proportions based on the Calendar's natural width and overall visual balance.\n* Do not use equal-width columns for this pair unless browser evidence clearly proves that is visually better, which is not the intended direction.\n\nCalendar simplification:\nRemove all surrounding explanatory/summary content from the current Calendar composition.\n\nRemove:\n\n* \"Studio offsite\" title\n* \"Pick the days away\" subtitle\n* Starts summary\n* Ends summary\n* Length summary\n* any extra descriptive/metadata panel around the Calendar\n\nKeep:\n\n* the actual single-month shadcn Calendar\n* range selection behavior\n* selected start/intermediate/end days\n* calendar navigation if already present and geometry-stable\n* keyboard/focus behavior\n* semantic-token styling\n* light/dark behavior\n\nThe Calendar card should essentially be the calendar itself, without an additional information panel.\n\nCalendar + Weather paired row:\n\n* Render Calendar and Weather as one intentional side-by-side local group at wider container sizes.\n* Calendar is the narrower member.\n* Weather is the wider member.\n* Exact column proportions are implementation-owned and should be tuned from browser evidence.\n* The Calendar should not stretch wider than needed simply to fill space.\n* The Weather card may use the additional width naturally.\n* Keep both cards aligned cleanly in the local row.\n* Avoid fixed pixel widths where responsive grid/flex proportions work better.\n* At narrower container widths, allow the pair to stack naturally to avoid overflow.\n\nMusic player placement:\n\n* Move the existing Music player to the smaller/left gallery column.\n* Preserve its current visual design and lightweight controls unless a small responsive adjustment is required by its new width.\n* Do not redesign the Music player as part of this ticket.\n* Keep stable geometry and existing token-driven styling.\n\nArchitecture constraints:\n\n* Preserve the accepted container-responsive Cards gallery architecture.\n* Keep independent vertical flow.\n* No masonry.\n* No dense packing.\n* No absolute positioning.\n* Preserve coherent DOM/focus order and responsive collapse.\n* Do not alter unrelated gallery compositions.\n\nDesign-system constraints:\n\n* Preserve Personal UI semantic tokens.\n* Preserve light/dark behavior.\n* Keep Calendar based on the official shadcn Calendar resource.\n* Keep Weather and Music composition-specific unless a genuinely reusable resource is already involved.\n* Do not introduce new network/API/geolocation behavior.\n\nAcceptance:\n\n* Music player appears in the smaller/left gallery column as a standalone card.\n* Calendar and Weather appear side-by-side at appropriate wider container widths.\n* Calendar is visibly more compact/narrower than Weather.\n* Exact Calendar/Weather split is not hard-coded to a fixed percentage requirement.\n* Calendar no longer shows title, subtitle, Starts, Ends, Length, or other summary metadata.\n* Calendar still shows a single month with functional range selection.\n* Weather retains its existing composition and receives the larger visual share of the pair.\n* Calendar/Weather pair stacks cleanly at narrower widths.\n* No overflow, clipping, focus-order, accessibility, or responsive regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-97/simplify-calendar-card-and-pair-it-with-the-weather-composition",
+    "gitBranchName": "emmantalob/pui-97-simplify-calendar-card-and-pair-it-with-the-weather",
+    "createdAt": "2026-09-28T06:43:07.232Z",
+    "updatedAt": "2026-09-28T08:31:06.570Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T06:43:07.232Z",
+        "endedAt": "2026-09-28T08:31:06.564Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T08:31:06.564Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-100",
+          "title": "Refine weather composition into a compact multi-day forecast"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

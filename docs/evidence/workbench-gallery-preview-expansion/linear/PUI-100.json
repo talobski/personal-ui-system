@@ -1,0 +1,74 @@
+{
+  "retrievedAtUtc": "2026-09-28T08:43:37Z",
+  "issue": {
+    "id": "PUI-100",
+    "uuid": "9310541d-8a82-4c96-849b-6c4a23ee9ae7",
+    "title": "Refine weather composition into a compact multi-day forecast",
+    "description": "Refine the weather gallery composition to match a cleaner two-zone weather-card structure inspired by the owner's reference, while preserving Personal UI semantic-token behavior.\n\nOwner direction:\n\n* Replace the current weather composition structure with a simpler horizontal weather-summary layout.\n* Preserve the same overall information hierarchy as the reference, but express it through Personal UI semantic tokens rather than copying the reference's fixed dark styling.\n* Keep the card suitable for the wider Weather slot beside the compact Calendar from <issue id=\"96367743-1b69-4c38-8db5-a83f3b2818cc\" href=\"https://linear.app/emman-systems/issue/PUI-97/simplify-calendar-card-and-pair-it-with-the-weather-composition\">PUI-97</issue>.\n\nTop zone:\nUse one horizontal summary row with:\n\n* weather-condition icon on the far left;\n* large current temperature beside the icon;\n* compact stacked high/low values next to the current temperature;\n* location name and current condition right-aligned on the far right.\n\nExample structure:\n\\[weather icon\\]  30°   H 35°                 Toronto\n                    L 16°              Partly Cloudy\n\nRemove from the current composition:\n\n* location-pin icon treatment;\n* \"Sample forecast · not live data\" copy;\n* the separate large weather icon currently floating on the right;\n* the hourly strip with Now / times;\n* Wind;\n* Humidity;\n* Sunset;\n* separators associated with those lower detail blocks.\n\nBottom zone:\nAdd a simple multi-day forecast row distributed evenly across the card width.\n\nEach forecast column should contain only:\n\n1. day label;\n2. weather icon;\n3. high temperature;\n4. low temperature.\n\nUse a restrained set of upcoming days, approximately 5–6 columns, depending on available width and browser evidence.\n\nExample conceptually:\nWED      THU      FRI      SAT      SUN      MON\n☁        ☀        ☁        ☀        ☀        ☀\n\\-3°      -1°      -9°      -4°      -4°      -4°\n\\-6°      -9°     -10°      -6°      -6°      -6°\n\nData / behavior constraints:\n\n* Keep using deterministic illustrative local data only.\n* Do not add geolocation, weather APIs, live network calls, credentials, or external services.\n* Do not claim the values are live.\n* Keep the composition geometry stable.\n* No workflow-heavy interaction is needed.\n\nDesign-system constraints:\n\n* Use Personal UI semantic tokens for background, text, borders, accents, and muted states.\n* Preserve light/dark rendering.\n* Use Heading / Body / Mono typography roles appropriately.\n* Avoid arbitrary raw colors when semantic tokens exist.\n* Use existing icon infrastructure where practical.\n* Do not create a new public Weather resource solely for this gallery composition unless genuinely reusable.\n\nLayout relationship to <issue id=\"96367743-1b69-4c38-8db5-a83f3b2818cc\" href=\"https://linear.app/emman-systems/issue/PUI-97/simplify-calendar-card-and-pair-it-with-the-weather-composition\">PUI-97</issue>:\n\n* Weather remains the wider member of the Calendar + Weather paired row.\n* Calendar remains the more compact/narrower member.\n* Exact proportions remain implementation-owned rather than fixed percentages.\n* Allow responsive stacking at narrower container widths.\n* The new horizontal weather structure should take advantage of the wider slot without forcing overflow.\n\nDo not:\n\n* reintroduce the removed hourly forecast strip;\n* reintroduce Wind/Humidity/Sunset blocks;\n* add explanatory title/subtitle copy above the weather summary;\n* alter the Calendar or Music compositions in this ticket;\n* change broader gallery architecture;\n* introduce real network-backed weather functionality.\n\nAcceptance:\n\n* Weather card uses the simplified two-zone composition: top current-weather summary + bottom multi-day forecast.\n* Top row includes weather icon, large current temperature, compact high/low values, and right-aligned location/condition.\n* The current location-pin treatment and sample-data subtitle are removed.\n* Hourly forecast strip is removed.\n* Wind, Humidity, and Sunset sections are removed.\n* Bottom forecast row shows day, icon, high, and low only.\n* Forecast items are distributed evenly and remain readable at the Weather card's wider layout size.\n* Deterministic illustrative data remains local-only.\n* Light/dark/theme-token responsiveness remains intact.\n* No overflow, focus-order, accessibility, or responsive regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-100/refine-weather-composition-into-a-compact-multi-day-forecast",
+    "gitBranchName": "emmantalob/pui-100-refine-weather-composition-into-a-compact-multi-day-forecast",
+    "createdAt": "2026-09-28T08:03:24.047Z",
+    "updatedAt": "2026-09-28T08:31:15.581Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T08:03:24.047Z",
+        "endedAt": "2026-09-28T08:31:15.567Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T08:31:15.567Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-97",
+          "title": "Simplify calendar card and pair it with the weather composition"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

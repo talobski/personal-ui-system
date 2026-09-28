@@ -1,0 +1,69 @@
+{
+  "retrievedAtUtc": "2026-09-28T08:43:37Z",
+  "issue": {
+    "id": "PUI-99",
+    "uuid": "3f3a032a-16c5-4b26-b7bd-4d4260e6e493",
+    "title": "Simplify music player metadata and control layout",
+    "description": "Refine the music-player gallery composition into a cleaner, more conventional media-player layout.\n\nOwner direction:\n\n* Simplify the song metadata so the composition shows only:\n  * song artwork;\n  * song title;\n  * artist;\n  * favorite/heart icon on the right.\n* Remove the extra metadata concept entirely across all song states, not just the currently visible song.\n\nRemove conceptually from the music player:\n\n* \"NOW PLAYING\"\n* Side A / Side B or equivalent album-side metadata\n* track sequence/index values such as 01 / 03\n* any equivalent secondary metadata field used only for that concept\n\nThis cleanup should apply across every song/state represented by the composition.\n\nHeader/content layout:\n\n* Keep song artwork on the left.\n* Keep song title and artist beside it.\n* Keep only the heart/favorite icon on the far right.\n* Do not add replacement metadata.\n\nTimeline:\n\n* Keep elapsed time and remaining time labels.\n* Change those time labels from Mono typography to Sans/Body typography.\n* Move the time labels above the progress slider rather than below it.\n* Elapsed time aligns left.\n* Remaining time aligns right.\n* Preserve the current progress interaction if it is already lightweight and geometry-stable.\n\nBottom control row:\nUse five icon-only controls in this order:\n\n1. Shuffle\n2. Previous / Back\n3. Play / Pause\n4. Next / Forward\n5. Repeat\n\nControl layout:\n\n* All five controls should use equal-sized button/touch targets.\n* Distribute them evenly across the full control row.\n* Keep icon sizing consistent.\n* Play/Pause may remain visually emphasized if desired, but should still belong to the same control system and spacing rhythm.\n* Preserve accessible names for every icon-only control.\n\nInteraction:\n\n* Keep interaction local and lightweight.\n* Basic play/pause, track navigation, shuffle, repeat, favorite, and progress-state changes are acceptable.\n* No real audio streaming/network integration is required.\n* Interaction must not materially change card height or gallery geometry.\n\nDesign-system constraints:\n\n* Keep styling driven by Personal UI semantic tokens.\n* Use Heading / Body / Mono roles appropriately; timeline time labels should specifically use Sans/Body rather than Mono.\n* Preserve light/dark behavior.\n* Reuse existing Button/Slider/Icon primitives where appropriate.\n* Do not introduce a new public audio-player primitive solely for this composition unless the abstraction is genuinely reusable.\n\nDo not:\n\n* change gallery placement/order in this ticket;\n* add album-side/track-number metadata back in another form;\n* add extra labels around the controls;\n* add workflow-heavy playback logic;\n* introduce network/audio service dependencies;\n* change unrelated gallery compositions.\n\nAcceptance:\n\n* Music player shows only artwork, song title, artist, and heart/favorite icon in its primary metadata area.\n* \"NOW PLAYING\" is removed.\n* Side A / Side B metadata is removed across all song states.\n* Track index/number metadata such as 01 / 03 is removed across all song states.\n* Elapsed and remaining time labels use Sans/Body typography.\n* Time labels appear above the progress slider.\n* Bottom controls are Shuffle / Previous / Play-Pause / Next / Repeat in that order.\n* All five controls use equal-sized touch targets and are evenly distributed across the row.\n* Play/Pause remains clearly understandable and accessible.\n* Light/dark/theme-token responsiveness remains intact.\n* No overflow, focus-order, keyboard, accessibility, or responsive regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-99/simplify-music-player-metadata-and-control-layout",
+    "gitBranchName": "emmantalob/pui-99-simplify-music-player-metadata-and-control-layout",
+    "createdAt": "2026-09-28T07:59:54.167Z",
+    "updatedAt": "2026-09-28T08:31:12.378Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T07:59:54.167Z",
+        "endedAt": "2026-09-28T08:31:12.371Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T08:31:12.371Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

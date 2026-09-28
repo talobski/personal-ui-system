@@ -1,0 +1,74 @@
+{
+  "retrievedAtUtc": "2026-09-28T08:43:37Z",
+  "issue": {
+    "id": "PUI-98",
+    "uuid": "6edbabbb-3b85-4f69-91a6-50d9128e7282",
+    "title": "Remove Sidebar token status helper in both toggle states",
+    "description": "Remove the remaining Sidebar token status helper copy so the toggle row has no explanatory/status text in either state.\n\nBackground:\n<issue id=\"36798378-caec-4b9e-8f4c-d11a84837552\" href=\"https://linear.app/emman-systems/issue/PUI-93/polish-sidebar-token-toggle-spacing-and-label-styling\">PUI-93</issue> correctly removed the helper note when \"Use sidebar tokens\" is OFF, but the ON state still renders:\n\"Sidebar tokens are active.\"\n\nOwner direction:\n\n* Remove the ON-state helper/status note as well.\n* Do not show any helper/status text beneath the \"Use sidebar tokens\" toggle, regardless of whether the toggle is ON or OFF.\n\nTarget behavior:\n\nOFF:\n\n* show only the toggle row;\n* no \"Sidebar tokens are currently not applied.\" note.\n\nON:\n\n* show only the toggle row;\n* no \"Sidebar tokens are active.\" note.\n\nThe section should visually read as:\n\nSIDEBAR\n\n\\[toggle\\] Use sidebar tokens\n\nBackground\n...\n\nPreserve:\n\n* existing useDedicatedTokens behavior;\n* sidebar token application semantics;\n* persistence;\n* token field visibility and ordering;\n* keyboard/focus behavior;\n* light/dark behavior;\n* the smaller muted-foreground label styling from <issue id=\"36798378-caec-4b9e-8f4c-d11a84837552\" href=\"https://linear.app/emman-systems/issue/PUI-93/polish-sidebar-token-toggle-spacing-and-label-styling\">PUI-93</issue>;\n* spacing between the SIDEBAR collapsible trigger and toggle row.\n\nDo not:\n\n* change sidebar token architecture;\n* change token values;\n* hide or disable the sidebar token fields;\n* add replacement helper copy;\n* change the Switch component itself;\n* alter unrelated sidebar controls.\n\nAcceptance:\n\n* No helper/status note appears when Sidebar tokens are OFF.\n* No helper/status note appears when Sidebar tokens are ON.\n* \"Sidebar tokens are active.\" is removed.\n* The toggle continues to correctly enable/disable dedicated sidebar token application.\n* Token fields remain visible and editable as before.\n* No accessibility, persistence, or styling regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-98/remove-sidebar-token-status-helper-in-both-toggle-states",
+    "gitBranchName": "emmantalob/pui-98-remove-sidebar-token-status-helper-in-both-toggle-states",
+    "createdAt": "2026-09-28T07:40:04.594Z",
+    "updatedAt": "2026-09-28T08:31:09.431Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T07:40:04.594Z",
+        "endedAt": "2026-09-28T08:31:09.426Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T08:31:09.426Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-93",
+          "title": "Polish Sidebar token toggle spacing and label styling"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

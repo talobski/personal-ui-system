@@ -1,0 +1,69 @@
+{
+  "retrievedAtUtc": "2026-09-28T08:43:37Z",
+  "issue": {
+    "id": "PUI-96",
+    "uuid": "85751e3f-3bce-4d56-8816-55c9276cb07c",
+    "title": "Simplify compact data table padding and row actions",
+    "description": "Refine the compact data-table gallery composition so the table sits more directly inside the card and follows the cleaner shadcn-style row structure.\n\nOwner direction:\n\n* Remove the card's vertical padding currently applied as py-6.\n* Remove the CardContent horizontal padding currently applied as px-6.\n* Let the table sit flush against the card's inner edges while preserving the card border/radius and readable table cell padding.\n* Remove the colored status dots from every Status cell.\n* Add a checkbox/select column on the far left.\n* Add a row-actions ellipsis / three-dots column on the far right.\n* The action column header must remain blank; do NOT show a three-dots icon in the header.\n\nTarget table structure:\n\n* checkbox column\n* Status\n* Email\n* Amount\n* blank header for row actions\n\nExample conceptually:\n\n| ☐ | Status | Email | Amount |  |\n| -- | -- | -- | -- | -- |\n| ☐ | Success | [ken99@example.com](<mailto:ken99@example.com>) | $316.00 | ⋯ |\n| ☐ | Success | [abe45@example.com](<mailto:abe45@example.com>) | $242.00 | ⋯ |\n| ☐ | Processing | [monserrat44@example.com](<mailto:monserrat44@example.com>) | $837.00 | ⋯ |\n| ☐ | Success | [silas22@example.com](<mailto:silas22@example.com>) | $874.00 | ⋯ |\n| ☐ | Failed | [carmella@example.com](<mailto:carmella@example.com>) | $721.00 | ⋯ |\n\nCheckbox behavior:\n\n* Include a header/select-all checkbox if it fits the existing shadcn Table pattern cleanly.\n* Row checkboxes may be interactive.\n* Selection must not change card height or add footer/summary UI.\n\nRow actions:\n\n* Each data row may show an icon-only ellipsis/three-dots action button on the far right.\n* Keep the header cell for this column empty.\n* Do not add a visible column label or action icon in the header.\n* A lightweight menu is optional only if it already fits the accepted component set cleanly; the visual affordance is the main requirement.\n* Do not add workflow-heavy actions that reshape the composition.\n\nPreserve:\n\n* Status, Email, and Amount columns.\n* Current example rows/data unless a small content cleanup is needed.\n* Current table borders/dividers using semantic tokens.\n* Outer card border and radius.\n* Responsive containment.\n* Light/dark behavior.\n* Existing Table public resource and registry architecture.\n\nDo not:\n\n* reintroduce filter/search controls;\n* add Columns selector;\n* add selected-row summary;\n* add Previous/Next pagination;\n* add status dots;\n* remove normal table-cell padding;\n* create a new generic data-grid abstraction;\n* change unrelated gallery compositions.\n\nAccessibility:\n\n* Header/select-all checkbox must have an accessible name.\n* Row checkboxes must have meaningful accessible labels.\n* Row action buttons must have accessible names.\n* Preserve table semantics, keyboard focus, and logical reading order.\n\nAcceptance:\n\n* The outer table card no longer uses the previous py-6 vertical card padding.\n* CardContent no longer uses the previous px-6 horizontal padding.\n* The table visually sits flush within the card while table cells retain appropriate internal spacing.\n* Status dots are removed.\n* A checkbox column appears on the far left.\n* A row-actions ellipsis column appears on the far right.\n* The far-right header cell is blank.\n* No ellipsis icon appears in the action-column header.\n* Status / Email / Amount content remains intact.\n* No filter, Columns control, selection summary, or pagination is introduced.\n* Light/dark/theme-token responsiveness remains intact.\n* No overflow, keyboard, focus, accessibility, or responsive regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-96/simplify-compact-data-table-padding-and-row-actions",
+    "gitBranchName": "emmantalob/pui-96-simplify-compact-data-table-padding-and-row-actions",
+    "createdAt": "2026-09-28T06:35:16.311Z",
+    "updatedAt": "2026-09-28T08:31:03.048Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T06:35:16.311Z",
+        "endedAt": "2026-09-28T08:31:03.044Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T08:31:03.044Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

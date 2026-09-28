@@ -1,0 +1,70 @@
+{
+  "retrievedAtUtc": "2026-09-28T08:43:37Z",
+  "issue": {
+    "id": "PUI-102",
+    "uuid": "8a49bdb3-f59e-433a-818c-4cab949e3787",
+    "title": "Add a live App shells preview tab",
+    "description": "Add a new top-level preview tab named \"App shells\" that shows how the current Personal UI theme feels when applied to different application-shell/sidebar patterns.\n\nIntent:\nGive users a live visual reference for app-level chrome and navigation structure without turning the preview into a full application mockup.\n\nTarget preview tab order:\n\n1. Cards\n2. Design system\n3. App shells\n4. States\n\nCore principle:\n\n* App shells is a live preview surface, not an editor.\n* Theme/sidebar controls remain in the existing Workbench sidebar.\n* The shell previews should update immediately when the active theme or sidebar tokens change.\n* Focus on shell/chrome structure, especially sidebar design, rather than detailed application content.\n\n1. Shell showcase scope\n\nCreate several distinct app-shell/sidebar examples using the accepted shadcn Sidebar system and current Personal UI tokens.\n\nPossible shell directions include:\n\n* classic full-height sidebar;\n* inset/floating sidebar;\n* icon-collapsible sidebar;\n* compact utility sidebar;\n* grouped/navigation-heavy sidebar;\n* sidebar plus secondary header/breadcrumb treatment.\n\nThese are directions, not a required checklist. The worker may curate a smaller set of strong shell variations.\n\nEach shell should demonstrate meaningful differences in:\n\n* sidebar width/proportion;\n* grouping/navigation density;\n* active-item treatment;\n* header/chrome relationship;\n* border/surface treatment;\n* sidebar/background contrast;\n* spacing/radius;\n* typography hierarchy;\n* collapsed/expanded behavior where appropriate.\n\n2. Main content treatment\n\nThe right/main content area of each shell should remain intentionally abstract.\n\nUse simple neutral silhouette/skeleton shapes to suggest application content, such as:\n\n* blank card rectangles;\n* muted content blocks;\n* simple header bars;\n* placeholder rows/sections.\n\nDo not build full dashboards, forms, tables, charts, or real app workflows inside these shell previews.\n\nThe goal is to keep attention on the app shell itself.\n\n3. Theme/token linkage\n\nApp shell previews must use the same live theme state as the rest of the Workbench.\n\nChanges from the sidebar should reflect immediately, including:\n\n* semantic colors;\n* typography;\n* spacing/radius;\n* border/shadow behavior where relevant;\n* light/dark mode;\n* sidebar-token activation and dedicated sidebar values.\n\nWhen dedicated sidebar tokens are OFF, shells should reflect the accepted sidebar fallback/alias behavior.\nWhen dedicated sidebar tokens are ON, shells should reflect the dedicated sidebar token set.\n\n4. shadcn-first implementation\n\n* Use the existing official shadcn Sidebar architecture/components already accepted in Personal UI.\n* Do not invent a parallel custom sidebar framework for this tab.\n* Use existing layout primitives and semantic tokens.\n* Custom composition/layout code is acceptable for arranging multiple shell examples, but sidebar behavior should stay aligned with the accepted shadcn Sidebar system.\n\n5. Interaction\n\nKeep interaction lightweight and useful:\n\n* shell examples may support sidebar collapse/expand if that is part of the demonstrated pattern;\n* active navigation state may be selectable;\n* hover/focus states should work;\n* no workflow-heavy app behavior is needed.\n\nInteraction must not materially destabilize overall preview geometry.\n\n6. Visual quality\n\nDesign direction:\n\n* clean and polished;\n* simple but believable app chrome;\n* restrained content silhouettes;\n* clear variation between shell styles;\n* portfolio-quality presentation;\n* avoid noisy placeholder content.\n\nDo not:\n\n* duplicate editing controls inside App shells;\n* create a second theme state;\n* hard-code raw colors where semantic tokens exist;\n* build full app screens inside each shell;\n* add unrelated public resources solely for this preview;\n* change Theme v3, history, persistence, Design Command, or token semantics.\n\nAccessibility / responsiveness:\n\n* preserve top-level Tabs keyboard/focus semantics;\n* sidebar examples should preserve appropriate keyboard/focus behavior for demonstrated controls;\n* previews should reflow without page-level horizontal overflow;\n* shell cards/examples may stack at narrower widths;\n* maintain logical reading order.\n\nAcceptance:\n\n* A new top-level \"App shells\" tab appears between Design system and States.\n* Cards, Design system, and States continue to function unchanged.\n* App shells contains multiple distinct sidebar/app-shell previews.\n* Shells use the accepted shadcn Sidebar system rather than a custom replacement.\n* Main content areas use simple silhouette/skeleton placeholders rather than full application UIs.\n* Theme edits update the shell previews live.\n* Dedicated sidebar-token ON/OFF behavior is reflected correctly.\n* Light/dark rendering is coherent.\n* No duplicate theme controls/state are introduced.\n* No unnecessary public resource expansion is introduced.\n* Existing tab, sidebar, accessibility, persistence, history, and Design Command behavior remain intact.",
+    "priority": {
+      "value": 2,
+      "name": "High"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-102/add-a-live-app-shells-preview-tab",
+    "gitBranchName": "emmantalob/pui-102-add-a-live-app-shells-preview-tab",
+    "createdAt": "2026-09-28T08:28:33.659Z",
+    "updatedAt": "2026-09-28T08:31:22.896Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Feature"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T08:28:33.659Z",
+        "endedAt": "2026-09-28T08:31:22.890Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T08:31:22.890Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "retrievedAtUtc": "2026-09-28T08:43:37Z",
+  "issue": {
+    "id": "PUI-101",
+    "uuid": "96627fc6-7667-4a33-b5c4-c84e87b893ba",
+    "title": "Add a live Design system preview tab",
+    "description": "Add a new top-level preview tab named \"Design system\" between Cards and States.\n\nIntent:\nProvide a simple, elegant, read-only visual representation of the current Personal UI theme so users can inspect the design system while continuing to edit it from the existing sidebar controls.\n\nTarget preview tab order:\n\n1. Cards\n2. Design system\n3. States\n\nCore principle:\n\n* Sidebar controls remain the editing surface.\n* The new Design system tab is a visual reference/inspection surface.\n* Do not duplicate editing controls inside this tab.\n* The preview should react live to the same theme state controlled by the sidebar.\n\n1. Colors section\n\nShow a clean visual representation of the current semantic color tokens.\n\nRecommended presentation:\n\n* token swatch;\n* semantic token name;\n* resolved current value in secondary/smaller text where useful;\n* logical grouping for readability.\n\nPossible groups include:\n\n* base/background/foreground;\n* primary;\n* secondary;\n* accent;\n* muted;\n* destructive;\n* card/popover;\n* border/input/ring;\n* sidebar tokens when relevant/available.\n\nExact grouping and layout may be tuned for clarity and visual quality, but the section should remain simple and easy to scan.\n\nRequirements:\n\n* use the live current theme values;\n* reflect light/dark changes immediately;\n* reflect sidebar color edits immediately;\n* preserve semantic token names rather than inventing presentation-only aliases;\n* avoid redundant controls, pickers, or inputs.\n\n2. Typography section\n\nShow a visual hierarchy/type-scale reference using the current theme typography.\n\nInclude representative samples for:\n\n* Heading typography;\n* Body typography;\n* Muted/secondary body text;\n* Mono typography.\n\nThe worker may choose a small set of representative heading sizes/levels to communicate hierarchy clearly without turning the page into a full typography specimen catalog.\n\nRequirements:\n\n* rendered samples must use the actual active font family, weight, tracking, and relevant theme values;\n* changes from the Typography sidebar controls should update this view immediately;\n* keep the composition elegant and readable;\n* do not add duplicate font/weight/tracking controls here.\n\n3. Layout / visual treatment\n\nThe tab should feel like a lightweight design-system reference sheet rather than another settings panel.\n\nDesign direction:\n\n* restrained and polished;\n* clear section hierarchy;\n* enough whitespace to make tokens/type easy to inspect;\n* use existing Personal UI semantic tokens and accepted card/surface conventions;\n* avoid dense documentation-table styling unless it improves readability;\n* no unnecessary interactions beyond normal tab navigation.\n\n4. Live theme linkage\n\nThe Design system preview must stay bound to the same current theme state as Cards and States.\n\nChanges made from the sidebar should be immediately visible here, including:\n\n* semantic colors;\n* Heading / Body / Mono typography;\n* light/dark mode;\n* sidebar-token activation where represented.\n\nDo not:\n\n* create a second editable theme state;\n* duplicate Workbench controls;\n* introduce new theme tokens or schema fields;\n* alter Theme v3 semantics;\n* change Design Command/history/persistence behavior;\n* create unrelated public resources solely for this preview.\n\nAccessibility / responsiveness:\n\n* preserve the existing top-level Tabs semantics and keyboard navigation;\n* ensure token names/values remain readable in light and dark modes;\n* reflow cleanly at narrow preview widths;\n* avoid horizontal overflow;\n* preserve logical reading order.\n\nAcceptance:\n\n* A new top-level \"Design system\" tab appears between Cards and States.\n* Cards and States continue to function unchanged.\n* Design system shows a live semantic color-token reference.\n* Design system shows a live typography/type-scale reference for Heading, Body, muted text, and Mono.\n* The tab is read-only; editing remains in the sidebar.\n* Sidebar theme edits update the Design system preview immediately.\n* Light/dark mode is reflected correctly.\n* No duplicate theme state or control system is introduced.\n* Existing tab keyboard/focus behavior remains correct.\n* No responsive, accessibility, persistence, history, or Design Command regression.",
+    "priority": {
+      "value": 2,
+      "name": "High"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-101/add-a-live-design-system-preview-tab",
+    "gitBranchName": "emmantalob/pui-101-add-a-live-design-system-preview-tab",
+    "createdAt": "2026-09-28T08:07:31.255Z",
+    "updatedAt": "2026-09-28T08:31:19.564Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Feature"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T08:07:31.255Z",
+        "endedAt": "2026-09-28T08:31:19.551Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T08:31:19.551Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}
