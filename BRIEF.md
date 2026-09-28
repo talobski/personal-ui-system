@@ -1,9 +1,9 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`8e405812ffea1f3acd35c17aabb8b0be4bbfd934` on `main`. Phase
-`workbench-showcase-components-geometry-v1-001` is accepted and promoted for
-PUI-86 through PUI-94. Its immutable packet preserves verbatim admission-time
+`304486c4aaf0f276287398075c3a7b25d311bca3` on `main`. Phase
+`workbench-gallery-preview-expansion-v1-001` is accepted and promoted for
+PUI-95 through PUI-102. Its immutable packet preserves verbatim admission-time
 Linear snapshots alongside the authoritative reconciled contract. Lead browser
 and technical evidence, independent protected verification, and post-promotion
 checks passed. No owner visual-review gate was admitted. The earlier nested-gallery phase's record
@@ -160,6 +160,20 @@ in Effects. Theme v3, the 12-operation mutation union, history/recovery,
 persistence, and staged Design Command semantics remain intact. The phase's
 mobile tab-focus correction keeps keyboard slider input operable after a
 category switch; no worker network or owner visual-review gate was admitted.
+
+The accepted gallery and preview expansion phase delivers PUI-95 through
+PUI-102. The eleven-card gallery refines Chat, the compact payment table,
+Music, and the Calendar/Weather pair while retaining its container-responsive
+independent stacks. The Sidebar token switch has no status helper in either
+state. The preview now has four ordered views—Cards, Design system, App shells,
+and States. Design system is a read-only live reference for semantic colors and
+typography; App shells presents three contained patterns built from the
+accepted shadcn Sidebar. Theme v3, the 23-resource registry, 12 mutation
+operations, history, persistence, and staged Design Command boundaries remain
+unchanged. Lead browser checks and fresh protected verification passed on the
+exact candidate. Existing narrow-column doubled-spacing overflow and
+previously accepted contrast-token debts remain explicitly recorded in the
+phase evidence; no owner visual gate, worker network, or paid capacity was used.
 
 ## V1 product contract
 
