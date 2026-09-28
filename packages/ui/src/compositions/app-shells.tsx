@@ -1,8 +1,10 @@
 import { useId, useState } from "react"
-import type { CSSProperties, ReactNode } from "react"
-import { Bell, ChartColumn, FileText, Folder, House, Inbox, LayoutGrid, Search, Settings, Tag, Users } from "lucide-react"
+import type { CSSProperties } from "react"
+import { AudioWaveform, Command, FileText, GalleryVerticalEnd, House, Inbox, Settings, Users } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
+import { Avatar, AvatarFallback, avatarInitial } from "../components/avatar"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../components/select"
 import {
   Sidebar,
   SidebarContent,
@@ -20,23 +22,73 @@ import {
 
 type NavItem = { label: string; icon: LucideIcon; badge?: string }
 type NavGroup = { label: string; items: readonly NavItem[] }
+type Workspace = { id: string; name: string; plan: string; icon: LucideIcon }
+type Density = "default" | "compact"
+
+/** The one standard navigation every shell shares (the Classic workspace baseline): two groups, icons, one badge. */
+const NAV: readonly NavGroup[] = [
+  { label: "Workspace", items: [{ label: "Home", icon: House }, { label: "Inbox", icon: Inbox, badge: "3" }, { label: "Documents", icon: FileText }] },
+  { label: "Team", items: [{ label: "Members", icon: Users }, { label: "Settings", icon: Settings }] },
+]
+const WORKSPACES: readonly Workspace[] = [
+  { id: "northwind", name: "Northwind", plan: "Enterprise", icon: GalleryVerticalEnd },
+  { id: "atlas", name: "Atlas", plan: "Startup", icon: AudioWaveform },
+  { id: "harbor", name: "Harbor", plan: "Free", icon: Command },
+]
+
+/** A workspace logo: the Sidebar's primary pair, so dedicated Sidebar tokens restyle it. */
+function Logo({ workspace, density }: { workspace: Workspace; density: Density }) {
+  return (
+    <span aria-hidden="true" className={`grid shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground ${density === "compact" ? "size-6" : "size-8"}`}>
+      <workspace.icon className={density === "compact" ? "size-3.5" : "size-4"} />
+    </span>
+  )
+}
 
 /**
- * One contained navigation built only from the accepted Sidebar primitives. Selection is local (`aria-current` and the
- * primitive's own `isActive` treatment); nothing routes, collapses or persists.
+ * The header's workspace switcher: the accepted Select on a sidebar-styled trigger, as in the shadcn team-switcher
+ * pattern. Choosing a workspace renames the header and the breadcrumb only; nothing routes or persists.
  */
-function ShellNav({ label, groups, size = "default" }: { label: string; groups: readonly NavGroup[]; size?: "default" | "sm" }) {
-  const [active, setActive] = useState(groups[0]!.items[0]!.label)
+function WorkspaceSwitcher({ shell, workspace, onChange, density }: { shell: string; workspace: Workspace; onChange: (id: string) => void; density: Density }) {
+  const items = WORKSPACES.map(entry => ({ value: entry.id, label: entry.name }))
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <Select items={items} value={workspace.id} onValueChange={id => { if (id) onChange(id) }}>
+          <SelectTrigger aria-label={`${shell} workspace`} className={`w-full cursor-pointer gap-2 border-0 bg-transparent px-2 text-sidebar-foreground shadow-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[popup-open]:bg-sidebar-accent data-[popup-open]:text-sidebar-accent-foreground dark:bg-transparent dark:hover:bg-sidebar-accent ${density === "compact" ? "h-10!" : "h-12!"}`}>
+            <SelectValue className="min-w-0 gap-2">
+              <Logo workspace={workspace} density={density} />
+              <span className="grid min-w-0 text-left leading-tight">
+                <span className="truncate font-medium">{workspace.name}</span>
+                <span className="truncate text-xs">{workspace.plan}</span>
+              </span>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent align="start" alignItemWithTrigger={false}>
+            <SelectGroup>
+              <SelectLabel>Workspaces</SelectLabel>
+              {WORKSPACES.map(entry => <SelectItem key={entry.id} value={entry.id}>{entry.name}</SelectItem>)}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
+}
+
+/** Grouped icon navigation on the Sidebar primitives. Selection is local (`aria-current` plus `isActive`). */
+function ShellNav({ label, active, onSelect, density }: { label: string; active: string; onSelect: (item: string) => void; density: Density }) {
+  const size = density === "compact" ? "sm" : "default"
   return (
     <nav aria-label={label} className="contents">
-      {groups.map(group => (
-        <SidebarGroup key={group.label} className={size === "sm" ? "py-1" : undefined}>
-          <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+      {NAV.map(group => (
+        <SidebarGroup key={group.label} className={density === "compact" ? "py-1" : undefined}>
+          <SidebarGroupLabel className={density === "compact" ? "h-7" : undefined}>{group.label}</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className={size === "sm" ? "gap-0.5" : undefined}>
+            <SidebarMenu className={density === "compact" ? "gap-0.5" : undefined}>
               {group.items.map(item => (
                 <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton size={size} isActive={item.label === active} aria-current={item.label === active ? "page" : undefined} onClick={() => setActive(item.label)} className="cursor-pointer">
+                  <SidebarMenuButton size={size} isActive={item.label === active} aria-current={item.label === active ? "page" : undefined} onClick={() => onSelect(item.label)} className="cursor-pointer">
                     <item.icon aria-hidden="true" />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
@@ -51,116 +103,106 @@ function ShellNav({ label, groups, size = "default" }: { label: string; groups: 
   )
 }
 
-/** A brand or workspace mark: the Sidebar's primary pair, so dedicated Sidebar tokens restyle it. */
-function Mark({ letter, className = "" }: { letter: string; className?: string }) {
-  return <span aria-hidden="true" className={`grid size-7 shrink-0 place-items-center rounded-md bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground ${className}`}>{letter}</span>
+/** The signed-in profile: the accepted Avatar with one initial, then name and email. Informational, not a control. */
+function Profile({ density }: { density: Density }) {
+  const name = "Maya Chen"
+  return (
+    <div className={`flex min-w-0 items-center gap-2 rounded-md px-2 ${density === "compact" ? "py-1" : "py-1.5"}`}>
+      <Avatar className={density === "compact" ? "size-6" : "size-8"}><AvatarFallback className="text-xs">{avatarInitial(name)}</AvatarFallback></Avatar>
+      <span className="grid min-w-0 text-sm leading-tight">
+        <span className="truncate font-medium">{name}</span>
+        <span className="truncate text-xs text-sidebar-foreground/70">maya@northwind.example</span>
+      </span>
+    </div>
+  )
 }
 
-/** Abstract main content: neutral blocks that suggest structure without becoming an application. */
-const Block = ({ className }: { className: string }) => <div className={`rounded-md bg-muted ${className}`} />
-
-function Frame({ title, children, style }: { title: string; children: ReactNode; style?: CSSProperties }) {
-  const id = useId()
+/**
+ * The one abstract main panel every shell shares: a breadcrumb/header row, a row of three muted placeholder blocks and
+ * one larger muted block. Only the breadcrumb is text; the blocks are hidden neutral silhouettes.
+ */
+function MainPanel({ workspace, page, density }: { workspace: Workspace; page: string; density: Density }) {
+  const gap = density === "compact" ? "gap-2 p-3" : "gap-4 p-4"
   return (
-    <section aria-labelledby={id} data-app-shell={title} className="grid min-w-0 gap-2">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className={`flex shrink-0 items-center gap-2 border-b px-4 text-sm ${density === "compact" ? "h-10" : "h-12"}`} data-shell-header>
+        <span className="truncate text-muted-foreground">{workspace.name}</span>
+        <span aria-hidden="true" className="text-muted-foreground">/</span>
+        <span className="truncate font-medium">{page}</span>
+      </div>
+      <div aria-hidden="true" className={`flex min-h-0 flex-1 flex-col ${gap}`} data-shell-content>
+        <div className={`grid shrink-0 grid-cols-3 ${density === "compact" ? "gap-2" : "gap-4"}`}>
+          <div className="h-16 rounded-lg bg-muted" /><div className="h-16 rounded-lg bg-muted" /><div className="h-16 rounded-lg bg-muted" />
+        </div>
+        <div className="min-h-0 flex-1 rounded-lg bg-muted" />
+      </div>
+    </div>
+  )
+}
+
+type Variant = "classic" | "inset" | "compact"
+
+/**
+ * One shell: the shared Sidebar (switcher header, grouped navigation, profile footer) beside the shared main panel.
+ * Variants differ only in restrained treatment: Classic divides a flat sidebar from the page; Inset lifts the page onto
+ * a bordered, shadowed surface inside the sidebar colour; Compact tightens density and chooses a narrower sidebar.
+ */
+function Shell({ title, variant, initial }: { title: string; variant: Variant; initial: { workspace: string; page: string } }) {
+  const id = useId()
+  const [workspaceId, setWorkspaceId] = useState(initial.workspace)
+  const [page, setPage] = useState(initial.page)
+  const workspace = WORKSPACES.find(entry => entry.id === workspaceId)!
+  const density: Density = variant === "compact" ? "compact" : "default"
+  const width = { classic: "clamp(10rem, 32%, 15rem)", inset: "clamp(10rem, 32%, 14rem)", compact: "clamp(9rem, 28%, 12.5rem)" }[variant]
+  const sidebar = (
+    <Sidebar collapsible="none" className={variant === "inset" ? "bg-transparent" : "border-r border-sidebar-border"}>
+      <SidebarHeader className={density === "compact" ? "p-1.5" : undefined}>
+        <WorkspaceSwitcher shell={title} workspace={workspace} onChange={setWorkspaceId} density={density} />
+      </SidebarHeader>
+      <SidebarContent className={density === "compact" ? "gap-0" : undefined}>
+        <ShellNav label={`${title} navigation`} active={page} onSelect={setPage} density={density} />
+      </SidebarContent>
+      <SidebarFooter className={variant === "inset" ? undefined : `border-t border-sidebar-border ${density === "compact" ? "p-1.5" : ""}`}>
+        <Profile density={density} />
+      </SidebarFooter>
+    </Sidebar>
+  )
+  return (
+    <section aria-labelledby={id} data-app-shell={title} data-shell-variant={variant} className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[72%]">
       <h2 id={id} className="type-heading text-sm">{title}</h2>
-      <div className="h-96 min-w-0 overflow-hidden rounded-xl border shadow-sm" style={style}>{children}</div>
+      <div className="h-108 min-w-0 overflow-hidden rounded-xl border shadow-sm" style={{ "--sidebar-width": width } as CSSProperties}>
+        {variant === "inset" ? (
+          <div className="flex h-full min-w-0 gap-2 bg-sidebar p-2">
+            {sidebar}
+            <div className="flex min-w-0 flex-1 rounded-lg border bg-background shadow-sm"><MainPanel workspace={workspace} page={page} density={density} /></div>
+          </div>
+        ) : (
+          <div className="flex h-full min-w-0 bg-background">
+            {sidebar}
+            <MainPanel workspace={workspace} page={page} density={density} />
+          </div>
+        )}
+      </div>
     </section>
   )
 }
 
-const CLASSIC: readonly NavGroup[] = [
-  { label: "Workspace", items: [{ label: "Home", icon: House }, { label: "Inbox", icon: Inbox }, { label: "Documents", icon: FileText }] },
-  { label: "Team", items: [{ label: "Members", icon: Users }, { label: "Settings", icon: Settings }] },
-]
-const PROJECT: readonly NavGroup[] = [
-  { label: "Project", items: [{ label: "Overview", icon: LayoutGrid }, { label: "Files", icon: Folder, badge: "12" }, { label: "Updates", icon: Bell, badge: "3" }] },
-  { label: "Views", items: [{ label: "Roadmap", icon: ChartColumn }, { label: "Notes", icon: FileText }] },
-]
-const UTILITY: readonly NavGroup[] = [
-  { label: "Queues", items: [{ label: "Inbox", icon: Inbox, badge: "24" }, { label: "Assigned", icon: Users, badge: "8" }, { label: "Mentions", icon: Bell }, { label: "Search", icon: Search }] },
-  { label: "Labels", items: [{ label: "Billing", icon: Tag }, { label: "Bugs", icon: Tag }, { label: "Requests", icon: Tag }] },
-]
-
 /**
- * PUI-102: three contained application shells on the accepted shadcn Sidebar, for reading the live theme at app scale.
- * Every Sidebar uses the official non-collapsible (`collapsible="none"`) branch, which renders in normal flow: the
- * viewport-fixed desktop branch and mobile sheet are never mounted inside a card, and the public Sidebar API is
- * unchanged. One provider, held open, serves all three. Composition wrappers vary proportion, surface, header
- * relationship and density; the primitives keep their semantic Sidebar tokens, hover and focus. Main areas are
- * abstract blocks only.
+ * PUI-102/PUI-110: three contained application shells on the accepted shadcn Sidebar, for reading the live theme at app
+ * scale. All three share one Sidebar pattern (workspace switcher, grouped icon navigation with an active item, profile
+ * footer) and one abstract main panel, and stack vertically at a restrained, centred width that widens to the full
+ * panel on narrow containers. Every Sidebar uses the official non-collapsible (`collapsible="none"`) branch, which
+ * renders in normal flow: the viewport-fixed desktop branch and mobile sheet are never mounted, and the public Sidebar
+ * API is unchanged. One provider, held open, serves all three. The official `SidebarInset` is not used because it
+ * renders a `<main>` landmark and the preview document already has one; its inset treatment is composed instead.
  */
 export function AppShells() {
   return (
     <SidebarProvider open className="@container block min-h-0 min-w-0">
-      <div className="grid min-w-0 gap-6 @3xl:grid-cols-2">
-        <div className="min-w-0 @3xl:col-span-2">
-          <Frame title="Classic workspace" style={{ "--sidebar-width": "clamp(8.5rem, 30%, 15rem)" } as CSSProperties}>
-            <div className="flex h-full min-w-0 bg-background">
-              <Sidebar collapsible="none" className="border-r border-sidebar-border">
-                <SidebarHeader className="flex-row items-center gap-2 px-3 py-3">
-                  <Mark letter="N" />
-                  <span className="type-heading truncate text-sm">Northwind</span>
-                </SidebarHeader>
-                <SidebarContent><ShellNav label="Classic workspace navigation" groups={CLASSIC} /></SidebarContent>
-                <SidebarFooter className="flex-row items-center gap-2 border-t border-sidebar-border px-3 py-3">
-                  <span aria-hidden="true" className="size-6 shrink-0 rounded-full bg-sidebar-accent" />
-                  <span className="h-2 w-16 rounded-full bg-sidebar-accent" aria-hidden="true" />
-                </SidebarFooter>
-              </Sidebar>
-              <div aria-hidden="true" className="flex min-w-0 flex-1 flex-col">
-                <div className="flex h-12 shrink-0 items-center gap-3 border-b px-4"><Block className="h-3 w-28" /><Block className="ml-auto h-6 w-16" /></div>
-                <div className="grid flex-1 content-start gap-3 p-4">
-                  <Block className="h-5 w-40 max-w-full" />
-                  <div className="grid grid-cols-3 gap-3"><div className="h-16 rounded-lg border bg-card" /><div className="h-16 rounded-lg border bg-card" /><div className="h-16 rounded-lg border bg-card" /></div>
-                  <div className="h-28 rounded-lg border bg-card" />
-                </div>
-              </div>
-            </div>
-          </Frame>
-        </div>
-        <Frame title="Inset project" style={{ "--sidebar-width": "clamp(8.5rem, 38%, 13rem)" } as CSSProperties}>
-          <div className="flex h-full min-w-0 gap-2 bg-sidebar p-2">
-            <Sidebar collapsible="none" className="bg-transparent">
-              <SidebarHeader className="flex-row items-center gap-2 px-2 py-2">
-                <Mark letter="A" className="rounded-full" />
-                <span className="grid min-w-0">
-                  <span className="type-heading truncate text-sm">Atlas</span>
-                  <span className="truncate text-xs text-sidebar-foreground/70">Project</span>
-                </span>
-              </SidebarHeader>
-              <SidebarContent><ShellNav label="Inset project navigation" groups={PROJECT} /></SidebarContent>
-            </Sidebar>
-            <div aria-hidden="true" className="flex min-w-0 flex-1 flex-col rounded-lg border bg-background shadow-sm">
-              <div className="flex h-10 shrink-0 items-center gap-2 px-3"><Block className="h-2.5 w-10" /><span className="text-muted-foreground">/</span><Block className="h-2.5 w-16" /></div>
-              <div className="grid flex-1 content-start gap-2 px-3 pb-3">
-                <div className="h-20 rounded-lg bg-muted" />
-                <Block className="h-3 w-3/4" />
-                <Block className="h-3 w-1/2" />
-                <Block className="h-3 w-2/3" />
-              </div>
-            </div>
-          </div>
-        </Frame>
-        <Frame title="Compact utility" style={{ "--sidebar-width": "clamp(8rem, 40%, 11rem)" } as CSSProperties}>
-          <div className="flex h-full min-w-0 flex-col bg-background">
-            <div className="flex h-10 shrink-0 items-center gap-2 border-b bg-sidebar px-3 text-sidebar-foreground">
-              <Mark letter="U" className="size-5 rounded-sm" />
-              <span className="type-heading truncate text-xs">Utility</span>
-              <span aria-hidden="true" className="ml-auto h-5 w-20 rounded-md border border-sidebar-border bg-background" />
-            </div>
-            <div className="flex min-h-0 min-w-0 flex-1">
-              <Sidebar collapsible="none" className="border-r border-sidebar-border">
-                <SidebarContent className="gap-0 py-1"><ShellNav label="Compact utility navigation" groups={UTILITY} size="sm" /></SidebarContent>
-              </Sidebar>
-              <div aria-hidden="true" className="grid min-w-0 flex-1 content-start divide-y">
-                {["w-3/4", "w-2/3", "w-5/6", "w-1/2", "w-3/5", "w-2/3", "w-3/4"].map((width, index) => (
-                  <div key={index} className="flex items-center gap-2 px-3 py-2.5"><span className="size-2 shrink-0 rounded-full bg-muted-foreground/40" /><Block className={`h-2.5 ${width}`} /></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Frame>
+      <div className="grid min-w-0 gap-8">
+        <Shell title="Classic workspace" variant="classic" initial={{ workspace: "northwind", page: "Home" }} />
+        <Shell title="Inset project" variant="inset" initial={{ workspace: "atlas", page: "Documents" }} />
+        <Shell title="Compact utility" variant="compact" initial={{ workspace: "harbor", page: "Inbox" }} />
       </div>
     </SidebarProvider>
   )

@@ -87,11 +87,11 @@ describe("CGS-03/04/06 container-responsive nested gallery (PUI-78, gaps per PUI
 const MODULES: Record<string, string> = {
   "plan-usage": "plan-usage", "quick-find": "quick-find", "productive-week": "productive-week", "signup-form": "signup-form", "local-weather": "local-weather",
   "revenue-overview": "revenue-overview", "team-chat": "team-chat", "recent-activity": "recent-activity", "recent-payments": "recent-payments",
-  "offsite-calendar": "offsite-calendar", "now-playing": "now-playing",
+  "offsite-calendar": "offsite-calendar", "now-playing": "now-playing", "bitcoin-price": "bitcoin-price",
 }
 const module = (id: string) => read(`../../../packages/ui/src/compositions/${MODULES[id]}.tsx`)
 const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"]
-const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
+const RIGHT = ["revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
 const REMOVED = {
   "account-profile": "account-profile", notifications: "notification-preferences", "team-access": "team-access", "workspace-settings": "workspace-settings", "room-to-think": "room-to-think",
   "upcoming-schedule": "upcoming-schedule", "launch-board": "launch-board", "support-request": "support-request",
@@ -111,8 +111,8 @@ const section = (id: string) => {
   return html.slice(start, next === -1 ? undefined : next)
 }
 
-describe("WSCG-11/WGPE-06/11 eleven-card gallery (PUI-86–92, PUI-97)", () => {
-  it("renders exactly the eleven compositions once: Music closes the left region and Calendar / Weather is the second local pair", () => {
+describe("WSCG-11/WGPE-06/11/WBDS-03 twelve-card gallery (PUI-86–92, PUI-97, PUI-108)", () => {
+  it("renders exactly the twelve compositions once: Music closes the left region and Calendar / Weather is the second local pair", () => {
     expect(COMPOSITION_IDS).toEqual([...LEFT, ...RIGHT])
     const { left, right, pair, groups, source } = regions()
     expect(left).toEqual(LEFT)
@@ -158,6 +158,8 @@ describe("CGS-07/08 token-driven showcase (current set)", () => {
       if (HIDDEN_HEADING[id]) expect(source, id).toContain(`<h2 className="sr-only">${HIDDEN_HEADING[id]}</h2>`)
       // PUI-105: Weather's place name keeps its size and weight in the Body family instead of the Heading role.
       else if (id === "local-weather") expect(source, id).toContain('<h2 className="max-w-full truncate text-base font-semibold">')
+      // PUI-108: the Bitcoin / BTC identifier is a small Body-role label.
+      else if (id === "bitcoin-price") expect(source, id).toContain('<h2 className="truncate text-sm font-medium">Bitcoin <span className="text-muted-foreground">BTC</span></h2>')
       else expect(source, id).toMatch(/<h2 className="type-heading[ "]/)
     }
     const showcase = COMPOSITION_IDS.map(module).join("\n")
@@ -595,5 +597,65 @@ describe("WGCP-07 full-bleed Studio revenue chart (PUI-107)", () => {
     expect(source).toContain('<ChartContainer config={config} className="aspect-auto h-40 w-full">')
     expect(source.match(/<Area /g)).toHaveLength(1)
     for (const text of ['week: {', 'month: {', 'quarter: {', '["W1", 38.2]', '["Sep", 177.0]', 'useState<Range>("month")']) expect(source).toContain(text)
+  })
+})
+
+describe("WBDS-03/04 static Bitcoin 1Y card (PUI-108)", () => {
+  const source = () => module("bitcoin-price")
+  const html = () => section("bitcoin-price")
+  /** The frozen FRED/Coinbase packet table, parsed independently of the composition. */
+  const reference = () => Array.from(read("../../../docs/evidence/workbench-bitcoin-designsystem-shells/btc-reference-data.md").matchAll(/^\| (\d{4}-\d{2}-\d{2}) \| (\d+\.\d{2}) \|$/gm), match => ({ date: match[1]!, price: Number(match[2]) }))
+
+  it("sits directly after Studio revenue as a full-width card of the right region", () => {
+    const { right, source: gallery } = regions()
+    expect(right.slice(0, 2)).toEqual(["revenue-overview", "bitcoin-price"])
+    // Not inside a local pair: a direct child of the right region, like Studio revenue.
+    const body = gallery.slice(gallery.indexOf('<Region side="right"'), gallery.indexOf("<LocalGroup", gallery.indexOf('<Region side="right"')))
+    expect(body).toContain('<Composition id="revenue-overview" />\n          <Composition id="bitcoin-price" />')
+    expect(COMPOSITION_IDS.indexOf("bitcoin-price")).toBe(COMPOSITION_IDS.indexOf("revenue-overview") + 1)
+  })
+
+  it("uses exactly the thirteen frozen first-of-month observations and the recorded one-year change", async () => {
+    const { BTC_FIRST_OF_MONTH_USD, BTC_ONE_YEAR_CHANGE } = await import("@personal-ui/ui/compositions/bitcoin-price")
+    const frozen = reference()
+    expect(frozen).toHaveLength(13)
+    expect(BTC_FIRST_OF_MONTH_USD).toEqual(frozen)
+    expect(frozen.every(point => point.date.endsWith("-01"))).toBe(true)
+    expect([frozen[0]!.date, frozen[12]!.date]).toEqual(["2025-01-01", "2026-01-01"])
+    const change = ((frozen[12]!.price - frozen[0]!.price) / frozen[0]!.price) * 100
+    expect(change.toFixed(2)).toBe("-8.52")
+    expect(BTC_ONE_YEAR_CHANGE).toBe(-8.52)
+    const card = html()
+    expect(card).toContain('data-testid="btc-price">$88,642.88</p>')
+    expect(card).toMatch(/data-testid="btc-change">.*−8\.52%<span class="sr-only"> over one year<\/span>/)
+    // Provenance: the dated source in code and a visible historical note; never a live or "current" claim.
+    expect(source()).toContain("FRED series CBBTCUSD")
+    expect(source()).toContain("retrieved 2026-09-28 UTC")
+    expect(source()).toContain("first calendar day of the month (not a month-end close or monthly average)")
+    expect(card).toContain("Historical first-of-month BTC/USD, Jan 1, 2025 – Jan 1, 2026. Source: Coinbase via FRED.")
+    expect(card).not.toMatch(/\b(live|current price|real-time|monthly average|close)\b/i)
+  })
+
+  it("shows the identifier, fixed 1Y, price and change, then one line with dots and nothing else", () => {
+    const card = html()
+    expect(card).toContain(">Bitcoin <span class=\"text-muted-foreground\">BTC</span></h2>")
+    expect(card).toMatch(/data-testid="btc-range">1Y<span class="sr-only"> range<\/span>/)
+    const code = source()
+    expect(code).toContain('import { Line, LineChart, XAxis, YAxis } from "recharts"')
+    expect(code.match(/<Line /g)).toHaveLength(1)
+    expect(code).toContain('<XAxis dataKey="day" hide />')
+    expect(code).toMatch(/<YAxis hide domain=/)
+    expect(code).toContain('dot={{ r: 2.5, fill: "var(--color-price)", strokeWidth: 0 }}')
+    expect(code).toContain('color: "var(--chart-1)"')
+    expect(code).not.toMatch(/CartesianGrid|ChartLegend|<Legend|<Area|<Bar|<Button|<button|useState|useEffect|SingleToggleGroup|Tabs/)
+    // Static only: no runtime acquisition of any kind.
+    expect(code).not.toMatch(/fetch\(|XMLHttpRequest|WebSocket|EventSource|import\(|setInterval|setTimeout|localStorage|process\.env/)
+    expect(code.replace(/\/\*[\s\S]*?\*\//g, "")).not.toMatch(/https?:\/\//)
+    // Accessible summary of every observation.
+    const caption = card.slice(card.indexOf("<figcaption"), card.indexOf("</figcaption>"))
+    expect(caption.match(/\$\d{2,3},\d{3}\.\d{2}/g)).toHaveLength(13)
+    expect(caption).toContain("Jan 1, 2025 $96,903.19")
+    expect(caption).toContain("Jan 1, 2026 $88,642.88")
+    expect(card).not.toContain("<button")
   })
 })

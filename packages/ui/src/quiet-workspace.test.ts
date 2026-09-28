@@ -62,9 +62,9 @@ it("retrieves the sole new resource deterministically with provenance", async ()
   expect(result.ok).toBe(true)
   expect(JSON.stringify(result)).toContain("packages/core/src/contracts/data/resizable-panel.ts")
 })
-it("keeps twenty shared modules and thin stories; the Cards gallery consumes exactly the eleven current ones (CGS-07, WSCG-11, WGPE-10)", async () => {
+it("keeps twenty-one shared modules and thin stories; the Cards gallery consumes exactly the twelve current ones (CGS-07, WSCG-11, WGPE-10, WBDS-03)", async () => {
   // Every composition module is shared with Storybook through a thin story.
-  const names = ["productive-week", "account-profile", "team-access", "workspace-settings", "notification-preferences", "support-request", "recent-activity", "room-to-think", "revenue-overview", "upcoming-schedule", "plan-usage", "launch-board", "quick-find", "team-chat", "recent-payments", "signup-form", "offsite-calendar", "now-playing", "local-weather", "app-shells"]
+  const names = ["productive-week", "account-profile", "team-access", "workspace-settings", "notification-preferences", "support-request", "recent-activity", "room-to-think", "revenue-overview", "upcoming-schedule", "plan-usage", "launch-board", "quick-find", "team-chat", "recent-payments", "signup-form", "offsite-calendar", "now-playing", "local-weather", "app-shells", "bitcoin-price"]
   // PUI-102: App shells is its own preview view, never a gallery card.
   const views = ["app-shells"]
   // PUI-83 and PUI-88/90/91 remove cards from the gallery only; their standalone modules and stories remain independently used.
@@ -79,7 +79,8 @@ it("keeps twenty shared modules and thin stories; the Cards gallery consumes exa
     expect(story).toContain(`from "./${name}"`)
     expect(story).not.toMatch(/function |<Card|<Input/)
   }
-  expect(gallery.match(/from "@personal-ui\/ui\/compositions\//g)).toHaveLength(11)
+  // PUI-108 adds the static Bitcoin 1Y card.
+  expect(gallery.match(/from "@personal-ui\/ui\/compositions\//g)).toHaveLength(12)
   expect(readdirSync(new URL("./compositions", import.meta.url)).filter(file => !file.endsWith(".stories.tsx")).map(file => file.replace(/\.tsx$/, "")).sort()).toEqual([...names].sort())
   const resize = readFileSync(new URL("./components/resizable-panel.tsx", import.meta.url), "utf8")
   expect(resize).toContain('from "react-resizable-panels"')
