@@ -361,11 +361,12 @@ test.describe("WGCP-06 primary thumb and one transport treatment (PUI-106)", () 
 
       // Thumb: the visible circular fill is the primary token; its primary border, track, range and focus ring remain.
       const thumb = player.getByRole("slider", { name: "Track position" })
-      expect(await css(thumb, "background-color")).toBe(primary)
-      expect(await css(thumb, "border-top-color")).toBe(primary)
+      // The iframe can finish switching modes before the thumb's colour transition settles.
+      await expect.poll(() => css(thumb, "background-color")).toBe(primary)
+      await expect.poll(() => css(thumb, "border-top-color")).toBe(primary)
       expect(await css(thumb, "border-radius")).not.toBe("0px")
-      expect(await css(player.locator('[data-slot="slider-track"]'), "background-color")).toBe(await token(frame, "muted"))
-      expect(await css(player.locator('[data-slot="slider-range"]'), "background-color")).toBe(primary)
+      await expect.poll(() => css(player.locator('[data-slot="slider-track"]'), "background-color")).toBe(await token(frame, "muted"))
+      await expect.poll(() => css(player.locator('[data-slot="slider-range"]'), "background-color")).toBe(primary)
       await page.mouse.move(0, 0)
       await thumb.focus()
       await page.keyboard.press("ArrowRight")
