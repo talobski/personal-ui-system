@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-28T16:48:42Z",
+  "issue": {
+    "id": "PUI-110",
+    "uuid": "b317d14a-eac6-46a9-ad07-bfd97da5d621",
+    "title": "Standardize App shell previews around the shadcn Sidebar",
+    "description": "Refine the App shells preview so every shell uses one standardized shadcn Sidebar pattern, the main/right panel uses one consistent abstract content layout, and all shell previews stack vertically at a restrained width.\n\nOverall direction:\n\n* Standardize all App shell examples around the current Classic workspace sidebar treatment.\n* Make fuller use of the accepted shadcn Sidebar capabilities instead of hand-building simplified sidebar chrome.\n* Standardize the right/main panel structure using the owner's reference.\n* Stack all shell examples vertically.\n* Do not place Inset project and Compact utility side-by-side.\n* Keep each shell narrower than the full preview width; target a visually balanced width around roughly 70% of the available panel, but treat this as implementation guidance rather than a strict percentage.\n* Use a consistent, balanced landscape proportion/height so the previews do not become overly tall.\n\n1. Standardize the sidebar\n\nUse the Classic workspace sidebar as the shared baseline for every shell preview.\n\nPreserve/use the accepted shadcn Sidebar system and its existing components, including where appropriate:\n\n* Sidebar;\n* SidebarHeader;\n* SidebarContent;\n* SidebarGroup;\n* SidebarMenu;\n* SidebarMenuItem;\n* SidebarMenuButton;\n* SidebarFooter;\n* SidebarInset;\n* existing Sidebar provider/layout pieces already accepted in the project.\n\nDo not invent separate custom sidebar architectures for the different shell previews.\n\nMake fuller use of shadcn Sidebar capabilities:\n\n* Use a workspace/logo/account switcher style Select/Dropdown in the sidebar header rather than a static logo/name treatment, similar to common shadcn sidebar patterns.\n* Use grouped navigation sections.\n* Use active navigation state.\n* Use icons consistently.\n* Use a footer/profile area where it improves completeness.\n* Use existing Sidebar variants/states already supported by the project where they work inside contained previews.\n\nImportant boundary:\n\n* Do not change the public Sidebar API solely to support these previews.\n* Reuse existing accepted Sidebar capabilities and non-collapsible/contained behavior where necessary.\n* True desktop collapse remains optional unless already cleanly supported in the preview context.\n\n2. Standardize the right/main panel\n\nUse one consistent abstract main-panel layout inspired by the owner's reference.\n\nTarget structure:\n\n* simple top header/breadcrumb row;\n* a row of a few muted rectangular placeholder cards near the top;\n* one larger muted content block below;\n* neutral silhouette/skeleton treatment only.\n\nThe right panel should stay intentionally abstract.\n\nDo not build:\n\n* full dashboards;\n* forms;\n* real tables;\n* charts;\n* workflow-heavy content.\n\nUse semantic tokens such as muted/card/border/background so the placeholders still respond to theme changes.\n\n3. Keep shell examples distinct without changing sidebar architecture\n\nThe examples may still differ through restrained shell/layout treatment such as:\n\n* spacing density;\n* active nav selection;\n* content inset/frame treatment;\n* header/breadcrumb treatment;\n* subtle border/surface differences;\n* content proportions;\n* compact vs roomy spacing.\n\nBut the underlying sidebar structure/pattern should remain the standardized Classic workspace implementation.\n\n4. Vertical page layout\n\nStack shell previews in a single vertical sequence.\n\nExample order can remain:\n\n* Classic workspace;\n* Inset project;\n* Compact utility.\n\nDo not render two shell examples side-by-side.\n\nFor each shell:\n\n* keep a consistent preview width and landscape proportion where practical;\n* do not stretch to the full available preview width;\n* center or align the previews cleanly within the App shells panel;\n* allow the worker to tune the exact width from browser evidence, with \\~70% used only as a visual target.\n\nAt narrower widths:\n\n* shell previews may expand closer to full width to avoid awkward cramped layouts;\n* preserve responsive containment and avoid page-level horizontal overflow.\n\n5. Live theme/sidebar linkage\n\nAll shell previews must continue to reflect live Personal UI theme state:\n\n* semantic colors;\n* typography;\n* spacing/radius;\n* border/shadow where relevant;\n* light/dark mode;\n* sidebar token OFF/ON;\n* dedicated sidebar token values.\n\nWhen dedicated sidebar tokens are OFF:\n\n* use the accepted base alias behavior.\n\nWhen dedicated sidebar tokens are ON:\n\n* use the dedicated sidebar token set.\n\n6. Interaction\n\nKeep lightweight shell interaction:\n\n* workspace/logo switcher Select/Dropdown may be interactive;\n* active navigation may be selectable;\n* hover/focus states should work;\n* no full app workflows are needed.\n\nInteraction must not materially destabilize the shell preview geometry.\n\n7. Visual quality\n\nAim for:\n\n* clean, polished, believable app chrome;\n* strong consistency across the three shells;\n* fuller use of shadcn Sidebar patterns;\n* restrained abstract content;\n* portfolio-quality presentation;\n* clear hierarchy without visual noise.\n\nDo not:\n\n* add duplicate theme controls;\n* create a second theme state;\n* hard-code raw colors where semantic tokens exist;\n* add unrelated public resources;\n* change Theme v3, persistence, history, Design Command, or mutation semantics;\n* create a new sidebar framework.\n\nAccessibility / responsiveness:\n\n* preserve top-level App shells tab semantics;\n* preserve keyboard/focus behavior for Select/Dropdown, nav items, and sidebar controls;\n* keep shell previews readable at narrow widths;\n* preserve logical reading order;\n* avoid horizontal overflow.\n\nAcceptance:\n\n* All App shell examples use the standardized Classic workspace shadcn Sidebar pattern.\n* Sidebar header makes fuller use of shadcn capabilities, including a workspace/logo/account switcher style Select/Dropdown rather than a static logo-only treatment.\n* Shells use grouped navigation, active states, icons, and footer/profile treatment where appropriate.\n* Main/right panel structure is standardized to header/breadcrumb + small muted blocks + one larger muted content block.\n* Main-panel content remains abstract/skeleton-like.\n* Classic workspace, Inset project, and Compact utility are stacked vertically.\n* No shell pair is laid out side-by-side.\n* Shell previews are narrower than full width at normal desktop sizes, with exact width tuned from browser evidence rather than a hard-coded percentage requirement.\n* Shell previews use a balanced landscape proportion and avoid excessive height.\n* Live theme/sidebar token changes continue to update every shell.\n* No public Sidebar API change or parallel sidebar framework is introduced.\n* No responsive, accessibility, persistence, history, Design Command, or theme regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-110/standardize-app-shell-previews-around-the-shadcn-sidebar",
+    "gitBranchName": "emmantalob/pui-110-standardize-app-shell-previews-around-the-shadcn-sidebar",
+    "createdAt": "2026-09-28T14:31:26.446Z",
+    "updatedAt": "2026-09-28T14:35:36.136Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T14:31:26.446Z",
+        "endedAt": "2026-09-28T14:35:36.130Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T14:35:36.130Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

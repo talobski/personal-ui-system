@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-28T16:48:42Z",
+  "issue": {
+    "id": "PUI-108",
+    "uuid": "8294918c-129b-4017-ba85-c468c383c3e5",
+    "title": "Add a static Bitcoin 1Y price chart card",
+    "description": "Add a new full-width Bitcoin 1Y price showcase card to the Cards gallery, positioned directly after Studio revenue in the larger/right region.\n\nIntent:\n\n* Create a minimal, clean, elegant financial/market card focused on Bitcoin's one-year price movement.\n* Keep the implementation deliberately simple and static.\n* Use hard-coded historical Bitcoin price points only; no live data infrastructure.\n\nPlacement:\n\n* Insert the Bitcoin card directly after Studio revenue.\n* Keep it as another full-width rectangular card in the larger/right gallery region.\n* Preserve the accepted container-responsive gallery architecture and independent vertical flow.\n\nVisual structure:\n\n* Small Bitcoin / BTC identifier near the top-left.\n* Subtle 1Y range indicator near the top-right.\n* Large price value.\n* Small 1-year percentage change indicator.\n* One full-width line chart beneath.\n\nChart implementation:\n\n* Use shadcn's official Line Chart - Dots pattern as the implementation basis:\n  [https://ui.shadcn.com/charts/line#charts](<https://ui.shadcn.com/charts/line#charts>)\n* Reuse the accepted Chart/Recharts architecture already in Personal UI.\n* Keep visible dots on the line, but style them in a restrained way.\n* Use semantic/chart tokens rather than hard-coding Bitcoin orange.\n\nChart simplification:\n\n* No background grid lines.\n* No x-axis labels at the bottom.\n* No y-axis labels.\n* No legend.\n* No secondary series.\n* No extra controls/toolbars.\n* Avoid tooltip complexity unless the existing chart architecture provides a very lightweight tooltip essentially for free.\n* The visual should read primarily as the line + dots.\n\nData:\n\n* Use a small hard-coded one-year historical Bitcoin USD dataset.\n* Prefer approximately monthly points across 12 months.\n* Use real historical BTC/USD prices from a reliable source during implementation, then commit those values as static data.\n* No API calls.\n* No runtime fetch.\n* No live refresh.\n* No crypto SDK.\n* No external credentials.\n* No data synchronization or state machinery beyond what the card actually needs.\n\nData provenance:\n\n* Record the source/date used to obtain the static historical prices in a code comment, composition note, or test fixture provenance where appropriate.\n* Once committed, the card remains deterministic and does not depend on the source at runtime.\n\nContent scope:\n\n* No buy/sell buttons.\n* No wallet controls.\n* No crypto news.\n* No portfolio logic.\n* No timeframe switching beyond the fixed visible 1Y indicator.\n* No trading workflow.\n\nDesign-system constraints:\n\n* Keep all styling driven by Personal UI semantic/chart tokens.\n* Use Body/Sans typography unless existing financial-number conventions in the accepted composition clearly justify another existing role.\n* Preserve light/dark behavior.\n* Do not introduce new tokens or public resources.\n* Do not change Theme v3, history, persistence, Design Command, or mutation behavior.\n\nAcceptance:\n\n* A new Bitcoin 1Y card appears directly after Studio revenue in the larger/right region.\n* Card is full-width within that region.\n* Card shows Bitcoin/BTC identifier, 1Y label, price value, and one-year percentage change.\n* Chart uses the shadcn Line Chart - Dots pattern.\n* Chart shows only the price line and dots without background grid lines, x-axis labels, y-axis labels, or legend.\n* Data is hard-coded static historical BTC/USD data spanning about one year.\n* No runtime network/API/crypto dependency exists.\n* Static data provenance is documented.\n* Card remains responsive, token-driven, light/dark coherent, and geometry-stable.\n* No overflow, accessibility, focus-order, or gallery-layout regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-108/add-a-static-bitcoin-1y-price-chart-card",
+    "gitBranchName": "emmantalob/pui-108-add-a-static-bitcoin-1y-price-chart-card",
+    "createdAt": "2026-09-28T13:41:09.625Z",
+    "updatedAt": "2026-09-28T14:35:24.706Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Feature"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T13:41:09.625Z",
+        "endedAt": "2026-09-28T14:35:24.698Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T14:35:24.698Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

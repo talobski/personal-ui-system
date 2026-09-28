@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-28T16:48:42Z",
+  "issue": {
+    "id": "PUI-109",
+    "uuid": "aec517db-a4c8-4569-8e02-6249e4014a82",
+    "title": "Refine Design system colors and type scale layout",
+    "description": "Refine the Design system preview so Colors and Type scale sit side-by-side as flat padded sections rather than bordered cards, while reorganizing Colors to mirror the sidebar token grouping and turning Typography into a true descending type-scale specimen.\n\nOverall layout\n\n* Keep the Design system tab read-only and live.\n* At wider widths, place Colors and Type scale side-by-side in one shared layout.\n* Remove the individual card borders/surfaces around both sections.\n* They should feel like flat sections contained in ordinary divs with comfortable padding, not nested cards.\n* Use spacing/alignment to separate the two sections rather than card chrome.\n* At narrower widths, stack the two sections cleanly.\n\n1. Colors section\n\nGrouping/order:\n\n* Mirror the semantic token grouping and order used in the Workbench sidebar.\n* Do not keep the current broader Design-system-only groups if they differ from sidebar organization.\n* Preserve side-by-side pairing for related background/foreground tokens.\n\nExamples of pairings to preserve where applicable:\n\n* Background / Foreground\n* Primary / Primary foreground\n* Secondary / Secondary foreground\n* Accent / Accent foreground\n* Card / Card foreground\n* Popover / Popover foreground\n* Destructive / Destructive foreground\n* Sidebar / Sidebar foreground\n* Sidebar primary / Sidebar primary foreground\n* Sidebar accent / Sidebar accent foreground\n\nOther singleton tokens such as Border / Input / Ring / chart tokens should follow the same sidebar grouping/order without inventing new presentation aliases.\n\nColor item styling:\n\n* Keep swatch + semantic token name + resolved value.\n* Make swatches slightly larger than the current Design system preview.\n* Change resolved token values from Mono typography to Sans/Body typography.\n* Keep token names readable and compact.\n* Keep the section visually denser/narrower than the current implementation so Type scale can sit beside it comfortably.\n\nSidebar token behavior:\n\n* Continue showing effective Sidebar colors.\n* When dedicated Sidebar tokens are OFF, reflect accepted base aliases.\n* When dedicated Sidebar tokens are ON, reflect dedicated values.\n\n2. Rename Typography to Type scale\n\nRename the existing Typography section heading to:\nType scale\n\nRemove semantic-role groupings such as:\n\n* Heading\n* Body\n* Muted\n* Mono\n\nThe purpose of this section is now to show font-size progression rather than typography-role categories.\n\n3. Type scale rows\n\nRender one straight vertical list from largest to smallest.\n\nRecommended order:\n\n* text-5xl\n* text-4xl\n* text-3xl\n* text-2xl\n* text-xl\n* text-lg\n* text-base\n* text-sm\n* text-xs\n\nIf source inspection shows the accepted project supports a slightly different practical subset, keep the same descending largest-to-smallest principle.\n\nEach row should contain:\n\n* small muted utility label on the left showing the Tailwind class name;\n* specimen text on the right rendered at that actual text size.\n\nUse a consistent sample sentence such as:\n\"The quick brown fox jumps over the lazy dog.\"\n\nTypography behavior:\n\n* Use the live current Body/Sans family for the specimen rows so the size progression is easy to compare.\n* Keep the active theme's relevant font family/weight/tracking behavior live.\n* Do not create separate Heading/Body/Mono specimen groups in this section.\n* The class labels themselves should remain small and secondary.\n\n4. Flat-section treatment\n\nFor both Colors and Type scale:\n\n* remove individual card borders;\n* remove nested card-style background treatment unless the parent preview surface already provides the needed background;\n* keep comfortable padding;\n* preserve clear section headings;\n* do not add shadows solely to separate sections;\n* avoid nested-dashboard/card visual language.\n\nDesign intent:\n\n* The Design system tab should feel like one clean reference sheet.\n* Colors and Type scale should both be visible at once on wide layouts.\n* The section should be easier to scan and less vertically long than the current version.\n\nLive linkage / boundaries\n\n* Preserve live updates from sidebar theme edits.\n* Preserve light/dark behavior.\n* Preserve Theme v3, history, persistence, import/export, Design Command, and mutation behavior.\n* Do not duplicate editing controls.\n* Do not create a second theme state.\n* Do not add new public resources or tokens.\n\nAccessibility / responsiveness\n\n* Preserve top-level tab keyboard/focus behavior.\n* Ensure token names/values and type-scale labels remain readable in light/dark.\n* Reflow cleanly at narrow widths.\n* Avoid horizontal overflow from large type specimens; wrap or constrain specimen text cleanly while preserving the visible size progression.\n\nAcceptance\n\n* Colors and Type scale appear side-by-side at suitable wider widths.\n* They stack cleanly at narrower widths.\n* Neither section is rendered as an individual bordered card.\n* Both retain comfortable internal padding.\n* Colors grouping/order mirrors the sidebar token organization.\n* Related foreground/background tokens remain paired side-by-side.\n* Color swatches are slightly larger than before.\n* Token values use Sans/Body instead of Mono.\n* Typography section is renamed to Type scale.\n* Heading/Body/Muted/Mono grouping is removed from Type scale.\n* Type scale runs from largest at the top to smallest at the bottom.\n* Rows show Tailwind size labels on the left and live-sized specimen text on the right.\n* Live theme edits continue to update both sections immediately.\n* No responsive, accessibility, persistence, history, or Design Command regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-109/refine-design-system-colors-and-type-scale-layout",
+    "gitBranchName": "emmantalob/pui-109-refine-design-system-colors-and-type-scale-layout",
+    "createdAt": "2026-09-28T14:20:40.628Z",
+    "updatedAt": "2026-09-28T14:35:30.177Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T14:20:40.628Z",
+        "endedAt": "2026-09-28T14:35:30.171Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-28T14:35:30.171Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  }
+}

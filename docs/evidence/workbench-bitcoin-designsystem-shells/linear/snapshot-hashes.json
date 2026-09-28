@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "linear-snapshot-hashes/1",
+  "phase": "workbench-bitcoin-designsystem-shells-v1-001",
+  "retrievedAtUtc": "2026-09-28T16:48:42Z",
+  "contract": {
+    "path": "docs/WORKBENCH_BITCOIN_DESIGNSYSTEM_SHELLS_CONTRACT.md",
+    "sha256": "8a5fbd26f4203fe17a2f40aca846919131942125379adf8b11be52cf59e04d43"
+  },
+  "index": {
+    "path": "docs/evidence/workbench-bitcoin-designsystem-shells/linear/index.md",
+    "sha256": "a5b64a3570881838c6b21dfc9f87b295201b477e8482252a392a60918049479e"
+  },
+  "historicalData": {
+    "path": "docs/evidence/workbench-bitcoin-designsystem-shells/btc-reference-data.md",
+    "sha256": "a0237ccadcef4f77f8c77fd8ef737ea5795161315a7c8e08df7b1096a84c0b0d"
+  },
+  "tickets": {
+    "PUI-108": {
+      "path": "docs/evidence/workbench-bitcoin-designsystem-shells/linear/PUI-108.json",
+      "sha256": "bbe9f592e3d813e654077aa1ad65be87d484c7d3f257cb9cc8250a5e62ec7680"
+    },
+    "PUI-109": {
+      "path": "docs/evidence/workbench-bitcoin-designsystem-shells/linear/PUI-109.json",
+      "sha256": "298a299aa16c9c6144164b94ece25770ba57f035af7692a2f5a33f471ced7661"
+    },
+    "PUI-110": {
+      "path": "docs/evidence/workbench-bitcoin-designsystem-shells/linear/PUI-110.json",
+      "sha256": "acdcd6e10c02884af8a9940d8fb3fb8e59e358be3a3eee6a81a9470446fef266"
+    }
+  }
+}
