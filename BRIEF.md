@@ -1,10 +1,14 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`304486c4aaf0f276287398075c3a7b25d311bca3` on `main`. Phase
-`workbench-gallery-preview-expansion-v1-001` is accepted and promoted for
-PUI-95 through PUI-102. Its immutable packet preserves verbatim admission-time
-Linear snapshots alongside the authoritative reconciled contract. Lead browser
+`c4393ebbebe587ae18216f524b56b16ad1f9df35` on `main`. Phase
+`workbench-gallery-card-polish-v1-001` is accepted and promoted for
+PUI-103 through PUI-107. It simplifies Cards gallery metadata and chat,
+refines table and music controls, gives Calendar and Weather independent
+heights, and makes Studio revenue's chart full-bleed without changing Theme v3,
+the 23-resource registry, or the 12 mutation operations. Its immutable packet
+preserves verbatim admission-time Linear snapshots alongside the authoritative
+reconciled contract. Lead browser
 and technical evidence, independent protected verification, and post-promotion
 checks passed. No owner visual-review gate was admitted. The earlier nested-gallery phase's record
 preserves a one-time worker execution-envelope violation: Corepack made an
