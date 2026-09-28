@@ -26,7 +26,8 @@ describe("Avatar initials (WSSP-08)", () => {
     const dirs = ["compositions", "components"].map((dir) => new URL(`./${dir}/`, import.meta.url))
     const files = dirs.flatMap((dir) => readdirSync(dir).filter((name) => name.endsWith(".tsx")).map((name) => ({ name, text: readFileSync(new URL(name, dir), "utf8") })))
     const users = files.filter((file) => file.name !== "avatar.tsx" && file.text.includes("<Avatar"))
-    expect(users.map((file) => file.name).sort()).toEqual(["account-profile.tsx", "avatar.stories.tsx", "message.stories.tsx", "sidebar.stories.tsx", "team-access.tsx", "team-chat.tsx"])
+    // PUI-103 removes the Chat contact header, so team-chat.tsx no longer renders an Avatar.
+    expect(users.map((file) => file.name).sort()).toEqual(["account-profile.tsx", "avatar.stories.tsx", "message.stories.tsx", "sidebar.stories.tsx", "team-access.tsx"])
     for (const file of files) {
       // No hand-rolled initials bubble: a rounded-full span holding capital letters.
       expect(file.text, file.name).not.toMatch(/rounded-full[^>]*>\s*(?:[A-Z]{1,3}|\{initials\})\s*</)

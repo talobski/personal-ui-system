@@ -1,10 +1,9 @@
 import { useId } from "react"
 import { SendHorizontal } from "lucide-react"
 
-import { Avatar, AvatarFallback, avatarInitial } from "../components/avatar"
 import { Bubble, BubbleContent, BubbleGroup } from "../components/bubble"
 import { Button } from "../components/button"
-import { Card, CardContent, CardFooter, CardHeader } from "../components/card"
+import { Card, CardContent, CardFooter } from "../components/card"
 import { Input } from "../components/input"
 import { Label } from "../components/label"
 import { Message, MessageContent, MessageGroup } from "../components/message"
@@ -22,20 +21,18 @@ const THREAD: readonly Turn[] = [
 ]
 
 /**
- * PUI-88/95: a compact two-party conversation on the official Message and Bubble resources. The one contact header
- * (Avatar and name) identifies the other party, so bubbles carry no per-message avatar, time or delivery metadata;
- * each turn still names its sender in sr-only text. The composer is a harmless local affordance: sending is prevented,
- * so nothing is inserted and the card never changes height.
+ * PUI-88/95: a compact two-party conversation on the official Message and Bubble resources. Bubbles carry no
+ * per-message avatar, time or delivery metadata; each turn names its sender in sr-only text.
+ * PUI-103: there is no contact header, so the thread leads (the heading remains for assistive technology). The composer
+ * is one input-styled field, as in Quick find, holding the borderless Input and, at its far right, a disabled muted
+ * icon-only send Button with an accessible name. Nothing is sent or inserted, so the card never changes height.
  */
 export function TeamChat() {
   const inputId = useId()
   return (
     <Card>
-      <CardHeader className="flex items-center gap-3 border-b">
-        <Avatar aria-hidden="true"><AvatarFallback className="text-xs font-medium">{avatarInitial(CONTACT)}</AvatarFallback></Avatar>
-        <h2 className="type-heading truncate text-base">{CONTACT}</h2>
-      </CardHeader>
       <CardContent>
+        <h2 className="sr-only">{CONTACT}</h2>
         <MessageGroup role="log" aria-label={`Conversation with ${CONTACT}`}>
           {THREAD.map(turn => (
             <Message key={turn.id} align={turn.align}>
@@ -50,10 +47,13 @@ export function TeamChat() {
         </MessageGroup>
       </CardContent>
       <CardFooter>
-        <form className="flex w-full min-w-0 items-center gap-2" onSubmit={event => event.preventDefault()}>
+        <form className="w-full min-w-0" onSubmit={event => event.preventDefault()}>
           <Label htmlFor={inputId} className="sr-only">Message {CONTACT}</Label>
-          <Input id={inputId} name="message" autoComplete="off" placeholder="Type your message..." className="flex-1" />
-          <Button type="submit" size="icon" aria-label="Send message" className="shrink-0 cursor-pointer"><SendHorizontal /></Button>
+          <div data-slot="chat-composer" className="flex h-9 min-w-0 items-center gap-2 rounded-md border border-input pr-0.5 pl-3 shadow-xs transition-[color,box-shadow] has-[input:focus-visible]:border-ring has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50 dark:bg-input/30">
+            <Input id={inputId} name="message" autoComplete="off" placeholder="Type your message..."
+              className="h-auto min-w-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent" />
+            <Button type="submit" variant="ghost" size="icon-sm" disabled aria-label="Send message" className="shrink-0 text-muted-foreground"><SendHorizontal /></Button>
+          </div>
         </form>
       </CardFooter>
     </Card>

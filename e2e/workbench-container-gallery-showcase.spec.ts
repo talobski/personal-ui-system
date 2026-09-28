@@ -192,11 +192,12 @@ test.describe("CGS-08 theme responsiveness", () => {
     await frame.locator("html").evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true))
     const style = (selector: string, property: string) => frame.locator(selector).first().evaluate((el, name) => getComputedStyle(el).getPropertyValue(name), property)
     const segment = '[data-composition="plan-usage"] [role=img] > span'
-    // PUI-86 removed Storage's elevated upgrade tile: the music artwork carries elevation, the chat composer's official
-    // Input radius and spacing (PUI-100 removed the weather hourly strip), and the Storage title the Heading font.
+    // PUI-86 removed Storage's elevated upgrade tile: the music artwork carries elevation, the chat composer field
+    // radius and spacing (PUI-100 removed the weather hourly strip; PUI-103 moves the field chrome from the borderless
+    // Input to its composer wrapper), and the Storage title the Heading font.
     const tile = '[data-composition="now-playing"] [data-slot="card-content"] .shadow-sm'
     const title = '[data-composition="plan-usage"] h2'
-    const kpi = '[data-composition="team-chat"] input'
+    const kpi = '[data-composition="team-chat"] [data-slot="chat-composer"]'
     const before = { segment: await style(segment, "background-color"), radius: await style(kpi, "border-top-left-radius"), padding: await style(kpi, "padding-left"), shadow: await style(tile, "box-shadow"), font: await style(title, "font-family") }
 
     await editorCategory(page, "Colors")

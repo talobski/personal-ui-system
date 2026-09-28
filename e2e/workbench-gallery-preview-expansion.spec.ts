@@ -72,18 +72,17 @@ async function sidebarSwitch(page: Page) {
 }
 
 test.describe("WGPE-03 chat (PUI-95)", () => {
-  test("one contact header, two-party bubbles without metadata, and a stable labelled composer", async ({ page }, info) => {
+  test("no contact header, two-party bubbles without metadata, and a stable labelled composer", async ({ page }, info) => {
     await open(page)
     await workspaceMode(page, "Preview")
     const frame = previewFrame(page)
     const chat = frame.locator('[data-composition="team-chat"]')
-    const header = chat.locator('[data-slot="card-header"]')
-    // Header: one avatar and the contact name only; no title, subtitle, email or status.
-    await expect(header.locator('[data-slot="avatar"]')).toHaveCount(1)
-    await expect(header.getByRole("heading", { level: 2 })).toHaveText("Maya Chen")
-    expect((await header.innerText()).trim().split("\n").filter(Boolean)).toEqual(["M", "Maya Chen"])
+    // PUI-103 (workbench-gallery-card-polish-v1-001) removes the avatar/name header and its divider; the contact is
+    // named by the visually hidden heading and the conversation log's label.
+    await expect(chat.locator('[data-slot="card-header"], [data-slot="avatar"]')).toHaveCount(0)
+    await expect(chat.getByRole("heading", { level: 2 })).toHaveText("Maya Chen")
+    await expect(chat.getByRole("heading", { level: 2 })).toHaveClass(/\bsr-only\b/)
     await expect(chat.locator('[data-slot="card-title"], [data-slot="card-description"]')).toHaveCount(0)
-    await expect(chat.locator('[data-slot="avatar"]')).toHaveCount(1)
     // Messages: two parties, clear start/end alignment, no per-message avatar or delivery metadata.
     const log = chat.getByRole("log", { name: "Conversation with Maya Chen" })
     await expect(log.locator('[data-slot="message"]')).toHaveCount(4)
@@ -95,28 +94,29 @@ test.describe("WGPE-03 chat (PUI-95)", () => {
     for (const row of rows) expect(row.align === "start" ? row.left : row.right).toBeLessThanOrEqual(1)
     await expect(log.locator('[data-align="end"] [data-slot="bubble"]').first()).toHaveCSS("background-color", await token(frame, "primary"))
     await expect(log.locator('[data-align="start"] [data-slot="bubble"]').first()).toHaveCSS("background-color", await token(frame, "muted"))
-    // Composer: a labelled input with the exact placeholder and a named icon-only send button at the far right.
+    // Composer: a labelled input with the exact placeholder and a named icon-only send button at the far right. PUI-103:
+    // the button is disabled and sits inside the composer field (covered in detail by the card-polish spec).
     const input = chat.getByRole("textbox", { name: "Message Maya Chen" })
     await expect(input).toHaveAttribute("placeholder", "Type your message...")
     const send = chat.getByRole("button", { name: "Send message" })
     await expect(send).toHaveText("")
     await expect(send.locator("svg")).toHaveCount(1)
+    await expect(send).toBeDisabled()
     const form = await box(chat.locator("form"))
     const sendBox = await box(send)
-    close(sendBox.x + sendBox.width, form.x + form.width)
+    expect(sendBox.x + sendBox.width).toBeLessThanOrEqual(form.x + form.width)
+    close(sendBox.x + sendBox.width, form.x + form.width, 4)
     expect(sendBox.x).toBeGreaterThan((await box(input)).x + (await box(input)).width - 1)
-    // Reading order: header, messages, composer.
-    const order = await chat.evaluate(section => ["h2", '[role="log"]', "form"].map(selector => section.querySelector(selector)!.getBoundingClientRect().top))
+    // Reading order: messages, then composer.
+    const order = await chat.evaluate(section => ['[role="log"]', "form"].map(selector => section.querySelector(selector)!.getBoundingClientRect().top))
     expect([...order].sort((a, b) => a - b)).toEqual(order)
-    // Sending never inserts content or changes geometry, by pointer or keyboard.
+    // Sending never inserts content or changes geometry, by keyboard; the disabled button is skipped by Tab.
     const before = await heights(frame)
     await input.fill("Looks good to me")
-    await send.click()
     await input.focus()
     await page.keyboard.press("Enter")
     await page.keyboard.press("Tab")
-    await expect(send).toBeFocused()
-    await page.keyboard.press("Enter")
+    await expect(send).not.toBeFocused()
     await expect(log.locator('[data-slot="message"]')).toHaveCount(4)
     await expect(chat.getByText("Looks good to me", { exact: true })).toHaveCount(0)
     expect(await heights(frame)).toEqual(before)
@@ -226,7 +226,8 @@ test.describe("WGPE-05 music (PUI-99)", () => {
         const names = await buttons.evaluateAll(els => els.map(el => el.getAttribute("aria-label")))
         expect(names).toEqual(["Shuffle", "Previous track", names[2] === "Pause" ? "Pause" : "Play", "Next track", "Repeat"])
         const boxes = await buttons.evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return { w: r.width, h: r.height, c: r.left + r.width / 2 } }))
-        for (const b of boxes) { close(b.w, boxes[0]!.w, 0.5); close(b.h, boxes[0]!.h, 0.5); expect(b.w).toBeGreaterThanOrEqual(40) }
+        // PUI-106: equal system-sized targets, with no pinned pixel size (24px is the WCAG 2.2 minimum target).
+        for (const b of boxes) { close(b.w, boxes[0]!.w, 0.5); close(b.h, boxes[0]!.h, 0.5); expect(b.w).toBeGreaterThanOrEqual(24) }
         const steps = boxes.slice(1).map((b, i) => b.c - boxes[i]!.c)
         for (const step of steps) close(step, steps[0]!, 1)
         const rowBox = await row.evaluate(el => { const r = el.getBoundingClientRect(); return { x: r.left, width: r.width } })
@@ -286,7 +287,8 @@ test.describe("WGPE-06/07 Calendar / Weather pair (PUI-97, PUI-100)", () => {
     const inset = parseFloat(await css(weather.locator('[data-slot="card-content"]'), "padding-left"))
     const content = { x: contentBox.x + inset, width: contentBox.width - 2 * inset }
     const icon = await box(weather.locator('[data-slot="card-content"] > div > svg'))
-    const current = weather.locator("p.type-heading")
+    // PUI-105: the temperature is Body family (no Heading role), so it is located by position rather than role class.
+    const current = weather.locator('[data-slot="card-content"] > div > p').first()
     await expect(current).toHaveText("Now 21°")
     const temperature = await box(current)
     const [high, low] = [await box(weather.getByText("H 24°")), await box(weather.getByText("L 16°"))]
@@ -333,7 +335,7 @@ test.describe("WGPE-06/07 Calendar / Weather pair (PUI-97, PUI-100)", () => {
       const region = document.querySelector('[data-gallery-region="right"]')!.getBoundingClientRect()
       const grid = document.querySelector('[data-composition="offsite-calendar"] [role="grid"]')!.getBoundingClientRect()
       return {
-        region: region.width, columns: getComputedStyle(group).gridTemplateColumns.split(" ").length,
+        region: region.width, columns: getComputedStyle(group).gridTemplateColumns.split(" ").length, align: getComputedStyle(group).alignItems,
         calendar: { x: calendar.x, y: calendar.y, w: calendar.width, h: calendar.height, bottom: calendar.bottom }, weather: { x: weather.x, y: weather.y, w: weather.width, h: weather.height },
         grid: grid.width,
         overflow: document.documentElement.scrollWidth > innerWidth || Array.from(document.querySelectorAll("[data-composition]")).some(el => el.scrollWidth > el.clientWidth + 1),
@@ -356,7 +358,8 @@ test.describe("WGPE-06/07 Calendar / Weather pair (PUI-97, PUI-100)", () => {
         expect(m.calendar.w, width).toBeLessThan(m.weather.w)
         expect(m.calendar.w, width).toBeLessThan(m.grid + 64)
         close(m.weather.x - (m.calendar.x + m.calendar.w), 16)
-        close(m.calendar.h, m.weather.h)
+        // PUI-105: side by side the two keep independent natural heights (asserted in the card-polish spec).
+        expect(m.align, width).toBe("flex-start")
       } else {
         expect(m.columns, width).toBe(1)
         close(m.weather.y - m.calendar.bottom, 16)

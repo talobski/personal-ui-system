@@ -27,6 +27,8 @@ const config = { steps: { label: "Steps", color: "var(--chart-3)" } } satisfies 
 /**
  * PUI-89: the former productivity card as a weekly steps summary. No visible title leads the metric; the heading
  * remains for assistive technology. The average uses the Heading role, and the seven bars read as daily steps.
+ * PUI-103: the day axis is a hidden scale (tooltips keep their day names) that draws no weekday row and reserves no
+ * space, so the bars fill the chart; the figcaption still lists every day for assistive technology.
  */
 export function ProductiveWeek() {
   return <Card><CardContent className="grid gap-4">
@@ -43,7 +45,7 @@ export function ProductiveWeek() {
     <figure data-testid="productive-week-chart"><figcaption className="sr-only">Daily steps Monday through Sunday: {STEPS.map(entry => count(entry.steps)).join(", ")}. Average {count(average)}.</figcaption>
       <ChartContainer config={config} className="aspect-auto h-28 w-full">
         <BarChart accessibilityLayer data={week} margin={{ top: 4, right: 0, bottom: 0, left: 0 }} title="Steps per day this week">
-          <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={6} interval={0} tickFormatter={(day: string) => day.slice(0, 1)} />
+          <XAxis dataKey="day" hide />
           <ChartTooltip cursor={false} content={<ChartTooltipContent hideIndicator />} />
           <Bar dataKey="steps" radius={4} isAnimationActive={false} />
         </BarChart>

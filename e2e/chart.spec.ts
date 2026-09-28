@@ -76,10 +76,12 @@ test("Weekly steps (the repurposed Productive Week) keeps its data and summary o
       // Heights follow the data: Thursday is tallest, Saturday shortest.
       expect(heights[3]).toBe(Math.max(...heights))
       expect(heights[5]).toBe(Math.min(...heights))
-      await expect(figure.locator(".recharts-cartesian-axis-tick-value")).toHaveText(["M", "T", "W", "T", "F", "S", "S"])
+      // PUI-103: no weekday label row; the hidden day scale still names each bar's day in the keyboard tooltip.
+      await expect(figure.locator(".recharts-xAxis, .recharts-cartesian-axis-tick-value")).toHaveCount(0)
       await page.keyboard.press("Tab")
       await page.keyboard.press("ArrowRight")
       await expect(figure.locator(".recharts-tooltip-wrapper")).toContainText("Steps")
+      await expect(figure.locator(".recharts-tooltip-wrapper")).toContainText(/(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day/)
       await assertNoSeriousOrCritical(page, testInfo, `${mode}-weekly-steps`)
     })
   }

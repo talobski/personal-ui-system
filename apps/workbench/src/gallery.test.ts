@@ -64,7 +64,9 @@ describe("CGS-03/04/06 container-responsive nested gallery (PUI-78, gaps per PUI
   it("makes each region an independent natural-height stack and query container for its local pair", () => {
     const source = code("./Gallery.tsx")
     expect(source).toContain("`@container flex min-w-0 flex-col gap-4 ${className}`")
-    expect(source).toContain("`grid min-w-0 grid-cols-1 items-stretch gap-4 [&>[data-composition]>[data-slot=card]]:h-full ${className}`")
+    expect(source).toContain("`grid min-w-0 grid-cols-1 ${align} gap-4 ${className}`")
+    // PUI-105: stretch is the default; only a pair marked `natural` is start-aligned without the card stretch.
+    expect(source).toContain('const align = natural ? "items-start" : "items-stretch [&>[data-composition]>[data-slot=card]]:h-full"')
     // The local pair switches on its region's width (unnamed nearest container).
     expect(source).toMatch(/<LocalGroup className="@(sm|md|lg|xl|2xl|3xl)[:\w-]*grid-cols-2/)
   })
@@ -99,7 +101,7 @@ const regions = () => {
   const source = code("./Gallery.tsx")
   const body = (side: string) => source.slice(source.indexOf(`<Region side="${side}"`), source.indexOf("</Region>", source.indexOf(`<Region side="${side}"`)))
   const ids = (text: string) => Array.from(text.matchAll(/<Composition id="([a-z-]+)" \/>/g), match => match[1])
-  const groups = Array.from(source.matchAll(/<LocalGroup className="([^"]+)">([\s\S]*?)<\/LocalGroup>/g), match => ({ className: match[1]!, ids: ids(match[2]!) }))
+  const groups = Array.from(source.matchAll(/<LocalGroup (natural )?className="([^"]+)">([\s\S]*?)<\/LocalGroup>/g), match => ({ natural: Boolean(match[1]), className: match[2]!, ids: ids(match[3]!) }))
   return { left: ids(body("left")), right: ids(body("right")), pair: groups[0]!.ids, groups, source }
 }
 const section = (id: string) => {
@@ -118,10 +120,10 @@ describe("WSCG-11/WGPE-06/11 eleven-card gallery (PUI-86–92, PUI-97)", () => {
     // Chat replaces This week inside the surviving local pair; the table follows it where Launch checklist was.
     expect(pair).toEqual(["team-chat", "recent-activity"])
     // PUI-97: the only new pair. The calendar keeps its natural (auto) width and Weather takes the residual track, with
-    // no fixed percentage or equal columns; below the region's @2xl query both stack.
+    // no fixed percentage or equal columns; below the region's @2xl query both stack. PUI-105: only this pair is natural.
     expect(groups).toEqual([
-      { className: "@lg:grid-cols-2", ids: ["team-chat", "recent-activity"] },
-      { className: "@2xl:grid-cols-[auto_minmax(0,1fr)]", ids: ["offsite-calendar", "local-weather"] },
+      { natural: false, className: "@lg:grid-cols-2", ids: ["team-chat", "recent-activity"] },
+      { natural: true, className: "@2xl:grid-cols-[auto_minmax(0,1fr)]", ids: ["offsite-calendar", "local-weather"] },
     ])
     expect(source.match(/<LocalGroup /g)).toHaveLength(2)
     expect(source).not.toMatch(/grid-cols-\[\d|%|fr_1fr|grid-cols-\[1fr/)
@@ -146,7 +148,7 @@ describe("WSCG-11/WGPE-06/11 eleven-card gallery (PUI-86–92, PUI-97)", () => {
 describe("CGS-07/08 token-driven showcase (current set)", () => {
   it("styles every composition with semantic tokens and Theme v3 roles, never raw colours", () => {
     const rawColour = /#[0-9a-fA-F]{3,8}\b|\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color-mix)\(|\b(bg|text|border|fill|stroke|ring|from|to|via)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone|black|white)\b|\[(#|rgb|hsl|oklch)/
-    const HIDDEN_HEADING = { "revenue-overview": "Studio revenue", "productive-week": "Weekly steps", "recent-payments": "Recent payments", "offsite-calendar": "Offsite dates" } as Record<string, string>
+    const HIDDEN_HEADING = { "revenue-overview": "Studio revenue", "productive-week": "Weekly steps", "recent-payments": "Recent payments", "offsite-calendar": "Offsite dates", "quick-find": "Quick find", "team-chat": "{CONTACT}" } as Record<string, string>
     for (const id of COMPOSITION_IDS) {
       const source = module(id)
       expect(source, id).not.toMatch(rawColour)
@@ -154,13 +156,17 @@ describe("CGS-07/08 token-driven showcase (current set)", () => {
       const headings = source.match(/<h2 /g) ?? []
       expect(headings, id).toHaveLength(1)
       if (HIDDEN_HEADING[id]) expect(source, id).toContain(`<h2 className="sr-only">${HIDDEN_HEADING[id]}</h2>`)
+      // PUI-105: Weather's place name keeps its size and weight in the Body family instead of the Heading role.
+      else if (id === "local-weather") expect(source, id).toContain('<h2 className="max-w-full truncate text-base font-semibold">')
       else expect(source, id).toMatch(/<h2 className="type-heading[ "]/)
     }
     const showcase = COMPOSITION_IDS.map(module).join("\n")
-    // Heading (display numerals), Body (default), and Mono (sizes, amounts, shortcuts) are all exercised. PUI-99 moves
-    // the music times to Body and PUI-100 drops the weather's mono hour strip, so Mono remains where it is data-like.
-    expect(showcase.match(/type-heading text-(4xl|5xl)/g)!.length).toBeGreaterThanOrEqual(3)
-    expect(showcase.match(/font-mono/g)!.length).toBeGreaterThanOrEqual(5)
+    // Heading (display numerals), Body (default), and Mono (shortcut keycaps) are all exercised. PUI-99 moves the music
+    // times to Body and PUI-100 drops the weather's mono hour strip; PUI-103 removes the Storage values and activity
+    // times, PUI-104 moves Amount to Body and PUI-105 moves the weather temperature to Body, so Mono remains on keycaps.
+    expect(showcase.match(/type-heading text-(4xl|5xl)/g)).toHaveLength(2)
+    expect(showcase.match(/font-mono/g)).toHaveLength(2)
+    expect(module("quick-find").match(/font-mono/g)).toHaveLength(2)
     for (const token of ["chart-1", "chart-2", "chart-3", "chart-4"]) expect(showcase).toContain(token)
     expect(showcase).toMatch(/shadow-(xs|sm|md)/)
     expect(showcase).toMatch(/rounded-(sm|md|lg|full)/)
@@ -169,7 +175,7 @@ describe("CGS-07/08 token-driven showcase (current set)", () => {
   it("uses container queries inside compositions so cards recompose from their own width", () => {
     expect(module("revenue-overview")).toMatch(/@container[\s\S]*@md:text-2xl/)
     // PUI-97: the calendar card is the calendar alone; its pair recomposes from the region's container width instead.
-    expect(code("./Gallery.tsx")).toContain('<LocalGroup className="@2xl:grid-cols-[auto_minmax(0,1fr)]">')
+    expect(code("./Gallery.tsx")).toContain('<LocalGroup natural className="@2xl:grid-cols-[auto_minmax(0,1fr)]">')
   })
 })
 
@@ -186,12 +192,14 @@ describe("CGCR-04 stable gallery interaction (PUI-84, carried forward)", () => {
   })
 })
 
-describe("WSCG-03 Storage without promotion (PUI-86)", () => {
+describe("WSCG-03/WGCP-03 Storage without promotion (PUI-86, PUI-103)", () => {
   it("ends after the category breakdown with no CTA, button, state, or stable variant", () => {
     const source = module("plan-usage")
     expect(source).not.toMatch(/Team plan|100 GB and shared libraries|Upgrade|Sparkles|<Button|useState|shadow-md|stable|role="status"/)
     const html = section("plan-usage")
-    for (const text of [">Storage<", "Pro plan · renews October 31", ">18.4<", "of 25 GB used", ">Design files<", ">Video<", ">Documents<", ">Other<"]) expect(html).toContain(text)
+    for (const text of [">Storage<", ">18.4<", "of 25 GB used", ">Design files<", ">Video<", ">Documents<", ">Other<"]) expect(html).toContain(text)
+    // PUI-103: no plan/renewal subtitle and no per-category values.
+    for (const text of ["Pro plan", "renews", "October 31", ">8.6<", ">5.2<", ">3.1<", ">1.5<", 'data-slot="card-description"']) expect(html, text).not.toContain(text)
     expect(html).toContain('role="img" aria-label="74% of storage used"')
     // The breakdown list is the card content's last child.
     expect(html).toMatch(/<\/ul><\/div><\/div><\/section>$/)
@@ -223,12 +231,13 @@ describe("CGCR-05/WSCG-04 Studio revenue (PUI-85, PUI-87)", () => {
     expect(source().match(/<Area /g)).toHaveLength(1)
     expect(source()).toContain('<Area dataKey="revenue"')
     // PUI-87: no visible tick row and no reserved axis height in any range; the scale keeps tooltip period labels.
-    expect(source()).toContain('<XAxis dataKey="period" hide padding={{ left: 12, right: 12 }} />')
+    // PUI-107: the hidden scale no longer pads the first and last period in from the card edges.
+    expect(source()).toContain('<XAxis dataKey="period" hide />')
     expect(source()).not.toMatch(/tickLine|tickMargin|tickFormatter|<YAxis/)
     expect(source()).toMatch(/<figcaption className="sr-only">\s*Revenue \{data\.label\}: \{data\.points\.map/)
     expect(source()).toContain('revenue: { label: "Revenue", color: "var(--chart-2)" }')
-    // Only the Revenue chart changed: the weekly steps chart keeps its weekday tick row.
-    expect(module("productive-week")).toContain("tickFormatter={(day: string) => day.slice(0, 1)}")
+    // PUI-103: the weekly steps chart likewise keeps its day axis only as a hidden scale.
+    expect(module("productive-week")).toContain('<XAxis dataKey="day" hide />')
   })
 })
 
@@ -256,22 +265,19 @@ describe("WSCG-05 weekly steps (PUI-89)", () => {
   })
 })
 
-describe("WSCG-06/WGPE-03 chat conversation (PUI-88, PUI-95)", () => {
-  it("builds a static two-party thread from official Message, Bubble and Avatar parts under one contact header", () => {
+describe("WSCG-06/WGPE-03/WGCP-03 chat conversation (PUI-88, PUI-95, PUI-103)", () => {
+  it("builds a static two-party thread from official Message and Bubble parts with no contact header", () => {
     const source = module("team-chat")
     expect(source).toContain('from "../components/message"')
     expect(source).toContain('from "../components/bubble"')
-    expect(source).toContain('from "../components/avatar"')
+    // PUI-103: the avatar/name header and its divider are removed; the heading stays for assistive technology only.
+    expect(source).not.toMatch(/components\/avatar|<Avatar|CardHeader|border-b/)
     // No second chat architecture, no insertion, streaming, timers or per-message metadata parts.
     expect(source).not.toMatch(/useState|useEffect|setInterval|setTimeout|MessageScroller|MessageAvatar|MessageHeader|MessageFooter|<Textarea|CardTitle|CardDescription/)
     const html = section("team-chat")
-    const header = html.slice(html.indexOf('data-slot="card-header"'), html.indexOf('data-slot="card-content"'))
-    // Header: exactly one avatar and the contact name only; no title, subtitle, email, status or time.
-    expect(header.match(/data-slot="avatar"/g)).toHaveLength(1)
-    expect(header).toMatch(/<h2 class="type-heading truncate text-base">Maya Chen<\/h2>/)
-    expect(header).not.toMatch(/\w@\w|Design review|Maya, Jonah|online|<time/)
-    expect(html.match(/data-slot="avatar"/g)).toHaveLength(1)
-    expect(html).toContain('role="log" aria-label="Conversation with Maya Chen"')
+    expect(html).not.toMatch(/data-slot="card-header"|data-slot="avatar"|border-b/)
+    // The card opens on its content: an sr-only heading, then the thread.
+    expect(html).toMatch(/^data-composition="team-chat"[^>]*><div data-slot="card"[^>]*><div data-slot="card-content"[^>]*><h2 class="sr-only">Maya Chen<\/h2><div [^>]*role="log" aria-label="Conversation with Maya Chen"/)
     expect(html.match(/data-slot="message" data-align="start"/g)).toHaveLength(2)
     expect(html.match(/data-slot="message" data-align="end"/g)).toHaveLength(2)
     expect(html.match(/data-slot="bubble"/g)).toHaveLength(4)
@@ -282,23 +288,34 @@ describe("WSCG-06/WGPE-03 chat conversation (PUI-88, PUI-95)", () => {
     expect(html).not.toMatch(/>Read( \d|<)|data-slot="message-(footer|header|avatar)"/)
   })
 
-  it("ends with a labelled composer and a far-right icon-only named send button that never inserts content", () => {
+  it("ends with a labelled composer whose field holds a disabled, muted, named icon-only send button at its far right", () => {
     const html = section("team-chat")
     const footer = html.slice(html.indexOf('data-slot="card-footer"'))
-    expect(footer).toMatch(/<form class="flex w-full min-w-0 items-center gap-2">/)
+    expect(footer).toMatch(/<form class="w-full min-w-0">/)
+    // PUI-103: one input-styled field (input border, focus ring through :has) contains both the input and the button.
+    const field = footer.match(/<div data-slot="chat-composer" class="([^"]+)">/)!
+    for (const token of ["flex", "items-center", "rounded-md", "border", "border-input", "has-[input:focus-visible]:border-ring", "has-[input:focus-visible]:ring-[3px]"]) expect(field[1]!.split(" "), token).toContain(token)
     const input = footer.match(/<input [^>]*>/g)!
     expect(input).toHaveLength(1)
     expect(input[0]).toContain('placeholder="Type your message..."')
     const id = input[0]!.match(/id="([^"]+)"/)![1]
     expect(footer).toContain(`for="${id}"`)
     expect(footer).toMatch(/<label [^>]*class="[^"]*sr-only[^"]*"[^>]*>Message Maya Chen<\/label>/)
-    // The send button is the composer's last element: icon only, with an accessible name.
-    expect(footer).toMatch(/<button [^>]*type="submit"[^>]*aria-label="Send message"[^>]*><svg [^>]*aria-hidden="true"[^>]*>[\s\S]*<\/svg><\/button><\/form><\/div><\/div><\/section>$/)
+    expect(input[0]).toMatch(/class="[^"]*\bborder-0\b[^"]*"/)
+    // The send button is the field's last element: icon only, disabled, muted, with an accessible name.
+    const button = footer.match(/<button [^>]*>/g)!
+    expect(button).toHaveLength(1)
+    expect(button[0]).toMatch(/type="submit"/)
+    expect(button[0]).toMatch(/disabled=""/)
+    expect(button[0]).toContain('data-variant="ghost"')
+    expect(button[0]).toMatch(/class="[^"]*\btext-muted-foreground\b[^"]*\bdisabled:opacity-50\b|class="[^"]*\bdisabled:opacity-50\b[^"]*\btext-muted-foreground\b/)
+    expect(button[0]).toContain('aria-label="Send message"')
+    expect(footer).toMatch(/<div data-slot="chat-composer"[^>]*><input [^>]*><button [^>]*aria-label="Send message"[^>]*><svg [^>]*aria-hidden="true"[^>]*>[\s\S]*<\/svg><\/button><\/div><\/form><\/div><\/div><\/section>$/)
     expect(module("team-chat")).toContain("onSubmit={event => event.preventDefault()}")
   })
 })
 
-describe("WSCG-07/WGPE-04 compact table (PUI-90, PUI-96)", () => {
+describe("WSCG-07/WGPE-04/WGCP-04 compact table (PUI-90, PUI-96, PUI-104)", () => {
   it("sits flush in its card: only the card's py-6 and the content's px-6 are overridden, cells keep their padding", () => {
     const source = module("recent-payments")
     expect(source).toContain('<Card className="overflow-hidden py-0">')
@@ -313,7 +330,7 @@ describe("WSCG-07/WGPE-04 compact table (PUI-90, PUI-96)", () => {
     const html = section("recent-payments")
     const heads = Array.from(html.matchAll(/<th [^>]*>([\s\S]*?)<\/th>/g), match => match[1]!)
     expect(heads).toHaveLength(5)
-    expect(heads[0]).toMatch(/^<input [^>]*type="checkbox"[^>]*aria-label="Select all payments"/)
+    expect(heads[0]).toMatch(/^<span class="inline-grid size-4 align-middle[^"]*"><input [^>]*type="checkbox"[^>]*aria-label="Select all payments"/)
     expect(heads.slice(1, 4)).toEqual(["Status", "Email", "Amount"])
     // The far-right header is truly blank: no text, icon, button or sr-only label.
     expect(heads[4]).toBe("")
@@ -327,7 +344,10 @@ describe("WSCG-07/WGPE-04 compact table (PUI-90, PUI-96)", () => {
     expect(rows.match(/<button /g)).toHaveLength(5)
     expect(html.match(/<button /g)).toHaveLength(5)
     for (const status of ["Success", "Processing", "Failed"]) expect(rows).toContain(`>${status}<`)
-    for (const amount of ["$316.00", "$242.00", "$837.00", "$874.00", "$721.00"]) expect(rows).toContain(amount)
+    // PUI-104: Amount values keep their formatting and right alignment in the Body family (no Mono).
+    const amounts = Array.from(rows.matchAll(/<td data-slot="table-cell" class="([^"]*)">(\$[\d,.]+)<\/td>/g), match => [match[1]!, match[2]!])
+    expect(amounts.map(([, amount]) => amount)).toEqual(["$316.00", "$242.00", "$837.00", "$874.00", "$721.00"])
+    for (const [classes] of amounts) { expect(classes).toMatch(/\btext-right\b/); expect(classes).toMatch(/\btabular-nums\b/); expect(classes).not.toMatch(/font-mono|type-mono|text-xs/) }
     expect(html).toMatch(/<caption data-slot="table-caption" class="[^"]*sr-only[^"]*">/)
     // A fixed layout with truncating text cells: the official overflow container can never become a scroll region.
     expect(html).toMatch(/<table data-slot="table" class="[^"]*table-fixed/)
@@ -388,23 +408,26 @@ describe("WSCG-10/WGPE-05 music (PUI-92, PUI-99)", () => {
     expect(row.length).toBeLessThan(html.length)
     const buttons = Array.from(row.matchAll(/<button [^>]*>/g), match => match[0])
     expect(buttons.map(button => button.match(/aria-label="([^"]+)"/)![1])).toEqual(["Shuffle", "Previous track", "Play", "Next track", "Repeat"])
+    // PUI-106: one treatment at one system size (no pinned pixel constant): every control is the ghost icon-lg Button.
     for (const button of buttons) {
+      expect(button).toContain('data-variant="ghost"')
       expect(button).toContain('data-size="icon-lg"')
-      expect(button).toMatch(/class="[^"]*\bsize-10\b/)
     }
     expect(buttons[0]).toContain('aria-pressed="false"')
     expect(buttons[4]).toContain('aria-pressed="false"')
   })
 })
 
-describe("WSCG-10/WGPE-07 weather (PUI-92, PUI-100)", () => {
+describe("WSCG-10/WGPE-07/WGCP-05 weather (PUI-92, PUI-100, PUI-105)", () => {
   it("is a two-zone summary and five-day forecast with no removed content", () => {
     const source = module("local-weather")
     expect(source).not.toMatch(/MapPin|Wind|Droplets|Sunset|Humidity|HOURS|Now"|14:00|Sample forecast|not live|CardHeader|CardDescription|divide-x/)
     const html = section("local-weather")
     const [top, bottom] = html.split("<ol ")
-    // Top: icon, large temperature, stacked high/low, then place and condition right-aligned.
-    expect(top).toMatch(/<svg [^>]*aria-hidden="true"[\s\S]*<p class="type-heading text-5xl shrink-0 tabular-nums"><span class="sr-only">Now <\/span>21°<\/p><p class="grid shrink-0 text-xs text-muted-foreground tabular-nums"><span>H 24°<\/span><span>L 16°<\/span><\/p><div class="ml-auto grid min-w-0 justify-items-end text-right"><h2 class="type-heading max-w-full truncate text-base">Lisbon<\/h2><p [^>]*>Partly cloudy<\/p><\/div>/)
+    // Top: icon, large temperature, stacked high/low, then place and condition right-aligned. PUI-105: temperature and
+    // place keep their size and semibold weight in the Body family; nothing in the card uses the Heading role.
+    expect(top).toMatch(/<svg [^>]*aria-hidden="true"[\s\S]*<p class="shrink-0 text-5xl font-semibold tabular-nums"><span class="sr-only">Now <\/span>21°<\/p><p class="grid shrink-0 text-xs text-muted-foreground tabular-nums"><span>H 24°<\/span><span>L 16°<\/span><\/p><div class="ml-auto grid min-w-0 justify-items-end text-right"><h2 class="max-w-full truncate text-base font-semibold">Lisbon<\/h2><p [^>]*>Partly cloudy<\/p><\/div>/)
+    expect(source).not.toMatch(/type-heading|type-mono|font-mono|font-serif/)
     // Bottom: evenly distributed columns of day, icon, high and low only.
     expect(bottom).toMatch(/^aria-label="Five-day forecast" class="grid grid-cols-5 gap-1">/)
     const days = bottom!.split("<li ").slice(1)
@@ -441,5 +464,136 @@ describe("CGCR-06/07 gallery gaps and the surviving pair (PUI-81/82)", () => {
     expect(source).not.toMatch(/\b(min-)?h-\[|\bh-\d|min-h-/)
     // The frame keeps items-start, so regions never share a row height.
     expect(source).toContain("grid grid-cols-1 items-start gap-4 @2xl/gallery:grid-cols-12")
+  })
+})
+
+describe("WGCP-03 simplified metadata (PUI-103)", () => {
+  it("makes the Quick find search field the first visible content, keeping its label, rows and keycaps", () => {
+    const source = module("quick-find")
+    expect(source).not.toMatch(/CardHeader|CardTitle|CardDescription|Jump anywhere without leaving the keyboard\./)
+    const html = section("quick-find")
+    expect(html).not.toContain('<h2 class="type-heading">Quick find</h2>')
+    // Card content opens with the sr-only heading and label, then the search field.
+    expect(html).toMatch(/<div data-slot="card"[^>]*><div data-slot="card-content" class="[^"]*"><h2 class="sr-only">Quick find<\/h2><label [^>]*class="sr-only">Search commands<\/label><div class="flex h-9 [^"]*"><svg /)
+    expect(html).toMatch(/<input [^>]*type="search"[^>]*placeholder="Search or type a command"/)
+    expect(html.match(/<kbd /g)!.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it("keeps Recent activity's title, day groups and content with no subtitle or timestamps", () => {
+    const source = module("recent-activity")
+    expect(source).not.toMatch(/CardDescription|Small steps, steady progress\.|<time|time: /)
+    const html = section("recent-activity")
+    expect(html).toContain('<h2 class="type-heading">Recent activity</h2>')
+    for (const text of ["Small steps", "10:42", "09:15", "16:08", "14:18", "<time", 'data-slot="card-description"']) expect(html, text).not.toContain(text)
+    expect(Array.from(html.matchAll(/<section aria-label="([^"]+)"/g), match => match[1])).toEqual(["Today", "Yesterday"])
+    for (const text of ["Grace Hopper", "Theme v3 migration", "Ada Lovelace", "Launch checklist", "Katherine Johnson", "Field notes 004", "Alan Kay", "Studio North"]) expect(html).toContain(text)
+    expect(html.match(/<li class="grid grid-cols-\[auto_minmax\(0,1fr\)\] items-start gap-3">/g)).toHaveLength(4)
+  })
+
+  it("closes the header gap left by the removed subtitles", () => {
+    // The official CardHeader declares two rows; a title-only header collapses to one so no row gap remains.
+    for (const id of ["plan-usage", "recent-activity"]) {
+      expect(module(id), id).toContain('<CardHeader className="grid-rows-none">')
+      expect(section(id), id).toMatch(/data-slot="card-header" class="[^"]*\bgrid-rows-none\b/)
+      expect(section(id), id).not.toMatch(/grid-rows-\[auto_auto\]/)
+    }
+  })
+
+  it("draws the weekly steps without weekday labels or their reserved row, keeping value, copy, comparison and seven bars", () => {
+    const source = module("productive-week")
+    expect(source).toContain('<XAxis dataKey="day" hide />')
+    expect(source).not.toMatch(/tickFormatter|tickMargin|tickLine|interval=/)
+    expect(source).toContain('<Bar dataKey="steps"')
+    expect(source.match(/\{ day: "(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day", steps: \d+ \}/g)).toHaveLength(7)
+    const html = section("productive-week")
+    expect(html).toContain("Average steps this week")
+    expect(html).toMatch(/\+\d+(\.\d)?% vs last week/)
+  })
+})
+
+describe("WGCP-04 table checkbox tokens (PUI-104)", () => {
+  it("draws every checkbox with the input border unchecked and primary when checked or indeterminate, keeping size and focus", () => {
+    const html = section("recent-payments")
+    const boxes = Array.from(html.matchAll(/<span class="inline-grid size-4 align-middle[^"]*"><input ([^>]*)>(<svg [\s\S]*?<\/svg>)(<svg [\s\S]*?<\/svg>)<\/span>/g))
+    expect(boxes).toHaveLength(6)
+    for (const [, input, check, minus] of boxes) {
+      expect(input).toContain('type="checkbox"')
+      const classes = input!.match(/class="([^"]+)"/)![1]!.split(" ")
+      for (const token of ["size-4", "appearance-none", "border", "border-input", "checked:border-primary", "checked:bg-primary", "indeterminate:border-primary", "indeterminate:bg-primary", "outline-ring", "focus-visible:outline-2", "focus-visible:outline-offset-2"]) expect(classes, token).toContain(token)
+      expect(classes.filter(token => /^border-(?!input$)/.test(token))).toEqual([])
+      // Official lucide glyphs, hidden from assistive technology, shown only for their state.
+      expect(check).toMatch(/lucide-check[\s\S]*aria-hidden="true"|aria-hidden="true"[\s\S]*lucide-check/)
+      expect(check).toContain("peer-checked:visible")
+      expect(minus).toMatch(/lucide-minus/)
+      expect(minus).toContain("peer-indeterminate:visible")
+    }
+    // The select-all keeps its indeterminate wiring.
+    expect(module("recent-payments")).toContain("selectAll.current.indeterminate = some")
+  })
+})
+
+describe("WGCP-05 Calendar / Weather natural heights (PUI-105)", () => {
+  it("start-aligns only the Calendar / Weather pair with no card stretch; Chat / Recent activity keeps its stretch", () => {
+    const markup = renderToStaticMarkup(createElement(Gallery))
+    const groups = Array.from(markup.matchAll(/<div data-gallery-group="(\w+)" class="([^"]+)">/g), match => ({ mode: match[1], classes: match[2]!.replace(/&gt;/g, ">").replace(/&amp;/g, "&").split(" ") }))
+    expect(groups.map(group => group.mode)).toEqual(["stretch", "natural"])
+    expect(groups[0]!.classes).toEqual(expect.arrayContaining(["items-stretch", "[&>[data-composition]>[data-slot=card]]:h-full", "@lg:grid-cols-2"]))
+    expect(groups[1]!.classes).toEqual(expect.arrayContaining(["items-start", "@2xl:grid-cols-[auto_minmax(0,1fr)]"]))
+    expect(groups[1]!.classes.join(" ")).not.toMatch(/items-stretch|h-full|min-h-|\bh-\d|h-\[/)
+    // Neither card sets its own height; Weather no longer spreads its zones through a stretched height.
+    for (const id of ["offsite-calendar", "local-weather"]) expect(module(id), id).not.toMatch(/\bh-full\b|min-h-|flex-1|justify-evenly|self-stretch|\bh-\d|h-\[/)
+  })
+})
+
+describe("WGCP-06 music controls and thumb (PUI-106)", () => {
+  it("fills the slider thumb with primary through the official Slider's own slot, keeping its border, focus ring and track", () => {
+    const source = module("now-playing")
+    expect(source).toContain('<Slider className="[&_[data-slot=slider-thumb]]:bg-primary"')
+    const slider = read("../../../packages/ui/src/components/slider.tsx")
+    expect(slider).toContain('data-slot="slider-thumb"')
+    expect(slider).toMatch(/border-primary bg-background[^"]*focus-visible:ring-4/)
+  })
+
+  it("renders five identical ghost controls at one system size, evenly distributed, with official unfilled icons", () => {
+    const source = module("now-playing")
+    expect(source).toContain('const CONTROL = { variant: "ghost", size: "icon-lg" } as const')
+    expect(source.match(/<Button \{\.\.\.CONTROL\} /g)).toHaveLength(5)
+    // No special Play/Pause treatment, filled glyphs, fabricated SVG paths or pinned control dimensions.
+    const transport = source.slice(source.indexOf('<div className="grid grid-cols-5'))
+    expect(transport).not.toMatch(/rounded-full|fill-current|size-10|size-\[|h-10|w-10/)
+    expect(source).not.toMatch(/<svg|<path/)
+    expect(source).toMatch(/import \{ Heart, Pause, Play, Repeat, Shuffle, SkipBack, SkipForward \} from "lucide-react"/)
+    const html = section("now-playing")
+    const row = html.slice(html.indexOf('<div class="grid grid-cols-5 items-center justify-items-center">'))
+    const buttons = Array.from(row.matchAll(/<button [^>]*>/g), match => match[0])
+    expect(buttons).toHaveLength(5)
+    // Every class except the pressed-state colour of Shuffle / Repeat is shared by all five.
+    const base = (button: string) => button.match(/class="([^"]+)"/)![1]!.split(" ").filter(token => !/^text-(primary|muted-foreground)$/.test(token)).sort().join(" ")
+    expect(new Set(buttons.map(base)).size).toBe(1)
+    expect(row).not.toMatch(/fill-current|bg-primary/)
+  })
+})
+
+describe("WGCP-07 full-bleed Studio revenue chart (PUI-107)", () => {
+  it("drops the card's uniform padding, pads tabs and metrics in their own wrapper and places the chart outside it", () => {
+    const source = module("revenue-overview")
+    expect(source).toContain('<Card className="gap-0 overflow-hidden py-0">')
+    expect(source).toContain('<CardContent className="@container grid gap-5 pt-6 pb-5">')
+    expect(source).not.toMatch(/-m[xytrbl]?-\d|\s-m-/)
+    const html = section("revenue-overview")
+    const content = html.slice(html.indexOf('data-slot="card-content"'), html.indexOf('data-testid="revenue-chart"'))
+    expect(content).toContain('aria-label="Revenue range"')
+    expect(content).toContain("</dl></div>")
+    // The chart figure is the card's direct last child, after the padded content wrapper.
+    expect(html).toMatch(/<\/dl><\/div><figure data-testid="revenue-chart" class="grid">[\s\S]*<\/figure><\/div><\/section>/)
+  })
+
+  it("removes the chart's side inset while keeping its data, single series and top separation", () => {
+    const source = module("revenue-overview")
+    expect(source).toContain("margin={{ top: 8, right: 0, bottom: 0, left: 0 }}")
+    expect(source).toContain('<XAxis dataKey="period" hide />')
+    expect(source).toContain('<ChartContainer config={config} className="aspect-auto h-40 w-full">')
+    expect(source.match(/<Area /g)).toHaveLength(1)
+    for (const text of ['week: {', 'month: {', 'quarter: {', '["W1", 38.2]', '["Sep", 177.0]', 'useState<Range>("month")']) expect(source).toContain(text)
   })
 })

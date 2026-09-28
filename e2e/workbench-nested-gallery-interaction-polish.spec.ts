@@ -134,9 +134,10 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       expect(result.frame).toMatchObject({ columns: split ? 12 : 1, flow: "row", align: "flex-start", gap: `${gap}px` })
       if (split) expect(result.frame.rows).toBe(1)
       for (const name of ["left", "right"]) expect(result.regions[name]).toMatchObject({ display: "flex", direction: "column", gap: `${gap}px`, container: "inline-size" })
-      // PUI-82: each local pair stretches (side by side only; see the pair checks below). PUI-97 adds the second pair.
+      // PUI-82: the chat pair stretches (side by side only; see the pair checks below). PUI-97 adds the second pair, which
+      // PUI-105 start-aligns so Calendar and Weather keep natural heights.
       expect(result.groups).toHaveLength(2)
-      result.groups.forEach((group, index) => expect(group).toMatchObject({ columns: result.regions.right!.width >= [512, 672][index]! ? 2 : 1, align: "stretch" }))
+      result.groups.forEach((group, index) => expect(group).toMatchObject({ columns: result.regions.right!.width >= [512, 672][index]! ? 2 : 1, align: ["stretch", "flex-start"][index] }))
       expect(result.items.map(item => item.id)).toEqual(GALLERY_ORDER)
       for (const [region, ids] of Object.entries(REGIONS)) expect(result.items.filter(item => item.region === region).map(item => item.id)).toEqual(ids)
 
@@ -175,7 +176,8 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       }
       for (const pair of RIGHT_FLOW.filter(step => step.length === 2)) {
         const [a, b] = pair.map(at)
-        if (result.regions.right!.width >= PAIR_QUERY[pair[0]!]!) { close(a!.y, b!.y); expect(b!.x).toBeGreaterThan(a!.right); close(a!.cardHeight, b!.cardHeight) } else close(b!.y - a!.bottom, gap)
+        // Only the chat pair shares a height side by side; Calendar / Weather keep natural heights (PUI-105).
+        if (result.regions.right!.width >= PAIR_QUERY[pair[0]!]!) { close(a!.y, b!.y); expect(b!.x).toBeGreaterThan(a!.right); if (pair[0] === "team-chat") close(a!.cardHeight, b!.cardHeight) } else close(b!.y - a!.bottom, gap)
       }
 
       // DOM order is reading order within each region, and keyboard focus visits compositions in DOM order.

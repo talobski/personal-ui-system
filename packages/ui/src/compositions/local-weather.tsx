@@ -14,23 +14,24 @@ const DAYS = [
 
 /**
  * PUI-92/100: a two-zone weather card from deterministic sample data. The top zone is one horizontal summary: the
- * condition icon, a large Heading-role temperature, stacked high/low, and the place and condition right-aligned. The
- * bottom zone is an evenly distributed five-day row of day, icon, high and low only. It is presentational: no
- * interaction; when the local pair stretches it, the two zones spread evenly through the shared height.
+ * condition icon, a large temperature, stacked high/low, and the place and condition right-aligned. The bottom zone is
+ * an evenly distributed five-day row of day, icon, high and low only. It is presentational: no interaction.
+ * PUI-105: the whole card uses the Body family; the temperature and place keep their size and semibold weight for
+ * hierarchy. The card ends where its content ends: its local pair no longer stretches it.
  */
 export function LocalWeather() {
   return (
     <Card>
-      <CardContent className="flex flex-1 flex-col justify-evenly gap-6">
+      <CardContent className="grid gap-6">
         <div className="flex min-w-0 items-center gap-3">
           <NOW.icon aria-hidden="true" strokeWidth={1.5} className="size-10 shrink-0 text-chart-4" />
-          <p className="type-heading text-5xl shrink-0 tabular-nums"><span className="sr-only">Now </span>{NOW.temperature}°</p>
+          <p className="shrink-0 text-5xl font-semibold tabular-nums"><span className="sr-only">Now </span>{NOW.temperature}°</p>
           <p className="grid shrink-0 text-xs text-muted-foreground tabular-nums">
             <span>H {NOW.high}°</span>
             <span>L {NOW.low}°</span>
           </p>
           <div className="ml-auto grid min-w-0 justify-items-end text-right">
-            <h2 className="type-heading max-w-full truncate text-base">{NOW.place}</h2>
+            <h2 className="max-w-full truncate text-base font-semibold">{NOW.place}</h2>
             <p className="max-w-full truncate text-sm text-muted-foreground">{NOW.condition}</p>
           </div>
         </div>

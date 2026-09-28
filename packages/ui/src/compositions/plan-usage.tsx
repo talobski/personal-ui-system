@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/card"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/card"
 
 const CAPACITY = 25
 /** Literal chart-token utilities so every segment and legend swatch follows the active theme. */
@@ -9,14 +9,17 @@ const USAGE = [
   { label: "Other", gigabytes: 1.5, swatch: "bg-chart-4" },
 ] as const
 
-/** PUI-86: a usage/status card with no promotion; it ends after the category breakdown and has no interaction. */
+/**
+ * PUI-86: a usage/status card with no promotion; it ends after the category breakdown and has no interaction.
+ * PUI-103: the title leads straight into the usage figure (no plan subtitle), and the breakdown reads as colours and
+ * names only, with no per-category values.
+ */
 export function PlanUsage() {
   const used = USAGE.reduce((sum, item) => sum + item.gigabytes, 0)
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="grid-rows-none">
         <CardTitle className="text-lg"><h2 className="type-heading">Storage</h2></CardTitle>
-        <CardDescription>Pro plan · renews October 31</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-5">
         <p className="flex items-baseline gap-2">
@@ -30,8 +33,7 @@ export function PlanUsage() {
           {USAGE.map(item => (
             <li key={item.label} className="flex min-w-0 items-center gap-2">
               <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${item.swatch}`} />
-              <span className="min-w-0 flex-1 truncate">{item.label}</span>
-              <span className="font-mono text-xs text-muted-foreground tabular-nums">{item.gigabytes.toFixed(1)}</span>
+              <span className="min-w-0 truncate">{item.label}</span>
             </li>
           ))}
         </ul>

@@ -1,7 +1,7 @@
 import { useId, useState } from "react"
 import { Download, FilePlus, Keyboard, Palette, Search, UserPlus } from "lucide-react"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/card"
+import { Card, CardContent } from "../components/card"
 import { Input } from "../components/input"
 
 const COMMANDS = [
@@ -15,6 +15,8 @@ const COMMANDS = [
 /**
  * `stable` is the gallery presentation: every command row stays in place. Filtering disables and dims non-matching
  * rows, and opening a command marks its row selected, so the card keeps its footprint while it responds.
+ * PUI-103: no visible title or subtitle, so the search field is the first visible content; the heading remains for
+ * assistive technology.
  */
 export function QuickFind({ stable = false }: { stable?: boolean }) {
   const id = useId()
@@ -25,11 +27,8 @@ export function QuickFind({ stable = false }: { stable?: boolean }) {
   const results = COMMANDS.filter(matches)
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg"><h2 className="type-heading">Quick find</h2></CardTitle>
-        <CardDescription>Jump anywhere without leaving the keyboard.</CardDescription>
-      </CardHeader>
       <CardContent className="grid gap-3">
+        <h2 className="sr-only">Quick find</h2>
         <label htmlFor={id} className="sr-only">Search commands</label>
         <div className="flex h-9 items-center gap-2 rounded-md border border-input px-3 shadow-xs transition-[color,box-shadow] has-[input:focus-visible]:border-ring has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50 dark:bg-input/30">
           <Search aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />

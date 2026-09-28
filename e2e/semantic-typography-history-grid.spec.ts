@@ -270,7 +270,8 @@ test.describe("STHG-06/07 semantic roles reach Workbench chrome and the preview"
     await expect.poll(() => family(page.getByTestId("workbench-toolbar").getByRole("button", { name: "Export", exact: true }).locator("span"))).toContain("Manrope")
     const title = frame.locator('[data-composition="plan-usage"] h2')
     await expect.poll(() => family(title)).toContain("Playfair Display")
-    await expect.poll(() => family(frame.locator('[data-composition="recent-activity"] [data-slot="card-description"]'))).toContain("Manrope")
+    // PUI-103 removed Recent activity's subtitle; its activity rows carry the Body role instead.
+    await expect.poll(() => family(frame.locator('[data-composition="recent-activity"] li p').first())).toContain("Manrope")
     // Component-owned size survives role adoption: the title keeps its text-lg size.
     expect(await title.evaluate(el => getComputedStyle(el).fontSize)).toBe("18px")
     await expect.poll(() => family(frame.locator('[data-composition="plan-usage"] h2'))).not.toContain("Manrope")

@@ -53,9 +53,12 @@ function Region({ side, className, children }: { side: "left" | "right"; classNa
  * so stretch resolves to its natural height. Nothing outside the pair is equalized. The pair's own class sets its
  * columns: Chat / Recent activity splits evenly; Calendar / Weather (PUI-97) gives the calendar its natural (auto)
  * width and Weather the residual track, only once the region is wide enough for Weather's two zones.
+ * PUI-105: a pair marked `natural` (Calendar / Weather only) is start-aligned with no card stretch, so each card keeps
+ * its own content height side by side as well as stacked. Every other pair keeps the stretch.
  */
-function LocalGroup({ className, children }: { className: string; children: ReactNode }) {
-  return <div data-gallery-group className={`grid min-w-0 grid-cols-1 items-stretch gap-4 [&>[data-composition]>[data-slot=card]]:h-full ${className}`}>{children}</div>
+function LocalGroup({ className, natural = false, children }: { className: string; natural?: boolean; children: ReactNode }) {
+  const align = natural ? "items-start" : "items-stretch [&>[data-composition]>[data-slot=card]]:h-full"
+  return <div data-gallery-group={natural ? "natural" : "stretch"} className={`grid min-w-0 grid-cols-1 ${align} gap-4 ${className}`}>{children}</div>
 }
 
 /**
@@ -86,7 +89,7 @@ export function Gallery() {
             <Composition id="recent-activity" />
           </LocalGroup>
           <Composition id="recent-payments" />
-          <LocalGroup className="@2xl:grid-cols-[auto_minmax(0,1fr)]">
+          <LocalGroup natural className="@2xl:grid-cols-[auto_minmax(0,1fr)]">
             <Composition id="offsite-calendar" />
             <Composition id="local-weather" />
           </LocalGroup>

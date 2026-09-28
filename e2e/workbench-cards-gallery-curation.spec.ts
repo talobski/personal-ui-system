@@ -12,6 +12,8 @@ import { isMobileShell, selectTheme, setColorMode, workspaceMode } from "./workb
  * responsiveness, theme, keyboard, reduced motion, and decoded axe (serious/critical outside the known debt must be empty).
  * Migrated to the PUI-86–92 eleven-card set (workbench-showcase-components-geometry-v1-001): the layout invariants carry
  * forward; interactions of the replaced cards move to their replacements, and PUI-87 removes the revenue tick row.
+ * workbench-gallery-card-polish-v1-001 (PUI-105): the Calendar / Weather pair keeps natural heights side by side; the
+ * Chat / Recent activity pair remains the one equal-height pair.
  */
 
 const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
@@ -102,7 +104,13 @@ function expectCuratedLayout(g: Geometry) {
   if (split) { close(g.regions.left!.y, g.regions.right!.y); close(g.regions.right!.x - g.regions.left!.right, GAP) } else close(g.regions.right!.y - g.regions.left!.bottom, GAP)
   PAIRS.forEach((pair, index) => {
     const [a, b] = pair.map(at)
-    if (g.groups[index]!.columns === 2) {
+    if (g.groups[index]!.columns === 2 && pair === CALENDAR_PAIR) {
+      // PUI-105: Calendar / Weather side by side share a row top and a 16px gap, but each keeps its own natural height.
+      close(a!.y, b!.y)
+      close(b!.x - a!.right, GAP)
+      for (const id of pair) { close(at(id).card, g.natural[id]!); close(at(id).height, at(id).card) }
+      expect(g.groups[index]!.align).toBe("flex-start")
+    } else if (g.groups[index]!.columns === 2) {
       // Side by side: one row, one 16px column gap, and both card surfaces stretched to the taller natural height.
       close(a!.y, b!.y)
       close(b!.x - a!.right, GAP)
@@ -198,6 +206,7 @@ test.describe("CGCR-03/06/07 curated gallery, 16px gaps, and the one equal-heigh
     await grow("recent-activity", 900)
     const tallPair = await geometry(frame)
     // The pair's other card stretches with it; nothing else changes height, and the left stack does not move.
+    // PUI-105: the natural Calendar / Weather pair is not coupled to it either.
     close(tallPair.items["team-chat"]!.card, 900)
     for (const id of LEFT) { close(tallPair.items[id]!.y, before.items[id]!.y); close(tallPair.items[id]!.card, before.items[id]!.card) }
     for (const id of ["revenue-overview", "recent-payments", "offsite-calendar", "local-weather"]) close(tallPair.items[id]!.card, before.items[id]!.card)

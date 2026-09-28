@@ -50,10 +50,11 @@ test.describe("WSCG-03 to WSCG-05 simplified cards", () => {
     for (const text of ["Team plan", "100 GB and shared libraries.", "Upgrade"]) await expect(storage.getByText(text)).toHaveCount(0)
     await expect(storage.getByRole("button")).toHaveCount(0)
     await expect(storage.getByRole("heading", { name: "Storage", level: 2 })).toBeVisible()
-    await expect(storage.getByText("Pro plan · renews October 31")).toBeVisible()
+    // PUI-103 (workbench-gallery-card-polish-v1-001): no plan/renewal subtitle and no per-category values.
+    await expect(storage.getByText(/Pro plan|renews/)).toHaveCount(0)
     await expect(storage.getByText("18.4", { exact: true })).toBeVisible()
     await expect(storage.getByRole("img", { name: "74% of storage used" })).toBeVisible()
-    await expect(storage.getByRole("listitem")).toHaveText([/Design files/, /Video/, /Documents/, /Other/])
+    await expect(storage.getByRole("listitem")).toHaveText(["Design files", "Video", "Documents", "Other"])
     // The breakdown is last; below it is only the card's own bottom padding, no dead space.
     const gap = await storage.evaluate(section => {
       const card = section.firstElementChild!.getBoundingClientRect()
@@ -85,7 +86,7 @@ test.describe("WSCG-03 to WSCG-05 simplified cards", () => {
     }
   })
 
-  test("weekly steps leads with a Heading-role average and keeps seven labelled daily bars (PUI-89)", async ({ page }) => {
+  test("weekly steps leads with a Heading-role average and keeps seven daily bars with no weekday row (PUI-89, PUI-103)", async ({ page }) => {
     await open(page)
     await workspaceMode(page, "Preview")
     const frame = previewFrame(page)
@@ -97,7 +98,12 @@ test.describe("WSCG-03 to WSCG-05 simplified cards", () => {
     await expect(steps.getByText("Average steps this week")).toBeVisible()
     await expect(steps.getByText("+12.4% vs last week")).toBeVisible()
     await expect(steps.locator(".recharts-bar-rectangle")).toHaveCount(7)
-    await expect(steps.locator(".recharts-cartesian-axis-tick-value")).toHaveText(["M", "T", "W", "T", "F", "S", "S"])
+    // PUI-103: the weekday labels and their axis row are gone; the bars reach the chart's bottom edge.
+    await expect(steps.locator(".recharts-xAxis, .recharts-cartesian-axis-tick-value")).toHaveCount(0)
+    expect(await steps.evaluate(section => {
+      const surface = section.querySelector(".recharts-surface")!.getBoundingClientRect()
+      return surface.bottom - Math.max(...Array.from(section.querySelectorAll(".recharts-bar-rectangle"), bar => bar.getBoundingClientRect().bottom))
+    })).toBeLessThanOrEqual(2)
     // No visible text precedes the metric.
     const first = await steps.evaluate(section => {
       const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT)
@@ -117,7 +123,8 @@ test.describe("WSCG-06 to WSCG-10 new compositions", () => {
     const card = (id: string) => frame.locator(`[data-composition="${id}"]`)
 
     // Chat (PUI-88, superseded in detail by PUI-95): official Message rows aligned start/end, named senders, Bubble
-    // surfaces on semantic tokens; the one header avatar is decorative and the PUI-95 composer is its only textbox.
+    // surfaces on semantic tokens; any avatar is decorative (PUI-103 removed the header one) and the composer is its only
+    // textbox.
     const chat = card("team-chat")
     const log = chat.getByRole("log", { name: "Conversation with Maya Chen" })
     await expect(log.locator('[data-slot="message"]')).toHaveCount(4)

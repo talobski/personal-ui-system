@@ -62,6 +62,9 @@ function Delta({ value, unit, label }: { value: number; unit: string; label: str
  * switching range never re-wraps the row. The chart shows the primary Revenue series only.
  * PUI-87: the category axis stays as a hidden scale (so tooltips keep their period labels) but draws no tick row and
  * reserves no space; the figcaption still lists every period for assistive technology.
+ * PUI-107: the card has no uniform outer padding. The tabs and metrics sit in their own padded wrapper, and the chart
+ * follows outside it with no side or bottom inset, reaching the card's left, right and bottom inner edges; the card
+ * clips it to its radius.
  */
 export function RevenueOverview() {
   const [range, setRange] = useState<Range>("month")
@@ -74,8 +77,8 @@ export function RevenueOverview() {
     { label: "Invoices paid", value: String(data.invoices[0]), delta: <Delta value={data.invoices[0] - data.invoices[1]} unit="" label="versus the previous period" /> },
   ]
   return (
-    <Card>
-      <CardContent className="@container grid gap-5">
+    <Card className="gap-0 overflow-hidden py-0">
+      <CardContent className="@container grid gap-5 pt-6 pb-5">
         <h2 className="sr-only">Studio revenue</h2>
         <div className="flex"><SingleToggleGroup label="Revenue range" value={range} onValueChange={setRange} options={RANGE_OPTIONS} /></div>
         <dl className="grid grid-cols-3 divide-x divide-border">
@@ -89,26 +92,26 @@ export function RevenueOverview() {
             </div>
           ))}
         </dl>
-        <figure data-testid="revenue-chart" className="grid gap-2">
-          <figcaption className="sr-only">
-            Revenue {data.label}: {data.points.map(point => `${point.period} ${money(point.revenue)}`).join("; ")}.
-          </figcaption>
-          <ChartContainer config={config} className="aspect-auto h-40 w-full">
-            <AreaChart accessibilityLayer data={data.points} margin={{ top: 8, right: 4, bottom: 0, left: 4 }} title={`Revenue ${data.label}`}>
-              <defs>
-                <linearGradient id="revenue-fill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--color-revenue)" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="var(--color-revenue)" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey="period" hide padding={{ left: 12, right: 12 }} />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
-              <Area dataKey="revenue" type="monotone" stroke="var(--color-revenue)" strokeWidth={2} fill="url(#revenue-fill)" isAnimationActive={false} />
-            </AreaChart>
-          </ChartContainer>
-        </figure>
       </CardContent>
+      <figure data-testid="revenue-chart" className="grid">
+        <figcaption className="sr-only">
+          Revenue {data.label}: {data.points.map(point => `${point.period} ${money(point.revenue)}`).join("; ")}.
+        </figcaption>
+        <ChartContainer config={config} className="aspect-auto h-40 w-full">
+          <AreaChart accessibilityLayer data={data.points} margin={{ top: 8, right: 0, bottom: 0, left: 0 }} title={`Revenue ${data.label}`}>
+            <defs>
+              <linearGradient id="revenue-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-revenue)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--color-revenue)" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis dataKey="period" hide />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+            <Area dataKey="revenue" type="monotone" stroke="var(--color-revenue)" strokeWidth={2} fill="url(#revenue-fill)" isAnimationActive={false} />
+          </AreaChart>
+        </ChartContainer>
+      </figure>
     </Card>
   )
 }
