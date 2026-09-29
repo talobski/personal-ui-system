@@ -77,7 +77,7 @@ export async function saveTheme(page: Page, name?: string) {
 /** Selects a theme through the Active theme select (a built-in id or a saved id). */
 export async function selectTheme(page: Page, id: string) {
   await workspaceMode(page, "Controls")
-  const name = id === "default" ? "Default" : id === "quiet-editorial" ? "Quiet Editorial" : await page.evaluate((id) => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes[id].name, id)
+  const name = id === "default" ? "Default" : id === "quiet-editorial" ? "Quiet Editorial" : id === "amber-dusk" ? "Amber Dusk" : await page.evaluate((id) => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes[id].name, id)
   await page.getByRole("combobox", { name: "Active theme" }).click()
   await page.getByRole("option", { name, exact: true }).click()
   await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", id)

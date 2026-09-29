@@ -1,0 +1,332 @@
+{
+  "kind": "personal-ui-theme-conversion-report",
+  "version": 1,
+  "theme": {
+    "id": "amber-dusk",
+    "name": "Amber Dusk",
+    "schemaVersion": "3.0"
+  },
+  "source": {
+    "description": "Owner-supplied Amber Dusk token stylesheet, transcribed verbatim in the frozen PUI-123 snapshot (light, dark, typography, radius/spacing and shadow source sections). The stylesheet is source data only; it is not committed or rendered as a second theme layer.",
+    "document": "docs/evidence/amber-dusk-shell-refinement-v1/linear/PUI-123.json",
+    "contract": "docs/AMBER_DUSK_SHELL_REFINEMENT_CONTRACT.md"
+  },
+  "precisionPolicy": {
+    "color": "Canonical OKLCH through packages/core/src/theme/color.ts normalizeColor (6-decimal half-up rounding, trailing zeros removed, Display P3 gamut check). Every Amber Dusk source value is already OKLCH at 4 decimals, so normalization only removes trailing zeros; no value is converted through another space."
+  },
+  "values": {
+    "colors.light.background": {
+      "source": "oklch(0.9818 0.0054 95.0986)",
+      "normalized": "oklch(0.9818 0.0054 95.0986)"
+    },
+    "colors.light.foreground": {
+      "source": "oklch(0.3438 0.0269 95.7226)",
+      "normalized": "oklch(0.3438 0.0269 95.7226)"
+    },
+    "colors.light.card": {
+      "source": "oklch(0.9818 0.0054 95.0986)",
+      "normalized": "oklch(0.9818 0.0054 95.0986)"
+    },
+    "colors.light.card-foreground": {
+      "source": "oklch(0.1908 0.0020 106.5859)",
+      "normalized": "oklch(0.1908 0.002 106.5859)"
+    },
+    "colors.light.popover": {
+      "source": "oklch(1.0000 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.popover-foreground": {
+      "source": "oklch(0.2671 0.0196 98.9390)",
+      "normalized": "oklch(0.2671 0.0196 98.939)"
+    },
+    "colors.light.primary": {
+      "source": "oklch(0.6171 0.1375 39.0427)",
+      "normalized": "oklch(0.6171 0.1375 39.0427)"
+    },
+    "colors.light.primary-foreground": {
+      "source": "oklch(1.0000 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.secondary": {
+      "source": "oklch(0.9245 0.0138 92.9892)",
+      "normalized": "oklch(0.9245 0.0138 92.9892)"
+    },
+    "colors.light.secondary-foreground": {
+      "source": "oklch(0.4334 0.0177 98.6048)",
+      "normalized": "oklch(0.4334 0.0177 98.6048)"
+    },
+    "colors.light.muted": {
+      "source": "oklch(0.9341 0.0153 90.2390)",
+      "normalized": "oklch(0.9341 0.0153 90.239)"
+    },
+    "colors.light.muted-foreground": {
+      "source": "oklch(0.6059 0.0075 97.4233)",
+      "normalized": "oklch(0.6059 0.0075 97.4233)"
+    },
+    "colors.light.accent": {
+      "source": "oklch(0.9245 0.0138 92.9892)",
+      "normalized": "oklch(0.9245 0.0138 92.9892)"
+    },
+    "colors.light.accent-foreground": {
+      "source": "oklch(0.2671 0.0196 98.9390)",
+      "normalized": "oklch(0.2671 0.0196 98.939)"
+    },
+    "colors.light.destructive": {
+      "source": "oklch(0.1908 0.0020 106.5859)",
+      "normalized": "oklch(0.1908 0.002 106.5859)"
+    },
+    "colors.light.destructive-foreground": {
+      "source": "oklch(1.0000 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.border": {
+      "source": "oklch(0.8847 0.0069 97.3627)",
+      "normalized": "oklch(0.8847 0.0069 97.3627)"
+    },
+    "colors.light.input": {
+      "source": "oklch(0.7621 0.0156 98.3528)",
+      "normalized": "oklch(0.7621 0.0156 98.3528)"
+    },
+    "colors.light.ring": {
+      "source": "oklch(0.6171 0.1375 39.0427)",
+      "normalized": "oklch(0.6171 0.1375 39.0427)"
+    },
+    "colors.light.chart-1": {
+      "source": "oklch(0.5583 0.1276 42.9956)",
+      "normalized": "oklch(0.5583 0.1276 42.9956)"
+    },
+    "colors.light.chart-2": {
+      "source": "oklch(0.6898 0.1581 290.4107)",
+      "normalized": "oklch(0.6898 0.1581 290.4107)"
+    },
+    "colors.light.chart-3": {
+      "source": "oklch(0.8816 0.0276 93.1280)",
+      "normalized": "oklch(0.8816 0.0276 93.128)"
+    },
+    "colors.light.chart-4": {
+      "source": "oklch(0.8822 0.0403 298.1792)",
+      "normalized": "oklch(0.8822 0.0403 298.1792)"
+    },
+    "colors.light.chart-5": {
+      "source": "oklch(0.5608 0.1348 42.0584)",
+      "normalized": "oklch(0.5608 0.1348 42.0584)"
+    },
+    "colors.light.sidebar": {
+      "source": "oklch(0.9663 0.0080 98.8792)",
+      "normalized": "oklch(0.9663 0.008 98.8792)"
+    },
+    "colors.light.sidebar-foreground": {
+      "source": "oklch(0.3590 0.0051 106.6524)",
+      "normalized": "oklch(0.359 0.0051 106.6524)"
+    },
+    "colors.light.sidebar-primary": {
+      "source": "oklch(0.6171 0.1375 39.0427)",
+      "normalized": "oklch(0.6171 0.1375 39.0427)"
+    },
+    "colors.light.sidebar-primary-foreground": {
+      "source": "oklch(0.9881 0 0)",
+      "normalized": "oklch(0.9881 0 0)"
+    },
+    "colors.light.sidebar-accent": {
+      "source": "oklch(0.9245 0.0138 92.9892)",
+      "normalized": "oklch(0.9245 0.0138 92.9892)"
+    },
+    "colors.light.sidebar-accent-foreground": {
+      "source": "oklch(0.3250 0 0)",
+      "normalized": "oklch(0.325 0 0)"
+    },
+    "colors.light.sidebar-border": {
+      "source": "oklch(0.9401 0 0)",
+      "normalized": "oklch(0.9401 0 0)"
+    },
+    "colors.light.sidebar-ring": {
+      "source": "oklch(0.7731 0 0)",
+      "normalized": "oklch(0.7731 0 0)"
+    },
+    "colors.dark.background": {
+      "source": "oklch(0.2679 0.0036 106.6427)",
+      "normalized": "oklch(0.2679 0.0036 106.6427)"
+    },
+    "colors.dark.foreground": {
+      "source": "oklch(0.8074 0.0142 93.0137)",
+      "normalized": "oklch(0.8074 0.0142 93.0137)"
+    },
+    "colors.dark.card": {
+      "source": "oklch(0.2679 0.0036 106.6427)",
+      "normalized": "oklch(0.2679 0.0036 106.6427)"
+    },
+    "colors.dark.card-foreground": {
+      "source": "oklch(0.9818 0.0054 95.0986)",
+      "normalized": "oklch(0.9818 0.0054 95.0986)"
+    },
+    "colors.dark.popover": {
+      "source": "oklch(0.3085 0.0035 106.6039)",
+      "normalized": "oklch(0.3085 0.0035 106.6039)"
+    },
+    "colors.dark.popover-foreground": {
+      "source": "oklch(0.9211 0.0040 106.4781)",
+      "normalized": "oklch(0.9211 0.004 106.4781)"
+    },
+    "colors.dark.primary": {
+      "source": "oklch(0.6724 0.1308 38.7559)",
+      "normalized": "oklch(0.6724 0.1308 38.7559)"
+    },
+    "colors.dark.primary-foreground": {
+      "source": "oklch(1.0000 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.dark.secondary": {
+      "source": "oklch(0.9818 0.0054 95.0986)",
+      "normalized": "oklch(0.9818 0.0054 95.0986)"
+    },
+    "colors.dark.secondary-foreground": {
+      "source": "oklch(0.3085 0.0035 106.6039)",
+      "normalized": "oklch(0.3085 0.0035 106.6039)"
+    },
+    "colors.dark.muted": {
+      "source": "oklch(0.2213 0.0038 106.7070)",
+      "normalized": "oklch(0.2213 0.0038 106.707)"
+    },
+    "colors.dark.muted-foreground": {
+      "source": "oklch(0.7713 0.0169 99.0657)",
+      "normalized": "oklch(0.7713 0.0169 99.0657)"
+    },
+    "colors.dark.accent": {
+      "source": "oklch(0.2130 0.0078 95.4245)",
+      "normalized": "oklch(0.213 0.0078 95.4245)"
+    },
+    "colors.dark.accent-foreground": {
+      "source": "oklch(0.9663 0.0080 98.8792)",
+      "normalized": "oklch(0.9663 0.008 98.8792)"
+    },
+    "colors.dark.destructive": {
+      "source": "oklch(0.6368 0.2078 25.3313)",
+      "normalized": "oklch(0.6368 0.2078 25.3313)"
+    },
+    "colors.dark.destructive-foreground": {
+      "source": "oklch(1.0000 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.dark.border": {
+      "source": "oklch(0.3618 0.0101 106.8928)",
+      "normalized": "oklch(0.3618 0.0101 106.8928)"
+    },
+    "colors.dark.input": {
+      "source": "oklch(0.4336 0.0113 100.2195)",
+      "normalized": "oklch(0.4336 0.0113 100.2195)"
+    },
+    "colors.dark.ring": {
+      "source": "oklch(0.6724 0.1308 38.7559)",
+      "normalized": "oklch(0.6724 0.1308 38.7559)"
+    },
+    "colors.dark.chart-1": {
+      "source": "oklch(0.5583 0.1276 42.9956)",
+      "normalized": "oklch(0.5583 0.1276 42.9956)"
+    },
+    "colors.dark.chart-2": {
+      "source": "oklch(0.6898 0.1581 290.4107)",
+      "normalized": "oklch(0.6898 0.1581 290.4107)"
+    },
+    "colors.dark.chart-3": {
+      "source": "oklch(0.2130 0.0078 95.4245)",
+      "normalized": "oklch(0.213 0.0078 95.4245)"
+    },
+    "colors.dark.chart-4": {
+      "source": "oklch(0.3074 0.0516 289.3230)",
+      "normalized": "oklch(0.3074 0.0516 289.323)"
+    },
+    "colors.dark.chart-5": {
+      "source": "oklch(0.5608 0.1348 42.0584)",
+      "normalized": "oklch(0.5608 0.1348 42.0584)"
+    },
+    "colors.dark.sidebar": {
+      "source": "oklch(0.2357 0.0024 67.7077)",
+      "normalized": "oklch(0.2357 0.0024 67.7077)"
+    },
+    "colors.dark.sidebar-foreground": {
+      "source": "oklch(0.8074 0.0142 93.0137)",
+      "normalized": "oklch(0.8074 0.0142 93.0137)"
+    },
+    "colors.dark.sidebar-primary": {
+      "source": "oklch(0.3250 0 0)",
+      "normalized": "oklch(0.325 0 0)"
+    },
+    "colors.dark.sidebar-primary-foreground": {
+      "source": "oklch(0.9881 0 0)",
+      "normalized": "oklch(0.9881 0 0)"
+    },
+    "colors.dark.sidebar-accent": {
+      "source": "oklch(0.1680 0.0020 106.6177)",
+      "normalized": "oklch(0.168 0.002 106.6177)"
+    },
+    "colors.dark.sidebar-accent-foreground": {
+      "source": "oklch(0.8074 0.0142 93.0137)",
+      "normalized": "oklch(0.8074 0.0142 93.0137)"
+    },
+    "colors.dark.sidebar-border": {
+      "source": "oklch(0.9401 0 0)",
+      "normalized": "oklch(0.9401 0 0)"
+    },
+    "colors.dark.sidebar-ring": {
+      "source": "oklch(0.7731 0 0)",
+      "normalized": "oklch(0.7731 0 0)"
+    }
+  },
+  "typography": {
+    "heading.font": "source --font-sans (built-ins use a sans Heading role; no serif role is added)",
+    "body.font": "source --font-sans",
+    "mono": "source --font-mono (quotes removed; family names are stored unquoted and re-quoted by the renderer)",
+    "heading.tracking": "source --tracking-normal 0em",
+    "body.tracking": "source --tracking-normal 0em",
+    "heading.weight": "600 (source declares no weight; built-in Default role weight)",
+    "body.weight": "400 (source declares no weight; built-in Default role weight)"
+  },
+  "geometry": {
+    "radius.base": {
+      "source": "0.5rem",
+      "normalized": "0.5rem"
+    },
+    "radius.scale": "sm/md/lg/xl derived by deriveRadiusScale(0.5rem): 0.25rem/0.375rem/0.5rem/0.75rem",
+    "space.base": {
+      "source": "0.25rem",
+      "normalized": "0.25rem"
+    },
+    "space.density": "1 (declared default)"
+  },
+  "shadow": {
+    "profile": {
+      "color": "oklch(0 0 0)",
+      "opacity": 0.1,
+      "blur": "3px",
+      "spread": "0px",
+      "offsetX": "0px",
+      "offsetY": "1px"
+    },
+    "reconciliation": "The source --shadow-x/-y/-blur/-spread/-opacity/-color profile declarations are not stored separately; all eight source tiers (2xs, xs, sm, default, md, lg, xl, 2xl) equal deriveShadowTiers(profile) exactly (hsl(0 0% 0% / a) == oklch(0 0 0 / a)), so they are stored as the eight canonical typed shadow tiers and the profile is read back by readShadowProfile. No duplicate CSS variables are emitted."
+  },
+  "sidebar": {
+    "useDedicatedTokens": true,
+    "dedicatedValuesInitialized": true,
+    "note": "The eight supplied Sidebar colours per mode are stored as the dedicated set and render while useDedicatedTokens is on; turning it off renders the base aliases and preserves the stored values."
+  },
+  "uiEffects": "absent (Off at the default strength); the generic Tactile renderer applies when selected",
+  "declaredDefaults": {
+    "motion.durationFast": "150ms",
+    "motion.durationBase": "200ms",
+    "motion.reducedMotion": "reduce"
+  },
+  "unsupported": [
+    {
+      "field": "--font-serif",
+      "reason": "Theme v3 has Heading/Body/Mono only; no serif role is introduced"
+    },
+    {
+      "field": "--shadow-x/--shadow-y/--shadow-blur/--shadow-spread/--shadow-opacity/--shadow-color",
+      "reason": "source-only profile declarations, reconciled into the typed shadow tiers"
+    },
+    {
+      "field": "--spacing",
+      "reason": "mapped to space.base; Tailwind --spacing is derived by the renderer"
+    }
+  ]
+}

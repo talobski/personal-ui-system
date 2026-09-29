@@ -17,6 +17,7 @@ describe("context list (ACR-02)", () => {
     expect(result.identity.contextSchemaVersion).toBe("personal-ui-context/1")
 
     expect(result.themes).toEqual([
+      { id: "amber-dusk", name: "Amber Dusk", revision: 1 },
       { id: "default", name: "Default", revision: 1 },
       { id: "quiet-editorial", name: "Quiet Editorial", revision: 1 },
     ])

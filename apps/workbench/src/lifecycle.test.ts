@@ -34,16 +34,20 @@ it("WSPF-05/06 muted pair debt stays measured; PUI-120 section triggers now use 
     id: `${theme.id}/${mode}`,
     ratio: ratio(rgb(theme.colors[mode]["muted-foreground"].$value), rgb(theme.colors[mode].muted.$value)),
   })))
-  // Measured, not hidden: the pre-approved deferred Default-theme debt is exactly one pairing at about 4.35:1.
+  // Measured, not hidden: the pre-approved deferred Default-theme debt is one pairing at about 4.35:1. ADSR-02 records
+  // the owner-supplied Amber Dusk light palette's own muted pair (#83827d on #ede9de, about 3.17:1) as source-palette
+  // debt; the source values are preserved rather than silently adjusted.
   const below = pairs.filter(pair => pair.ratio < 4.5)
-  expect(below.map(pair => pair.id)).toEqual(["default/light"])
+  expect(below.map(pair => pair.id)).toEqual(["default/light", "amber-dusk/light"])
   expect(below[0]!.ratio).toBeGreaterThan(4.3)
   expect(below[0]!.ratio).toBeLessThan(4.4)
+  expect(below[1]!.ratio).toBeGreaterThan(3.1)
+  expect(below[1]!.ratio).toBeLessThan(3.25)
   // Default-theme tokens are frozen in this phase.
   expect([defaultTheme.colors.light["muted-foreground"].$value, defaultTheme.colors.light.muted.$value]).toEqual(["oklch(0.555527 0 0)", "oklch(0.970151 0 0)"])
   expect([pickerHex(defaultTheme.colors.light["muted-foreground"].$value), pickerHex(defaultTheme.colors.light.muted.$value)]).toEqual(["#737373", "#f5f5f5"])
   // PUI-120: the section trigger is the accepted Secondary variant; its resting label pair is secondary-foreground on
-  // secondary, and it clears 4.5:1 in both built-ins and modes.
+  // secondary, and it clears 4.5:1 in every built-in and mode.
   const secondary = builtIns.flatMap(theme => (["light", "dark"] as const).map(mode => ratio(rgb(theme.colors[mode]["secondary-foreground"].$value), rgb(theme.colors[mode].secondary.$value))))
   for (const value of secondary) expect(value).toBeGreaterThanOrEqual(4.5)
   const source = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
@@ -192,8 +196,8 @@ describe("editColor", () => {
 })
 
 describe("built-in themes (TSV2-02, TSV2-03, TSV2-04)", () => {
-  it("offers Default first, then Quiet Editorial, both canonical v3", () => {
-    expect(BUILT_IN_IDS).toEqual([DEFAULT_THEME_ID, "quiet-editorial"])
+  it("offers Default first, then Quiet Editorial and Amber Dusk, all canonical v3", () => {
+    expect(BUILT_IN_IDS).toEqual([DEFAULT_THEME_ID, "quiet-editorial", "amber-dusk"])
     for (const theme of builtIns) expect(validateTheme(theme)).toEqual({ ok: true, theme })
     expect(defaultTheme.name).toBe("Default")
     expect(canonical.schemaVersion).toBe("3.0")

@@ -2,6 +2,7 @@ import { applyMutation, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, render
 import type { ColorToken, MutationError, Theme, ThemeOperation } from "@personal-ui/core"
 import defaultFixture from "@personal-ui/core/theme/fixtures/default.json"
 import quietEditorialFixture from "@personal-ui/core/theme/fixtures/valid.json"
+import amberDuskFixture from "@personal-ui/core/theme/fixtures/amber-dusk.json"
 
 export type Mode = "light" | "dark"
 
@@ -9,9 +10,9 @@ export type WorkbenchIssue = { ruleId: string; path: string }
 
 export type Outcome<T> = ({ ok: true } & T) | { ok: false; issues: WorkbenchIssue[] }
 
-/** Built-in themes in display order. Default is the fresh-state theme; both are committed canonical Theme v3 fixtures. */
+/** Built-in themes in display order. Default is the fresh-state theme; all are committed canonical Theme v3 fixtures. */
 export const DEFAULT_THEME_ID = "default"
-const BUILT_IN_FIXTURES = [defaultFixture, quietEditorialFixture] as const
+const BUILT_IN_FIXTURES = [defaultFixture, quietEditorialFixture, amberDuskFixture] as const
 
 /** The committed built-in fixtures, validated through core; never edited in place. */
 export function loadBuiltInThemes(): Theme[] {
