@@ -1,0 +1,88 @@
+{
+  "retrievedAtUtc": "2026-09-29T13:13:20.420Z",
+  "issue": {
+    "id": "PUI-119",
+    "uuid": "f3ba40eb-5e89-4476-a690-d6c7cadd98a1",
+    "title": "Simplify UI Effects controls to Off / Tactile",
+    "description": "Simplify the existing UI Effects controls so the user chooses only whether the effect is Off or Tactile, while the supported targets are handled automatically by the effect recipe.\n\n## Overall direction\n\nThe current UI Effects section exposes:\n\n* Effect: Tactile\n* Secondary buttons toggle\n* Tabs toggle\n* Strength\n\nThis is more configuration than needed for the current feature.\n\nSimplify the control model to:\n\n* Effect dropdown/select\n  * Off\n  * Tactile\n* short helper text explaining what Tactile affects\n* shared Strength control\n\nRemove the independent Secondary buttons and Tabs toggles.\n\n## 1. Effect options\n\nUpdate the Effect select so it contains:\n\n* Off\n* Tactile\n\nDefault:\n\n* Off\n\nBehavior:\n\n### Off\n\n* no tactile styling is applied;\n* Secondary Buttons remain flat;\n* surface/pill-style Tabs remain flat;\n* Strength is disabled, muted, or otherwise clearly non-interactive;\n* existing flat appearance is preserved.\n\n### Tactile\n\n* automatically applies the accepted tactile treatment to:\n  * Secondary Buttons\n  * active surface/pill-style Tabs\n* line/minimal Tabs remain excluded;\n* all non-secondary Button variants remain flat;\n* Strength becomes active and controls the shared tactile intensity.\n\nDo not require separate target toggles.\n\n## 2. Remove target toggles\n\nRemove the existing UI controls for:\n\n* Secondary buttons\n* Tabs\n\nDo not replace them with another per-target configuration mechanism in this ticket.\n\nThe effect recipe itself owns its supported targets.\n\n## 3. Add concise helper text\n\nAdd a small helper note under or near the Effect control.\n\nSuggested copy:\n\n`Affects Secondary buttons and surface-style Tabs.`\n\nEquivalent wording is acceptable if clearer, but keep it concise.\n\nDo not turn this into a long explanatory block.\n\n## 4. Strength behavior\n\nPreserve the existing shared Strength control.\n\nRequirements:\n\n* Strength remains the single bounded control for tactile intensity;\n* when Effect = Off, Strength is disabled or visually de-emphasized;\n* when Effect = Tactile, Strength becomes active;\n* preserve current tactile visual behavior and tuning unless a tiny adjustment is required by the simplified state model.\n\nDo not introduce additional raw effect controls.\n\n## 5. Theme/state simplification\n\nPrefer simplifying persisted UI Effects state from a target-toggle model toward a smaller effect model.\n\nConceptually:\n\n`effect: \"off\" | \"tactile\"`\n`strength: number`\n\nThe exact implementation should follow the accepted Theme v3 schema conventions.\n\nBackward compatibility requirements:\n\n* older themes with no UI Effects value resolve to Off;\n* themes from the current toggle-based implementation continue to import safely;\n* if a previously saved theme had Tactile enabled for either accepted target, reconcile it deterministically to the new Tactile state without corrupting unrelated theme data;\n* if a previously saved theme had no active tactile target, reconcile to Off;\n* newly exported themes preserve Effect and Strength;\n* do not introduce Theme v4 solely for this simplification unless source inspection proves the existing Theme v3 contract cannot support the migration safely.\n\nIf the current accepted persisted schema makes this a public schema/mutation change, classify and verify it accordingly rather than hiding the contract change.\n\n## 6. Effect target semantics\n\nThe supported targets remain fixed for the Tactile effect:\n\n* Secondary Button\n* active surface/pill-style Tabs\n\nExplicitly preserve exclusions:\n\n* default/primary Buttons\n* outline Buttons\n* destructive Buttons\n* ghost Buttons\n* link Buttons\n* line/minimal Tabs\n* Inputs\n* all other primitives\n\nDo not broaden tactile coverage in this ticket.\n\n## 7. Visual behavior\n\nPreserve the accepted tactile visual direction:\n\n* subtle tactile illumination;\n* soft internal light/wash;\n* restrained edge definition;\n* minimal obvious drop shadow;\n* clean, modern, understated;\n* no heavy glossy/beveled/retro treatment.\n\nSecondary Buttons are the preferred tactile target because they provide a filled neutral surface. The tactile treatment may add subtle ring/edge definition without competing with the built-in border semantics of Outline Buttons.\n\nThis ticket is primarily a control/state simplification, not a visual redesign.\n\n## 8. Accessibility and interaction\n\n* Effect select remains keyboard accessible;\n* Strength disabled state is semantically and visually clear when Off;\n* focus-visible behavior remains intact;\n* light/dark behavior remains correct;\n* no regression to Button or Tabs keyboard/selected/disabled semantics.\n\n## 9. Boundaries\n\nDo not:\n\n* add new effect families;\n* add new targets;\n* reintroduce per-target toggles elsewhere;\n* add tactile Inputs;\n* change public Button/Tabs APIs;\n* add dependencies;\n* add network behavior;\n* redesign unrelated Effects controls;\n* change Shadow or Motion behavior.\n\nPreserve:\n\n* Theme v3 where safely possible;\n* history;\n* dirty state;\n* reset behavior;\n* import/export;\n* Design Command behavior unless the accepted closed mutation schema requires a narrow corresponding update;\n* public registry;\n* current tactile visual language.\n\n## Acceptance\n\n* UI Effects Effect select contains Off and Tactile.\n* Off is the backward-compatible default.\n* Secondary buttons toggle is removed.\n* Tabs toggle is removed.\n* A concise helper note explains that Tactile affects Secondary buttons and surface-style Tabs.\n* Effect = Tactile automatically applies the effect to the accepted Secondary Button and active surface-style Tabs targets.\n* Outline and all other previously excluded Button variants remain flat.\n* Strength is disabled/de-emphasized when Off and active when Tactile.\n* Existing tactile visual language remains materially unchanged while moving the Button target from Outline to Secondary.\n* Older/no-effect themes remain visually flat.\n* Existing toggle-based saved themes import/reconcile safely.\n* Newly exported themes preserve Effect and Strength.\n* No Theme v4, new dependency, network behavior, target expansion, or unrelated UI change is introduced unless strictly required by the accepted schema contract.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-119/simplify-ui-effects-controls-to-off-tactile",
+    "gitBranchName": "emmantalob/pui-119-simplify-ui-effects-controls-to-off-tactile",
+    "createdAt": "2026-09-29T11:22:44.350Z",
+    "updatedAt": "2026-09-29T13:04:39.179Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T11:22:44.350Z",
+        "endedAt": "2026-09-29T13:04:39.172Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T13:04:39.172Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-121",
+          "title": "Retarget tactile UI effect from Outline to Secondary buttons"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [],
+  "documentReferences": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "PUI-121",
+        "title": "Retarget tactile UI effect from Outline to Secondary buttons"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

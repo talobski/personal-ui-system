@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "loop-linear-snapshot-manifest/1",
+  "phase": "ui-effects-showcase-polish-v1-001",
+  "admittedTicketIds": ["PUI-119", "PUI-120", "PUI-121", "PUI-122"],
+  "snapshotSha256": {
+    "PUI-119": "e4384f6d02453df97f2aac227dec0acbbf9786d6297597d8e7cac6e90e07f93c",
+    "PUI-120": "8567616d657cd618beb51ba561f1764e1dc5e864713e8d98ef7da7e796282407",
+    "PUI-121": "0c3519114f65f0649f9fbb230d8c13c98e8587ec96500fa5d7c32986c39adbef",
+    "PUI-122": "1ab11a09c4e5ba81bd8b198c31276c47d8322cd3c5dd97797ff3dd43263d3ac1"
+  },
+  "comments": {"PUI-119": 0, "PUI-120": 0, "PUI-121": 0, "PUI-122": 0},
+  "attachments": {"PUI-119": 0, "PUI-120": 0, "PUI-121": 0, "PUI-122": 0},
+  "notes": "Each JSON snapshot includes the full issue payload and full comments response at admission. The authoritative phase contract governs any later Linear edits."
+}

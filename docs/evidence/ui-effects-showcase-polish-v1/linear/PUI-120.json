@@ -1,0 +1,88 @@
+{
+  "retrievedAtUtc": "2026-09-29T13:13:20.614Z",
+  "issue": {
+    "id": "PUI-120",
+    "uuid": "36d9e0dd-e244-4e13-94c7-6c1fb2e7e494",
+    "title": "Use default shadcn tabs and add Storage secondary action",
+    "description": "Refine the Workbench tab navigation to use the default shadcn surface-style Tabs appearance, while preserving compact content-driven sizing, and add one Secondary Button to the Storage card so the tactile UI Effect has a clear live specimen.\n\n## Overall direction\n\nThis ticket is primarily a presentation/demo improvement for the accepted UI Effects system.\n\nGoals:\n\n* switch the two main Workbench tab groups to the default shadcn Tabs look;\n* keep both tab groups compact and content-sized rather than stretched to full width;\n* preserve existing tab labels, order, state, and keyboard behavior;\n* add a single Secondary Button to the Storage card labeled:\n  * **Manage storage**\n* use the accepted Secondary Button variant so the tactile effect can be showcased naturally when UI Effects = Tactile.\n\n## 1. Workbench sidebar/control tabs\n\nUpdate the left Workbench navigation group:\n\n* Colors\n* Typography\n* Geometry\n* Effects\n* Command\n\nUse the accepted shadcn default/surface-style Tabs visual treatment.\n\nRequirements:\n\n* preserve current labels;\n* preserve current order;\n* preserve current selected-tab behavior;\n* preserve keyboard navigation and focus-visible behavior;\n* preserve current placement in the Workbench.\n\nDo not redesign the navigation structure.\n\n## 2. Workbench preview tabs\n\nUpdate the right preview navigation group:\n\n* Cards\n* Design system\n* App shells\n* States\n\nUse the same accepted shadcn default/surface-style Tabs visual treatment.\n\nRequirements:\n\n* preserve current labels;\n* preserve current order;\n* preserve current selected-tab behavior;\n* preserve keyboard navigation and focus-visible behavior;\n* preserve current placement above the preview content.\n\nThe two Workbench tab groups should visually belong to the same Tabs system.\n\n## 3. Preserve content-driven width\n\nBoth tab groups must remain compact and follow their content width.\n\nDo not stretch the TabsList or triggers to the container width.\n\nRequirements:\n\n* no `w-full` or equivalent full-width behavior on the tab list;\n* no equal-width/flex-1 treatment for individual triggers;\n* each TabsTrigger should use its natural content width;\n* the TabsList should only be as wide as needed for its contained labels;\n* preserve clean alignment in both wide and narrow Workbench layouts.\n\nThe intended result is a compact segmented/surface control, not a full-width navigation bar.\n\n## 4. UI Effects showcase behavior\n\nThese Workbench Tabs should participate in the accepted UI Effects semantics.\n\nWhen UI Effects = Off:\n\n* use the normal default shadcn surface-style Tabs appearance.\n\nWhen UI Effects = Tactile:\n\n* the active surface-style TabsTrigger should receive the accepted tactile treatment automatically;\n* inactive triggers remain restrained/flat;\n* no extra Workbench-specific tactile recipe should be introduced.\n\nReuse the accepted global UI Effects behavior rather than hard-coding special tab styling for these two locations.\n\n## 5. Add Storage secondary action\n\nIn the Storage card, add one Secondary Button near the bottom of the card.\n\nLabel:\n\n**Manage storage**\n\nRequirements:\n\n* use the accepted shadcn Button Secondary variant;\n* keep the action visually secondary to the Storage usage summary;\n* place it cleanly beneath the existing storage category content;\n* preserve the card's existing hierarchy and spacing;\n* no real storage-management workflow is required;\n* clicking the button does not need to navigate, open a dialog, mutate data, call a network/API, or introduce new state unless an existing harmless local interaction already exists and can be reused without scope expansion.\n\nThe purpose is to provide a natural Secondary Button specimen that visibly demonstrates UI Effects when Tactile is enabled.\n\n## 6. Convert collapsible section triggers to Secondary Button treatment\n\nUpdate the compact collapsible section triggers used throughout the Workbench sidebar/control panels, such as:\n\n* PRIMARY\n* SECONDARY\n* ACCENT\n* BASE\n* CARD\n* and comparable collapsible section headers\n\nso they use the accepted Secondary Button visual treatment and therefore participate naturally in UI Effects when Tactile is enabled.\n\nThis is a **visual-variant conversion only**. Preserve the existing compact trigger geometry.\n\nRequirements:\n\n* keep current trigger height;\n* keep current width/content-sizing behavior;\n* keep current horizontal and vertical padding;\n* keep current font size and weight;\n* keep current text casing;\n* keep current chevron/icon size;\n* keep current gap between label and icon;\n* keep current radius;\n* keep current alignment and placement;\n* keep current expand/collapse behavior;\n* keep current keyboard/focus semantics.\n\nDo not allow default Button sizing or spacing to make these triggers larger, wider, or visually heavier.\n\nImplementation may reuse the accepted Secondary Button variant styling through the existing compact trigger structure, or use the Button primitive with explicit preserved sizing classes, whichever keeps the geometry unchanged.\n\nWhen UI Effects = Off:\n\n* these triggers render as compact Secondary controls with the normal flat/default surface treatment.\n\nWhen UI Effects = Tactile:\n\n* they automatically receive the accepted tactile Secondary Button treatment through the shared UI Effects system.\n\nDo not introduce a special tactile recipe for these collapsible triggers.\n\n## 7. Convert social sign-in buttons to Secondary\n\nIn the Create account form composition, change the existing GitHub and Google sign-in buttons from their current visual variant to the accepted Secondary Button variant so they also demonstrate UI Effects naturally.\n\nRequirements:\n\n* preserve current two-column layout;\n* preserve current button width and height;\n* preserve current padding;\n* preserve current icon size;\n* preserve current icon/label gap;\n* preserve current labels:\n  * GitHub\n  * Google\n* preserve current typography;\n* preserve current radius;\n* preserve current keyboard/focus behavior;\n* do not add OAuth/login behavior, navigation, network calls, or new state.\n\nWhen UI Effects = Off:\n\n* the GitHub and Google buttons render with the normal flat Secondary Button treatment.\n\nWhen UI Effects = Tactile:\n\n* both buttons automatically receive the shared tactile Secondary Button treatment.\n\nDo not add any button-specific tactile styling for these two controls.\n\n## 7. Preserve existing behavior\n\nDo not change:\n\n* Workbench tab state model;\n* preview routing/state;\n* Theme v3;\n* UI Effects schema or semantics;\n* history;\n* persistence;\n* import/export;\n* Design Command;\n* mutation operations;\n* public registry;\n* Storage data;\n* Storage progress/category values;\n* unrelated gallery cards;\n* unrelated Button variants.\n\nNo new dependency or network behavior should be introduced.\n\n## 8. Accessibility and responsiveness\n\n* preserve Tabs keyboard navigation;\n* preserve focus-visible behavior;\n* preserve selected-state semantics;\n* preserve readable contrast in light/dark modes;\n* ensure compact tab groups do not overflow awkwardly at narrow widths;\n* preserve logical reading order;\n* the new Manage storage button must retain standard Button accessibility behavior.\n\n## Acceptance\n\n* Left Workbench tabs use the accepted default shadcn surface-style Tabs appearance.\n* Right preview tabs use the accepted default shadcn surface-style Tabs appearance.\n* Both tab groups remain compact and content-width, not full-width.\n* Individual tab triggers retain natural-width sizing rather than equal-width stretching.\n* Existing labels, order, selected state, keyboard behavior, and focus behavior remain unchanged.\n* When UI Effects = Tactile, active Workbench tabs receive the accepted tactile treatment automatically.\n* When UI Effects = Off, they render with the normal flat/default shadcn surface treatment.\n* Storage card includes one Secondary Button labeled **Manage storage**.\n* The button sits cleanly near the bottom of the card and remains secondary to the Storage content.\n* The Manage storage button uses the accepted Secondary variant and therefore participates in tactile UI Effects automatically.\n* Workbench collapsible section triggers use the accepted Secondary Button visual treatment while preserving their existing compact geometry.\n* Their size, padding, font size/weight, chevron size, gap, radius, placement, and collapse behavior remain materially unchanged.\n* When UI Effects = Tactile, these collapsible Secondary triggers receive the shared tactile effect automatically; when Off, they remain flat.\n* GitHub and Google sign-in buttons use the accepted Secondary variant while preserving their current geometry, icons, labels, and two-column layout.\n* When UI Effects = Tactile, GitHub and Google receive the shared tactile Secondary Button treatment automatically.\n* Outline Buttons remain flat.\n* No real storage workflow, new dependency, network behavior, theme-schema change, or unrelated product change is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-120/use-default-shadcn-tabs-and-add-storage-secondary-action",
+    "gitBranchName": "emmantalob/pui-120-use-default-shadcn-tabs-and-add-storage-secondary-action",
+    "createdAt": "2026-09-29T11:34:00.281Z",
+    "updatedAt": "2026-09-29T13:04:43.784Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T11:34:00.281Z",
+        "endedAt": "2026-09-29T13:04:43.755Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T13:04:43.755Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-121",
+          "title": "Retarget tactile UI effect from Outline to Secondary buttons"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [],
+  "documentReferences": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "PUI-121",
+        "title": "Retarget tactile UI effect from Outline to Secondary buttons"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

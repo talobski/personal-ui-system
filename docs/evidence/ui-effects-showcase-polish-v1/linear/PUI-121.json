@@ -1,0 +1,104 @@
+{
+  "retrievedAtUtc": "2026-09-29T13:13:20.702Z",
+  "issue": {
+    "id": "PUI-121",
+    "uuid": "b10fc3f2-6feb-44d7-958b-32570b65e594",
+    "title": "Retarget tactile UI effect from Outline to Secondary buttons",
+    "description": "Change the accepted tactile Button target from the Outline variant to the Secondary variant while preserving Tabs as the other tactile target.\n\nThis is a focused correction to the UI Effects targeting model, based on the design decision that tactile treatment works better on filled neutral surfaces than on border-defined Outline Buttons.\n\n## Rationale\n\nThe current accepted tactile implementation targets Outline Buttons and active surface/pill-style Tabs.\n\nThe revised direction is:\n\n* Secondary Buttons should receive the tactile treatment;\n* Outline Buttons should return to/stay flat;\n* active surface/pill-style Tabs remain tactile-capable;\n* all other Button variants remain flat.\n\nSecondary is the better fit because it already provides a filled neutral surface. This gives the tactile recipe room to add subtle internal illumination, restrained depth, and a light ring/edge treatment without competing with the built-in border semantics of Outline Buttons.\n\n## 1. Retarget tactile Button styling\n\nMove the tactile Button treatment from:\n\n* Outline Button\n\nto:\n\n* Secondary Button\n\nRequirements:\n\n* preserve the accepted tactile visual language;\n* preserve current Strength behavior;\n* preserve light/dark behavior;\n* preserve Button sizing, typography, radius, icon placement, keyboard behavior, focus-visible behavior, and disabled semantics;\n* preserve semantic Secondary colors/tokens;\n* avoid hard-coded raw light/dark colors where semantic tokens already define the surface.\n\n## 2. Outline Button behavior\n\nOutline Buttons should remain flat.\n\nRequirements:\n\n* remove tactile-specific treatment from the Outline variant;\n* preserve its normal accepted border/background behavior;\n* do not add a replacement tactile/raised treatment;\n* preserve all existing Outline Button states and accessibility behavior.\n\n## 3. Secondary Button tactile direction\n\nSecondary Buttons should use the same accepted subtle modern tactile language previously established:\n\n* softly illuminated neutral surface;\n* subtle internal light/wash;\n* restrained edge/ring definition;\n* minimal obvious drop shadow;\n* clean, modern, understated;\n* no heavy glossy, beveled, or retro appearance.\n\nDo not over-specify one fixed CSS/shadow recipe. Tune visually through browser evidence.\n\nA subtle ring/edge treatment is allowed and preferred over relying on an Outline-style border.\n\n### Shared Secondary / Tabs tactile recipe\n\nSecondary Buttons and active surface-style Tabs should use the same core tactile surface recipe wherever practical.\n\nThe intent is that they visually read as close relatives:\n\n* same subtle internal illumination/light wash;\n* same restrained depth language;\n* same general edge/ring treatment;\n* same Strength mapping;\n* only minimal state-specific differences where Button press semantics and Tab selected-state semantics genuinely require them.\n\nDo not create separate unrelated tactile recipes for Secondary Buttons and Tabs.\n\n### Prefer a subtle ring over a hard border\n\nFor the tactile Secondary surface, prefer a subtle semantic ring/edge treatment rather than introducing an Outline-style border.\n\nDirection:\n\n* preserve the filled Secondary background;\n* avoid making the tactile Secondary variant look like an Outline Button;\n* use a restrained 1px-style semantic ring/edge where appropriate;\n* prefer translucent semantic ring treatment so it visually integrates with the Secondary surface in both light and dark themes;\n* a value conceptually similar to `ring-input/80` may be explored, but do not hard-code that exact token/opacity if browser evidence shows another existing semantic ring/border token works better;\n* keep the treatment token-driven and theme-responsive;\n* do not introduce raw light/dark ring colors.\n\nThe ring should support the tactile surface, not become the dominant visual feature.\n\n## 4. Tabs remain unchanged\n\nKeep active surface/pill-style Tabs as the other tactile target.\n\nDo not change:\n\n* active/inactive tab targeting;\n* line/minimal Tab exclusions;\n* keyboard/selected/focus behavior;\n* the accepted tactile visual relationship between Secondary Buttons and active Tabs.\n\nSecondary Buttons and active surface-style Tabs should read as one coherent tactile effect family.\n\n## 5. Theme/state compatibility\n\nPreserve the accepted UI Effects Theme v3 contract unless the current persisted target field explicitly names the Outline variant.\n\nIf the persisted schema contains a target-specific Outline field:\n\n* migrate/reconcile it narrowly to Secondary semantics;\n* preserve older theme import safety;\n* preserve export round-trip behavior;\n* avoid Theme v4 unless the current accepted schema genuinely makes a backward-compatible migration impossible.\n\nIf target identity is not persisted separately, do not change schema unnecessarily.\n\nPreserve:\n\n* history;\n* dirty state;\n* reset behavior;\n* import/export;\n* mutation semantics except where the accepted closed union requires a narrow target update;\n* Design Command behavior unless directly tied to the target identifier;\n* public registry.\n\n## 6. Boundaries\n\nDo not broaden tactile coverage to:\n\n* default/primary Buttons;\n* Outline Buttons;\n* Destructive Buttons;\n* Ghost Buttons;\n* Link Buttons;\n* Inputs;\n* Cards;\n* other primitives.\n\nDo not:\n\n* add new effect families;\n* add dependencies;\n* add network behavior;\n* redesign unrelated Button variants;\n* change Tabs beyond preserving their current tactile support.\n\n## Acceptance\n\n* Secondary Buttons receive the tactile effect when UI Effects = Tactile.\n* Outline Buttons remain flat.\n* Active surface/pill-style Tabs remain tactile-capable.\n* All other Button variants remain flat.\n* The tactile visual language remains subtle, modern, and consistent across Secondary Buttons and active Tabs.\n* Secondary Buttons use semantic surface colors with restrained ring/edge depth rather than an Outline-style border dependency.\n* Secondary Buttons and active surface-style Tabs share the same core tactile surface recipe and Strength mapping rather than separate visual systems.\n* Tactile Secondary Buttons use a subtle translucent semantic ring/edge treatment rather than an Outline-style hard border, tuned through browser evidence.\n* Light/dark behavior remains correct.\n* Button and Tabs keyboard/focus/disabled/selected semantics remain intact.\n* Theme v3, history, reset, import/export, mutation behavior, Design Command, and public registry remain unchanged except for the minimum target migration required by the accepted schema.\n* No new dependency, network behavior, Theme v4, or unrelated product change is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-121/retarget-tactile-ui-effect-from-outline-to-secondary-buttons",
+    "gitBranchName": "emmantalob/pui-121-retarget-tactile-ui-effect-from-outline-to-secondary-buttons",
+    "createdAt": "2026-09-29T12:37:39.825Z",
+    "updatedAt": "2026-09-29T13:04:47.074Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T12:37:39.825Z",
+        "endedAt": "2026-09-29T13:04:47.061Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T13:04:47.061Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-113",
+          "title": "Add optional tactile UI effects for outline buttons and tabs"
+        },
+        {
+          "id": "PUI-120",
+          "title": "Use default shadcn tabs and add Storage secondary action"
+        },
+        {
+          "id": "PUI-119",
+          "title": "Simplify UI Effects controls to Off / Tactile"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [],
+  "documentReferences": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "PUI-113",
+        "title": "Add optional tactile UI effects for outline buttons and tabs"
+      },
+      {
+        "id": "PUI-120",
+        "title": "Use default shadcn tabs and add Storage secondary action"
+      },
+      {
+        "id": "PUI-119",
+        "title": "Simplify UI Effects controls to Off / Tactile"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

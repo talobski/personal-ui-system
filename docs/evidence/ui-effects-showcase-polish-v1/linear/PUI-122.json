@@ -1,0 +1,78 @@
+{
+  "retrievedAtUtc": "2026-09-29T13:13:20.787Z",
+  "issue": {
+    "id": "PUI-122",
+    "uuid": "805d0290-c58a-4054-a952-b436a4e71409",
+    "title": "Refine Design system color hierarchy and Sidebar labels",
+    "description": "Refine the Design system → Colors preview hierarchy and labeling so semantic groups are easier to scan and the Sidebar token labels are unambiguous, without changing any underlying theme tokens or behavior.\n\n## Overall direction\n\nThis is a presentation-only cleanup for the Design system preview.\n\nGoals:\n\n* make color swatches slightly narrower while preserving the rectangular two-column layout;\n* rebalance typography so semantic group headings lead the hierarchy;\n* reduce the visual weight of per-color Background / Foreground labels;\n* increase spacing between semantic token groups slightly;\n* improve Sidebar-specific display labels so repeated Background / Foreground pairs are contextual and easier to understand;\n* preserve all underlying token names, aliases, schema, import/export keys, and sidebar-control labels.\n\n## 1. Make color swatches slightly narrower\n\nReduce the width of the rectangular color swatches modestly.\n\nRequirements:\n\n* preserve the current rectangular shape;\n* preserve two-column pairing/layout;\n* do not make them square again;\n* do not materially reduce readability;\n* preserve current responsive behavior;\n* tune the exact width through browser evidence rather than a strict owner-specified pixel value.\n\nThe intent is a slightly more compact specimen layout, not a redesign.\n\n## 2. Rebalance per-color label hierarchy\n\nCurrent Background / Foreground labels are visually heavier than the semantic group headings.\n\nUpdate them so they become supporting labels.\n\nFor display labels such as:\n\n* Background\n* Foreground\n* Primary Background\n* Primary Foreground\n* Accent Background\n* Accent Foreground\n* Sidebar Border\n* Sidebar Ring\n\napply the following presentation:\n\n* use the same font size as the HEX value beneath;\n* render them in uppercase;\n* use the base foreground semantic color token so they remain clear/dark rather than muted;\n* keep normal readable weight;\n* do not make them larger than the group heading.\n\nHEX values should remain visually secondary and may continue using the current muted treatment unless source inspection shows a tiny adjustment is required for consistency.\n\n## 3. Strengthen semantic group headings\n\nFor semantic group headings such as:\n\n* Primary\n* Secondary\n* Accent\n* Base\n* Card\n* Popover\n* Muted\n* Destructive\n* Border / Input / Ring\n* Charts\n* Sidebar\n\nupdate the presentation so they lead the hierarchy more clearly.\n\nRequirements:\n\n* use the base foreground semantic token rather than muted text;\n* increase the heading one typography step from its current size;\n* use normal title casing, not uppercase;\n* preserve the current grouping/order;\n* do not turn the headings into separate cards or controls.\n\nThe visual hierarchy should read:\n\n1. section heading;\n2. semantic group heading;\n3. per-color display label;\n4. HEX value.\n\n## 4. Increase section-heading size\n\nIncrease the overall Design system section headings:\n\n* Colors\n* Type scale\n\nby one typography step from their current size.\n\nPreserve:\n\n* current placement;\n* current section structure;\n* current flat reference-sheet layout.\n\nDo not change the meaning or content of either section.\n\n## 5. Increase spacing between token groups\n\nIncrease vertical spacing slightly between semantic token groups such as:\n\n* Primary → Secondary;\n* Secondary → Accent;\n* Accent → Base;\n* etc.\n\nRequirements:\n\n* keep the page compact and scannable;\n* do not introduce excessive whitespace;\n* preserve spacing within each pair/specimen;\n* tune final spacing through browser evidence.\n\n## 6. Improve Sidebar display labels\n\nThe Sidebar group currently contains multiple Background / Foreground pairs that are ambiguous when read without context.\n\nUse explicit local display labels in the Design system preview only.\n\nDisplay mapping:\n\n* `sidebar` → **Background**\n* `sidebar-foreground` → **Foreground**\n* `sidebar-primary` → **Primary Background**\n* `sidebar-primary-foreground` → **Primary Foreground**\n* `sidebar-accent` → **Accent Background**\n* `sidebar-accent-foreground` → **Accent Foreground**\n* `sidebar-border` → **Sidebar Border**\n* `sidebar-ring` → **Sidebar Ring**\n\nImportant boundary:\n\n* this is display labeling only;\n* do not rename actual token keys;\n* do not change Theme v3 schema;\n* do not change import/export keys;\n* do not change alias semantics;\n* do not change the sidebar control labels used for editing tokens;\n* do not change runtime CSS variable names.\n\n## 7. Preserve live behavior\n\nPreserve:\n\n* live theme updates;\n* light/dark mode;\n* Sidebar token OFF/ON behavior;\n* dedicated Sidebar token values;\n* HEX display updates;\n* current semantic group order;\n* current responsive stacking/containment;\n* existing token storage/editing representation.\n\nDo not convert stored colors or persisted theme values.\n\n## 8. Boundaries\n\nDo not:\n\n* rename semantic tokens;\n* change actual Sidebar token semantics;\n* change theme schema;\n* change persistence/history;\n* change import/export behavior;\n* change Design Command;\n* change mutation operations;\n* change public registry;\n* add dependencies;\n* add network behavior;\n* redesign unrelated Design system sections.\n\nThis ticket is visual hierarchy and local display-label cleanup only.\n\n## Acceptance\n\n* Color swatches are slightly narrower while remaining rectangular and paired.\n* Background / Foreground-style labels use the same font size as HEX values.\n* Per-color labels are uppercase and use the base foreground semantic token.\n* HEX values remain visually secondary.\n* Semantic group headings use the base foreground semantic token.\n* Semantic group headings are one typography step larger and use title casing rather than uppercase.\n* Colors and Type scale headings are one typography step larger.\n* Vertical spacing between token groups is slightly increased without making the page loose.\n* Sidebar labels are contextualized as Background / Foreground, Primary Background / Primary Foreground, Accent Background / Accent Foreground, Sidebar Border, and Sidebar Ring.\n* Actual token keys, aliases, sidebar editor labels, Theme v3, import/export, persistence, history, Design Command, mutation operations, and registry remain unchanged.\n* Light/dark, live theme editing, Sidebar token OFF/ON behavior, and responsive layout remain correct.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-122/refine-design-system-color-hierarchy-and-sidebar-labels",
+    "gitBranchName": "emmantalob/pui-122-refine-design-system-color-hierarchy-and-sidebar-labels",
+    "createdAt": "2026-09-29T12:55:18.380Z",
+    "updatedAt": "2026-09-29T13:05:02.504Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T12:55:18.380Z",
+        "endedAt": "2026-09-29T13:05:02.494Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T13:05:02.494Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [],
+  "documentReferences": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}
