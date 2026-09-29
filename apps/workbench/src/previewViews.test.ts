@@ -29,14 +29,17 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
     expect(tokens).toEqual(grouped)
     // Swatches paint from the live custom property of the same semantic name, never a copied value.
     for (const token of tokens) expect(markup).toContain(`style="background:var(--${token})"`)
-    // PUI-114: every group, Sidebar included, is headed by its plain title (rendered uppercase), with no source suffix.
+    // PUI-114: every group, Sidebar included, is headed by its plain title with no source suffix. PUI-122: title case
+    // (no uppercase transform), base foreground, one step larger (text-sm) than the supporting labels.
     const labels = DESIGN_SYSTEM_COLOR_GROUPS.map(group => group.title.replace("&", "&amp;"))
     expect(Array.from(markup.matchAll(/<h3 [^>]*>([^<]+)<\/h3>/g), match => match[1])).toEqual(labels)
+    expect(Array.from(markup.matchAll(/<h3 [^>]*class="([^"]+)"/g), match => match[1])).toEqual(Array(labels.length).fill("text-sm font-medium text-foreground"))
     expect(markup).not.toMatch(/base aliases|dedicated|sidebar-alias|= (background|foreground|primary|accent|border|ring)/)
-    // Local display labels: each pair reads Background / Foreground, unpaired tokens keep their key.
-    const shown = Array.from(markup.matchAll(/data-token="([a-z0-9-]+)"[\s\S]*?data-testid="token-label">(?:<span class="sr-only">[^<]*<\/span>)?([^<]+)</g), match => [match[1], match[2]])
+    // Local display labels: each pair reads Background / Foreground, unpaired tokens keep their key; PUI-122 names the
+    // Sidebar pairs by role and its border/ring as Sidebar Border / Sidebar Ring.
+    const shown = Array.from(markup.matchAll(/data-token="([a-z0-9-]+)"[\s\S]*?data-testid="token-label">([^<]+)</g), match => [match[1], match[2]])
     expect(shown).toHaveLength(32)
-    const expected: Record<string, string> = { border: "border", input: "input", ring: "ring", "sidebar-border": "sidebar-border", "sidebar-ring": "sidebar-ring", "chart-1": "chart-1", "chart-2": "chart-2", "chart-3": "chart-3", "chart-4": "chart-4", "chart-5": "chart-5" }
+    const expected: Record<string, string> = { border: "border", input: "input", ring: "ring", "sidebar-primary": "Primary Background", "sidebar-primary-foreground": "Primary Foreground", "sidebar-accent": "Accent Background", "sidebar-accent-foreground": "Accent Foreground", "sidebar-border": "Sidebar Border", "sidebar-ring": "Sidebar Ring", "chart-1": "chart-1", "chart-2": "chart-2", "chart-3": "chart-3", "chart-4": "chart-4", "chart-5": "chart-5" }
     for (const [token, label] of shown) expect(label, token).toBe(expected[token!] ?? (token === "foreground" || token!.endsWith("-foreground") ? "Foreground" : "Background"))
   })
 
@@ -48,19 +51,26 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
       const pairs = group.tokens.filter(token => token.endsWith("-foreground"))
       for (const foreground of pairs) expect(group.tokens.indexOf(foreground) % 2, `${group.id} ${foreground}`).toBe(1)
     }
-    // PUI-114: wider-than-tall rectangular swatches (the item's full width at 2.5rem tall) replace the square tiles,
-    // keeping the rounded border; the specimen stacks swatch, label and value inside its own column.
-    expect(markup.match(/<span aria-hidden="true" class="h-10 w-full rounded-md border" data-testid="swatch"/g)).toHaveLength(32)
+    // PUI-114: wider-than-tall rectangular swatches (2.5rem tall) replace the square tiles, keeping the rounded border;
+    // the specimen stacks swatch, label and value inside its own column. PUI-122: modestly narrower, four fifths of it.
+    expect(markup.match(/<span aria-hidden="true" class="h-10 w-4\/5 rounded-md border" data-testid="swatch"/g)).toHaveLength(32)
     expect(markup).not.toMatch(/size-1[02] rounded-md border/)
     expect(markup.match(/<li class="grid min-w-0 content-start gap-1.5" data-token=/g)).toHaveLength(32)
     // Values: Body role (no Mono) and still muted, compact and truncated.
     expect(markup.match(/<span class="truncate text-xs text-muted-foreground tabular-nums" data-testid="token-value"/g)).toHaveLength(32)
+    // PUI-122 labels: the HEX size, uppercase, normal weight, base foreground.
+    expect(markup.match(/<span class="truncate text-xs font-normal text-foreground uppercase" data-testid="token-label">/g)).toHaveLength(32)
+    // Groups sit slightly further apart (gap-7) than a group's heading and pairs (gap-3, gap-y-3).
+    expect(markup).toContain('<div class="grid min-w-0 gap-7" data-testid="color-groups">')
+    expect(markup.match(/<section aria-labelledby="[^"]+" class="grid gap-3">/g)).toHaveLength(DESIGN_SYSTEM_COLOR_GROUPS.length)
     expect(code("./DesignSystemPreview.tsx")).not.toMatch(/font-mono|--font-mono/)
   })
 
   it("renames Typography to Type scale: one descending text-5xl to text-xs list of the live Body sample", () => {
     const markup = html()
     expect(Array.from(markup.matchAll(/<h2 [^>]*>([^<]+)<\/h2>/g), match => match[1])).toEqual(["Colors", "Type scale"])
+    // PUI-122: both section headings are one step larger (text-lg to text-xl) and keep the Heading role.
+    expect(Array.from(markup.matchAll(/<h2 [^>]*class="([^"]+)"/g), match => match[1])).toEqual(["type-heading text-xl", "type-heading text-xl"])
     expect(markup).not.toContain(">Typography<")
     expect(TYPE_SCALE).toEqual(["text-5xl", "text-4xl", "text-3xl", "text-2xl", "text-xl", "text-lg", "text-base", "text-sm", "text-xs"])
     expect(Array.from(markup.matchAll(/data-type-size="([a-z0-9-]+)"/g), match => match[1])).toEqual([...TYPE_SCALE])
@@ -80,16 +90,18 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
 
   it("maps pairs to Background / Foreground by position in the group only, never renaming a token (PUI-114)", () => {
     const sidebar = [...SIDEBAR_COLOR_TOKENS]
-    expect(sidebar.map(token => swatchLabel(token, sidebar))).toEqual(["Background", "Foreground", "Background", "Foreground", "Background", "Foreground", "sidebar-border", "sidebar-ring"])
+    // PUI-122 supersedes the positional Sidebar wording with contextual display labels.
+    expect(sidebar.map(token => swatchLabel(token, sidebar))).toEqual(["Background", "Foreground", "Primary Background", "Primary Foreground", "Accent Background", "Accent Foreground", "Sidebar Border", "Sidebar Ring"])
     expect(["background", "foreground"].map(token => swatchLabel(token, ["background", "foreground"]))).toEqual(["Background", "Foreground"])
     expect(["primary", "primary-foreground"].map(token => swatchLabel(token, ["primary", "primary-foreground"]))).toEqual(["Background", "Foreground"])
     // Without its partner in the same group a token is not a pair.
     expect(swatchLabel("primary", ["primary"])).toBe("primary")
     expect(swatchLabel("card-foreground", ["card-foreground"])).toBe("card-foreground")
-    // The Sidebar's three shared-wording pairs stay distinguishable to assistive technology.
+    // The contextual Sidebar labels are distinguishable on their own, so no duplicate screen-reader qualifier remains.
     const markup = html()
-    for (const pair of ["primary", "accent"]) expect(markup.match(new RegExp(`<span class="sr-only">Sidebar ${pair} </span>`, "g")), pair).toHaveLength(2)
-    expect(markup.match(/<span class="sr-only">/g)).toHaveLength(4)
+    expect(markup).not.toContain('<span class="sr-only">')
+    const sidebarLabels = sidebar.map(token => swatchLabel(token, sidebar))
+    expect(new Set(sidebarLabels).size).toBe(sidebarLabels.length)
   })
 
   it("shows display-only uppercase HEX equivalents of canonical OKLCH values, with alpha only when translucent (PUI-114)", () => {

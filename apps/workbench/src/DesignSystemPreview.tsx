@@ -15,11 +15,29 @@ export const TYPE_SCALE = ["text-5xl", "text-4xl", "text-3xl", "text-2xl", "text
 export const TYPE_SCALE_SAMPLE = "The quick brown fox jumps over the lazy dog."
 
 /**
+ * PUI-122 display-only Sidebar wording: the three Sidebar pairs are named by their role within the Sidebar group, and the
+ * unpaired border and ring read as Sidebar Border / Sidebar Ring. Keys, CSS variables, editor labels and aliases are
+ * unchanged; this is the reference sheet's wording only.
+ */
+export const SIDEBAR_SWATCH_LABELS: Readonly<Record<string, string>> = Object.freeze({
+  sidebar: "Background",
+  "sidebar-foreground": "Foreground",
+  "sidebar-primary": "Primary Background",
+  "sidebar-primary-foreground": "Primary Foreground",
+  "sidebar-accent": "Accent Background",
+  "sidebar-accent-foreground": "Accent Foreground",
+  "sidebar-border": "Sidebar Border",
+  "sidebar-ring": "Sidebar Ring",
+})
+
+/**
  * PUI-114 display-only label for a swatch in its group: the background side of a semantic pair reads `Background` and
  * its `-foreground` partner `Foreground` (Base's own `background` / `foreground` pair included); an unpaired token keeps
  * its key. Token keys, editor labels and aliases are untouched: this is the reference sheet's wording only.
  */
 export function swatchLabel(token: string, tokens: readonly string[]): string {
+  const sidebar = SIDEBAR_SWATCH_LABELS[token]
+  if (sidebar !== undefined) return sidebar
   const base = token === "foreground" ? "background" : token.endsWith("-foreground") ? token.slice(0, -"-foreground".length) : null
   if (base !== null && tokens.includes(base)) return "Foreground"
   const partner = token === "background" ? "foreground" : `${token}-foreground`
@@ -49,16 +67,16 @@ function readRendered(): Readonly<Record<string, string>> {
 }
 
 /**
- * A wide rectangular swatch over its display label and resolved HEX; labels and values truncate rather than overflow.
- * In the Sidebar group, where three pairs share the Background / Foreground wording, the pair name stays available to
- * assistive technology.
+ * A rectangular swatch (PUI-122: four fifths of its column, still wider than tall) over its display label and resolved
+ * HEX; labels and values truncate rather than overflow. The label is a supporting uppercase line at the HEX size in
+ * the base foreground; the HEX stays muted. Labels are contextual, so no extra screen-reader qualifier is added.
  */
-function Swatch({ token, label, qualifier, value }: { token: string; label: string; qualifier?: string; value: string }) {
+function Swatch({ token, label, value }: { token: string; label: string; value: string }) {
   return (
     <li className="grid min-w-0 content-start gap-1.5" data-token={token}>
-      <span aria-hidden="true" className="h-10 w-full rounded-md border" data-testid="swatch" style={{ background: `var(--${token})` }} />
+      <span aria-hidden="true" className="h-10 w-4/5 rounded-md border" data-testid="swatch" style={{ background: `var(--${token})` }} />
       <span className="grid min-w-0">
-        <span className="truncate text-sm font-medium" data-testid="token-label">{qualifier && <span className="sr-only">{qualifier} </span>}{label}</span>
+        <span className="truncate text-xs font-normal text-foreground uppercase" data-testid="token-label">{label}</span>
         <span className="truncate text-xs text-muted-foreground tabular-nums" data-testid="token-value" data-resolved={value}>{displayHex(value)}</span>
       </span>
     </li>
@@ -70,7 +88,7 @@ function SwatchGroup({ label, children }: { label: string; children: React.React
   const id = React.useId()
   return (
     <section aria-labelledby={id} className="grid gap-3">
-      <h3 id={id} className="text-xs font-medium text-muted-foreground uppercase">{label}</h3>
+      <h3 id={id} className="text-sm font-medium text-foreground">{label}</h3>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-3">{children}</ul>
     </section>
   )
@@ -81,7 +99,7 @@ function Sheet({ name, title, children }: { name: string; title: string; childre
   const id = React.useId()
   return (
     <section aria-labelledby={id} data-design-section={name} className="grid min-w-0 content-start gap-6 p-4 @xl:p-6">
-      <h2 id={id} className="type-heading text-lg">{title}</h2>
+      <h2 id={id} className="type-heading text-xl">{title}</h2>
       {children}
     </section>
   )
@@ -90,7 +108,8 @@ function Sheet({ name, title, children }: { name: string; title: string; childre
 /**
  * PUI-101/PUI-109/PUI-114: a read-only design-system reference sheet for the live preview theme. It holds no theme state
  * and no controls: the swatches paint from the same custom properties as every other preview surface, and each value
- * is the HEX equivalent of what the iframe CSS currently resolves. Colors and Type scale are flat padded sections, side
+ * is the HEX equivalent of what the iframe CSS currently resolves. PUI-122 hierarchy: section heading, then title-case
+ * group heading, then the uppercase supporting label, then the muted HEX. Colors and Type scale are flat padded sections, side
  * by side once the view's own container is wide enough and stacked below that. Colors mirrors the Workbench sidebar's
  * groups under their plain titles; the Sidebar group shows the effective values (base aliases while dedicated tokens
  * are off, dedicated values once on) with no alias annotations. Type scale is one descending list of the same sample
@@ -112,16 +131,14 @@ export const DesignSystemPreview = React.memo(function DesignSystemPreview({ sou
     <div data-design-system className="@container min-w-0">
       <div className="grid min-w-0 grid-cols-1 gap-4 @3xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <Sheet name="colors" title="Colors">
-          {DESIGN_SYSTEM_COLOR_GROUPS.map(group => (
-            <SwatchGroup key={group.id} label={group.title}>
-              {group.tokens.map(token => {
-                const label = swatchLabel(token, group.tokens)
-                const pair = label === "Foreground" ? token.replace(/-?foreground$/, "") : token
-                const qualifier = group.id === "sidebar" && label !== token && pair !== "sidebar" ? `Sidebar ${pair.slice("sidebar-".length)}` : undefined
-                return <Swatch key={token} token={token} label={label} qualifier={qualifier} value={rendered[`--${token}`] ?? ""} />
-              })}
-            </SwatchGroup>
-          ))}
+          {/* PUI-122: slightly more space between groups (gap-7) than within them (gap-3). */}
+          <div className="grid min-w-0 gap-7" data-testid="color-groups">
+            {DESIGN_SYSTEM_COLOR_GROUPS.map(group => (
+              <SwatchGroup key={group.id} label={group.title}>
+                {group.tokens.map(token => <Swatch key={token} token={token} label={swatchLabel(token, group.tokens)} value={rendered[`--${token}`] ?? ""} />)}
+              </SwatchGroup>
+            ))}
+          </div>
         </Sheet>
         <Sheet name="type-scale" title="Type scale">
           <ul className="grid gap-5">
