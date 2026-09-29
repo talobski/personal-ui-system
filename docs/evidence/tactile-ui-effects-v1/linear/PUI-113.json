@@ -1,0 +1,76 @@
+{
+  "retrievedAtUtc": "2026-09-29T09:32:36.300Z",
+  "issue": {
+    "id": "PUI-113",
+    "uuid": "53d55e2d-e9b3-4507-86c5-82dec0eddda8",
+    "title": "Add optional tactile UI effects for outline buttons and tabs",
+    "description": "Introduce a small, backward-compatible **UI Effects** section under the existing Effects tab. The first supported effect is **Tactile**, applied only to selected neutral controls: Outline Buttons and surface/pill-style Tabs.\n\nThis remains a deliberately narrow experiment in subtle modern skeuomorphism. Do not expand it into a generalized material system.\n\n## Overall direction\n\nAdd a reusable UI-effects control shape that is future-friendly without pre-building unused effect systems.\n\nInitial scope:\n\n* Effect dropdown with **Tactile** as the only available option for now;\n* per-target toggles for:\n  * Outline buttons\n  * Tabs\n* one shared Strength control;\n* no tactile treatment for other Button variants;\n* no Input support in this first iteration.\n\nThe tactile recipe should remain subtle and modern, using coordinated physical cues such as:\n\n* light inner highlight;\n* subtle inner lower shadow;\n* restrained outer ring/border definition;\n* slightly more inset pressed/active state where appropriate.\n\nAvoid glossy, heavy, legacy-skeuomorphic styling.\n\n### Visual direction\n\nUse the owner's reference as the aesthetic target: a subtle tactile illumination treatment rather than heavy classic skeuomorphism.\n\nThe intended feel is:\n\n* softly illuminated neutral surfaces;\n* restrained internal light/wash;\n* faint edge/border definition;\n* minimal obvious drop shadow;\n* clean, modern, and understated;\n* tactile without appearing glossy, beveled, or retro.\n\nFor implementation, do not over-specify or hard-code a single shadow formula in the contract. The worker should tune the effect through browser evidence and preserve the existing semantic surface/color relationships.\n\nOutline Buttons and active surface-style Tabs should share this same visual language.\n\n## 1. Effects-tab controls\n\nAdd a new **UI EFFECTS** section in the existing **Effects** tab, positioned between the current Shadow and Motion sections.\n\nControls:\n\n### Effect\n\nUse a dropdown/select control.\n\nCurrent options:\n\n* Tactile\n\nOnly Tactile is available in this first version.\n\nThe control shape should allow additional effect families to be introduced later without redesigning the sidebar, but do not implement or stub additional effects now.\n\nExamples of future possibilities may include other effect recipes, but they are explicitly out of scope for this ticket.\n\n### Targets\n\nProvide independent on/off controls for:\n\n* Outline buttons\n* Tabs\n\nRules:\n\n* Outline buttons toggle controls whether the tactile recipe is applied to the accepted Outline Button variant.\n* Tabs toggle controls whether the tactile recipe is applied to accepted surface/pill-style tab triggers.\n* Line-style/minimal tabs remain flat and are not affected.\n* No other Button variants are affected.\n\n### Strength\n\nExpose one bounded Strength control shared by the active Tactile effect.\n\nThe Strength control should coordinate the tactile recipe rather than expose raw CSS shadow parameters.\n\nIt may influence, in a bounded way:\n\n* inner top highlight intensity;\n* inner lower shadow intensity;\n* restrained outer ring/border visibility;\n* pressed/selected inset depth.\n\nDo not expose separate low-level controls for each shadow/highlight parameter in this first version.\n\n## 2. Outline Button behavior\n\nKeep the existing shadcn Button architecture and semantic variants.\n\nApply tactile treatment **only** to the Outline variant when its target toggle is enabled.\n\nExplicitly keep these variants flat:\n\n* default / primary;\n* secondary;\n* ghost;\n* destructive;\n* link;\n* other accepted non-outline variants.\n\nRequirements:\n\n* preserve Outline Button semantic colors/tokens;\n* do not hard-code raw light/dark colors where semantic tokens already define the surface;\n* preserve radius, typography, icon placement, disabled state, size variants, and public Button behavior;\n* tactile rest state may feel slightly raised;\n* pressed/active state may feel slightly more inset;\n* avoid dramatic motion or large positional shifts.\n\nThe tactile effect should enhance neutral surface definition without changing the semantic hierarchy of stronger Button variants.\n\n## 3. Tabs behavior\n\nApply the same Tactile effect family to accepted surface/pill-style Tabs when the Tabs target toggle is enabled.\n\nUse the existing shadcn Tabs architecture.\n\nBehavior:\n\n* inactive surface-style tab triggers remain comparatively flat/quiet;\n* the active/selected tab trigger receives the tactile surface treatment;\n* pressed/focus interaction remains subtle;\n* line-style/minimal tabs are excluded from tactile styling.\n\nPreserve:\n\n* TabsList / TabsTrigger semantics;\n* keyboard navigation;\n* selected-state semantics;\n* focus-visible behavior;\n* current layout and sizing unless a tiny implementation adjustment is required for the tactile layer.\n\nDo not create a separate tactile recipe unrelated to Outline Button styling. Both targets should clearly belong to one shared effect family, with only state-specific differences where needed.\n\n## 4. UI Effects semantics\n\nThe existing Shadow controls remain separate from UI Effects.\n\nMental model:\n\n* Shadow = existing general/global elevation behavior;\n* UI Effects = optional component-targeted visual effect recipes;\n* Motion = existing transition timing behavior.\n\nThe UI Effects section should define:\n\n* **what effect recipe is active**;\n* **which supported targets receive it**;\n* **how strong the effect is**.\n\nDo not turn this into a raw CSS editor.\n\n## 5. Theme integration\n\nPrefer a small backward-compatible extension of the existing Theme v3 behavior.\n\nDo **not** introduce Theme v4, migration machinery, or a generalized material engine unless inspection of the current schema proves an optional extension cannot be added safely.\n\nConceptually, the theme may store values equivalent to:\n\n* effect: tactile;\n* outlineButton enabled: boolean;\n* tabs enabled: boolean;\n* strength: bounded numeric value.\n\nThe exact schema should follow existing Theme v3 conventions rather than inventing a parallel theme structure.\n\nBackward compatibility requirements:\n\n* older themes that do not contain UI Effects fields must preserve their current flat appearance;\n* importing an older theme must not suddenly enable tactile styling;\n* newly exported themes must preserve:\n  * selected effect;\n  * Outline buttons toggle;\n  * Tabs toggle;\n  * Strength;\n* all existing color, typography, geometry, shadow, motion, sidebar, persistence, history, and Design Command behavior remains unchanged unless directly required for this bounded extension.\n\n## 6. Import / export\n\nIntegrate UI Effects into the existing theme import/export path.\n\nRequirements:\n\n* no separate skeuomorphic-theme format;\n* no separate import flow;\n* no new file type;\n* existing exported themes remain valid;\n* older imports remain visually unchanged;\n* newly exported themes preserve UI Effects configuration.\n\n## 7. Boundaries\n\nThis ticket is intentionally limited to:\n\n* Outline Buttons;\n* surface/pill-style Tabs.\n\nExplicitly out of scope:\n\n* Inputs;\n* Cards;\n* Slider;\n* Switch;\n* Dialog;\n* Sidebar;\n* line-style Tabs;\n* Primary/default Buttons;\n* Secondary Buttons;\n* Destructive Buttons;\n* Ghost Buttons;\n* Link Buttons;\n* textures;\n* lighting-direction controls;\n* arbitrary inner-shadow editors;\n* per-component raw shadow controls;\n* generalized material/effects framework;\n* extra effect families;\n* new dependencies;\n* network behavior.\n\nDo not change the public Button or Tabs APIs solely for this feature unless inspection shows the existing accepted extension points cannot support the effect cleanly.\n\nPrefer theme/state-driven styling through the existing Personal UI architecture.\n\n## 8. Accessibility and interaction\n\n* preserve Button and Tabs keyboard behavior;\n* preserve focus-visible treatment;\n* preserve disabled-state semantics for Buttons;\n* preserve selected-state semantics for Tabs;\n* ensure tactile styling does not reduce contrast below accepted levels;\n* ensure pressed/selected styling remains distinguishable without relying on motion alone;\n* verify light and dark modes;\n* keep Strength visually bounded so high values do not create excessively glossy/heavy controls.\n\n## Acceptance\n\n* Effects tab includes a new **UI EFFECTS** section between Shadow and Motion.\n* UI Effects includes an Effect dropdown.\n* **Tactile** is the only available Effect option in this first version.\n* UI Effects includes independent toggles for:\n  * Outline buttons\n  * Tabs\n* UI Effects includes one shared bounded Strength control.\n* Outline Button receives the tactile treatment only when its toggle is enabled.\n* All non-outline Button variants remain flat.\n* Surface/pill-style active Tabs receive the tactile treatment only when the Tabs toggle is enabled.\n* Inactive tab triggers remain restrained and line-style tabs remain flat.\n* Outline Buttons and Tabs clearly share one coherent tactile effect family.\n* Tactile treatment uses coordinated inner highlight, inner shadow, restrained ring/border, and subtle pressed/selected depth rather than raw per-property controls.\n* The visual result matches the intended subtle tactile-illumination direction: soft internal light/wash, restrained edge definition, minimal obvious drop shadow, and no heavy glossy/beveled treatment.\n* Existing semantic colors, sizes, keyboard behavior, focus-visible behavior, disabled state, and accessibility remain intact.\n* Existing Theme v3 behavior remains the basis of the implementation.\n* No Theme v4 or generalized material system is introduced unless current schema inspection proves it strictly necessary.\n* Older themes import with unchanged flat appearance.\n* Newly exported themes preserve Effect, target toggles, and Strength.\n* Existing colors, typography, geometry, general Shadow, Motion, sidebar, history, persistence, Design Command, and registry behavior remain unchanged outside the minimum required integration.\n* No Input support, extra effect families, new dependency, network, or unrelated primitive changes are introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-113/add-optional-tactile-ui-effects-for-outline-buttons-and-tabs",
+    "gitBranchName": "emmantalob/pui-113-add-optional-tactile-ui-effects-for-outline-buttons-and-tabs",
+    "createdAt": "2026-09-28T18:03:16.585Z",
+    "updatedAt": "2026-09-29T08:39:50.591Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T18:03:16.585Z",
+        "endedAt": "2026-09-29T08:39:50.582Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T08:39:50.582Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [],
+  "documentState": [],
+  "referenceState": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

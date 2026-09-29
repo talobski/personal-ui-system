@@ -1,0 +1,17 @@
+{
+  "phase": "tactile-ui-effects-v1-001",
+  "admittedTickets": ["PUI-113"],
+  "snapshots": {
+    "PUI-113": {
+      "path": "docs/evidence/tactile-ui-effects-v1/linear/PUI-113.json",
+      "sha256": "0d77dad2f050a3293dbb45346d285aebfdb4e241f07f43278321064ae3fc9c3a",
+      "uuid": "53d55e2d-e9b3-4507-86c5-82dec0eddda8",
+      "updatedAt": "2026-09-29T08:39:50.591Z",
+      "retrievedAtUtc": "2026-09-29T09:32:36.300Z"
+    }
+  },
+  "excludedTickets": ["PUI-118"],
+  "comments": {"PUI-113": 0},
+  "attachments": {"PUI-113": 0},
+  "documents": {"PUI-113": 0}
+}
