@@ -59,7 +59,7 @@ export const TACTILE_SURFACE_TAB_SELECTOR = '[data-slot="tabs-list"]:not([data-v
  */
 const TACTILE_RECIPE = {
   light: { light: "--background", shade: "--foreground", washTop: 60, washBottom: 5, highlight: 90, lower: 10, edge: 6, press: 12 },
-  dark: { light: "--foreground", shade: "--background", washTop: 7, washBottom: 20, highlight: 14, lower: 45, edge: 55, press: 55 },
+  dark: { light: "--foreground", shade: "--background", washTop: 7, washBottom: 20, highlight: 14, lower: 45, edge: 35, press: 55 },
 } as const
 
 const mix = (token: string, percent: number) => `color-mix(in oklab, var(${token}) ${Number(percent.toFixed(2))}%, transparent)`

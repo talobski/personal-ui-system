@@ -60,9 +60,13 @@ field restores to no field), no history code changes are needed. The Strength sl
 `renderShadcnTailwindCss` appends one `@layer components` block **only when** `outlineButtons` or `tabs` is on.
 Flat themes emit nothing new. The block targets exactly:
 
-- Outline Button: `[data-slot="button"][data-variant="outline"]` — `Button` already emits `data-slot`/`data-variant`,
-  so non-outline variants (`default`, `secondary`, `ghost`, `destructive`, `link`) cannot match. `ToggleGroup`
-  items (`data-slot="toggle-group-item"`) and `buttonVariants()`-only class usages (no `data-slot`) are not matched.
+- Outline Button: `[data-variant="outline"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])`.
+  (Revised during integration from `[data-slot="button"][data-variant="outline"]`: browser checks showed that an
+  Outline Button composed through an `asChild` Dialog/Drawer trigger or close gets its `data-slot` replaced by the
+  wrapper's `*-trigger` / `*-close` slot, while `data-variant` and `data-size` survive.) Non-outline variants
+  (`default`, `secondary`, `ghost`, `destructive`, `link`) cannot match; `ToggleGroup` items
+  (`toggle-group-item`), `SidebarMenuButton` (no `data-variant`), Field/Bubble (`data-variant` without `data-size`)
+  and `buttonVariants()`-only class usages (no data attributes) are not matched.
 - Active surface/pill Tab: `[data-slot="tabs-list"]:not([data-variant="line"]) > [data-slot="tabs-trigger"][data-state="active"]`.
   Inactive triggers never match (`data-state="inactive"`).
 - **Line/minimal Tabs exclusion.** The accepted `Tabs` component has no variant prop, so its public API is not
@@ -127,3 +131,42 @@ no Input/Card/Slider/Switch/Dialog/Sidebar/non-outline styling, no network, cred
   `lifecycle.test.ts` (numeric control case for Strength; Effects section order `shadow, ui-effects, motion`).
 - New tests: `packages/core/src/theme/ui-effects.test.ts`, `apps/workbench/src/uiEffects.test.ts`.
 - `pnpm test`: 47 files, 899 tests passed (base: 45 files, 874 tests). `pnpm typecheck`: clean.
+
+## Checkpoint 3 — final producer handoff
+
+Additional changes after checkpoint 2:
+
+- Outline targeting revised to cover `asChild` triggers/closes (see Rendering above); the Workbench's Save As / delete
+  / reset dialog Cancel buttons and the preview's `Open dialog` trigger now receive the active theme's effect.
+- `PreviewFrame.tsx`: the States view gains one ordinary surface/pill Tabs sample (`Surface tabs sample`, three
+  triggers with panels). Before this, no surface Tabs rendered anywhere in the Workbench preview, so the Tabs toggle
+  had no visible target.
+- Recipe tuning from browser captures: dark-mode outer edge reduced from 55% to 35% (at full strength) so it no longer
+  doubles the active tab's `border-input`.
+- `e2e/tactile-ui-effects.spec.ts` (added to `playwright.workbench.config.ts`, ignored by the Storybook config like
+  every Workbench spec) and `tools/verify-tactile-ui-effects.mjs` (offline phase guard).
+- Accepted e2e assertions scoped in place, none removed or skipped: `workbench-showcase-components-geometry` and
+  `workbench-sidebar-theme-polish` Effects section lists now include UI Effects between Shadow and Motion;
+  `quiet-workspace` measures the open (`:visible`) Select popup because the force-mounted Effects panel holds a
+  second closed in-place popup; `workbench-gallery-preview-expansion` counts the top-level preview-view panels
+  because States now nests the Tabs sample's panel.
+
+Producer results on the final tree (offline, `COREPACK_ENABLE_NETWORK=0`, local 127.0.0.1 servers only):
+
+| Check | Result |
+| --- | --- |
+| `pnpm test` | 47 files, 899 tests passed |
+| `pnpm typecheck` | pass |
+| `pnpm build:workbench`, `pnpm build:storybook`, `pnpm registry:build` | pass (registry 23 items) |
+| `node tools/verify-tactile-ui-effects.mjs` | pass |
+| Workbench browser suite (390x844, 1440x900) | 412 passed, 18 skipped (pre-existing), 2 intermittent under `--workers=4`: `workbench-control-navigation-scroll.spec.ts:18` (dark) and `workbench-sidebar-preview-followup.spec.ts:284` (light); both files pass 64/64 serially with `--repeat-each=2` |
+| `tactile-ui-effects.spec.ts` | 10/10 (both viewports), including decoded axe in light and dark with both targets on |
+| Storybook browser suite | 118 passed (unchanged count) |
+| Design Command live boundary | 1 passed |
+
+Historical phase verifiers (`tools/verify-workbench-*.mjs`, `verify-quiet-workspace.mjs`, etc.) fail identically on
+the untouched base `8d06f7d` because they pin their own phase's frozen records; they are not regressions here.
+
+Residuals for Lead: exact recipe percentages remain open to bounded tuning; Storybook stays flat (its static
+`quiet-editorial.css` has no UI effects), so tactile evidence is Workbench-only; axe reports on gradient backgrounds
+may land in "incomplete" rather than pass/fail for contrast.
