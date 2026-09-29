@@ -1,18 +1,19 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`be63bef26f0f654a2c449533ee83d12f91a80454` on `main`. Phase
-`tactile-ui-effects-v1-001` delivered PUI-113 as a separate Tier 3 phase.
+`e3f7410033966326785cf74f59429eba8d0d68f0` on `main`. Two separately
+admitted phases are now closed: `tactile-ui-effects-v1-001` delivered PUI-113
+as Tier 3, followed by `workbench-performance-v1-001` for PUI-118 as Tier 2.
 Theme v3 retains version 3.0 with an optional, backward-compatible UI-effects
 value for Tactile on Outline Buttons and selected surface Tabs, two target
 toggles, and shared Strength. Older themes stay flat. One bounded
 `setUiEffects` operation brings the mutation union from 12 to 13; the public
-registry remains 23 resources. Its frozen PUI-113 packet and reconciled
-contract govern the accepted candidate. Lead browser evidence and fresh
-protected verification passed with an explicit inherited Bitcoin width-sweep
-test instability reproduced on the prior accepted base. No owner visual gate,
-worker network, paid spend, MAX handoff, or remote push was used. PUI-118 is a
-separate performance-only phase and is not included in this result. The earlier
+registry remains 23 resources. PUI-118 measured and reduced redundant preview
+iframe renders without changing visual output or the accepted theme, history,
+Design Command and public contracts. Each phase has its own frozen packet,
+contract, Lead browser evidence, protected verification and closeout. No owner
+visual gate, worker network, paid spend, MAX handoff, or remote push was used.
+The earlier
 nested-gallery phase's record
 preserves a one-time worker execution-envelope violation: Corepack made an
 unauthorized pnpm download during its producer verification. The owner accepted
@@ -24,6 +25,29 @@ Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
 Last updated: 2026-09-29
+
+## Phase result: Workbench Performance v1
+
+Accepted PUI-118 at product commit `e3f7410033966326785cf74f59429eba8d0d68f0`.
+A committed accepted-base profile found about 1,300 preview component renders
+per theme edit. Memo boundaries around prop-independent Cards, App shells and
+States previews, plus the Design system sheet keyed by posted CSS, reduce that
+to about 177 without changing DOM, iframe messages, history or visual output.
+In Lead's paired 4× CPU browser run, color-edit medians fell from 152–161 ms
+to 116–121 ms and preview-tab medians from 68–77 ms to 37–40 ms across three
+fresh sessions per build. Twenty narrow/wide light/dark screenshot pairs were
+byte-identical. Radius-slider total work and other non-targeted hotspots
+remain neutral; no broader architecture change was made.
+
+Lead's exact-candidate Workbench suite passed 414 tests with 18 established
+skips; Storybook passed 118 and the credential-empty Design Command boundary
+passed. The separate four-worker keyboard-scroll stress passed 40/40. The
+producer had observed 5/140 intermittent candidate failures under parallel
+load versus 0/140 on its accepted-base comparison; that uncertainty remains
+explicitly recorded, alongside the prior accepted-phase intermittency. Fresh
+protected Codex Terra verification passed 899 unit tests, typecheck, all
+builds, frozen contract and measurement audit. See `.loop/runs/workbench-performance-v1-001/`
+for exact receipts and residuals.
 
 ## Phase result: Tactile UI Effects v1
 
