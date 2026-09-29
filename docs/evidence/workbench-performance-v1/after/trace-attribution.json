@@ -1,0 +1,127 @@
+{
+ "note": "Chrome timeline traces, base (5199) then candidate (5197) back to back, 1440x900 light, 20 actions; tracing-inflated, attribution only",
+ "traces": {
+  "base-color": {
+   "n": 20,
+   "perActionMs": {
+    "RunTask": 51.5,
+    "js:preview": 22.6,
+    "jsby:preview:FunctionCall:D": 22.35,
+    "js:unattributed": 13.1,
+    "jsby:unattributed:EventDispatch:input": 11.54,
+    "Layout:preview": 8.72,
+    "UpdateLayoutTree:parent": 4.98,
+    "Paint:parent": 2.94,
+    "Layout:parent": 1.61,
+    "UpdateLayoutTree:preview": 1.08,
+    "PrePaint:parent": 1.02,
+    "Layerize:parent": 0.74,
+    "jsby:unattributed:EventDispatch:textInput": 0.67,
+    "Commit:unattributed": 0.6,
+    "jsby:unattributed:RunMicrotasks:": 0.36
+   }
+  },
+  "base-radius": {
+   "n": 20,
+   "perActionMs": {
+    "RunTask": 68.13,
+    "js:preview": 22.48,
+    "jsby:preview:FunctionCall:D": 22.22,
+    "Paint:parent": 17.65,
+    "js:unattributed": 14.09,
+    "jsby:unattributed:EventDispatch:keydown": 10.43,
+    "Layout:preview": 8.96,
+    "UpdateLayoutTree:parent": 4.99,
+    "UpdateLayoutTree:preview": 2.84,
+    "Layerize:parent": 2.31,
+    "PrePaint:parent": 1.74,
+    "jsby:unattributed:EventDispatch:transitionrun": 0.91,
+    "Commit:unattributed": 0.86,
+    "jsby:unattributed:EventDispatch:transitionstart": 0.84,
+    "jsby:unattributed:EventDispatch:transitioncancel": 0.73,
+    "jsby:unattributed:EventDispatch:transitionend": 0.53,
+    "Layout:parent": 0.44,
+    "jsby:unattributed:RunMicrotasks:": 0.31
+   }
+  },
+  "base-tab": {
+   "n": 20,
+   "perActionMs": {
+    "RunTask": 40.65,
+    "js:unattributed": 12.52,
+    "jsby:unattributed:EventDispatch:mousedown": 11.2,
+    "Paint:parent": 9.96,
+    "js:preview": 4.81,
+    "jsby:preview:FunctionCall:D": 4.02,
+    "Layout:preview": 2.85,
+    "UpdateLayoutTree:preview": 2.66,
+    "Layerize:parent": 1.74,
+    "PrePaint:parent": 1.29,
+    "Commit:unattributed": 1.02,
+    "jsby:preview:FireAnimationFrame:": 0.59,
+    "jsby:unattributed:RunMicrotasks:": 0.4
+   }
+  },
+  "cand-color": {
+   "n": 20,
+   "perActionMs": {
+    "RunTask": 42.55,
+    "js:unattributed": 12.35,
+    "js:preview": 11.6,
+    "jsby:preview:FunctionCall:D": 11.52,
+    "jsby:unattributed:EventDispatch:input": 10.74,
+    "Layout:preview": 10,
+    "UpdateLayoutTree:parent": 5,
+    "Paint:parent": 3.05,
+    "Layout:parent": 1.59,
+    "UpdateLayoutTree:preview": 1.26,
+    "PrePaint:parent": 1.09,
+    "Layerize:parent": 0.67,
+    "jsby:unattributed:EventDispatch:textInput": 0.58,
+    "Commit:unattributed": 0.58,
+    "jsby:unattributed:RunMicrotasks:": 0.4
+   }
+  },
+  "cand-radius": {
+   "n": 20,
+   "perActionMs": {
+    "RunTask": 68.52,
+    "js:unattributed": 16.29,
+    "Paint:parent": 16.24,
+    "js:preview": 14.94,
+    "jsby:preview:FunctionCall:D": 14.84,
+    "Layout:preview": 10.74,
+    "jsby:unattributed:EventDispatch:keydown": 9.35,
+    "UpdateLayoutTree:preview": 6.55,
+    "UpdateLayoutTree:parent": 4.63,
+    "Layerize:parent": 2.04,
+    "jsby:unattributed:EventDispatch:transitionrun": 2.02,
+    "jsby:unattributed:EventDispatch:transitionstart": 1.96,
+    "PrePaint:parent": 1.82,
+    "jsby:unattributed:EventDispatch:transitioncancel": 1.79,
+    "Commit:unattributed": 0.81,
+    "jsby:unattributed:EventDispatch:transitionend": 0.45,
+    "Layout:parent": 0.43,
+    "jsby:unattributed:RunMicrotasks:": 0.31
+   }
+  },
+  "cand-tab": {
+   "n": 20,
+   "perActionMs": {
+    "RunTask": 31.33,
+    "Paint:parent": 10.05,
+    "js:preview": 5.86,
+    "jsby:preview:FunctionCall:D": 4.95,
+    "Layout:preview": 3.14,
+    "UpdateLayoutTree:preview": 2.47,
+    "js:unattributed": 2.37,
+    "Layerize:parent": 2.08,
+    "PrePaint:parent": 1.28,
+    "jsby:unattributed:EventDispatch:mousedown": 1.17,
+    "Commit:unattributed": 0.93,
+    "jsby:preview:FireAnimationFrame:": 0.63,
+    "jsby:unattributed:RunMicrotasks:": 0.37
+   }
+  }
+ }
+}

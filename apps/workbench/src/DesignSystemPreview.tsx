@@ -96,9 +96,10 @@ function Sheet({ name, title, children }: { name: string; title: string; childre
  * are off, dedicated values once on) with no alias annotations. Type scale is one descending list of the same sample
  * at each Tailwind size in the live Body role, one line each and truncated rather than overflowing, with no summary
  * line. `source` changes whenever the parent posts new CSS or mode; a class observer on the root catches the
- * light/dark switch, which the frame applies after this view's effects.
+ * light/dark switch, which the frame applies after this view's effects. Memoized on `source` (PUI-118): a preview view
+ * switch or a value-identical repost does not re-render the sheet.
  */
-export function DesignSystemPreview({ source }: { source: string }) {
+export const DesignSystemPreview = React.memo(function DesignSystemPreview({ source }: { source: string }) {
   const [rendered, setRendered] = React.useState<Readonly<Record<string, string>>>({})
   React.useEffect(() => {
     const read = () => setRendered(readRendered())
@@ -135,4 +136,4 @@ export function DesignSystemPreview({ source }: { source: string }) {
       </div>
     </div>
   )
-}
+})

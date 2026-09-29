@@ -1,0 +1,63 @@
+{
+ "note": "Playwright JSON tallies. wcn-<build>-<round>.json: e2e/workbench-control-navigation-scroll.spec.ts:18, desktop project, --repeat-each=15, --workers=4 (serial: --workers=1), alternated cand/base. <build>-repeat.json: :18 plus bitcoin :126, both projects, --repeat-each=5, default workers.",
+ "tallies": {
+  "wcn-base-1.json": {
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | passed": 15
+  },
+  "wcn-base-2.json": {
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | passed": 15
+  },
+  "wcn-cand-1.json": {
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | passed": 14,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | failed": 1
+  },
+  "wcn-cand-2.json": {
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | passed": 13,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | failed": 2
+  },
+  "wcn-cand-serial.json": {
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | passed": 15,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | passed": 15
+  },
+  "cand-repeat.json": {
+   "workbench-mobile-390x844 | stays contained and full-width across gallery container widths | skipped": 5,
+   "workbench-desktop-1440x900 | stays contained and full-width across gallery container widths | passed": 5,
+   "workbench-mobile-390x844 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | passed": 5,
+   "workbench-mobile-390x844 | WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference | passed": 5,
+   "workbench-mobile-390x844 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | passed": 5,
+   "workbench-mobile-390x844 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | passed": 5,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | passed": 5,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference | passed": 5,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | passed": 4,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | passed": 4,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | failed": 1,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | failed": 1
+  },
+  "base-repeat.json": {
+   "workbench-mobile-390x844 | stays contained and full-width across gallery container widths | skipped": 5,
+   "workbench-desktop-1440x900 | stays contained and full-width across gallery container widths | passed": 5,
+   "workbench-mobile-390x844 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | passed": 5,
+   "workbench-mobile-390x844 | WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference | passed": 5,
+   "workbench-mobile-390x844 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | passed": 5,
+   "workbench-mobile-390x844 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | passed": 5,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, reduce | passed": 5,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference | passed": 5,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce | passed": 5,
+   "workbench-desktop-1440x900 | WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference | passed": 5
+  }
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "note": "harness/visual.mjs: base (5199) vs candidate (5197) full-page Workbench screenshot and each preview view (iframe html) screenshot, reducedMotion reduce, after fonts ready; byte-equal PNG comparison. harness/posts.mjs and harness/idle.mjs on the candidate.",
+ "screenshotPairs": {"compared": 20, "identical": 20, "matrix": "1440x900 and 390x844 x light and dark x [workbench, Design system, App shells, States, Cards]"},
+ "statesDefaultButtonActivationsAfterTwoClicks": {"base": "Default button activations: 2", "candidate": "Default button activations: 2", "matrix": "all four viewport/mode cells"},
+ "previewPostsCandidate": {"initialPosts": 1, "radiusSteps": 10, "postsAfterRadius": 10, "pickerGestures": 5, "postsForPicker": 10, "sameIframeDocument": true},
+ "idleAfterReady1440Light": {"candidate": [{"first300msTask": 80.0, "next3sTask": 0.8}, {"first300msTask": 82.7, "next3sTask": 0.9}], "base": [{"first300msTask": 68.9, "next3sTask": 1.6}, {"first300msTask": 65.5, "next3sTask": 1.3}]},
+ "wcnStandaloneRepro": {"script": "harness/wcn.mjs (WCN-05 lines 22-43 sequence)", "unthrottledDark": {"candidate": "Home ignored 0/25", "base": "Home ignored 0/25"}, "cpu4LightReduce": {"candidate": "Home ignored 0/20, PageDown ignored 4/20", "base": "Home ignored 0/20, PageDown ignored 1/20"}}
+}

@@ -23,11 +23,15 @@ import type { PreviewReady, PreviewState } from "./messages"
 
 const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "link"] as const
 
+// PUI-118: posted theme state reaches these views only through the CSS variables, so a state message or a view switch
+// must not reconcile their prop-independent trees again (the baseline measured ~1,300 preview renders per edit).
+const CardsView = React.memo(Gallery)
+const AppShellsView = React.memo(AppShells)
+
 /** Runs inside the preview iframe: applies the workbench's theme variables and renders the pilot component states. */
 export function PreviewFrame() {
   const [state, setState] = React.useState<PreviewState | null>(null)
   const [view, setView] = React.useState("cards")
-  const [buttonActivations, setButtonActivations] = React.useState(0)
 
   React.useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -67,11 +71,24 @@ export function PreviewFrame() {
           <TabsTrigger value="app-shells" className={CATEGORY_TRIGGER_CLASS}>App shells</TabsTrigger>
           <TabsTrigger value="states" className={CATEGORY_TRIGGER_CLASS}>States</TabsTrigger>
         </TabsList>
-        <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden"><Gallery /></TabsContent>
+        <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden"><CardsView /></TabsContent>
         {/* PUI-101/102: read-only views of the same posted CSS; the Workbench sidebar remains the only editor. */}
         <TabsContent value="design-system" forceMount className="data-[state=inactive]:hidden"><DesignSystemPreview source={`${state?.mode ?? ""}\n${state?.css ?? ""}`} /></TabsContent>
-        <TabsContent value="app-shells" forceMount className="data-[state=inactive]:hidden"><AppShells /></TabsContent>
+        <TabsContent value="app-shells" forceMount className="data-[state=inactive]:hidden"><AppShellsView /></TabsContent>
         <TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">
+          <StatesView />
+        </TabsContent>
+      </Tabs>
+    </main>
+    </ScrollArea>
+  )
+}
+
+/** The States view's pilot component samples; it owns its own activation count and takes nothing from posted state. */
+const StatesView = React.memo(function StatesView() {
+  const [buttonActivations, setButtonActivations] = React.useState(0)
+  return (
+    <>
       <section aria-labelledby="pv-buttons" className="grid gap-2">
         <h2 id="pv-buttons" className="type-heading text-sm">
           Button
@@ -181,9 +198,6 @@ export function PreviewFrame() {
           </ResponsiveDialog>
         </div>
       </section>
-        </TabsContent>
-      </Tabs>
-    </main>
-    </ScrollArea>
+    </>
   )
-}
+})
