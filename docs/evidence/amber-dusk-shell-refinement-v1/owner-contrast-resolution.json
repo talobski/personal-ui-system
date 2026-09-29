@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "loop-owner-risk-resolution/1",
+  "phase": "amber-dusk-shell-refinement-v1-001",
+  "recordedAtUtc": "2026-09-29T19:13:56.675Z",
+  "priorCandidateCommit": "ebf7df5a891b057c04c7e862877773caa21e54b5",
+  "priorVerifierResult": "FAIL_OWNER_DISPOSITION_REQUIRED",
+  "ownerChoice": "Authorize narrow Amber Dusk color adjustments to reach accessible text contrast, then reverify.",
+  "authority": "Narrow amendment to PUI-123 source-palette preservation only; retain original source in frozen packet and conversion provenance. No schema, renderer, other theme, dependency, network, credential, publishing, paid, concurrency or run-ceiling change.",
+  "requiredTargets": [
+    "Light editor labels: #83827d on #f5f4ee 3.49:1",
+    "Light muted preview: #83827d on #faf9f5 3.65:1",
+    "Light outgoing Chat bubble: #ffffff on #c96442 3.89:1",
+    "Dark outgoing Chat bubble: #ffffff on #d97757 3.12:1"
+  ],
+  "goal": "At least 4.5:1 for observed normal-text pairs in both modes, with minimal Amber Dusk token-only changes and unchanged UI behavior.",
+  "execution": "One bounded same-lineage Claude STRONG correction, fresh Lead browser and offline evidence, new opposite-family protected verifier before acceptance."
+}
