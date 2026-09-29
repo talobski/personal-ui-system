@@ -131,11 +131,11 @@ for (const mode of ["light", "dark"] as const) {
         // WRCP-05 shared section triggers.
         for (const section of await panel.locator('[data-testid^="section-"]').all()) {
           const trigger = section.getByRole("button").first()
-          await expect(trigger).toHaveClass(/(?:^| )bg-muted(?: |$)/)
-          await expect(trigger).toHaveClass(/(?:^| )ring-1 ring-border(?: |$)/)
-          await expect(trigger).toHaveClass(/(?:^| )hover:bg-muted\/80(?: |$)/)
-          // WSPF-05 supersedes text-foreground/75 with the semantic muted pair; no local foreground workaround.
-          await expect(trigger).toHaveClass(/(?:^| )text-muted-foreground(?: |$)/)
+          await expect(trigger).toHaveClass(/(?:^| )bg-secondary(?: |$)/)
+          await expect(trigger).toHaveAttribute("data-variant", "secondary")
+          await expect(trigger).toHaveClass(/(?:^| )hover:bg-secondary\/80(?: |$)/)
+          // PUI-120 supersedes the muted chip with the shared Secondary surface.
+          await expect(trigger).toHaveClass(/(?:^| )text-secondary-foreground(?: |$)/)
           await expect(trigger).not.toHaveClass(/accent|bg-muted\/50|ring-border\/50|text-foreground/)
           const s = await trigger.evaluate(el => { const c = getComputedStyle(el); return { pl: c.paddingLeft, pr: c.paddingRight, pt: c.paddingTop, pb: c.paddingBottom, size: parseFloat(c.fontSize), transform: c.textTransform, spacing: c.letterSpacing, bodySpacing: getComputedStyle(document.body).letterSpacing, radius: parseFloat(c.borderRadius), shadow: c.boxShadow, bg: c.backgroundColor } })
           expect([s.pl, s.pr, s.pt, s.pb]).toEqual(["8px", "8px", "2px", "2px"])
@@ -144,7 +144,7 @@ for (const mode of ["light", "dark"] as const) {
           // NGIP-08 supersedes the local tracking-wide chip: the trigger resolves Body tracking.
           expect(s.spacing).toBe(s.bodySpacing)
           expect(s.radius).toBeGreaterThan(0)
-          expect(s.shadow).not.toBe("none")
+          expect(s.shadow).toBe("none")
           expect((await box(trigger)).width).toBeLessThan((await box(section)).width)
           await trigger.hover()
           await expect.poll(() => style(trigger, "background-color")).not.toBe(s.bg)

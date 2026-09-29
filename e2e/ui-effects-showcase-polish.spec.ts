@@ -43,7 +43,7 @@ test("IESP-02 saved toggle-based themes load by the any-target rule, save back a
   const legacy = (outlineButtons: boolean, tabs: boolean) => ({ effect: { $type: "string", $value: "tactile" }, outlineButtons: { $type: "boolean", $value: outlineButtons }, tabs: { $type: "boolean", $value: tabs }, strength: { $type: "number", $value: 72 } })
   const seeds = [legacy(true, false), legacy(false, true), legacy(false, false)]
   const ids = ["legacy-outline", "legacy-tabs", "legacy-none", "legacy-bad"]
-  const themes = Object.fromEntries(ids.map((id, i) => [id, { ...theme, id, name: id, uiEffects: i < 3 ? seeds[i] : { ...seeds[0], inputs: { $type: "boolean", $value: true } } }]))
+  const themes = Object.fromEntries(ids.map((id, i) => [id, { ...theme, id, name: id.replaceAll("-", " "), uiEffects: i < 3 ? seeds[i] : { ...seeds[0], inputs: { $type: "boolean", $value: true } } }]))
   await page.evaluate(({ key, themes }) => {
     localStorage.setItem(key, JSON.stringify({ themes, activeId: "legacy-outline", bases: Object.fromEntries(Object.keys(themes).map((id) => [id, "default"])) }))
   }, { key: STORAGE_KEY, themes })
@@ -68,15 +68,19 @@ test("IESP-02 saved toggle-based themes load by the any-target rule, save back a
   expect(Object.keys(stored.themes)).toEqual(expect.arrayContaining(["legacy-outline", "legacy-tabs", "legacy-none"]))
   await workspaceMode(page, "Controls")
   await page.getByLabel("Active theme").click()
-  await expect(page.getByRole("option", { name: "legacy-tabs", exact: true })).toBeVisible()
-  await expect(page.getByRole("option", { name: "legacy-bad", exact: true })).toHaveCount(0)
+  await expect(page.getByRole("option", { name: "legacy tabs", exact: true })).toBeVisible()
+  await expect(page.getByRole("option", { name: "legacy bad", exact: true })).toHaveCount(0)
   await page.keyboard.press("Escape")
 
   // Saving a migrated theme writes the two-field canonical shape.
   await workspaceMode(page, "Preview")
   await editorCategory(page, "Effects")
+  await page.getByRole("combobox", { name: "Effect", exact: true }).click()
+  await page.getByRole("option", { name: "Tactile", exact: true }).click()
   await page.getByRole("textbox", { name: "Strength", exact: true }).fill("40")
   await page.getByRole("textbox", { name: "Strength", exact: true }).blur()
+  await page.getByRole("combobox", { name: "Effect", exact: true }).click()
+  await page.getByRole("option", { name: "Off", exact: true }).click()
   await workspaceMode(page, "Preview")
   await page.getByRole("button", { name: "Save", exact: true }).click()
   await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).themes["legacy-none"].uiEffects, STORAGE_KEY)).toEqual({ effect: { $type: "string", $value: "off" }, strength: { $type: "number", $value: 40 } })
@@ -234,14 +238,14 @@ test("IESP-08 Design system hierarchy, contextual Sidebar labels, live alias and
   await workspaceMode(page, "Controls")
   await editorCategory(page, "Colors")
   await page.getByRole("switch", { name: "Use sidebar tokens" }).click()
-  await page.getByRole("textbox", { name: "Sidebar primary", exact: true }).fill("#1a73e8")
-  await page.getByRole("textbox", { name: "Sidebar primary", exact: true }).blur()
+  await page.getByTestId("section-colors-sidebar").getByRole("textbox", { name: "Primary", exact: true }).fill("#1a73e8")
+  await page.getByTestId("section-colors-sidebar").getByRole("textbox", { name: "Primary", exact: true }).blur()
   await previewView(page, "Design system")
   await expect(value("sidebar-primary")).toHaveText("#1A73E8")
   await expect(value("primary")).not.toHaveText("#1A73E8")
   // Editor labels are unchanged by the display wording.
   await workspaceMode(page, "Controls")
-  await expect(page.getByRole("textbox", { name: "Sidebar primary", exact: true })).toBeVisible()
+  await expect(page.getByTestId("section-colors-sidebar").getByRole("textbox", { name: "Primary", exact: true })).toBeVisible()
   await workspaceMode(page, "Preview")
 
   for (const mode of ["light", "dark"] as const) {

@@ -103,7 +103,7 @@ for (const mode of ["light", "dark"] as const) {
       const extent = await nav.evaluate(el => { el.scrollLeft = el.scrollWidth; return { left: el.scrollLeft, max: el.scrollWidth - el.clientWidth } })
       expect(extent.left).toBe(extent.max)
       const last = await box(tablist.getByRole("tab", { name: "Command", exact: true }))
-      if (extent.max > 0) close(navBox.x + navBox.width - (last.x + last.width), 16)
+      if (extent.max > 0) close(navBox.x + navBox.width - (last.x + last.width), 19) // PUI-120: 16px inset plus 3px surface-list padding.
       await nav.evaluate(el => { el.scrollLeft = 0 })
       // Only the category row scrolls horizontally: the editor, sidebar and document never do.
       expect(await editor.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
@@ -113,10 +113,10 @@ for (const mode of ["light", "dark"] as const) {
       expect(await editor.locator('[data-slot="scroll-area-scrollbar"][data-orientation="horizontal"]').evaluateAll(bars => bars.every(bar => bar.closest('[data-slot="scroll-area"]')?.querySelector('[aria-label="Editor category navigation"]') != null))).toBe(true)
       await expectEditorContainment(page)
 
-      // WSPF-03 (WSTP-13 px-2): transparent padding-free list; content-width px-2 triggers with semantic active/inactive states.
-      expect(await tablist.evaluate(el => { const s = getComputedStyle(el); return [s.backgroundColor, s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft, s.flexWrap, s.height] })).toEqual([TRANSPARENT, "0px", "0px", "0px", "0px", "nowrap", "36px"])
+      // PUI-120: default muted surface list; natural-width triggers retain padding and keyboard semantics.
+      expect(await tablist.evaluate(el => { const s = getComputedStyle(el); return [s.backgroundColor, s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft, s.flexWrap, s.height] })).toEqual([await resolve(tablist, "muted", "background-color"), "3px", "3px", "3px", "3px", "nowrap", "36px"])
       const radiusMd = await resolve(tablist, defaultTheme.radius.md.$value, "border-radius")
-      const tokens = { secondary: await renderedRgba(tablist, "secondary", "background-color"), secondaryForeground: await renderedRgba(tablist, "secondary-foreground"), muted: await renderedRgba(tablist, "muted-foreground") }
+      const tokens = { active: await renderedRgba(tablist, mode === "dark" ? "color-mix(in oklab, var(--input) 30%, transparent)" : "background", "background-color"), foreground: await renderedRgba(tablist, "foreground"), inactive: await renderedRgba(tablist, mode === "dark" ? "muted-foreground" : "foreground") }
       const tabs = tablist.getByRole("tab")
       const tabHeights = new Set<number>()
       for (const tab of await tabs.all()) {
@@ -124,12 +124,12 @@ for (const mode of ["light", "dark"] as const) {
         expect([s.grow, s.shrink, s.wrap, s.pl, s.pr, s.pt, s.pb, s.cursor, s.size, s.weight, s.radius]).toEqual(["0", "0", "nowrap", "8px", "8px", "4px", "4px", "pointer", "14px", "500", radiusMd])
         tabHeights.add((await box(tab)).height)
         if ((await tab.getAttribute("aria-selected")) === "true") {
-          expect(await computedRgba(tab, "background-color")).toEqual(tokens.secondary)
-          expect(await computedRgba(tab, "color")).toEqual(tokens.secondaryForeground)
-          expect(s.shadow).toBe("none")
+          expect(await computedRgba(tab, "background-color")).toEqual(tokens.active)
+          expect(await computedRgba(tab, "color")).toEqual(tokens.foreground)
+          expect(s.shadow).not.toBe("none")
         } else {
           expect(s.bg).toBe(TRANSPARENT)
-          expect(await computedRgba(tab, "color")).toEqual(tokens.muted)
+          expect(await computedRgba(tab, "color")).toEqual(tokens.inactive)
         }
       }
       // The accepted trigger height: the former 3px-padded 36px list, less 1px.
@@ -137,7 +137,9 @@ for (const mode of ["light", "dark"] as const) {
       const inactive = tablist.getByRole("tab", { name: "Effects", exact: true })
       const restColor = await css(inactive, "color")
       await inactive.hover()
-      await expect.poll(() => css(inactive, "color")).not.toBe(restColor)
+      // Default surface Tabs keep the inactive foreground on hover.
+      await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBe(0)
+      expect(await css(inactive, "color")).toBe(restColor)
       expect(await css(inactive, "background-color")).toBe(TRANSPARENT)
       await page.mouse.move(0, 0)
       await expect.poll(() => css(inactive, "color")).toBe(restColor)
@@ -167,9 +169,9 @@ for (const mode of ["light", "dark"] as const) {
         close(headerBox.y + headerBox.height, toolbarBox.y + toolbarBox.height, 1 / (await page.evaluate(() => devicePixelRatio)))
       }
 
-      // WSPF-05: every shared ControlSection trigger uses the semantic muted pair and compact geometry.
+      // PUI-120: every shared ControlSection uses the Secondary pair at unchanged compact geometry.
       const radiusSm = await resolve(header, defaultTheme.radius.sm.$value, "border-radius")
-      const pair = { bg: await resolve(header, "muted", "background-color"), fg: await resolve(header, "muted-foreground") }
+      const pair = { bg: await resolve(header, "secondary", "background-color"), fg: await resolve(header, "secondary-foreground") }
       const measurements: { category: string; section: string; fg: string; bg: string; ratio: number; fontSize: string }[] = []
       for (const category of ["Colors", "Typography", "Effects"] as const) {
         await editorCategory(page, category)
@@ -183,12 +185,12 @@ for (const mode of ["light", "dark"] as const) {
           expect(s.color).toBe(pair.fg)
           expect([s.pl, s.pr, s.pt, s.pb, s.transform, s.radius]).toEqual(["8px", "8px", "2px", "2px", "uppercase", radiusSm])
           expect(s.spacing).toBe(s.bodySpacing); expect(s.size).toBeLessThan(12) // NGIP-08: Body tracking
-          expect(s.ring).toMatch(/0px 0px 0px 1px/)
+          expect(s.ring).toBe("none") // Off is flat.
           expect((await box(trigger)).width).toBeLessThan((await box(section)).width)
           const chevron = trigger.locator("svg")
           expect(await chevron.evaluate(el => { const r = el.getBoundingClientRect(); return [r.width, r.height] })).toEqual([12, 12])
           measurements.push({ category, section: (await section.getAttribute("data-testid"))!, ...(await contrast(trigger)) })
-          // Hover changes only the fill (bg-muted/80); the foreground stays muted-foreground.
+          // Hover changes only the Secondary fill; the foreground stays secondary-foreground.
           await trigger.hover()
           await expect.poll(() => css(trigger, "background-color")).not.toBe(pair.bg)
           expect(await css(trigger, "color")).toBe(pair.fg)
@@ -201,24 +203,17 @@ for (const mode of ["light", "dark"] as const) {
           if (reducedMotion === "reduce") expect(await css(chevron, "transition-duration")).toBe("0s")
         }
       }
-      // WSPF-06: measured and recorded, never hidden. Default light is the one known pairing (~4.35:1); dark passes.
-      await info.attach(`wspf-06-contrast-${mode}-${reducedMotion}.json`, { body: JSON.stringify({ theme: "default", mode, known: KNOWN_DEFAULT_MUTED_DEBT, measurements }, null, 2), contentType: "application/json" })
+      // PUI-120 replaces the former muted contrast debt with Secondary: measure and require AA in both modes.
+      await info.attach(`wspf-06-contrast-${mode}-${reducedMotion}.json`, { body: JSON.stringify({ theme: "default", mode, measurements }, null, 2), contentType: "application/json" })
       expect(measurements.length).toBeGreaterThanOrEqual(15)
-      for (const m of measurements) {
-        if (mode === "light") {
-          expect([m.fg, m.bg]).toEqual([KNOWN_DEFAULT_MUTED_DEBT.fgColor, KNOWN_DEFAULT_MUTED_DEBT.bgColor])
-          expect(m.ratio).toBeGreaterThan(KNOWN_DEFAULT_MUTED_DEBT.minRatio)
-          expect(m.ratio).toBeLessThan(KNOWN_DEFAULT_MUTED_DEBT.maxRatio)
-        } else expect(m.ratio).toBeGreaterThanOrEqual(4.5)
-      }
+      for (const m of measurements) expect(m.ratio).toBeGreaterThanOrEqual(4.5)
       await editorCategory(page, "Colors")
       await settle(page)
       const axeControls = await new AxeBuilder({ page }).analyze()
       await info.attach(`axe-wspf-controls-${mode}-${reducedMotion}.json`, { body: JSON.stringify(axeControls), contentType: "application/json" })
       const debtNodes = axeControls.violations.filter(v => v.id === "color-contrast").flatMap(v => v.nodes).filter(n => (n.any[0]?.data as { fgColor?: string } | undefined)?.fgColor === KNOWN_DEFAULT_MUTED_DEBT.fgColor && (n.any[0]?.data as { bgColor?: string } | undefined)?.bgColor === KNOWN_DEFAULT_MUTED_DEBT.bgColor)
-      // The exception is present exactly when the pairing is rendered, so it can never silently widen or vanish.
-      if (mode === "light") expect(debtNodes.length).toBeGreaterThan(0)
-      else expect(debtNodes).toEqual([])
+      // PUI-120 removes this pairing from section triggers; it must not return in either mode.
+      expect(debtNodes).toEqual([])
       expect(await seriousOutsideKnownDebt(page, axeControls.violations, info, `wspf-controls-${mode}-${reducedMotion}`)).toEqual([])
 
       // NGIP-07 supersedes WSPF-07: Cards / States are left-aligned official Tabs styled exactly like the sidebar tabs.

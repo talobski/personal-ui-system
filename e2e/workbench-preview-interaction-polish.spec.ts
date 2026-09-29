@@ -395,7 +395,7 @@ const bytes = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 
 
 test.describe("WPIP-05 Design system labels, HEX and swatches (PUI-114)", () => {
   for (const mode of ["light", "dark"] as const) {
-    test(`Background / Foreground labels, HEX values, wide swatches, plain SIDEBAR heading and no Type scale summary (${mode})`, async ({ page }, info) => {
+    test(`Contextual labels, HEX values, rectangular swatches, title-case Sidebar heading and no Type scale summary (${mode})`, async ({ page }, info) => {
       test.setTimeout(120_000)
       await open(page)
       await setColorMode(page, mode)
@@ -406,10 +406,10 @@ test.describe("WPIP-05 Design system labels, HEX and swatches (PUI-114)", () => 
       const value = (name: string) => swatch(name).getByTestId("token-value")
       await expect(panel.locator("[data-token]")).toHaveCount(32)
       // Labels: display only; unpaired tokens keep their key.
-      for (const [token, label] of [["primary", "Background"], ["primary-foreground", "Foreground"], ["background", "Background"], ["foreground", "Foreground"], ["destructive", "Background"], ["destructive-foreground", "Foreground"], ["sidebar", "Background"], ["sidebar-accent-foreground", "Foreground"], ["border", "border"], ["chart-3", "chart-3"], ["sidebar-ring", "sidebar-ring"]] as const) {
+      for (const [token, label] of [["primary", "Background"], ["primary-foreground", "Foreground"], ["background", "Background"], ["foreground", "Foreground"], ["destructive", "Background"], ["destructive-foreground", "Foreground"], ["sidebar", "Background"], ["sidebar-accent-foreground", "Foreground"], ["border", "border"], ["chart-3", "chart-3"], ["sidebar-ring", "Sidebar Ring"]] as const) {
         await expect(swatch(token).getByTestId("token-label")).toHaveText(new RegExp(`${label}$`))
       }
-      await expect(swatch("sidebar-primary").getByTestId("token-label")).toHaveText("Sidebar primary Background")
+      await expect(swatch("sidebar-primary").getByTestId("token-label")).toHaveText("Primary Background")
       await expect(panel.getByText(/oklch\(/)).toHaveCount(0)
       // HEX: every value is #RRGGBB (or #RRGGBBAA when translucent) and matches what the browser paints.
       for (const text of await panel.getByTestId("token-value").allTextContents()) expect(text).toMatch(/^#[0-9A-F]{6}([0-9A-F]{2})?$/)
@@ -427,9 +427,9 @@ test.describe("WPIP-05 Design system labels, HEX and swatches (PUI-114)", () => 
         expect(shape.radius).toBeGreaterThan(0)
         expect(shape.border).toBe("1px")
       }
-      // Headings: plain titles; Sidebar renders as SIDEBAR; no alias annotations; no Type scale summary line.
+      // PUI-122: title-case group headings; no alias annotations or Type scale summary line.
       const sidebarHeading = panel.getByRole("heading", { name: "Sidebar", exact: true, level: 3 })
-      expect(await sidebarHeading.innerText()).toBe("SIDEBAR")
+      expect(await sidebarHeading.innerText()).toBe("Sidebar")
       await expect(panel.getByText(/base aliases|dedicated|^= /)).toHaveCount(0)
       const scale = panel.locator('[data-design-section="type-scale"]')
       await expect(scale.locator("[data-type-size]")).toHaveCount(9)

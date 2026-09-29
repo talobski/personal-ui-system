@@ -198,7 +198,7 @@ test.describe("NGIP-03 to NGIP-06 nested gallery regions", () => {
       // Read-only Storage, Weather and Recent activity own no tab stop; PUI-95/96 give Chat a composer and the compact
       // Table its checkboxes and row actions. PUI-108's Bitcoin chart keeps the accepted Chart's keyboard-readable surface
       // (PUI-117 moves Bitcoin after the Chat pair and adds its range control).
-      expect(tabbable).toEqual(["quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "bitcoin-price", "recent-payments", "offsite-calendar"])
+      expect(tabbable).toEqual(["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "bitcoin-price", "recent-payments", "offsite-calendar"])
       expect(visited).toEqual(tabbable)
 
       await axe(page, info, `gallery-${size.width}-light`)
@@ -248,7 +248,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
     close((await box(list)).x, (await box(main)).x + parseFloat(await css(main, "padding-left")))
     // Content width, never stretched: the four triggers (PUI-101/102) fill the list exactly and fit inside the inset.
     const triggers = await list.getByRole("tab").evaluateAll(els => els.reduce((sum, el) => sum + el.getBoundingClientRect().width, 0))
-    close((await box(list)).width, triggers, 2)
+    close((await box(list)).width, triggers + 6, 2) // PUI-120: 3px surface padding on each side.
     expect((await box(list)).width).toBeLessThanOrEqual((await box(main)).width - 2 * parseFloat(await css(main, "padding-left")))
     if (sidebar) {
       expect(await shape(cards)).toEqual(sidebar.active)

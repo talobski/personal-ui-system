@@ -125,14 +125,14 @@ for (const mode of ["light", "dark"] as const) {
           expect((await box(trigger)).width).toBeLessThan((await box(section)).width)
           expect(await section.evaluate(el => getComputedStyle(el).borderTopWidth)).toBe("0px")
           const styles = await trigger.evaluate(el => { const s = getComputedStyle(el); return { border: s.borderWidth, shadow: s.boxShadow, transform: s.textTransform, spacing: s.letterSpacing, bodySpacing: getComputedStyle(document.body).letterSpacing, radius: s.borderRadius } })
-          expect(styles.border).toBe("0px"); expect(styles.shadow).not.toBe("none")
+          expect(styles.border).toBe("0px"); expect(styles.shadow).toBe("none")
           // NGIP-08 supersedes the local tracking-wide chip: the trigger resolves Body tracking.
           expect(styles.transform).toBe("uppercase"); expect(styles.spacing).toBe(styles.bodySpacing)
           expect(parseFloat(styles.radius)).toBeGreaterThan(0)
-          // WSPF-05 restores the semantic muted pair (WRCP-05's text-foreground/75 is superseded).
-          await expect(trigger).toHaveClass(/(?:^| )bg-muted(?: |$)/)
-          await expect(trigger).toHaveClass(/(?:^| )text-muted-foreground(?: |$)/)
-          await expect(trigger).toHaveClass(/ring-1 ring-border(?: |$)/)
+          // PUI-120 uses flat Secondary surfaces, preserving compact geometry and focus.
+          await expect(trigger).toHaveClass(/(?:^| )bg-secondary(?: |$)/)
+          await expect(trigger).toHaveClass(/(?:^| )text-secondary-foreground(?: |$)/)
+          await expect(trigger).toHaveAttribute("data-variant", "secondary")
           expect(await section.evaluate(el => getComputedStyle(el).rowGap)).toBe("8px")
           expect(await section.evaluate(el => getComputedStyle(el.parentElement!).rowGap)).toBe("24px")
           await page.keyboard.press("Tab")

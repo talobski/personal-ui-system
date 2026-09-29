@@ -273,7 +273,8 @@ test.describe("CGS-09 showcase interactions", () => {
 
       const plan = card("plan-usage")
       await expect(plan.getByRole("img", { name: /% of storage used$/ })).toBeVisible()
-      await expect(plan.getByRole("button")).toHaveCount(0)
+      await expect(plan.getByRole("button")).toHaveText(["Manage storage"])
+      await expect(plan.getByRole("button")).toHaveAttribute("data-variant", "secondary")
       const signup = card("signup-form")
       await signup.getByRole("button", { name: "Create Account" }).click()
       await expect(signup.getByRole("status")).toHaveText("Preview only. No account was created.")

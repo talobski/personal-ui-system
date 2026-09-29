@@ -46,10 +46,12 @@ const allowed = new Set([
   "packages/ui/src/compositions/plan-usage.tsx",
   "packages/ui/src/compositions/signup-form.tsx",
   "playwright.workbench.config.ts",
+  "playwright.config.ts",
   "tools/verify-ui-effects-showcase-polish.mjs",
   "tools/measure-ui-effects-showcase-geometry.mjs",
 ])
-const changed = git("diff", "--name-only", base, "HEAD").split("\n").filter(Boolean)
+// Include pending tracked edits so a producer cannot pass this scan using stale HEAD-only evidence.
+const changed = git("diff", "--name-only", base).split("\n").filter(Boolean)
 for (const path of changed) {
   const isTest = /\.(test|spec)\.ts$/.test(path)
   const isEvidence = path.startsWith("docs/evidence/ui-effects-showcase-polish-v1/producer/")
@@ -59,7 +61,7 @@ for (const path of changed) {
 
 // IESP-09: dependencies, lockfile, registry, public Button/Tabs/Collapsible, migrations and built-in fixtures unchanged.
 for (const path of ["package.json", "pnpm-lock.yaml", "registry.json", "apps/workbench/package.json", "packages/core/package.json", "packages/ui/package.json", "packages/ui/src/components/button.tsx", "packages/ui/src/components/tabs.tsx", "packages/ui/src/components/collapsible.tsx", "packages/core/src/theme/migrate.ts", "packages/core/src/theme/diff.ts"]) assert.ok(readFileSync(path).equals(at(base, path)), `Boundary changed: ${path}`)
-assert.equal(git("diff", "--name-only", base, "HEAD", "--", "packages/ui/src/components"), "", "public components must be unchanged")
+assert.equal(git("diff", "--name-only", base, "--", "packages/ui/src/components"), "", "public components must be unchanged")
 assert.equal(JSON.parse(read("registry.json")).items.length, 23)
 for (const fixture of ["default.json", "valid.json", "default.css", "quiet-editorial.css"]) assert.ok(readFileSync(`packages/core/src/theme/fixtures/${fixture}`).equals(at(base, `packages/core/src/theme/fixtures/${fixture}`)), `Built-in fixture changed: ${fixture}`)
 
@@ -114,7 +116,7 @@ assert.match(read("apps/workbench/src/DesignSystemPreview.tsx"), /"sidebar-prima
 // Build artifacts exist (the caller ran the builds) and no network/credential surface was introduced by this diff.
 assert.ok(existsSync("apps/workbench/dist/index.html"), "run pnpm build:workbench first")
 const scanned = changed.filter(p => !p.endsWith(".md") && !p.endsWith(".json") && !p.startsWith("tools/") && !p.startsWith("e2e/"))
-const added = git("diff", base, "HEAD", "--", ...scanned).split("\n").filter(line => line.startsWith("+")).join("\n")
+const added = git("diff", base, "--", ...scanned).split("\n").filter(line => line.startsWith("+")).join("\n")
 assert.doesNotMatch(added, /fetch\(|XMLHttpRequest|WebSocket|sendBeacon|process\.env|API_KEY|https?:\/\//)
 
 console.log(`IESP boundary scan passed: ${changed.length} changed paths, 13 operations, 23 registry resources.`)

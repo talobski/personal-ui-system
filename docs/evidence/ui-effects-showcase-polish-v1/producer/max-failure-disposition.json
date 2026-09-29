@@ -1,0 +1,526 @@
+{
+  "phase": "ui-effects-showcase-polish-v1-001",
+  "handoffCommit": "b371ea9e435fdaa19ca4bef577c11c6a1da47e2a",
+  "sourceLogSha256": "318a13db454a1aa245e0039efec5d28bfa61ce523bdc0ab7337fdd140368537c",
+  "counts": {
+    "superseded": 55,
+    "testDefects": 6,
+    "productAccessibility": 2,
+    "unresolved": 1
+  },
+  "browserExecution": "blocked: listen EPERM 127.0.0.1:5173; no permission escalation attempted",
+  "failures": [
+    {
+      "failureNumber": 1,
+      "test": "[workbench-mobile-390x844] \u203a e2e/tactile-ui-effects.spec.ts:69:1 \u203a TUE-04 / IESP-04 the UI EFFECTS section sits between Shadow and Motion with Off/Tactile, a helper and one Strength",
+      "classification": "product-accessibility-gap",
+      "criterion": "IESP-04",
+      "reason": "Disabled Strength lacked aria-disabled. The Workbench Slider root now declares inherited disabled semantics; browser test checks disabled role, absent tab stop and unchanged value.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 2,
+      "test": "[workbench-mobile-390x844] \u203a e2e/tactile-ui-effects.spec.ts:101:1 \u203a TUE-05/06 / IESP-05 Tactile reaches only Secondary Buttons and active surface tabs; Off is flat",
+      "classification": "test-timing-defect",
+      "criterion": "IESP-05",
+      "reason": "The inactive Cards tab was sampled during its active-shadow transition. Await iframe animations before full style equality; no property removed.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 3,
+      "test": "[workbench-mobile-390x844] \u203a e2e/ui-effects-showcase-polish.spec.ts:36:1 \u203a IESP-02 saved toggle-based themes load by the any-target rule, save back as Effect and Strength, malformed ones are refused",
+      "classification": "test-fixture-defect",
+      "criterion": "IESP-02",
+      "reason": "Hyphenated theme names violate the existing name schema. Keep hyphenated IDs, use valid space-separated names. Enable Tactile before editing disabled Strength, then return Off before Save.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 4,
+      "test": "[workbench-mobile-390x844] \u203a e2e/ui-effects-showcase-polish.spec.ts:200:1 \u203a IESP-08 Design system hierarchy, contextual Sidebar labels, live alias and dedicated values in light and dark",
+      "classification": "test-locator-defect",
+      "criterion": "IESP-08",
+      "reason": "Sidebar editor labels omit the Sidebar prefix. Scope Primary textbox to the Sidebar section; do not rename product labels.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 5,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-cards-gallery-curation.spec.ts:223:5 \u203a CGCR-04 stable gallery interaction \u203a normal interaction never changes any card's footprint (no-preference)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 6,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-cards-gallery-curation.spec.ts:223:5 \u203a CGCR-04 stable gallery interaction \u203a normal interaction never changes any card's footprint (reduce)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 7,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-container-gallery-showcase.spec.ts:234:5 \u203a CGS-09 showcase interactions \u203a every curated showcase composition is operable with named controls and status feedback (no-preference)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 8,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-container-gallery-showcase.spec.ts:234:5 \u203a CGS-09 showcase interactions \u203a every curated showcase composition is operable with named controls and status feedback (reduce)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 9,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-control-navigation-scroll.spec.ts:18:3 \u203a WCN-05\u201312/14 overlay input, navigation, controls: light, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default surface category Tabs use semantic muted list background rather than transparent. Preserve scrolling, geometry and keyboard assertions.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 10,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-control-navigation-scroll.spec.ts:18:3 \u203a WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default surface category Tabs use semantic muted list background rather than transparent. Preserve scrolling, geometry and keyboard assertions.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 11,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-control-navigation-scroll.spec.ts:18:3 \u203a WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default surface category Tabs use semantic muted list background rather than transparent. Preserve scrolling, geometry and keyboard assertions.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 12,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-control-navigation-scroll.spec.ts:18:3 \u203a WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default surface category Tabs use semantic muted list background rather than transparent. Preserve scrolling, geometry and keyboard assertions.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 13,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-nested-gallery-interaction-polish.spec.ts:115:5 \u203a NGIP-03 to NGIP-06 nested gallery regions \u203a NGIP-04/05 regions, order, natural heights, containment, focus order at 390px",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Manage storage adds plan-usage to exact natural focus order. Preserve full ordered equality and visited-order equality.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 14,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-nested-gallery-interaction-polish.spec.ts:115:5 \u203a NGIP-03 to NGIP-06 nested gallery regions \u203a NGIP-04/05 regions, order, natural heights, containment, focus order at 1440px",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Manage storage adds plan-usage to exact natural focus order. Preserve full ordered equality and visited-order equality.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 15,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-nested-gallery-interaction-polish.spec.ts:213:3 \u203a NGIP-07 Cards / States Tabs: left aligned, shared sidebar styling, keyboard, ARIA, focus (no-preference)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default TabsList has 3px padding on both sides: content-width expectation includes 6px with original 2px tolerance; containment and keyboard remain.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 16,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-nested-gallery-interaction-polish.spec.ts:213:3 \u203a NGIP-07 Cards / States Tabs: left aligned, shared sidebar styling, keyboard, ARIA, focus (reduce)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default TabsList has 3px padding on both sides: content-width expectation includes 6px with original 2px tolerance; containment and keyboard remain.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 17,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-preview-interaction-polish.spec.ts:398:5 \u203a WPIP-05 Design system labels, HEX and swatches (PUI-114) \u203a Background / Foreground labels, HEX values, wide swatches, plain SIDEBAR heading and no Type scale summary (light)",
+      "classification": "superseded-PUI-122",
+      "criterion": "IESP-08",
+      "reason": "Contextual Sidebar labels and title-case heading replace old display wording. Preserve HEX, painted colors, ratios, aliases, dedicated values, responsiveness and accessibility.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 18,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-preview-interaction-polish.spec.ts:398:5 \u203a WPIP-05 Design system labels, HEX and swatches (PUI-114) \u203a Background / Foreground labels, HEX values, wide swatches, plain SIDEBAR heading and no Type scale summary (dark)",
+      "classification": "superseded-PUI-122",
+      "criterion": "IESP-08",
+      "reason": "Contextual Sidebar labels and title-case heading replace old display wording. Preserve HEX, painted colors, ratios, aliases, dedicated values, responsiveness and accessibility.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 19,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-rendering-controls-polish.spec.ts:36:5 \u203a WRCP-02/05\u201312 rendering, geometry, triggers, scrollbars, tabs, controls, axe: light, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 20,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-rendering-controls-polish.spec.ts:36:5 \u203a WRCP-02/05\u201312 rendering, geometry, triggers, scrollbars, tabs, controls, axe: light, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 21,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-rendering-controls-polish.spec.ts:36:5 \u203a WRCP-02/05\u201312 rendering, geometry, triggers, scrollbars, tabs, controls, axe: dark, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 22,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-rendering-controls-polish.spec.ts:36:5 \u203a WRCP-02/05\u201312 rendering, geometry, triggers, scrollbars, tabs, controls, axe: dark, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 23,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-showcase-components-geometry.spec.ts:46:3 \u203a WSCG-03 to WSCG-05 simplified cards \u203a Storage ends after its breakdown with no promotion, and keeps every usage element (PUI-86)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 24,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-sidebar-preview-followup.spec.ts:78:5 \u203a WSPF-02\u201308/10 sidebar navigation, header, triggers, contrast record, preview Select and spacing: light, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06/07",
+      "reason": "Surface Tabs add trailing 3px padding and default light/dark active/inactive surfaces. Secondary triggers replace muted pair and old 1px ring. Retain natural width, height, inset tolerance, keyboard and contrast measurements; require >=4.5 contrast both modes and no old debt nodes.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 25,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-sidebar-preview-followup.spec.ts:78:5 \u203a WSPF-02\u201308/10 sidebar navigation, header, triggers, contrast record, preview Select and spacing: light, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06/07",
+      "reason": "Surface Tabs add trailing 3px padding and default light/dark active/inactive surfaces. Secondary triggers replace muted pair and old 1px ring. Retain natural width, height, inset tolerance, keyboard and contrast measurements; require >=4.5 contrast both modes and no old debt nodes.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 26,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-sidebar-preview-followup.spec.ts:78:5 \u203a WSPF-02\u201308/10 sidebar navigation, header, triggers, contrast record, preview Select and spacing: dark, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06/07",
+      "reason": "Surface Tabs add trailing 3px padding and default light/dark active/inactive surfaces. Secondary triggers replace muted pair and old 1px ring. Retain natural width, height, inset tolerance, keyboard and contrast measurements; require >=4.5 contrast both modes and no old debt nodes.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 27,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-sidebar-preview-followup.spec.ts:78:5 \u203a WSPF-02\u201308/10 sidebar navigation, header, triggers, contrast record, preview Select and spacing: dark, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06/07",
+      "reason": "Surface Tabs add trailing 3px padding and default light/dark active/inactive surfaces. Secondary triggers replace muted pair and old 1px ring. Retain natural width, height, inset tolerance, keyboard and contrast measurements; require >=4.5 contrast both modes and no old debt nodes.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 28,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-theme-controls-polish.spec.ts:20:5 \u203a WTCP-04\u201308/11 geometry, interaction, axe: light, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 29,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-theme-controls-polish.spec.ts:20:5 \u203a WTCP-04\u201308/11 geometry, interaction, axe: light, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 30,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-theme-controls-polish.spec.ts:20:5 \u203a WTCP-04\u201308/11 geometry, interaction, axe: dark, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 31,
+      "test": "[workbench-mobile-390x844] \u203a e2e/workbench-theme-controls-polish.spec.ts:20:5 \u203a WTCP-04\u201308/11 geometry, interaction, axe: dark, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 32,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/tactile-ui-effects.spec.ts:69:1 \u203a TUE-04 / IESP-04 the UI EFFECTS section sits between Shadow and Motion with Off/Tactile, a helper and one Strength",
+      "classification": "product-accessibility-gap",
+      "criterion": "IESP-04",
+      "reason": "Disabled Strength lacked aria-disabled. The Workbench Slider root now declares inherited disabled semantics; browser test checks disabled role, absent tab stop and unchanged value.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 33,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/tactile-ui-effects.spec.ts:101:1 \u203a TUE-05/06 / IESP-05 Tactile reaches only Secondary Buttons and active surface tabs; Off is flat",
+      "classification": "test-timing-defect",
+      "criterion": "IESP-05",
+      "reason": "The inactive Cards tab was sampled during its active-shadow transition. Await iframe animations before full style equality; no property removed.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 34,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/ui-effects-showcase-polish.spec.ts:36:1 \u203a IESP-02 saved toggle-based themes load by the any-target rule, save back as Effect and Strength, malformed ones are refused",
+      "classification": "test-fixture-defect",
+      "criterion": "IESP-02",
+      "reason": "Hyphenated theme names violate the existing name schema. Keep hyphenated IDs, use valid space-separated names. Enable Tactile before editing disabled Strength, then return Off before Save.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 35,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/ui-effects-showcase-polish.spec.ts:200:1 \u203a IESP-08 Design system hierarchy, contextual Sidebar labels, live alias and dedicated values in light and dark",
+      "classification": "test-locator-defect",
+      "criterion": "IESP-08",
+      "reason": "Sidebar editor labels omit the Sidebar prefix. Scope Primary textbox to the Sidebar section; do not rename product labels.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 36,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-cards-gallery-curation.spec.ts:223:5 \u203a CGCR-04 stable gallery interaction \u203a normal interaction never changes any card's footprint (no-preference)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 37,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-cards-gallery-curation.spec.ts:223:5 \u203a CGCR-04 stable gallery interaction \u203a normal interaction never changes any card's footprint (reduce)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 38,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-container-gallery-showcase.spec.ts:234:5 \u203a CGS-09 showcase interactions \u203a every curated showcase composition is operable with named controls and status feedback (no-preference)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 39,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-container-gallery-showcase.spec.ts:234:5 \u203a CGS-09 showcase interactions \u203a every curated showcase composition is operable with named controls and status feedback (reduce)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 40,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-control-navigation-scroll.spec.ts:18:3 \u203a WCN-05\u201312/14 overlay input, navigation, controls: light, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default surface category Tabs use semantic muted list background rather than transparent. Preserve scrolling, geometry and keyboard assertions.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 41,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-control-navigation-scroll.spec.ts:18:3 \u203a WCN-05\u201312/14 overlay input, navigation, controls: light, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default surface category Tabs use semantic muted list background rather than transparent. Preserve scrolling, geometry and keyboard assertions.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 42,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-control-navigation-scroll.spec.ts:18:3 \u203a WCN-05\u201312/14 overlay input, navigation, controls: dark, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default surface category Tabs use semantic muted list background rather than transparent. Preserve scrolling, geometry and keyboard assertions.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 43,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-control-navigation-scroll.spec.ts:18:3 \u203a WCN-05\u201312/14 overlay input, navigation, controls: dark, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default surface category Tabs use semantic muted list background rather than transparent. Preserve scrolling, geometry and keyboard assertions.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 44,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-nested-gallery-interaction-polish.spec.ts:115:5 \u203a NGIP-03 to NGIP-06 nested gallery regions \u203a NGIP-04/05 regions, order, natural heights, containment, focus order at 390px",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Manage storage adds plan-usage to exact natural focus order. Preserve full ordered equality and visited-order equality.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 45,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-nested-gallery-interaction-polish.spec.ts:115:5 \u203a NGIP-03 to NGIP-06 nested gallery regions \u203a NGIP-04/05 regions, order, natural heights, containment, focus order at 1100px",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Manage storage adds plan-usage to exact natural focus order. Preserve full ordered equality and visited-order equality.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 46,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-nested-gallery-interaction-polish.spec.ts:115:5 \u203a NGIP-03 to NGIP-06 nested gallery regions \u203a NGIP-04/05 regions, order, natural heights, containment, focus order at 1440px",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Manage storage adds plan-usage to exact natural focus order. Preserve full ordered equality and visited-order equality.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 47,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-nested-gallery-interaction-polish.spec.ts:213:3 \u203a NGIP-07 Cards / States Tabs: left aligned, shared sidebar styling, keyboard, ARIA, focus (no-preference)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default TabsList has 3px padding on both sides: content-width expectation includes 6px with original 2px tolerance; containment and keyboard remain.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 48,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-nested-gallery-interaction-polish.spec.ts:213:3 \u203a NGIP-07 Cards / States Tabs: left aligned, shared sidebar styling, keyboard, ARIA, focus (reduce)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06",
+      "reason": "Default TabsList has 3px padding on both sides: content-width expectation includes 6px with original 2px tolerance; containment and keyboard remain.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 49,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-preview-interaction-polish.spec.ts:398:5 \u203a WPIP-05 Design system labels, HEX and swatches (PUI-114) \u203a Background / Foreground labels, HEX values, wide swatches, plain SIDEBAR heading and no Type scale summary (light)",
+      "classification": "superseded-PUI-122",
+      "criterion": "IESP-08",
+      "reason": "Contextual Sidebar labels and title-case heading replace old display wording. Preserve HEX, painted colors, ratios, aliases, dedicated values, responsiveness and accessibility.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 50,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-preview-interaction-polish.spec.ts:398:5 \u203a WPIP-05 Design system labels, HEX and swatches (PUI-114) \u203a Background / Foreground labels, HEX values, wide swatches, plain SIDEBAR heading and no Type scale summary (dark)",
+      "classification": "superseded-PUI-122",
+      "criterion": "IESP-08",
+      "reason": "Contextual Sidebar labels and title-case heading replace old display wording. Preserve HEX, painted colors, ratios, aliases, dedicated values, responsiveness and accessibility.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 51,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-rendering-controls-polish.spec.ts:36:5 \u203a WRCP-02/05\u201312 rendering, geometry, triggers, scrollbars, tabs, controls, axe: light, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 52,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-rendering-controls-polish.spec.ts:36:5 \u203a WRCP-02/05\u201312 rendering, geometry, triggers, scrollbars, tabs, controls, axe: light, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 53,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-rendering-controls-polish.spec.ts:36:5 \u203a WRCP-02/05\u201312 rendering, geometry, triggers, scrollbars, tabs, controls, axe: dark, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 54,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-rendering-controls-polish.spec.ts:36:5 \u203a WRCP-02/05\u201312 rendering, geometry, triggers, scrollbars, tabs, controls, axe: dark, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 55,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-showcase-components-geometry.spec.ts:46:3 \u203a WSCG-03 to WSCG-05 simplified cards \u203a Storage ends after its breakdown with no promotion, and keeps every usage element (PUI-86)",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Storage now has exactly one named Secondary Manage storage button. Preserve usage/no-promotion assertions, tail geometry and footprint stability, including click.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 56,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-sidebar-preview-followup.spec.ts:78:5 \u203a WSPF-02\u201308/10 sidebar navigation, header, triggers, contrast record, preview Select and spacing: light, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06/07",
+      "reason": "Surface Tabs add trailing 3px padding and default light/dark active/inactive surfaces. Secondary triggers replace muted pair and old 1px ring. Retain natural width, height, inset tolerance, keyboard and contrast measurements; require >=4.5 contrast both modes and no old debt nodes.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 57,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-sidebar-preview-followup.spec.ts:78:5 \u203a WSPF-02\u201308/10 sidebar navigation, header, triggers, contrast record, preview Select and spacing: light, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06/07",
+      "reason": "Surface Tabs add trailing 3px padding and default light/dark active/inactive surfaces. Secondary triggers replace muted pair and old 1px ring. Retain natural width, height, inset tolerance, keyboard and contrast measurements; require >=4.5 contrast both modes and no old debt nodes.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 58,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-sidebar-preview-followup.spec.ts:78:5 \u203a WSPF-02\u201308/10 sidebar navigation, header, triggers, contrast record, preview Select and spacing: dark, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06/07",
+      "reason": "Surface Tabs add trailing 3px padding and default light/dark active/inactive surfaces. Secondary triggers replace muted pair and old 1px ring. Retain natural width, height, inset tolerance, keyboard and contrast measurements; require >=4.5 contrast both modes and no old debt nodes.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 59,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-sidebar-preview-followup.spec.ts:78:5 \u203a WSPF-02\u201308/10 sidebar navigation, header, triggers, contrast record, preview Select and spacing: dark, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-06/07",
+      "reason": "Surface Tabs add trailing 3px padding and default light/dark active/inactive surfaces. Secondary triggers replace muted pair and old 1px ring. Retain natural width, height, inset tolerance, keyboard and contrast measurements; require >=4.5 contrast both modes and no old debt nodes.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 60,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-sidebar-theme-polish.spec.ts:320:7 \u203a dark, reduce motion \u203a WSTP-10 shared ScrollArea: slim bars, semantic thumb states, no reserved width, native input",
+      "classification": "unresolved",
+      "criterion": "IESP-09",
+      "reason": "Desktop dark/reduce PageDown did not move the Theme editor viewport. Existing keyboard-scroll intermittency is documented, but this failure cannot be classified as pre-existing without a focused candidate/base browser comparison. Test unchanged.",
+      "status": "unresolved"
+    },
+    {
+      "failureNumber": 61,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-theme-controls-polish.spec.ts:20:5 \u203a WTCP-04\u201308/11 geometry, interaction, axe: light, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 62,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-theme-controls-polish.spec.ts:20:5 \u203a WTCP-04\u201308/11 geometry, interaction, axe: light, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 63,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-theme-controls-polish.spec.ts:20:5 \u203a WTCP-04\u201308/11 geometry, interaction, axe: dark, no-preference",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    },
+    {
+      "failureNumber": 64,
+      "test": "[workbench-desktop-1440x900] \u203a e2e/workbench-theme-controls-polish.spec.ts:20:5 \u203a WTCP-04\u201308/11 geometry, interaction, axe: dark, reduce",
+      "classification": "superseded-PUI-120",
+      "criterion": "IESP-07",
+      "reason": "Secondary triggers are flat while Off, replacing muted/ring chip styling. Preserve compact geometry, hover, focus, collapse, typography and axe checks.",
+      "status": "repair-proposed-browser-unverified"
+    }
+  ]
+}

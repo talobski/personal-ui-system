@@ -43,22 +43,23 @@ const token = (page: Page, name: string) => previewFrame(page).locator("html").e
 }, name)
 
 test.describe("WSCG-03 to WSCG-05 simplified cards", () => {
-  test("Storage ends after its breakdown with no promotion, and keeps every usage element (PUI-86)", async ({ page }) => {
+  test("Storage keeps every usage element and no promotion, followed by Manage storage (PUI-86/PUI-120)", async ({ page }) => {
     await open(page)
     await workspaceMode(page, "Preview")
     const storage = previewFrame(page).locator('[data-composition="plan-usage"]')
     for (const text of ["Team plan", "100 GB and shared libraries.", "Upgrade"]) await expect(storage.getByText(text)).toHaveCount(0)
-    await expect(storage.getByRole("button")).toHaveCount(0)
+    await expect(storage.getByRole("button")).toHaveText(["Manage storage"])
+    await expect(storage.getByRole("button")).toHaveAttribute("data-variant", "secondary")
     await expect(storage.getByRole("heading", { name: "Storage", level: 2 })).toBeVisible()
     // PUI-103 (workbench-gallery-card-polish-v1-001): no plan/renewal subtitle and no per-category values.
     await expect(storage.getByText(/Pro plan|renews/)).toHaveCount(0)
     await expect(storage.getByText("18.4", { exact: true })).toBeVisible()
     await expect(storage.getByRole("img", { name: "74% of storage used" })).toBeVisible()
     await expect(storage.getByRole("listitem")).toHaveText(["Design files", "Video", "Documents", "Other"])
-    // The breakdown is last; below it is only the card's own bottom padding, no dead space.
+    // PUI-120 places the Secondary specimen last; preserve the no-dead-space tail check.
     const gap = await storage.evaluate(section => {
       const card = section.firstElementChild!.getBoundingClientRect()
-      const list = section.querySelector("ul")!.getBoundingClientRect()
+      const list = section.querySelector("button")!.getBoundingClientRect()
       return { tail: card.bottom - list.bottom, padding: parseFloat(getComputedStyle(section.firstElementChild!).paddingBottom) }
     })
     close(gap.tail, gap.padding + 1, 2)

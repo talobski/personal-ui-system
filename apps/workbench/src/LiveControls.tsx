@@ -167,6 +167,7 @@ export function LiveNumberField({
           step={control.step}
           value={[sliderValue]}
           disabled={disabled || inactive}
+          aria-disabled={disabled || inactive || undefined}
           onValueChange={([next]) => {
             if (next === undefined) return
             setDraft(formatNumber(next, control.step))

@@ -239,8 +239,10 @@ test.describe("CGCR-04 stable gallery interaction", () => {
         }
       }
 
-      // Storage: PUI-86 removed its only control with the promotion.
-      await expect(card("plan-usage").getByRole("button")).toHaveCount(0)
+      // PUI-120 adds one inert Secondary specimen; clicking preserves every footprint.
+      await expect(card("plan-usage").getByRole("button")).toHaveText(["Manage storage"])
+      await card("plan-usage").getByRole("button", { name: "Manage storage", exact: true }).click()
+      await unchanged("manage-storage")
 
       // Quick find: filtering keeps all five rows (non-matches disabled), selection marks the row, empty keeps the rows.
       const find = card("quick-find")

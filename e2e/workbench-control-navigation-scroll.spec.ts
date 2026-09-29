@@ -54,7 +54,11 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
     await expect(page.getByLabel("Chart 5", { exact: true })).toBeInViewport()
     expect(await page.evaluate(() => document.scrollingElement!.scrollTop)).toBe(0)
     const nav = page.getByRole("tablist", { name: "Editor categories" })
-    expect(await nav.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)")
+    expect(await nav.evaluate(el => {
+      const probe = document.createElement("span"); probe.style.backgroundColor = "var(--muted)"; el.append(probe)
+      const expected = getComputedStyle(probe).backgroundColor; probe.remove()
+      return getComputedStyle(el).backgroundColor === expected
+    })).toBe(true) // PUI-120 default surface list
     await nav.getByRole("tab", { name: "Colors", exact: true }).focus()
     await page.keyboard.press("End")
     await expect(nav.getByRole("tab", { name: "Command" })).toBeFocused()

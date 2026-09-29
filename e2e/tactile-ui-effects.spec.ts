@@ -46,6 +46,8 @@ async function setEffect(page: Page, effect: "Off" | "Tactile") {
 async function snapshot(page: Page) {
   const frame = preview(page)
   await previewStates(page)
+  // Settle the prior active Cards tab before comparing inactive styles.
+  await expect.poll(() => frame.locator("html").evaluate(() => document.getAnimations().length)).toBe(0)
   const variants = Object.fromEntries(await Promise.all(["default", "secondary", "outline", "ghost", "destructive", "link"].map(async (name) => [name, await style(variant(frame, name))] as const)))
   const tabs = surfaceTabs(frame)
   return {
@@ -86,7 +88,9 @@ test("TUE-04 / IESP-04 the UI EFFECTS section sits between Shadow and Motion wit
   await expect(c.strength).toHaveValue("50")
   // Off: Strength is semantically disabled and de-emphasized; Tactile makes it active.
   await expect(c.strength).toBeDisabled()
-  await expect(c.slider).toHaveAttribute("aria-disabled", "true")
+  await expect(c.slider).toBeDisabled()
+  await expect(c.slider).not.toHaveAttribute("tabindex", "0")
+  await expect(c.slider).toHaveAttribute("aria-valuenow", "50")
   await expect(page.getByTestId("control-uiEffectsStrength")).toHaveAttribute("data-disabled", "true")
   expect(Number(await page.getByTestId("control-uiEffectsStrength").locator("label").evaluate((el) => getComputedStyle(el).opacity))).toBeLessThan(1)
   // The Effect select is keyboard operable.
