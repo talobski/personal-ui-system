@@ -4,7 +4,7 @@ import { Download, Moon, Redo2, RotateCcw, Save, Sun, Undo2 } from "@personal-ui
 import { applyProposal, createProposalSession, discardProposal, isSidebarColorToken, stageProposal } from "@personal-ui/core"
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
-import { Button } from "@personal-ui/ui/components/button"
+import { Button, buttonVariants } from "@personal-ui/ui/components/button"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
 import { Panel } from "@personal-ui/ui/components/panel"
@@ -15,6 +15,7 @@ import { ScrollArea } from "@personal-ui/ui/components/scroll-area"
 import { Switch } from "@personal-ui/ui/components/switch"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
 import { Textarea } from "@personal-ui/ui/components/textarea"
+import { Toast } from "@personal-ui/ui/lib/toast"
 
 import { buildDesignCommandProposal, evaluateDesignCommandClient } from "./designCommand"
 import {
@@ -72,6 +73,47 @@ function Notice({ children }: { children: React.ReactNode }) {
     <p data-testid="notice" role="status" className="text-sm text-muted-foreground">
       {children}
     </p>
+  )
+}
+
+/** The one reset toast: re-adding it updates it in place and restarts its timer, so resets never stack. */
+const RESET_TOAST_ID = "workbench-reset"
+/** Long enough to reach Undo; Base UI also pauses the timer while the toast is hovered or focused. */
+const RESET_TOAST_TIMEOUT = 8000
+
+/**
+ * PUI-115: transient Workbench feedback on the official shadcn Base UI toast recipe, built on the installed Base UI
+ * Toast primitive with semantic tokens only. The viewport is portalled and fixed at the bottom-right, so a toast never
+ * enters document flow or moves Workbench content. It announces politely and never takes focus (F6 or Tab reaches it);
+ * Escape, Dismiss or its timeout closes it, and closing changes no history.
+ */
+function WorkbenchToasts() {
+  const { toasts, close } = Toast.useToastManager()
+  return (
+    <Toast.Portal>
+      <Toast.Viewport data-testid="toast-viewport" className="fixed right-4 bottom-4 z-100 flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2 outline-none">
+        {toasts.map((toast) => (
+          <Toast.Root
+            key={toast.id}
+            toast={toast}
+            data-testid="reset-toast"
+            className="rounded-lg border bg-popover p-4 text-popover-foreground shadow-lg transition-[opacity,translate] duration-200 ease-out data-[ending-style]:opacity-0 data-[starting-style]:translate-y-2 data-[starting-style]:opacity-0 motion-reduce:transition-none"
+          >
+            <Toast.Content className="grid gap-3">
+              <div className="grid gap-1">
+                <Toast.Title className="text-sm font-medium" />
+                <Toast.Description className="text-sm text-muted-foreground" />
+              </div>
+              <div className="flex justify-end gap-2">
+                {/* Base UI's Toast.Close is aria-hidden until the stack is hovered or focused; Dismiss stays reachable. */}
+                <Button variant="ghost" size="sm" className="cursor-pointer" onClick={() => close(toast.id)}>Dismiss</Button>
+                <Toast.Action className={buttonVariants({ variant: "outline", size: "sm", className: "cursor-pointer" })} />
+              </div>
+            </Toast.Content>
+          </Toast.Root>
+        ))}
+      </Toast.Viewport>
+    </Toast.Portal>
   )
 }
 
@@ -148,6 +190,10 @@ export function App() {
   // The open manual gesture (a slider drag or one text-draft focus session) and the theme it started from.
   const gesture = React.useRef<{ key: string; base: Theme } | null>(null)
   const [resetOpen, setResetOpen] = React.useState(false)
+  // PUI-115: the reset toast's manager and the exact post-reset state its Undo may reverse (theme id and revision).
+  const [toasts] = React.useState(() => Toast.createToastManager())
+  const resetUndo = React.useRef<{ themeId: string; revision: number } | null>(null)
+  const undoResetRef = React.useRef(() => {})
 
   const [saveAsOpen, setSaveAsOpen] = React.useState(false)
   const [saveAsName, setSaveAsName] = React.useState("")
@@ -297,12 +343,42 @@ export function App() {
   }
   const undoEdit = () => stepHistory(undo)
   const redoEdit = () => stepHistory(redo)
+  /**
+   * PUI-115: Reset reports through one floating toast instead of the inline notice. Its Undo is the toolbar's own
+   * history Undo, allowed only while the active theme is still exactly the post-reset state (same id and revision, no
+   * proposal lock), so the reset is the newest checkpoint. Any later edit, Undo/Redo, theme switch or lock closes the
+   * toast instead (see the effect below), so it can never reverse a different history step.
+   */
   const resetToBaseline = () => {
     if (!baseline) return
-    const label = builtInCopy ? `the built-in ${builtInCopy.name}` : `the last saved "${current.name}"`
-    if (stepHistory((history, theme) => reset(history, theme, baseline))) setNotice(`Reset to ${label}. Undo restores your edits.`)
+    if (stepHistory((history, theme) => reset(history, theme, baseline))) {
+      const target = { themeId: currentRef.current.id, revision: currentRef.current.revision }
+      resetUndo.current = target
+      toasts.add({
+        id: RESET_TOAST_ID,
+        title: builtInCopy ? `Reset to ${builtInCopy.name}` : "Reset to last saved",
+        description: builtInCopy ? "Theme restored to its built-in values." : "Theme restored to its last saved values.",
+        timeout: RESET_TOAST_TIMEOUT,
+        actionProps: { children: "Undo", onClick: () => undoResetRef.current() },
+        onClose: () => { if (resetUndo.current === target) resetUndo.current = null },
+      })
+    }
     setResetOpen(false)
   }
+  undoResetRef.current = () => {
+    const target = resetUndo.current
+    const now = currentRef.current
+    resetUndo.current = null
+    toasts.close(RESET_TOAST_ID)
+    if (target && !locked && now.id === target.themeId && now.revision === target.revision) stepHistory(undo)
+  }
+  React.useEffect(() => {
+    const target = resetUndo.current
+    if (target && (locked || current.id !== target.themeId || current.revision !== target.revision)) {
+      resetUndo.current = null
+      toasts.close(RESET_TOAST_ID)
+    }
+  }, [current.id, current.revision, locked, toasts])
 
   const showProposalErrors = (errors: ProposalError[]) => setProposalIssues(errors.map(({ ruleId, path }) => ({ ruleId, path })))
 
@@ -860,6 +936,7 @@ export function App() {
           </div>
         </div>
       </SidebarInset>
+      <Toast.Provider toastManager={toasts}><WorkbenchToasts /></Toast.Provider>
     </SidebarProvider>
   )
 }

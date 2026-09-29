@@ -164,7 +164,10 @@ test.describe("STHG-09 to STHG-12 manual history and recovery", () => {
     await expect(status(page)).toHaveAttribute("data-theme-status", "built-in")
     await expect(active(page)).toHaveAttribute("data-revision", String(r + 1))
     await expect(history(page, "Reset")).toBeDisabled()
-    await expect(page.getByTestId("notice")).toContainText("Undo restores your edits")
+    // PUI-115 replaces the inline notice with a floating toast offering the same Undo; toolbar Undo is unchanged.
+    await expect(page.getByTestId("notice")).toHaveCount(0)
+    await expect(page.getByTestId("reset-toast")).toContainText("Reset to Default")
+    await expect(page.getByTestId("reset-toast").getByRole("button", { name: "Undo", exact: true })).toBeVisible()
     await history(page, "Undo").click()
     await expect(status(page)).toHaveAttribute("data-theme-status", "built-in, edited")
     expect(await radiusValue(page)).toBe("1.5")
