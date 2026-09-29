@@ -1,19 +1,17 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`a30f4d3c6a2fad98852fc51ad5e7520d919c7850` on `main`. The single Tier 3
-`ui-effects-showcase-polish-v1-001` phase delivered PUI-119 through PUI-122
-after the closed PUI-113 and PUI-118 sequence. Theme v3 remains 3.0; UI
-Effects now persists Off/Tactile and Strength, safely normalizes accepted
-toggle-based themes and mutation payloads, and styles Secondary Buttons and
-active surface Tabs while Outline Buttons remain flat. The closed mutation
-union has 13 operations and the public registry has 23 resources. Workbench
-category and preview Tabs use natural-width default surfaces; Storage, social
-actions, and compact collapsible triggers use Secondary. Design system color
-hierarchy and Sidebar labels change only in the preview. The phase used its
-one approved Claude STRONG to Codex MAX producer handoff and a fresh Claude
-Sonnet 5 STANDARD verifier. It used $0 paid spend, no worker network, and no
-remote push. Canonical execution state and exact receipts remain in `.loop`.
+`5ea846de50c9206fcb7a9e16d3bdf441d1d48d8a` on `main`. The single Tier 3
+`amber-dusk-shell-refinement-v1-001` phase delivered PUI-123 through PUI-128.
+Amber Dusk is a built-in Theme v3 preset with three owner-authorized contrast
+adjustments documented against the supplied palette. Secondary Buttons retain
+the Strength-controlled tactile effect; surface Tabs use only a fixed TabsList
+ring. The Workbench helper, Design system labels, App shell previews, Storage
+action, and Chat send circle were refined. Theme v3 remains 3.0, the closed
+mutation union has 13 operations, and the public registry has 23 resources.
+The phase used Claude Opus 5.5 production and fresh Codex Terra protected
+verification, with $0 paid spend and no remote push. Canonical execution state
+and exact receipts remain in `.loop`.
 The earlier
 nested-gallery phase's record
 preserves a one-time worker execution-envelope violation: Corepack made an
@@ -25,7 +23,38 @@ owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
+
+## Phase result: Amber Dusk and shell refinement v1
+
+Accepted PUI-123 through PUI-128 at product commit
+`5ea846de50c9206fcb7a9e16d3bdf441d1d48d8a`. Amber Dusk maps the owner
+palette into the existing Theme v3 preset architecture, including light/dark,
+chart and dedicated Sidebar tokens. The original source remains traceable in
+the frozen ticket and conversion report. After a fresh verifier found serious
+text contrast failures, the owner authorized narrow changes to light
+`muted-foreground`, light `primary`, and dark `primary-foreground`. The observed
+text pairs now measure at least 4.5:1, and eight Lead decoded axe captures on
+the corrected candidate show no serious or critical findings.
+
+Tactile surface Tabs now receive only `ring-1 ring-ring/20` on TabsList while
+Secondary Buttons alone respond to Strength. The effect helper is shown only
+for Tactile. Design system color labels and headings, larger App shells and
+Inset styling, full-width Manage storage, and the locally circular Chat send
+button passed the focused narrow/wide light/dark browser matrix. The earlier
+full Workbench run passed 446 tests with 18 established skips; Storybook passed
+118 and the credential-empty Design Command boundary passed. Following the
+three-token correction, the owner directed focused verification: 24 browser
+tests and the contrast unit assertion passed. A duplicate full Workbench rerun
+was stopped and is not counted as a pass. The fresh protected verifier passed
+the corrected exact candidate without repair.
+
+A possible future use of light `primary` as normal text on the light background
+would have 4.37:1 contrast; it is not rendered in the accepted UI. Earlier
+Bitcoin, Type scale, Default contrast, and keyboard-scroll residuals remain
+separate. A producer-created wakeup schedule violated the worker envelope; it
+was canceled before firing, and Lead confirmed there were no active schedules.
+The incident and the initial verifier failure remain in the phase receipts.
 
 ## Phase result: UI Effects Showcase Polish v1
 
