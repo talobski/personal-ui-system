@@ -1,0 +1,80 @@
+{
+  "retrievedAtUtc": "2026-09-29T17:11:16.407Z",
+  "issue": {
+    "id": "PUI-125",
+    "uuid": "701b2d34-cf16-4222-9d0b-e2bd46cf196a",
+    "title": "Make UI Effects helper note effect-specific",
+    "description": "Refine the UI Effects helper note so it appears only when an effect is selected and can vary by effect in the future.\n\n## Overall direction\n\nThe current helper copy under the UI Effects selector is always visible and is written specifically for Tactile.\n\nChange this to an effect-specific helper pattern.\n\nFor the current Tactile effect, show:\n\n**Applied to secondary buttons and tabs.**\n\nwith a small info icon at the start.\n\nWhen Effect = Off, do not show any helper note.\n\nFuture effects may use different helper copy depending on what they affect, so the helper should be driven by the selected effect rather than hard-coded globally.\n\n## 1. Conditional visibility\n\nBehavior:\n\n### Effect = Off\n\n* render no helper note;\n* do not leave empty vertical space where the helper would normally appear.\n\n### Effect = Tactile\n\nShow the helper row:\n\n**Applied to secondary buttons and tabs.**\n\nThe note should appear directly below or near the Effect select, consistent with the current layout.\n\n## 2. Add info icon\n\nAdd a small information icon at the start of the helper row.\n\nRequirements:\n\n* use the existing accepted icon library;\n* use a standard info/info-circle style icon;\n* do not create a custom SVG;\n* keep the icon visually subtle;\n* align it vertically with the helper text;\n* use a restrained gap between icon and text;\n* preserve accessibility semantics appropriate for decorative/supporting helper text.\n\n## 3. Helper text styling\n\nKeep the helper visually secondary.\n\nRequirements:\n\n* use existing muted/helper text styling;\n* preserve current Body/Sans typography conventions;\n* do not make it look like an alert or validation message;\n* do not add background, border, card surface, or extra chrome;\n* keep the row compact.\n\n## 4. Future effect support\n\nStructure the helper behavior so each effect can define its own optional note.\n\nConceptually:\n\n* Off → no note\n* Tactile → \"Applied to secondary buttons and tabs.\"\n* future effects → their own effect-specific note, if needed\n\nDo not add any new effect options in this ticket.\n\nDo not build a generalized content-management layer. A simple effect-to-helper mapping is sufficient.\n\n## 5. Preserve UI Effects behavior\n\nDo not change:\n\n* Off / Tactile options;\n* Strength behavior;\n* Secondary Button tactile semantics;\n* TabsList tactile ring behavior;\n* Theme v3;\n* persisted UI Effects state;\n* history/reset;\n* import/export;\n* Design Command;\n* mutation operations;\n* public registry.\n\nThis ticket is presentation/conditional-helper behavior only.\n\n## Acceptance\n\n* No helper note is shown when Effect = Off.\n* No empty helper spacing remains when Off is selected.\n* When Effect = Tactile, the note reads exactly:\n  * `Applied to secondary buttons and tabs.`\n* A small existing-library info icon appears at the start of the note.\n* Icon and text are visually aligned and styled as subtle helper content.\n* The helper is driven by the selected effect so future effects can use different optional notes.\n* No new effect options, dependencies, schema changes, network behavior, or unrelated UI changes are introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-125/make-ui-effects-helper-note-effect-specific",
+    "gitBranchName": "emmantalob/pui-125-make-ui-effects-helper-note-effect-specific",
+    "createdAt": "2026-09-29T16:29:49.661Z",
+    "updatedAt": "2026-09-29T16:51:11.634Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T16:29:49.661Z",
+        "endedAt": "2026-09-29T16:51:11.626Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T16:51:11.626Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [],
+  "documentReferences": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  },
+  "customerNeeds": [],
+  "releases": []
+}

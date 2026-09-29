@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "loop-linear-snapshot-manifest/1",
+  "phase": "amber-dusk-shell-refinement-v1-001",
+  "admittedTicketIds": [
+    "PUI-123",
+    "PUI-124",
+    "PUI-125",
+    "PUI-126",
+    "PUI-127",
+    "PUI-128"
+  ],
+  "snapshotSha256": {
+    "PUI-123": "b950dfa0f7e77f6812cb832ee07bd5b3cee6a7adc7e37a3373d472896ab58989",
+    "PUI-124": "cb403cf0f18ddae760de8cc94ace158f8e91862f0ef6d4a43202b6433b26ef25",
+    "PUI-125": "009033c2aa7f688f3e5345728efa39e9cdd19f83068448b67a51791675f38e2d",
+    "PUI-126": "b57999263a031b02d8cf62d7612904880d134c3f80cbb66e2f959227232ebbc2",
+    "PUI-127": "31f6b1b7ea22e4ad65bd28e5eb7f608fd9de0ab712fbfc4ff346f292bfda3318",
+    "PUI-128": "c8d176e4e9eda9603267e0c6ee3707b22d8ec8a46571b56409f9f17656aef3a3"
+  },
+  "comments": {
+    "PUI-123": 0,
+    "PUI-124": 0,
+    "PUI-125": 0,
+    "PUI-126": 0,
+    "PUI-127": 0,
+    "PUI-128": 0
+  },
+  "attachments": {
+    "PUI-123": 0,
+    "PUI-124": 0,
+    "PUI-125": 0,
+    "PUI-126": 0,
+    "PUI-127": 1,
+    "PUI-128": 0
+  },
+  "notes": "Each JSON snapshot includes the complete admission-time issue payload, full comments response, attachment/document/relation state and retrieval timestamp. The authoritative phase contract governs later Linear edits."
+}

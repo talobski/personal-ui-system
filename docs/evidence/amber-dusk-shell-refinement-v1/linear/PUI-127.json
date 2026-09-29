@@ -1,0 +1,94 @@
+{
+  "retrievedAtUtc": "2026-09-29T17:11:16.334Z",
+  "issue": {
+    "id": "PUI-127",
+    "uuid": "07421823-95cd-4a17-8a2a-3986966d9393",
+    "title": "Scale App shell previews and refine Inset project styling",
+    "description": "Refine the App shells preview so the shell examples feel closer to real-world desktop application proportions and the Inset project better matches the restrained shadcn inset-sidebar visual language.\n\n## Overall direction\n\nThe current App shell previews feel too small and compressed relative to how the same shell architecture would look in a real product.\n\nGoals:\n\n* make the shell previews substantially larger within the available preview area;\n* preserve their balanced landscape proportions;\n* increase sidebar and topbar/header dimensions so the shells resemble realistic desktop app chrome;\n* refine the Inset project shell so the sidebar and connected outer shell body use a muted surface;\n* reduce the visual intensity of the Inset project right/main panel shadow;\n* keep the result polished, realistic, and useful as a showcase rather than a miniature mockup.\n\nReference direction for the Inset project:\n[https://ui.shadcn.com/blocks](<https://ui.shadcn.com/blocks>)\n\nUse the shadcn inset/sidebar block examples as a visual reference for structure and restraint, without copying unrelated block content.\n\n## 1. Increase App shell preview size\n\nIncrease the desktop width of each App shell preview to approximately **90% of the available preview/container width**.\n\nRequirements:\n\n* treat 90% as a visual target rather than a brittle exact percentage;\n* tune the final width through browser evidence;\n* preserve the current vertical stacked sequence;\n* keep all shell examples consistently sized where practical;\n* allow narrow-width layouts to approach full width as needed for responsive containment;\n* do not introduce page-level horizontal overflow.\n\n## 2. Preserve balanced proportions\n\nAs shell width increases, increase height proportionally so the previews remain visually balanced and landscape-oriented.\n\nRequirements:\n\n* do not simply stretch width while leaving height unchanged;\n* preserve a realistic desktop app-window proportion;\n* avoid excessive vertical height;\n* tune final dimensions through browser evidence;\n* keep the same overall shell structure and content hierarchy.\n\nThe goal is to make the shells feel like believable app screenshots/previews rather than reduced thumbnails.\n\n## 3. Increase sidebar and topbar/header realism\n\nThe current shell sidebars and topbars/headers feel undersized relative to real-world desktop app chrome.\n\nIncrease these dimensions so they better resemble typical production UI proportions.\n\nAdjust where appropriate:\n\n* sidebar width;\n* topbar/header height;\n* spacing/padding within header and sidebar chrome;\n* navigation row sizing only if necessary to preserve realistic rhythm.\n\nRequirements:\n\n* preserve the existing shadcn Sidebar architecture;\n* preserve current nav/content structure;\n* preserve icons, labels, active states, and footer/profile treatment;\n* do not redesign sidebar content;\n* do not create new shell-specific sizing systems if existing accepted sidebar/header sizing can be reused;\n* keep the three shell examples visually coherent.\n\nThe intent is realistic scale, not oversized controls.\n\n## 4. Inset project muted outer shell\n\nFor the **Inset project** example, use the semantic **muted** surface for the sidebar background and the connected outer shell body surrounding the inset right/main panel.\n\nConceptually:\n\n* sidebar area → muted surface;\n* connected shell body/background around the main panel → same muted surface;\n* right/main inset panel → remains the distinct content surface.\n\nRequirements:\n\n* use semantic theme tokens rather than hard-coded colors;\n* preserve live light/dark behavior;\n* preserve Sidebar token behavior where applicable;\n* maintain clear separation between outer shell and inset content panel;\n* keep the result visually connected so sidebar + outer body read as one shell surface.\n\nDo not apply this muted outer-shell treatment to the other App shell examples unless source inspection shows it is already part of their accepted design.\n\n## 5. Reduce Inset project right-panel shadow\n\nThe current right/main panel shadow on Inset project is visually too strong.\n\nReduce the elevation so it better matches the restrained treatment of shadcn's inset/sidebar block examples.\n\nDirection:\n\n* use subtle separation rather than dramatic floating elevation;\n* prefer an existing accepted semantic shadow token/class;\n* avoid one-off raw shadow values unless the current accepted system has no suitable equivalent;\n* preserve the panel border/radius and inset relationship;\n* keep light/dark behavior coherent.\n\nDo not blindly copy a shadow value from the reference page. Match the restrained visual character using the existing Personal UI shadow system.\n\n## 6. Preserve shell behavior\n\nDo not change:\n\n* App shell order;\n* Classic workspace / Inset project / Compact utility identities;\n* sidebar collapse behavior;\n* preview-local collapse isolation;\n* Workbench sidebar isolation;\n* active navigation behavior;\n* workspace switchers;\n* abstract main-panel content structure;\n* Theme v3;\n* UI Effects semantics;\n* persistence/history;\n* Design Command;\n* mutation operations;\n* public registry.\n\nNo new dependency or network behavior.\n\n## 7. Accessibility and responsiveness\n\nPreserve:\n\n* keyboard/focus behavior for sidebar controls;\n* icon-only collapsed-state accessibility;\n* responsive containment;\n* logical reading order;\n* narrow-width usability;\n* light/dark contrast;\n* no horizontal page overflow.\n\nLarger shell geometry must not regress collapsed sidebar behavior or preview isolation.\n\n## Acceptance\n\n* App shell previews occupy roughly 90% of the available desktop preview width, tuned through browser evidence.\n* Shell heights increase proportionally so the previews remain balanced and landscape-oriented.\n* Sidebar width and topbar/header height feel closer to realistic production desktop proportions.\n* Shells no longer read as miniature/compressed mockups.\n* Inset project sidebar uses the semantic muted surface.\n* Inset project's connected outer shell body uses the same muted surface.\n* Inset project's right/main panel remains visually distinct as the inset content surface.\n* Inset project right-panel shadow is noticeably more restrained and closer in character to shadcn inset/sidebar block examples.\n* Existing sidebar architecture, collapse behavior, isolation, navigation, theme linkage, responsiveness, and accessibility remain intact.\n* No Theme v3, UI Effects, persistence/history, Design Command, mutation, registry, dependency, or network regression is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-127/scale-app-shell-previews-and-refine-inset-project-styling",
+    "gitBranchName": "emmantalob/pui-127-scale-app-shell-previews-and-refine-inset-project-styling",
+    "createdAt": "2026-09-29T16:44:32.094Z",
+    "updatedAt": "2026-09-29T16:51:34.950Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [
+      {
+        "id": "ba9af4b8-9444-4fba-8b24-76b448d40d91",
+        "title": "shadcn Blocks reference",
+        "subtitle": "Clean, modern building blocks. Copy and paste into your apps. Works with all React frameworks. Open Source. Free forever.",
+        "url": "https://ui.shadcn.com/blocks"
+      }
+    ],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T16:44:32.094Z",
+        "endedAt": "2026-09-29T16:51:34.938Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T16:51:34.938Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [
+    {
+      "id": "ba9af4b8-9444-4fba-8b24-76b448d40d91",
+      "title": "shadcn Blocks reference",
+      "subtitle": "Clean, modern building blocks. Copy and paste into your apps. Works with all React frameworks. Open Source. Free forever.",
+      "url": "https://ui.shadcn.com/blocks"
+    }
+  ],
+  "documentReferences": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  },
+  "customerNeeds": [],
+  "releases": []
+}

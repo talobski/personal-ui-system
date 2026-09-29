@@ -1,0 +1,80 @@
+{
+  "retrievedAtUtc": "2026-09-29T17:11:16.096Z",
+  "issue": {
+    "id": "PUI-123",
+    "uuid": "9e81c72f-b93a-4b89-8315-5f72c527ca73",
+    "title": "Add Amber Dusk built-in theme",
+    "description": "Add a new built-in Personal UI theme named **Amber Dusk**, using the owner-provided light/dark token set as the source palette.\n\nThis should be implemented as a normal built-in Theme v3 preset, not as a parallel CSS/theme system.\n\n## Overall direction\n\nThe owner provided a complete shadcn/Tailwind-style token stylesheet containing:\n\n* light-mode semantic colors;\n* dark-mode semantic colors;\n* chart colors;\n* dedicated Sidebar colors;\n* typography families;\n* radius;\n* shadow values;\n* tracking;\n* spacing.\n\nUse those supplied values as the source of truth for the new built-in theme, then reconcile them into the existing Personal UI Theme v3 model and preset architecture.\n\nTheme name:\n\n**Amber Dusk**\n\nDo not paste the entire source stylesheet into the product as a second styling layer.\n\nInstead:\n\nsource token stylesheet\n→ reconcile supported values\n→ map into existing Theme v3 fields\n→ register as built-in theme preset\n\n## 1. Light-mode source values\n\nUse these exact owner-provided values as the source palette:\n\n```css\n--background: oklch(0.9818 0.0054 95.0986);\n--foreground: oklch(0.3438 0.0269 95.7226);\n--card: oklch(0.9818 0.0054 95.0986);\n--card-foreground: oklch(0.1908 0.0020 106.5859);\n--popover: oklch(1.0000 0 0);\n--popover-foreground: oklch(0.2671 0.0196 98.9390);\n--primary: oklch(0.6171 0.1375 39.0427);\n--primary-foreground: oklch(1.0000 0 0);\n--secondary: oklch(0.9245 0.0138 92.9892);\n--secondary-foreground: oklch(0.4334 0.0177 98.6048);\n--muted: oklch(0.9341 0.0153 90.2390);\n--muted-foreground: oklch(0.6059 0.0075 97.4233);\n--accent: oklch(0.9245 0.0138 92.9892);\n--accent-foreground: oklch(0.2671 0.0196 98.9390);\n--destructive: oklch(0.1908 0.0020 106.5859);\n--destructive-foreground: oklch(1.0000 0 0);\n--border: oklch(0.8847 0.0069 97.3627);\n--input: oklch(0.7621 0.0156 98.3528);\n--ring: oklch(0.6171 0.1375 39.0427);\n--chart-1: oklch(0.5583 0.1276 42.9956);\n--chart-2: oklch(0.6898 0.1581 290.4107);\n--chart-3: oklch(0.8816 0.0276 93.1280);\n--chart-4: oklch(0.8822 0.0403 298.1792);\n--chart-5: oklch(0.5608 0.1348 42.0584);\n--sidebar: oklch(0.9663 0.0080 98.8792);\n--sidebar-foreground: oklch(0.3590 0.0051 106.6524);\n--sidebar-primary: oklch(0.6171 0.1375 39.0427);\n--sidebar-primary-foreground: oklch(0.9881 0 0);\n--sidebar-accent: oklch(0.9245 0.0138 92.9892);\n--sidebar-accent-foreground: oklch(0.3250 0 0);\n--sidebar-border: oklch(0.9401 0 0);\n--sidebar-ring: oklch(0.7731 0 0);\n```\n\n## 2. Dark-mode source values\n\nUse these exact owner-provided values as the source palette:\n\n```css\n--background: oklch(0.2679 0.0036 106.6427);\n--foreground: oklch(0.8074 0.0142 93.0137);\n--card: oklch(0.2679 0.0036 106.6427);\n--card-foreground: oklch(0.9818 0.0054 95.0986);\n--popover: oklch(0.3085 0.0035 106.6039);\n--popover-foreground: oklch(0.9211 0.0040 106.4781);\n--primary: oklch(0.6724 0.1308 38.7559);\n--primary-foreground: oklch(1.0000 0 0);\n--secondary: oklch(0.9818 0.0054 95.0986);\n--secondary-foreground: oklch(0.3085 0.0035 106.6039);\n--muted: oklch(0.2213 0.0038 106.7070);\n--muted-foreground: oklch(0.7713 0.0169 99.0657);\n--accent: oklch(0.2130 0.0078 95.4245);\n--accent-foreground: oklch(0.9663 0.0080 98.8792);\n--destructive: oklch(0.6368 0.2078 25.3313);\n--destructive-foreground: oklch(1.0000 0 0);\n--border: oklch(0.3618 0.0101 106.8928);\n--input: oklch(0.4336 0.0113 100.2195);\n--ring: oklch(0.6724 0.1308 38.7559);\n--chart-1: oklch(0.5583 0.1276 42.9956);\n--chart-2: oklch(0.6898 0.1581 290.4107);\n--chart-3: oklch(0.2130 0.0078 95.4245);\n--chart-4: oklch(0.3074 0.0516 289.3230);\n--chart-5: oklch(0.5608 0.1348 42.0584);\n--sidebar: oklch(0.2357 0.0024 67.7077);\n--sidebar-foreground: oklch(0.8074 0.0142 93.0137);\n--sidebar-primary: oklch(0.3250 0 0);\n--sidebar-primary-foreground: oklch(0.9881 0 0);\n--sidebar-accent: oklch(0.1680 0.0020 106.6177);\n--sidebar-accent-foreground: oklch(0.8074 0.0142 93.0137);\n--sidebar-border: oklch(0.9401 0 0);\n--sidebar-ring: oklch(0.7731 0 0);\n```\n\n## 3. Typography source values\n\nThe source stylesheet uses:\n\n```css\n--font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';\n--font-serif: ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif;\n--font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;\n--tracking-normal: 0em;\n```\n\nMap only the typography fields supported by the current Theme v3 contract.\n\nDo not introduce new font roles merely because the source stylesheet contains them.\n\n## 4. Radius / spacing source values\n\nSource values:\n\n```css\n--radius: 0.5rem;\n--spacing: 0.25rem;\n```\n\nMap these into the accepted Theme v3 geometry/spacing model where equivalent fields already exist.\n\nDo not create new schema fields solely to mirror this source format.\n\n## 5. Shadow source values\n\nSource values:\n\n```css\n--shadow-x: 0;\n--shadow-y: 1px;\n--shadow-blur: 3px;\n--shadow-spread: 0px;\n--shadow-opacity: 0.1;\n--shadow-color: oklch(0 0 0);\n\n--shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);\n--shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);\n--shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);\n--shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);\n--shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);\n--shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);\n--shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);\n--shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);\n```\n\nUse the accepted Personal UI shadow model.\n\nIf Theme v3 stores only a subset or higher-level shadow values, reconcile the source into that model rather than adding parallel raw shadow variables.\n\n## 6. Built-in theme behavior\n\nRegister **Amber Dusk** as a normal built-in theme alongside existing built-in presets.\n\nRequirements:\n\n* appears in the existing theme selector/preset flow;\n* switching to Amber Dusk updates the live Workbench immediately;\n* light/dark mode uses the supplied paired values;\n* dedicated Sidebar values are preserved;\n* chart colors are preserved;\n* theme reset/default/history behavior remains coherent;\n* saving/forking/comparing themes continues to work;\n* import/export remains compatible with the existing Theme v3 format;\n* Design Command continues to operate on Amber Dusk like any other accepted theme.\n\nDo not create a theme-specific code path unless the existing preset architecture requires a minimal registration entry.\n\n## 7. UI Effects compatibility\n\nAmber Dusk must work with the accepted UI Effects system.\n\nRequirements:\n\n* UI Effects = Off remains flat;\n* Tactile uses the same global Secondary Button / active surface Tabs recipe as other themes;\n* no Amber-Dusk-specific tactile styling;\n* Strength behaves normally;\n* semantic colors/rings remain theme-responsive.\n\n## 8. Preserve architecture boundaries\n\nDo not:\n\n* paste the owner-provided Tailwind stylesheet wholesale into the product;\n* create a second CSS theme system;\n* introduce duplicate CSS custom properties solely to mirror the source file;\n* change Theme v3 schema unless an existing supported preset field genuinely cannot represent the supplied value;\n* add new dependencies;\n* add network behavior;\n* change public component APIs;\n* change mutation operations solely for this preset;\n* change registry counts solely for this preset.\n\nPrefer adapting the supplied values to the current accepted schema.\n\n## 9. Verification\n\nVerify at minimum:\n\n* Amber Dusk appears in the built-in theme list;\n* light-mode semantic colors match the supplied source values after Theme v3 mapping;\n* dark-mode semantic colors match the supplied source values after Theme v3 mapping;\n* dedicated Sidebar colors work in both modes;\n* chart colors render correctly;\n* typography/radius/shadow/spacing fields map correctly where supported;\n* switching between Amber Dusk and existing themes does not leak values;\n* reset/history/save/fork/compare remain correct;\n* import/export round trip works;\n* UI Effects Off/Tactile works;\n* Workbench previews remain responsive;\n* accessibility/contrast findings are recorded honestly rather than hidden;\n* no regression to Design Command, registry, persistence, or mutation boundaries.\n\n## Acceptance\n\n* New built-in theme is named **Amber Dusk**.\n* Amber Dusk is available through the existing built-in theme workflow.\n* Supplied light/dark semantic color tokens are preserved through the current Theme v3 representation.\n* Supplied Sidebar and chart tokens are preserved.\n* Supported typography, radius, spacing, and shadow values are mapped into the existing Theme v3 model without parallel styling infrastructure.\n* The owner-provided stylesheet is treated as source data, not copied as a second theme runtime.\n* Light/dark switching is correct.\n* Theme switching does not leak Amber Dusk values into other presets.\n* History/reset/save/fork/compare/import/export remain correct.\n* UI Effects works normally with Amber Dusk.\n* No Theme v4, new dependency, network behavior, new registry resource, or unrelated architecture change is introduced unless source inspection proves a current Theme v3 limitation that must be reconciled explicitly.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-123/add-amber-dusk-built-in-theme",
+    "gitBranchName": "emmantalob/pui-123-add-amber-dusk-built-in-theme",
+    "createdAt": "2026-09-29T13:53:25.927Z",
+    "updatedAt": "2026-09-29T16:51:04.853Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Feature",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T13:53:25.927Z",
+        "endedAt": "2026-09-29T16:51:04.846Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T16:51:04.846Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [],
+  "documentReferences": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  },
+  "customerNeeds": [],
+  "releases": []
+}

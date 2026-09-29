@@ -1,0 +1,80 @@
+{
+  "retrievedAtUtc": "2026-09-29T17:11:16.115Z",
+  "issue": {
+    "id": "PUI-126",
+    "uuid": "7d6f37e2-3db4-4a1f-a06e-a980b219a0eb",
+    "title": "Refine Design system group and token label hierarchy",
+    "description": "Refine the Design system → Colors preview typography hierarchy so semantic group headings become stronger visual anchors while token labels return to normal title case.\n\n## Overall direction\n\nThe current state uses title-case semantic group headings such as Primary / Secondary and uppercase token labels such as BACKGROUND / FOREGROUND.\n\nChange that hierarchy so:\n\n* semantic group headings become uppercase and one typography step larger;\n* token labels return to normal title case;\n* token labels remain smaller supporting metadata;\n* HEX values remain visually secondary.\n\nThis is a presentation-only adjustment for the Design system preview.\n\n## 1. Semantic group headings\n\nUpdate group headings such as:\n\n* Primary\n* Secondary\n* Accent\n* Base\n* Card\n* Popover\n* Muted\n* Destructive\n* Border / Input / Ring\n* Charts\n* Sidebar\n\nRequirements:\n\n* render them in uppercase;\n* increase their font size by one typography step from the current implementation;\n* if the current size is approximately `text-sm`, move to the next appropriate step such as `text-base`;\n* keep using the base foreground semantic color token;\n* preserve current grouping/order;\n* preserve current spacing/layout unless a small adjustment is needed to accommodate the larger text.\n\nExample:\n\n`Primary` → `PRIMARY`\n\n## 2. Token labels\n\nRemove the uppercase treatment from token display labels.\n\nExamples:\n\n* `BACKGROUND` → `Background`\n* `FOREGROUND` → `Foreground`\n* `PRIMARY BACKGROUND` → `Primary Background`\n* `PRIMARY FOREGROUND` → `Primary Foreground`\n* `ACCENT BACKGROUND` → `Accent Background`\n* `SIDEBAR BORDER` → `Sidebar Border`\n* `SIDEBAR RING` → `Sidebar Ring`\n\nRequirements:\n\n* use normal title case;\n* keep the existing smaller supporting font size;\n* keep using the base foreground semantic color token;\n* preserve current placement beneath each swatch;\n* preserve current mapping/wording other than casing.\n\n## 3. HEX values\n\nPreserve current HEX value presentation.\n\nRequirements:\n\n* keep current font size;\n* keep current muted/secondary visual treatment;\n* do not change HEX conversion or live update behavior.\n\n## 4. Intended hierarchy\n\nThe visual hierarchy should read:\n\n1. section heading, e.g. Colors;\n2. uppercase semantic group heading, e.g. PRIMARY;\n3. title-case token label, e.g. Background;\n4. muted HEX value.\n\nThe semantic group heading should clearly lead the token label.\n\n## 5. Preserve existing Design system behavior\n\nDo not change:\n\n* swatch dimensions;\n* swatch colors;\n* two-column layout;\n* Sidebar display-label mapping;\n* token order/grouping;\n* Theme v3;\n* actual token keys;\n* CSS variables;\n* sidebar editor labels;\n* alias behavior;\n* import/export keys;\n* persistence/history;\n* Design Command;\n* mutation operations;\n* public registry.\n\nNo new dependency or network behavior.\n\n## 6. Accessibility and responsiveness\n\n* preserve readable contrast in light/dark modes;\n* preserve current responsive layout;\n* avoid wrapping or clipping from the larger group headings;\n* preserve logical reading order.\n\n## Acceptance\n\n* Semantic group headings are uppercase.\n* Semantic group headings are one typography step larger than before.\n* Semantic group headings continue using the base foreground token.\n* Token labels are no longer uppercase.\n* Token labels use normal title case.\n* Token labels retain their current smaller supporting size and base foreground color.\n* HEX values remain unchanged and visually secondary.\n* Existing swatches, token mappings, Theme v3, aliases, sidebar editor labels, import/export, persistence, history, Design Command, mutation operations, and registry remain unchanged.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-126/refine-design-system-group-and-token-label-hierarchy",
+    "gitBranchName": "emmantalob/pui-126-refine-design-system-group-and-token-label-hierarchy",
+    "createdAt": "2026-09-29T16:34:24.509Z",
+    "updatedAt": "2026-09-29T16:51:31.397Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T16:34:24.509Z",
+        "endedAt": "2026-09-29T16:51:31.387Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T16:51:31.387Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [],
+  "documentReferences": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  },
+  "customerNeeds": [],
+  "releases": []
+}

@@ -1,0 +1,80 @@
+{
+  "retrievedAtUtc": "2026-09-29T17:11:16.061Z",
+  "issue": {
+    "id": "PUI-124",
+    "uuid": "a39a8708-c195-4204-aea7-97a4fd2bb2cb",
+    "title": "Simplify tactile Tabs effect to a fixed TabsList ring",
+    "description": "Simplify the accepted UI Effects behavior for surface-style Tabs.\n\nThe current Tactile effect applies an adjustable tactile treatment to active surface-style Tabs. This ticket changes that model so Tabs receive only one fixed, subtle container-level enhancement, while the Strength control applies only to Secondary Buttons.\n\n## Overall direction\n\nWhen UI Effects = Tactile:\n\n* Secondary Buttons keep the accepted adjustable tactile treatment;\n* the Strength control continues to affect Secondary Buttons;\n* surface-style Tabs no longer receive the adjustable tactile recipe;\n* active TabsTrigger styling returns to the normal/default shadcn selected-state appearance;\n* the TabsList container receives only a subtle fixed ring:\n  * `ring-1 ring-ring/20`\n\nWhen UI Effects = Off:\n\n* Secondary Buttons are flat;\n* Tabs use their normal default shadcn appearance;\n* TabsList has no extra UI Effects ring;\n* Strength remains disabled/de-emphasized as already accepted.\n\n## 1. Remove tactile treatment from active tab triggers\n\nRemove the custom/accepted tactile effect currently applied directly to the active surface-style `TabsTrigger`.\n\nRequirements:\n\n* preserve shadcn default selected-state styling;\n* preserve inactive trigger styling;\n* preserve keyboard navigation;\n* preserve selected-state semantics;\n* preserve focus-visible behavior;\n* preserve current Tabs sizing and layout;\n* do not add a replacement shadow/highlight recipe to the active trigger.\n\nThe active tab should look like the normal accepted shadcn active tab.\n\n## 2. Apply fixed ring to TabsList container\n\nWhen UI Effects = Tactile, apply only this container-level treatment to accepted surface-style Tabs:\n\n`ring-1 ring-ring/20`\n\nRequirements:\n\n* apply to the `TabsList` container, not individual triggers;\n* use the existing semantic `ring` token;\n* keep the opacity fixed at 20%;\n* preserve existing TabsList background, radius, spacing, and geometry;\n* do not add extra shadow, highlight, inset, border, or glow as part of this ticket.\n\nThis fixed ring is the entire UI Effects treatment for Tabs.\n\n## 3. Strength affects Secondary Buttons only\n\nUpdate the UI Effects behavior so the Strength control no longer changes Tabs in any way.\n\nStrength should affect only the accepted Secondary Button tactile recipe.\n\nRequirements:\n\n* changing Strength updates Secondary Button tactility;\n* TabsList `ring-ring/20` remains visually unchanged at every Strength value;\n* active tab styling remains unchanged at every Strength value;\n* no hidden tab-specific strength mapping remains.\n\nThe UI model should make this separation explicit in implementation and tests.\n\n## 4. Preserve Secondary Button tactile behavior\n\nDo not redesign the accepted Secondary Button tactile treatment in this ticket.\n\nPreserve:\n\n* subtle internal illumination/light wash;\n* restrained depth;\n* semantic edge/ring treatment;\n* existing Strength mapping;\n* light/dark behavior;\n* keyboard/focus/disabled semantics.\n\nThis ticket is primarily a Tabs simplification and Strength-scope correction.\n\n## 5. UI Effects semantics\n\nAccepted behavior after this ticket:\n\n### Effect = Off\n\n* Secondary Buttons: flat\n* surface-style Tabs: normal shadcn appearance\n* no extra TabsList ring\n* Strength disabled/de-emphasized\n\n### Effect = Tactile\n\n* Secondary Buttons: tactile and controlled by Strength\n* surface-style Tabs:\n  * normal shadcn trigger appearance\n  * `TabsList` gets `ring-1 ring-ring/20`\n  * unaffected by Strength\n\nLine/minimal Tabs remain excluded as before.\n\n## 6. Theme / state boundaries\n\nPrefer preserving the current Theme v3 UI Effects persisted shape unless a narrow implementation cleanup is needed.\n\nDo not:\n\n* introduce a new persisted Tabs strength field;\n* add per-target toggles;\n* add a new effect family;\n* introduce Theme v4;\n* change mutation count unless the accepted closed operation contract genuinely requires a narrow update;\n* change import/export semantics beyond what is required to preserve current Off/Tactile + Strength behavior.\n\nIf the current renderer or persisted model assumes Tabs use Strength, remove that coupling without expanding schema.\n\nPreserve:\n\n* history;\n* dirty state;\n* reset;\n* save/reload;\n* import/export;\n* Design Command boundaries;\n* public registry.\n\n## 7. Scope\n\nApply this to accepted **surface-style Tabs** that participate in UI Effects.\n\nDo not change:\n\n* line/minimal Tabs;\n* unrelated tab variants;\n* Button variants other than preserving Secondary behavior;\n* Inputs;\n* Cards;\n* other primitives;\n* Workbench navigation semantics;\n* tab layout/width behavior.\n\nNo new dependency or network behavior.\n\n## 8. Verification\n\nVerify:\n\n* UI Effects Off:\n  * no extra TabsList ring;\n  * normal shadcn active/inactive tab appearance;\n  * Secondary Buttons flat;\n  * Strength disabled/de-emphasized.\n* UI Effects Tactile:\n  * TabsList receives exactly the intended subtle semantic ring treatment;\n  * active trigger no longer receives the tactile recipe;\n  * Secondary Buttons remain tactile;\n  * Strength changes Secondary Button appearance;\n  * Strength does not change Tabs visually.\n\nAlso verify:\n\n* light/dark mode;\n* keyboard navigation;\n* focus-visible behavior;\n* selected-state semantics;\n* narrow/wide responsive layouts;\n* existing Theme v3/history/reset/import-export behavior;\n* no regression to Design Command, mutation boundary, or registry.\n\n## Acceptance\n\n* Active surface-style TabsTrigger uses the normal/default shadcn selected-state styling.\n* No adjustable tactile shadow/highlight treatment remains on active tab triggers.\n* When UI Effects = Tactile, TabsList receives `ring-1 ring-ring/20`.\n* When UI Effects = Off, that extra TabsList ring is absent.\n* Strength affects Secondary Buttons only.\n* Changing Strength does not alter TabsList or TabsTrigger appearance.\n* Secondary Button tactile behavior remains materially unchanged.\n* Line/minimal Tabs remain unaffected.\n* No Theme v4, new dependency, network behavior, per-target toggle, or unrelated product change is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-124/simplify-tactile-tabs-effect-to-a-fixed-tabslist-ring",
+    "gitBranchName": "emmantalob/pui-124-simplify-tactile-tabs-effect-to-a-fixed-tabslist-ring",
+    "createdAt": "2026-09-29T16:12:30.547Z",
+    "updatedAt": "2026-09-29T16:51:09.154Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T16:12:30.547Z",
+        "endedAt": "2026-09-29T16:51:09.147Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T16:51:09.147Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentState": [],
+  "documentReferences": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  },
+  "customerNeeds": [],
+  "releases": []
+}
