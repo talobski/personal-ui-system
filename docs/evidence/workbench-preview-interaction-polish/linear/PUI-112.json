@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "linear-issue-snapshot/1",
+  "retrievedAtUtc": "2026-09-29T07:02:10.201Z",
+  "issue": {
+    "id": "PUI-112",
+    "uuid": "538b9f32-2189-49ba-980c-7701765ca35b",
+    "title": "Simplify Weather forecast row and restore Body weight inheritance",
+    "description": "Refine the existing Weather gallery card by simplifying the forecast row and ensuring the large current temperature and location name correctly inherit the live Personal UI Body typography weight.\n\n## Overall direction\n\n* Remove the secondary low-temperature values from the forecast row to reduce visual noise.\n* Keep the weekday labels, weather icons, and primary daily temperatures.\n* Preserve the current card structure and hierarchy unless small spacing adjustments are needed after the low-temperature row is removed.\n* Keep the large current temperature and location name in the accepted Body/Sans typography system.\n* Fix their weight behavior so they follow the live Body font-weight control from the Personal UI sidebar instead of being locally overridden.\n\n## 1. Simplify the forecast row\n\nRemove the secondary low-temperature values currently shown beneath each forecast day.\n\nKeep:\n\n* weekday labels;\n* weather icons;\n* primary daily temperatures;\n* existing forecast order.\n\nDo not replace the removed values with new metadata or alternate secondary copy.\n\nAfter removal:\n\n* keep spacing visually balanced;\n* avoid leaving an unnecessary empty row/gap;\n* preserve responsive containment and the current overall card proportions where practical.\n\n## 2. Restore Body weight inheritance\n\nThe large current temperature (for example, `21°`) and the location name (for example, `Lisbon`) should continue to use the accepted Body/Sans family, but their font weight must no longer be locally hardcoded.\n\nRequirements:\n\n* remove local `font-semibold`, explicit 600 weight, or equivalent weight overrides from the large current temperature;\n* remove local `font-semibold`, explicit 600 weight, or equivalent weight overrides from the location name;\n* do not replace those overrides with a fixed `font-normal`/400 rule if that would still prevent live typography control;\n* instead, allow both elements to inherit/follow the live Personal UI **Body font weight**;\n* changing Body → Weight in the Personal UI sidebar must update both elements live, consistent with other Body typography in the system;\n* preserve their current displayed font sizes and visual hierarchy unless a small implementation adjustment is required to maintain layout after the weight override is removed.\n\n## 3. Theme, typography, and boundaries\n\n* Preserve the accepted Body/Sans family behavior.\n* Preserve live typography updates from the sidebar.\n* Preserve light/dark behavior.\n* Preserve semantic color/token usage.\n* Do not add a new typography control or local theme state.\n* Do not change Heading or Mono typography behavior.\n* Do not change Theme v3, persistence, history, Design Command semantics, mutation operations, or public registry solely for this ticket.\n* No new dependency or network behavior.\n\n## Acceptance\n\n* Secondary low-temperature values beneath each forecast day are no longer rendered.\n* Weekday labels, weather icons, and primary daily temperatures remain.\n* Forecast row remains visually balanced with no stray empty row/gap from the removed values.\n* Large current temperature continues to use Body/Sans and no longer has a local semibold/fixed-weight override.\n* Location name continues to use Body/Sans and no longer has a local semibold/fixed-weight override.\n* Changing the Personal UI sidebar **Body → Weight** control updates both the large current temperature and location name live.\n* Neither element is pinned to a fixed 400/600 weight that bypasses the Body weight control.\n* Their current displayed sizes and overall hierarchy remain intact.\n* No regression to light/dark mode, responsive layout, live typography behavior, theme state, or surrounding Weather content.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-112/simplify-weather-forecast-row-and-restore-body-weight-inheritance",
+    "gitBranchName": "emmantalob/pui-112-simplify-weather-forecast-row-and-restore-body-weight",
+    "createdAt": "2026-09-28T17:08:39.141Z",
+    "updatedAt": "2026-09-29T06:17:43.141Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T17:08:39.141Z",
+        "endedAt": "2026-09-29T06:17:43.134Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T06:17:43.134Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}

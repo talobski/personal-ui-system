@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "linear-issue-snapshot/1",
+  "retrievedAtUtc": "2026-09-29T07:02:10.201Z",
+  "issue": {
+    "id": "PUI-114",
+    "uuid": "960342f5-b409-4d3a-ab5e-a57d7563a0f7",
+    "title": "Simplify Design system color preview labels and swatches",
+    "description": "Refine the Design system → Colors preview presentation without changing the underlying Personal UI color tokens, aliases, theme schema, sidebar controls, or import/export behavior.\n\n## Overall direction\n\nThis ticket is presentation-only for the Design system Colors preview.\n\nThe goal is to make the color specimen view cleaner and easier to scan by:\n\n* simplifying paired color labels to Background / Foreground;\n* displaying HEX equivalents instead of OKLCH strings;\n* using wider rectangular swatches instead of square swatches;\n* removing alias-explanation lines from the Sidebar color group;\n* simplifying the Sidebar section heading.\n\nUnderlying token identity and behavior must remain unchanged.\n\n## 1. Simplify paired color labels in the preview\n\nFor paired semantic colors in the Design system preview, replace raw token-key labels with local display labels:\n\n* base/background-side token → **Background**\n* paired foreground token → **Foreground**\n\nExamples:\n\n* `primary` displays as **Background**\n* `primary-foreground` displays as **Foreground**\n* `secondary` displays as **Background**\n* `secondary-foreground` displays as **Foreground**\n* apply the same presentation pattern to other paired semantic groups such as Accent, Card, Popover, Muted, Destructive, Sidebar pairs, and other comparable pairs where appropriate.\n\nImportant boundary:\n\n* this is a local display-name mapping for the Design system preview only;\n* do not rename actual token keys;\n* do not change labels in the Personal UI sidebar controls;\n* do not change theme schema, token serialization, import/export keys, aliases, or runtime token behavior.\n\n## 2. Display HEX values instead of OKLCH\n\nIn the Design system Colors preview, show resolved HEX equivalents instead of OKLCH strings.\n\nExample:\n\nCurrent:\n`oklch(...)`\n\nDesired:\n`#RRGGBB`\n\nRequirements:\n\n* preserve the existing underlying/stored color representation;\n* conversion to HEX is for preview display only;\n* derive the HEX value from the resolved current token color;\n* preserve live updates when theme colors change;\n* do not change how colors are stored, edited, serialized, imported, or exported.\n\n## 3. Use rectangular color swatches\n\nReplace the current square swatches in the Design system Colors preview with wider horizontal rectangular swatches similar to a palette/specimen presentation.\n\nDirection:\n\n* use a clearly wider-than-tall swatch;\n* retain existing radius/border treatment where appropriate;\n* keep the pair layout dense and readable;\n* let exact dimensions/proportion be tuned through browser evidence rather than hard-coding a strict reference ratio;\n* preserve responsive stacking/containment at narrow widths.\n\n## 4. Clean up the Sidebar color group\n\nIn the Design system Colors preview only, remove the alias-explanation lines currently shown below Sidebar token names, such as:\n\n* `= background`\n* `= foreground`\n* `= primary`\n* `= primary-foreground`\n* `= accent`\n* `= accent-foreground`\n* similar alias annotations\n\nThe actual alias semantics must remain unchanged.\n\nThe preview should show only the simplified specimen information needed for scanning, such as:\n\n* display label;\n* swatch;\n* HEX value.\n\nDo not alter whether Sidebar tokens currently resolve through base aliases or dedicated Sidebar values.\n\n## 5. Simplify the Sidebar heading\n\nChange the Design system preview heading:\n\n`SIDEBAR · BASE ALIASES`\n\nto:\n\n`SIDEBAR`\n\nThis is presentation-only.\n\nDo not remove or change the underlying base-alias behavior when dedicated Sidebar tokens are OFF.\n\n## 6. Simplify the Type scale header\n\nIn the Design system → Type scale preview, remove the summary/meta line directly beneath the `Type scale` heading, currently showing values such as:\n\n`Body · ui-sans-serif · 400 · 0em`\n\nThis is a presentation-only cleanup.\n\nRequirements:\n\n* remove that summary/meta line from the Type scale preview;\n* keep the `Type scale` heading;\n* keep all existing `text-5xl` through `text-xs` specimens and labels unchanged;\n* do not change the underlying Body font family, weight, tracking, type-scale values, live typography behavior, or sidebar controls;\n* do not move this metadata elsewhere in the view.\n\n## 7. Live behavior and boundaries\n\nPreserve:\n\n* live theme updates;\n* light/dark mode;\n* Sidebar token OFF/ON behavior;\n* dedicated Sidebar token values when enabled;\n* current semantic token grouping/order unless a tiny local layout adjustment is needed for the rectangular swatches;\n* Theme v3;\n* persistence/history;\n* Design Command behavior;\n* mutation operations;\n* public registry;\n* sidebar controls and their existing token labels;\n* import/export schema and token keys.\n\nDo not:\n\n* rename actual semantic tokens;\n* change Sidebar alias semantics;\n* convert stored theme colors to HEX;\n* modify color controls in the sidebar;\n* introduce a second color representation into persisted theme state;\n* add dependencies or network behavior.\n\n## Acceptance\n\n* Paired semantic colors in the Design system preview use local **Background** / **Foreground** display labels rather than raw token-key names.\n* Actual token keys remain unchanged.\n* Personal UI sidebar control labels remain unchanged.\n* Design system preview displays resolved HEX equivalents instead of OKLCH strings.\n* Underlying color storage/editing/serialization remains unchanged.\n* Color swatches are wider rectangular specimens rather than square tiles.\n* Sidebar alias explanation lines such as `= background` / `= foreground` are no longer shown in the Design system preview.\n* `SIDEBAR · BASE ALIASES` is renamed to `SIDEBAR`.\n* Sidebar alias/dedicated-token behavior remains functionally identical.\n* Live theme edits continue to update swatches and displayed HEX values.\n* Light/dark and Sidebar token OFF/ON states continue to render correctly.\n* The Type scale preview no longer shows the summary/meta line such as `Body · ui-sans-serif · 400 · 0em` beneath the heading.\n* Existing type-scale specimens, labels, typography values, and live Body typography behavior remain unchanged.\n* No regression to Theme v3, import/export, persistence, history, Design Command, mutation operations, public registry, or sidebar color controls.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-114/simplify-design-system-color-preview-labels-and-swatches",
+    "gitBranchName": "emmantalob/pui-114-simplify-design-system-color-preview-labels-and-swatches",
+    "createdAt": "2026-09-28T18:13:24.100Z",
+    "updatedAt": "2026-09-29T06:17:46.800Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T18:13:24.100Z",
+        "endedAt": "2026-09-29T06:17:46.792Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T06:17:46.792Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}

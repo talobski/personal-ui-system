@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "linear-issue-snapshot/1",
+  "retrievedAtUtc": "2026-09-29T07:02:10.201Z",
+  "issue": {
+    "id": "PUI-111",
+    "uuid": "cb14d4fa-f85c-473f-b924-d10879412d51",
+    "title": "Refine Chat composer layout and add message avatars",
+    "description": "Refine the existing Chat gallery card so the composer reads as an active chat action, stays anchored to the bottom of the full-height card, and message rows gain lightweight sender identity using the accepted shadcn Message/Avatar composition.\n\n## Overall direction\n\n* Preserve the simplified Chat card introduced in the previous polish phase.\n* Do not reintroduce the old contact/name header.\n* Keep the existing message bubbles and overall visual direction.\n* Make the message region flex to use the available card height so the composer stays at the bottom edge.\n* Keep the send action inside the composer field, but restore a clear button treatment and make it appear active.\n* Add compact single-letter avatars beside messages using the accepted shadcn Message/Avatar pattern.\n\n## 1. Composer and send action\n\nKeep the composer field at the bottom of the Chat card.\n\n* Preserve the placeholder exactly as `Type your message...`.\n* Keep the send action inside the field at the far right.\n* Restore the send action as a visibly filled icon button rather than a bare/muted icon.\n* Use existing semantic primary styling/tokens rather than a one-off raw color.\n* Make the send control appear enabled/active instead of disabled.\n* Preserve keyboard/focus treatment appropriate for an active button.\n* Do not add a new public primitive solely for this card.\n\nInteraction boundary:\n\n* No real message-send behavior is required in this ticket.\n* Clicking the send button does not need to append messages, persist state, call a network/API, or introduce chat logic unless that behavior already exists and can be preserved without expanding scope.\n\n## 2. Pin the composer to the bottom\n\nTreat the card as a full-height chat surface.\n\n* Let the conversation/message region expand vertically to consume the remaining available height.\n* Keep the composer at the bottom edge of the card even when the message content itself does not fill the available space.\n* Prefer normal layout structure such as a column flex/grid composition with an expanding message region.\n* Avoid absolute positioning or brittle fixed-offset hacks.\n* Preserve the accepted equal-height relationship with the paired Recent activity card where that pairing still applies.\n\n## 3. Add message avatars\n\nUse the accepted shadcn Message/Avatar composition as the reference pattern.\n\n* Add a compact avatar beside incoming and outgoing message rows.\n* Incoming messages place the avatar at the start/left side.\n* Outgoing messages place the avatar at the end/right side, matching message alignment.\n* Avatar images are not required.\n* Use a simple single-letter `AvatarFallback` for each sender.\n* Keep avatar treatment visually secondary to the message bubbles.\n* Preserve current bubble copy and styling unless a small spacing/alignment adjustment is necessary for the avatar layout.\n* Keep the composition compatible with grouped consecutive messages; do not hard-code unnecessary assumptions that every future bubble must always render its own avatar.\n\n## 4. Reference implementation\n\nFollow the accepted shadcn Message pattern where appropriate, including the relationship between:\n\n* `Message`\n* message alignment\n* `MessageAvatar`\n* the existing Avatar / AvatarFallback primitives\n\nReference:\n[https://ui.shadcn.com/docs/components/base/message](<https://ui.shadcn.com/docs/components/base/message>)\n\nDo not copy demo-specific imagery or content. The goal is the structural avatar/message relationship, adapted to the Personal UI theme and existing Chat card.\n\n## 5. Theme, accessibility, and boundaries\n\n* Continue using live Personal UI semantic tokens.\n* Preserve light/dark behavior.\n* Keep text, bubble, avatar, field, and button contrast appropriate.\n* Preserve logical reading order.\n* Preserve visible and programmatic focus states.\n* Keep the send button accessible by keyboard and give it an appropriate accessible name.\n* Do not add network requests, persistence, new dependencies, or new chat state.\n* Do not modify Theme v3, mutation semantics, Design Command behavior, history, or public registry counts solely for this ticket.\n\n## Acceptance\n\n* Composer stays visually anchored to the bottom of the full-height Chat card.\n* Message region expands to consume remaining vertical space instead of leaving the composer immediately after the last bubble.\n* Placeholder remains exactly `Type your message...`.\n* Send action remains inside the field at the far right.\n* Send action uses a visible semantic filled button treatment and appears active/enabled.\n* Send button has appropriate keyboard/focus and accessible-name behavior.\n* No real send/message-insertion behavior is introduced.\n* Incoming and outgoing message rows include compact single-letter avatars using the accepted shadcn Message/Avatar pattern.\n* Avatar placement follows message alignment: start for incoming, end for outgoing.\n* Old contact/name header is not reintroduced.\n* Existing message copy and overall bubble styling remain intact except for necessary avatar/composer spacing.\n* Chat continues to respond correctly to live theme changes and light/dark mode.\n* No new dependency, network, persistence, public primitive, registry, Design Command, or theme regression.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-111/refine-chat-composer-layout-and-add-message-avatars",
+    "gitBranchName": "emmantalob/pui-111-refine-chat-composer-layout-and-add-message-avatars",
+    "createdAt": "2026-09-28T16:58:22.859Z",
+    "updatedAt": "2026-09-29T06:17:39.979Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [
+      {
+        "id": "159bc599-42f6-44fc-b154-5d3bbbf5a6da",
+        "title": "shadcn Message documentation",
+        "subtitle": "Displays a message in a conversation, with optional avatar, header, footer, and alignment.",
+        "url": "https://ui.shadcn.com/docs/components/base/message"
+      }
+    ],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T16:58:22.859Z",
+        "endedAt": "2026-09-29T06:17:39.972Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T06:17:39.972Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}

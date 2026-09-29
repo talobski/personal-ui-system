@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "linear-frozen-packet-hashes/1",
+  "phase": "workbench-preview-interaction-polish-v1-001",
+  "retrievedAtUtc": "2026-09-29T07:02:10.201Z",
+  "acceptedProductBase": "256c1c7490843c09294753271abc7e39024857bd",
+  "acceptedControlBase": "33f8992157aaa67ef857efe912f9adcedd72a66f",
+  "tickets": [
+    {
+      "path": "docs/evidence/workbench-preview-interaction-polish/linear/PUI-111.json",
+      "sha256": "dc22b877082ecaa2127d40598ce87720398c3ee08bbf9d4c01575bd5587985ff"
+    },
+    {
+      "path": "docs/evidence/workbench-preview-interaction-polish/linear/PUI-112.json",
+      "sha256": "0f303d61c3f412184c8aa8f4a956c8d55696fb8a0ab59febb6bce47159e7e3ec"
+    },
+    {
+      "path": "docs/evidence/workbench-preview-interaction-polish/linear/PUI-114.json",
+      "sha256": "f94d5c35148b67f7c9d2ebbd9387b6553f84a91b25392c991f23ce949ea31505"
+    },
+    {
+      "path": "docs/evidence/workbench-preview-interaction-polish/linear/PUI-115.json",
+      "sha256": "73945bc573b87123165455c6001a94c814295826f34d0b313575e55716a4f5f9"
+    },
+    {
+      "path": "docs/evidence/workbench-preview-interaction-polish/linear/PUI-116.json",
+      "sha256": "b64b46a9507dfbbfa46050417f8583fb656877090acabb7e442589498f65dea7"
+    },
+    {
+      "path": "docs/evidence/workbench-preview-interaction-polish/linear/PUI-117.json",
+      "sha256": "f2b3c4287d790fa59655c5f407220231e7af8fe5eac8e40967e2a11744de27f6"
+    }
+  ],
+  "authoritativeContract": {
+    "path": "docs/WORKBENCH_PREVIEW_INTERACTION_POLISH_CONTRACT.md",
+    "sha256": "0e914e260176c730ad7fe4df675d55fe4f5e6ccafcf749c5c3ce122b28c163fb"
+  }
+}

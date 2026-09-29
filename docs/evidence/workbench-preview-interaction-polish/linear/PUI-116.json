@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "linear-issue-snapshot/1",
+  "retrievedAtUtc": "2026-09-29T07:02:10.201Z",
+  "issue": {
+    "id": "PUI-116",
+    "uuid": "4e43cab6-795e-49dc-bce9-f290f007d449",
+    "title": "Increase App shell preview height and add collapsible sidebars",
+    "description": "Refine the App shells preview by making each shell specimen slightly taller and adding a real collapsible sidebar interaction using the existing accepted shadcn Sidebar system.\n\n## Overall direction\n\n* Increase the vertical height of the App shell previews so they feel more spacious and app-like.\n* Preserve the existing balanced landscape proportion and stacked layout.\n* Add collapsible sidebar behavior to each shell preview using shadcn Sidebar's accepted collapse capabilities.\n* Prefer icon-collapse behavior rather than fully hiding the sidebar.\n* Keep collapse state local to each shell preview.\n* Be especially careful not to trigger or mutate the actual Personal UI Workbench sidebar when interacting with a preview shell.\n\n## 1. Increase shell preview height\n\nIncrease the desktop height of the shell previews enough to create a more spacious app-shell composition.\n\nRequirements:\n\n* make Classic workspace, Inset project, and Compact utility consistently taller;\n* retain a balanced landscape proportion;\n* do not make the shells excessively tall;\n* tune the exact height through browser evidence rather than hard-coding a strict owner-specified pixel value;\n* preserve the existing restrained preview width;\n* preserve stacked vertical layout;\n* allow responsive adjustments at narrow widths without page-level horizontal overflow.\n\nThe intent is a moderate increase in usable vertical room, not a redesign of the shell compositions.\n\n## 2. Add collapsible shadcn Sidebar behavior\n\nUse the existing accepted shadcn Sidebar architecture and built-in collapse behavior where supported.\n\nPreferred behavior:\n\n* expanded sidebar at rest;\n* user can collapse it to an icon-only rail;\n* main content expands into the freed horizontal space;\n* user can restore the expanded sidebar;\n* transition should remain stable and visually polished.\n\nPrefer the accepted shadcn pattern such as:\n\n* `collapsible=\"icon\"`;\n* existing `SidebarTrigger` / `SidebarRail` / provider-controlled state where appropriate;\n* existing SidebarMenuButton tooltip behavior for collapsed icon-only navigation if already supported by the accepted implementation.\n\nDo not invent a separate custom collapsing sidebar framework.\n\n## 3. Apply consistently to all shell previews\n\nAdd the interaction to:\n\n* Classic workspace;\n* Inset project;\n* Compact utility.\n\nPreserve the shared standardized Sidebar architecture already accepted for these previews.\n\nThe three examples may retain their existing restrained differences in density, active state, framing, and content treatment.\n\n## 4. Preview-local state only\n\nCollapse state must remain local to the individual preview shell.\n\nRequirements:\n\n* collapsing Classic workspace must not collapse Inset project or Compact utility;\n* collapsing one preview must not affect global Workbench layout/state;\n* refreshing/resetting theme state should not create unexpected shared sidebar-collapse persistence unless that behavior already exists and is intentionally local.\n\nNo new persistence model is required for preview collapse state.\n\n## 5. Critical isolation boundary: do not trigger the Workbench sidebar\n\nBe careful to avoid event/context collisions between the embedded App shell sidebars and the actual Personal UI Workbench sidebar.\n\nThe preview shell's trigger/rail must control **only its own embedded Sidebar instance**.\n\nDo not allow:\n\n* a preview `SidebarTrigger` to collapse/expand the Workbench sidebar;\n* the Workbench sidebar trigger to accidentally target a preview sidebar;\n* keyboard shortcuts intended for a preview shell to mutate global Workbench sidebar state;\n* nested `SidebarProvider` or context wiring to leak across preview boundaries;\n* shared IDs/state hooks/event handlers that cause shell previews and Workbench chrome to control each other.\n\nIf nested Sidebar providers are required, scope them explicitly to the preview instance and verify isolation with browser interaction tests.\n\nThis isolation requirement is a primary acceptance criterion.\n\n## 6. Theme and layout behavior\n\nPreserve:\n\n* live theme colors;\n* light/dark mode;\n* typography;\n* spacing/radius;\n* border/shadow behavior;\n* Sidebar token OFF/ON behavior;\n* dedicated Sidebar token values;\n* current abstract main-panel structure;\n* shell ordering;\n* existing preview containment.\n\nCollapsed state should continue to reflect the live Personal UI theme.\n\n## 7. Accessibility and interaction\n\n* preserve keyboard accessibility for collapse/expand controls;\n* preserve visible focus states;\n* keep icon-only navigation understandable, using accepted shadcn tooltip behavior where appropriate;\n* preserve logical reading order;\n* avoid clipping or inaccessible controls in collapsed state;\n* verify narrow-width containment;\n* avoid layout jank when toggling collapse state.\n\n## 8. Boundaries\n\nDo not:\n\n* change the public Sidebar API solely for these previews;\n* create a second sidebar implementation;\n* add new dependencies unless strictly required by the existing accepted shadcn Sidebar implementation;\n* introduce new persistence/history semantics;\n* change Theme v3, Design Command, mutation operations, or public registry outside the minimum required integration;\n* alter the actual Workbench sidebar behavior as part of this ticket.\n\n## Acceptance\n\n* All three App shell previews are moderately taller and visually more spacious.\n* Exact height is browser-tuned and remains balanced rather than excessively tall.\n* Classic workspace, Inset project, and Compact utility each support sidebar collapse/expand.\n* Collapse uses the accepted shadcn Sidebar behavior, preferably icon-collapse.\n* Main content responds correctly to the collapsed width.\n* Collapse state is local to each preview shell.\n* Collapsing one shell does not affect the other shell previews.\n* Most importantly, interacting with a preview shell sidebar never collapses, expands, or otherwise mutates the actual Personal UI Workbench sidebar.\n* Workbench sidebar controls never accidentally control a preview shell.\n* Nested providers/context/state remain isolated.\n* Keyboard/focus behavior is accessible.\n* Live theme/sidebar-token behavior continues to work in expanded and collapsed states.\n* No page-level horizontal overflow or major layout jump is introduced.\n* No regression to Theme v3, persistence, history, Design Command, mutation operations, public registry, or existing Workbench sidebar behavior.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-116/increase-app-shell-preview-height-and-add-collapsible-sidebars",
+    "gitBranchName": "emmantalob/pui-116-increase-app-shell-preview-height-and-add-collapsible",
+    "createdAt": "2026-09-28T18:23:54.647Z",
+    "updatedAt": "2026-09-29T06:17:52.156Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T18:23:54.647Z",
+        "endedAt": "2026-09-29T06:17:52.127Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T06:17:52.127Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}

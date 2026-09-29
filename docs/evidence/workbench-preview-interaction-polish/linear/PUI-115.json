@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "linear-issue-snapshot/1",
+  "retrievedAtUtc": "2026-09-29T07:02:10.201Z",
+  "issue": {
+    "id": "PUI-115",
+    "uuid": "267148c7-2c62-4d76-8860-8ce6b8047b2c",
+    "title": "Replace reset status banner with floating toast feedback",
+    "description": "Replace the current full-width reset status message in the Workbench with a proper floating shadcn toast-style notification.\n\n## Overall direction\n\nWhen the user resets the Workbench/theme to the built-in Default, do not render a persistent horizontal status strip across the preview area.\n\nInstead:\n\n* show transient floating feedback using an accepted shadcn toast-equivalent component;\n* prefer the shadcn-recommended/current toast solution already compatible with the project, such as Sonner if available/admissible;\n* if the project already has an accepted toast primitive/equivalent, reuse it rather than introducing a parallel notification system;\n* preserve the current reset and undo behavior.\n\n## 1. Replace the inline reset banner\n\nRemove the current full-width message such as:\n\n`Reset to the built-in Default. Undo restores your edits.`\n\nfrom the page layout.\n\nThe reset action should not cause a persistent banner or layout shift in the Workbench content area.\n\n## 2. Floating toast feedback\n\nAfter a successful reset, show a floating transient toast.\n\nSuggested content:\n\n**Reset to Default**\nTheme restored to its built-in values.\n\nInclude an **Undo** action.\n\nExact wording may be tuned slightly for clarity, but keep it concise and action-oriented.\n\n## 3. Undo behavior\n\nThe toast's Undo action must preserve the existing reset-reversal behavior.\n\nRequirements:\n\n* Undo restores the user's immediately previous editable theme state;\n* do not create a second undo/history model;\n* reuse the existing Workbench history/undo architecture;\n* existing toolbar undo/redo behavior must remain intact;\n* dismissing the toast must not alter history state.\n\n## 4. Component choice\n\nUse an accepted shadcn notification/toast solution.\n\nPreference order:\n\n1. reuse an existing accepted toast/Sonner implementation if already present in the repo;\n2. otherwise use the current shadcn-recommended toast-equivalent that best fits the project's existing React/shadcn stack;\n3. do not build a custom notification component if an appropriate accepted shadcn component exists.\n\nDo not introduce a separate notification framework or unrelated dependency solely for this feature unless the currently accepted shadcn solution requires it and Lead admission explicitly permits it.\n\n## 5. Interaction and placement\n\n* Toast should float above the Workbench rather than occupy document flow.\n* Use a conventional unobtrusive placement such as top-right or bottom-right, consistent with the chosen shadcn component's accepted pattern.\n* Auto-dismiss after a reasonable duration.\n* User must still have enough time to activate Undo.\n* Preserve keyboard accessibility for the Undo action.\n* Preserve focus-visible treatment.\n* Do not steal focus unnecessarily when the toast appears.\n* Multiple reset actions should behave predictably and should not create an uncontrolled stack of stale reset notifications.\n\n## 6. Theme and visual behavior\n\n* Use existing semantic theme tokens.\n* Support light/dark mode.\n* Preserve current radius, typography, border, and shadow conventions where the chosen shadcn toast component allows.\n* Keep the toast visually consistent with the Workbench without creating a bespoke notification visual language.\n\n## 7. Boundaries\n\nDo not change:\n\n* reset semantics;\n* Default theme contents;\n* Theme v3;\n* import/export;\n* persistence;\n* history architecture;\n* undo/redo semantics;\n* Design Command behavior;\n* public registry except where an already-accepted shadcn toast resource is legitimately required;\n* unrelated Workbench layout.\n\nNo network behavior is needed.\n\n## Acceptance\n\n* Resetting to Default no longer renders the full-width inline status banner.\n* A floating toast-style notification appears after reset.\n* The implementation uses an accepted shadcn toast/Sonner-equivalent component rather than a custom notification system where possible.\n* Toast clearly communicates that the theme was reset.\n* Toast includes an Undo action.\n* Undo restores the user's immediately previous editable theme state using existing history behavior.\n* Toast auto-dismisses without changing history state.\n* Workbench content does not shift vertically when reset feedback appears.\n* Keyboard/focus behavior is accessible.\n* Light/dark modes render correctly.\n* Existing toolbar undo/redo continues to work.\n* No regression to Theme v3, reset behavior, persistence, import/export, history, or Design Command.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-115/replace-reset-status-banner-with-floating-toast-feedback",
+    "gitBranchName": "emmantalob/pui-115-replace-reset-status-banner-with-floating-toast-feedback",
+    "createdAt": "2026-09-28T18:20:30.765Z",
+    "updatedAt": "2026-09-29T06:17:49.347Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T18:20:30.765Z",
+        "endedAt": "2026-09-29T06:17:49.340Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T06:17:49.340Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}

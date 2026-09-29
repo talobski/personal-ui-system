@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "linear-issue-snapshot/1",
+  "retrievedAtUtc": "2026-09-29T07:02:10.201Z",
+  "issue": {
+    "id": "PUI-117",
+    "uuid": "0973195b-32e6-49fb-b513-8df44612a1c2",
+    "title": "Reposition Bitcoin card and add static 1Y / 3Y / 5Y ranges",
+    "description": "Refine the existing Bitcoin gallery card with a small layout/order change and a simple static time-range selector. Keep the implementation deliberately lightweight and fully static.\n\n## Overall direction\n\n* Move the full-width Bitcoin price card so it appears immediately after the Chat + Recent activity row.\n* Remove the historical source/date caption currently shown beneath the chart.\n* Replace the current standalone `1Y` badge with a simple tab-style range selector:\n  * 1Y\n  * 3Y\n  * 5Y\n* Keep all Bitcoin price/history data static and hard-coded.\n* Do not call any API and do not introduce live market data, refresh logic, network behavior, or a crypto SDK.\n\n## 1. Reposition the Bitcoin card\n\nMove the Bitcoin card lower in the Cards gallery so the sequence becomes:\n\n* Chat + Recent activity row\n* Bitcoin card\n* Data table\n* then the remaining existing gallery content in its current order\n\nRequirements:\n\n* preserve the Chat and Recent activity side-by-side pairing;\n* keep the Bitcoin card full-width;\n* do not change any other card order unless strictly required to insert Bitcoin at this position;\n* preserve current responsive behavior and narrow-width stacking.\n\n## 2. Remove the source/date caption\n\nRemove the visible caption beneath the Bitcoin chart:\n\n`Historical first-of-month BTC/USD, Jan 1, 2025 – Jan 1, 2026. Source: Coinbase via FRED.`\n\nDo not replace it with alternate provenance copy in the card UI.\n\nIf provenance is still useful for implementation/audit purposes, keep it in code comments, test fixtures, phase evidence, or another non-UI location as appropriate rather than rendering it to the user.\n\n## 3. Replace the 1Y badge with range tabs\n\nReplace the current single `1Y` pill/badge with a compact tab/segmented selector containing:\n\n* 1Y\n* 3Y\n* 5Y\n\nUse existing accepted shadcn tab/toggle/segmented-control patterns already available in the project where appropriate.\n\nBehavior:\n\n* one range is active at a time;\n* 1Y can remain the default active range;\n* selecting 3Y or 5Y swaps the displayed static dataset and corresponding headline price/change figures;\n* no network request is triggered;\n* no persistence is required;\n* the selector is local to this card.\n\nDo not over-engineer this into a market-data control system.\n\n## 4. Static datasets only\n\nUse hard-coded static BTC/USD history for all three ranges.\n\nRequirements:\n\n* 1Y uses a static representative dataset for approximately one completed year;\n* 3Y uses a static representative dataset spanning approximately three years;\n* 5Y uses a static representative dataset spanning approximately five years;\n* each range should use enough points to create a believable line shape without excessive density;\n* values may be sampled at a sensible fixed interval such as monthly or another simple consistent cadence;\n* displayed headline price and percentage change should derive from the selected hard-coded dataset endpoints;\n* do not use runtime fetches, APIs, SDKs, websockets, background refresh, or live pricing;\n* do not add credentials or network permissions.\n\nThe intent is a visual/reference component, not a trading or live-market feature.\n\n## 5. Preserve existing card design\n\nPreserve:\n\n* Bitcoin/BTC title treatment;\n* icon treatment;\n* current full-width card structure;\n* line + dots chart style;\n* no grid;\n* no x-axis labels;\n* no y-axis labels;\n* no legend;\n* semantic/chart token usage;\n* light/dark behavior;\n* current responsive containment.\n\nDo not add:\n\n* trading controls;\n* buy/sell actions;\n* volume;\n* OHLC/candlesticks;\n* toolbars;\n* extra financial metadata;\n* API status indicators.\n\n## 6. Accessibility and interaction\n\n* range selector must be keyboard accessible;\n* active range must be programmatically and visually distinguishable;\n* preserve visible focus states;\n* chart update should not cause layout shift beyond the line shape itself;\n* ensure selected range remains readable in light/dark mode.\n\n## 7. Boundaries\n\nThis is a contained presentation/component update.\n\nDo not change:\n\n* Theme v3;\n* import/export;\n* persistence/history;\n* Design Command;\n* mutation operations;\n* public registry;\n* unrelated gallery cards;\n* current Bitcoin card dependency footprint.\n\nNo new dependency or network behavior should be introduced for this ticket.\n\n## Acceptance\n\n* Bitcoin card appears immediately below the Chat + Recent activity row.\n* Chat and Recent activity remain paired side-by-side.\n* Bitcoin remains full-width.\n* Existing source/date caption below the chart is removed.\n* Current single 1Y badge is replaced with 1Y / 3Y / 5Y tabs or equivalent segmented control.\n* 1Y is the default active range.\n* Switching between 1Y, 3Y, and 5Y updates the chart using only hard-coded static datasets.\n* Headline price and percentage figures update consistently with the selected static dataset.\n* No API, runtime fetch, SDK, live refresh, credentials, or network permission is introduced.\n* Existing chart styling, semantic tokens, light/dark behavior, and responsive layout remain intact.\n* No unrelated gallery order or system behavior changes.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-117/reposition-bitcoin-card-and-add-static-1y-3y-5y-ranges",
+    "gitBranchName": "emmantalob/pui-117-reposition-bitcoin-card-and-add-static-1y-3y-5y-ranges",
+    "createdAt": "2026-09-28T18:28:23.623Z",
+    "updatedAt": "2026-09-29T06:17:55.557Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-28T18:28:23.623Z",
+        "endedAt": "2026-09-29T06:17:55.551Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T06:17:55.551Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}
