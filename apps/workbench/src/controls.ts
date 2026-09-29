@@ -71,19 +71,20 @@ const durationMs = (value: string) => (value.endsWith("ms") ? Number(value.slice
 const B = MANUAL_CONTROL_BOUNDS
 
 /**
- * UI effects (PUI-113): every control edits one field and sends the whole resolved value through the one closed
- * `setUiEffects` operation, so an absent (flat) `uiEffects` is completed from the flat default.
+ * UI effects (PUI-113, PUI-119): the Effect select and Strength each edit one field and send the whole resolved
+ * canonical value through the one closed `setUiEffects` operation, so an absent (Off) `uiEffects` is completed from the
+ * default. Strength is kept while Off, so choosing Tactile again restores it.
  */
 export const buildUiEffectsOperation = (theme: Theme, patch: Partial<UiEffectsValue>): ThemeOperation => ({ op: "setUiEffects", value: { ...resolveUiEffects(theme), ...patch } })
 
-/** The Effect select's options. Tactile is the only admitted effect. */
-export const UI_EFFECT_OPTIONS: readonly { value: UiEffect; label: string }[] = [{ value: "tactile", label: "Tactile" }]
-
-/** The two independent target toggles, in display order. */
-export const UI_EFFECT_TARGETS: readonly { field: "outlineButtons" | "tabs"; label: string }[] = [
-  { field: "outlineButtons", label: "Outline buttons" },
-  { field: "tabs", label: "Tabs" },
+/** The Effect select's options, in display order. Off is the default; Tactile's recipe owns its targets. */
+export const UI_EFFECT_OPTIONS: readonly { value: UiEffect; label: string }[] = [
+  { value: "off", label: "Off" },
+  { value: "tactile", label: "Tactile" },
 ]
+
+/** The one short helper under the Effect select: what Tactile affects. */
+export const UI_EFFECTS_HELP = "Affects Secondary buttons and surface-style Tabs."
 
 /** A semantic role's weight: the admitted 100..900 numeric weights, one step per CSS weight. */
 const weightControl = (role: TypeRole): NumericControl => ({

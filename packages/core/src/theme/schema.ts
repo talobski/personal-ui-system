@@ -222,42 +222,69 @@ const sidebarState = z
   })
 
 /**
- * Optional component-targeted UI effects (PUI-113). A closed Theme v3 extension: `effect` names the one recipe
- * (`tactile` is the only admitted value), `outlineButtons` and `tabs` select its two supported targets, and `strength`
- * scales it from 0 to 100. The object is strict, so it can never carry CSS, selectors, paths, or other targets.
- * Absence is the documented flat default (`UI_EFFECTS_FLAT`): older v3 themes and migrated v1/v2 themes have no field
- * and render exactly as before.
+ * Optional component-targeted UI effects (PUI-113, simplified by PUI-119). A closed Theme v3 extension: `effect` is
+ * `off` (flat) or `tactile`, whose recipe owns its fixed targets (Secondary Buttons and active surface Tabs), and
+ * `strength` scales it from 0 to 100. The canonical object is strict, so it can never carry CSS, selectors, paths, or
+ * targets. Absence is the documented default (`UI_EFFECTS_FLAT`, Off at the default strength): older v3 themes and
+ * migrated v1/v2 themes have no field and render exactly as before.
  */
-export const UI_EFFECTS = ["tactile"] as const
+export const UI_EFFECTS = ["off", "tactile"] as const
 export type UiEffect = (typeof UI_EFFECTS)[number]
 export const UI_EFFECT_STRENGTH_RANGE = { min: 0, max: 100 } as const
 export const uiEffectSchema = z.enum(UI_EFFECTS)
 export const uiEffectStrengthSchema = z.number().int().min(UI_EFFECT_STRENGTH_RANGE.min).max(UI_EFFECT_STRENGTH_RANGE.max)
-const uiEffectsState = z.strictObject({
+const uiEffectsCanonicalState = z.strictObject({
   effect: token("string", uiEffectSchema),
+  strength: token("number", uiEffectStrengthSchema),
+})
+/** The two UI-effects design values, as `setUiEffects` canonically carries them. */
+export type UiEffectsValue = { effect: UiEffect; strength: number }
+export const UI_EFFECTS_FIELDS = ["effect", "strength"] as const satisfies readonly (keyof UiEffectsValue)[]
+/** What an absent `uiEffects` means: the effect is Off at the default strength. */
+export const UI_EFFECTS_FLAT: Readonly<UiEffectsValue> = Object.freeze({ effect: "off", strength: 50 })
+
+/**
+ * The exact previously accepted PUI-113 value: effect `tactile` (its only admitted value), the two target toggles, and
+ * strength. It is admitted only as input, at the Theme v3 and `setUiEffects` boundaries, and is normalized by one rule:
+ * either target on is Tactile, both off is Off; strength is kept. Mixed, partial, or extended shapes are not legacy.
+ */
+export type LegacyUiEffectsValue = { effect: "tactile"; outlineButtons: boolean; tabs: boolean; strength: number }
+export const LEGACY_UI_EFFECTS_FIELDS = ["effect", "outlineButtons", "tabs", "strength"] as const satisfies readonly (keyof LegacyUiEffectsValue)[]
+const legacyUiEffectsState = z.strictObject({
+  effect: token("string", z.literal("tactile")),
   outlineButtons: token("boolean", z.boolean()),
   tabs: token("boolean", z.boolean()),
   strength: token("number", uiEffectStrengthSchema),
 })
-/** The four UI-effects design values, as `setUiEffects` carries them. */
-export type UiEffectsValue = { effect: UiEffect; outlineButtons: boolean; tabs: boolean; strength: number }
-export const UI_EFFECTS_FIELDS = ["effect", "outlineButtons", "tabs", "strength"] as const satisfies readonly (keyof UiEffectsValue)[]
-/** What an absent `uiEffects` means: the effect is selected but no target receives it. */
-export const UI_EFFECTS_FLAT: Readonly<UiEffectsValue> = Object.freeze({ effect: "tactile", outlineButtons: false, tabs: false, strength: 50 })
+
+/** The deterministic legacy -> canonical rule shared by theme ingress and the `setUiEffects` compatibility bridge. */
+export const normalizeLegacyUiEffects = (value: LegacyUiEffectsValue): UiEffectsValue => ({
+  effect: value.outlineButtons || value.tabs ? "tactile" : "off",
+  strength: value.strength,
+})
+
+/**
+ * Theme ingress normalization: an exact legacy four-field stored value becomes the canonical token object; anything
+ * else passes through unchanged so the strict canonical schema accepts or rejects it (nothing is silently dropped).
+ */
+const uiEffectsState = z.preprocess((input) => {
+  const legacy = legacyUiEffectsState.safeParse(input)
+  if (!legacy.success) return input
+  const d = legacy.data
+  return uiEffectsTokens(normalizeLegacyUiEffects({ effect: d.effect.$value, outlineButtons: d.outlineButtons.$value, tabs: d.tabs.$value, strength: d.strength.$value }))
+}, uiEffectsCanonicalState)
 
 /** The canonical token object for a UI-effects value. */
 export const uiEffectsTokens = (value: UiEffectsValue) => ({
   effect: { $type: "string" as const, $value: value.effect },
-  outlineButtons: { $type: "boolean" as const, $value: value.outlineButtons },
-  tabs: { $type: "boolean" as const, $value: value.tabs },
   strength: { $type: "number" as const, $value: value.strength },
 })
 
-/** A theme's effective UI-effects values; an absent field resolves to the flat default. */
-export function resolveUiEffects(theme: { uiEffects?: z.output<typeof uiEffectsState> }): UiEffectsValue {
+/** A theme's effective UI-effects values; an absent field resolves to the Off default. */
+export function resolveUiEffects(theme: { uiEffects?: z.output<typeof uiEffectsCanonicalState> }): UiEffectsValue {
   const state = theme.uiEffects
   if (!state) return { ...UI_EFFECTS_FLAT }
-  return { effect: state.effect.$value, outlineButtons: state.outlineButtons.$value, tabs: state.tabs.$value, strength: state.strength.$value }
+  return { effect: state.effect.$value, strength: state.strength.$value }
 }
 
 type ColorSets = { light: Record<ColorToken, { $type: "color"; $value: string }>; dark: Record<ColorToken, { $type: "color"; $value: string }> }

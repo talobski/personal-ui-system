@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Download, Moon, Redo2, RotateCcw, Save, Sun, Undo2 } from "@personal-ui/ui/lib/workbench-icons"
 
-import { applyProposal, createProposalSession, discardProposal, isSidebarColorToken, stageProposal } from "@personal-ui/core"
+import { applyProposal, createProposalSession, discardProposal, isSidebarColorToken, resolveUiEffects, stageProposal } from "@personal-ui/core"
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button, buttonVariants } from "@personal-ui/ui/components/button"
@@ -698,7 +698,8 @@ export function App() {
           {/* PUI-113: component-targeted UI effects sit between general Shadow and Motion. */}
           <ControlSection id="ui-effects" title="UI Effects">
             <UiEffectsFields theme={current} disabled={locked} apply={applyManual} />
-            {numeric("uiEffectsStrength")}
+            {/* Strength is kept but inactive while Off, so choosing Tactile again restores it. */}
+            <LiveNumberField key={`${current.id}-uiEffectsStrength`} id="uiEffectsStrength" control={NUMERIC_CONTROLS.uiEffectsStrength} theme={current} disabled={locked} inactive={resolveUiEffects(current).effect === "off"} apply={applyManual} endGesture={endGesture} />
           </ControlSection>
           <ControlSection id="motion" title="Motion">
             {numeric("motion")}

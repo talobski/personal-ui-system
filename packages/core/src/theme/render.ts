@@ -42,12 +42,13 @@ const roleDecls = (role: (typeof TYPE_ROLES)[number]) => [
 const shadowThemeVar = (tier: ShadowToken) => (tier === "default" ? "--shadow" : `--shadow-${tier}`)
 
 /**
- * The accepted Outline Button. `Button` emits `data-slot="button"`, `data-variant` and `data-size`; when it is composed
- * through an `asChild` trigger or close (Dialog, Drawer, ResponsiveDialog), the wrapper replaces only `data-slot` (with
- * a `*-trigger` / `*-close` slot), so the variant and size survive. No other variant can match, and ToggleGroup items
- * (`toggle-group-item`) or other components that reuse `data-variant="outline"` without a Button's size are excluded.
+ * The accepted Secondary Button (PUI-121). `Button` emits `data-slot="button"`, `data-variant` and `data-size`; when it
+ * is composed through an `asChild` trigger or close (Collapsible, Dialog, Drawer, ResponsiveDialog), the wrapper replaces
+ * only `data-slot` (with a `*-trigger` / `*-close` slot), so the variant and size survive. No other variant can match,
+ * and ToggleGroup items (`toggle-group-item`) or other components that reuse `data-variant` without a Button's size are
+ * excluded. Outline, like every other variant, stays flat.
  */
-export const TACTILE_OUTLINE_BUTTON_SELECTOR = '[data-variant="outline"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])'
+export const TACTILE_SECONDARY_BUTTON_SELECTOR = '[data-variant="secondary"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])'
 /** The active trigger of a surface/pill Tabs list; a line/minimal list is marked `data-variant="line"` and never matches. */
 export const TACTILE_SURFACE_TAB_SELECTOR = '[data-slot="tabs-list"]:not([data-variant="line"]) > [data-slot="tabs-trigger"][data-state="active"]'
 
@@ -77,18 +78,26 @@ const tactileVars = (mode: keyof typeof TACTILE_RECIPE, k: number, indent: strin
 }
 
 /**
- * The optional UI-effects block (PUI-113), or `""` when no target is enabled, so a flat theme's CSS is unchanged. It lives
- * in `@layer components` and only fills Tailwind's own `--tw-inset-shadow` slot plus a `background-image` wash: the
- * element's utility `box-shadow` composition keeps rendering the theme Shadow tier and focus/invalid rings, and any
- * consumer utility still overrides it. No colour, radius, size, typography, layout, or motion value is set.
+ * Tailwind v4's own box-shadow composition, for targets that carry no shadow utility (a Secondary Button). A shadow or
+ * focus/invalid ring utility sets the same composition in the later utilities layer, so it still wins and still renders
+ * the inset slot; the fallbacks keep the list valid where Tailwind has not registered a variable.
+ */
+const TW_SHADOW_COMPOSITION = "var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000)"
+
+/**
+ * The optional UI-effects block (PUI-113), or `""` while the effect is Off, so a flat theme's CSS is unchanged. Tactile
+ * owns its targets (PUI-119/PUI-121): Secondary Buttons and the active trigger of a surface Tabs list share one recipe
+ * and one Strength mapping. It lives in `@layer components` and fills only Tailwind's own `--tw-inset-shadow` slot (with
+ * the matching composition as a base), plus a `background-image` wash over the target's own semantic fill: utility
+ * `box-shadow`s keep rendering the theme Shadow tier and focus/invalid rings, and any consumer utility still overrides
+ * it. No colour, radius, size, typography, layout, or motion value is set.
  */
 export function renderUiEffectsCss(input: Theme): string {
   const theme = themeSchema.parse(input)
   const effects = resolveUiEffects(theme)
-  const targets = [effects.outlineButtons && TACTILE_OUTLINE_BUTTON_SELECTOR, effects.tabs && TACTILE_SURFACE_TAB_SELECTOR].filter(Boolean)
-  if (targets.length === 0) return ""
+  if (effects.effect !== "tactile") return ""
   const k = effects.strength / UI_EFFECT_STRENGTH_RANGE.max
-  const where = `:where(${targets.join(", ")})`
+  const where = `:where(${TACTILE_SECONDARY_BUTTON_SELECTOR}, ${TACTILE_SURFACE_TAB_SELECTOR})`
   return [
     `/* UI effects: ${effects.effect}, strength ${effects.strength}. */`,
     "@layer components {",
@@ -96,6 +105,7 @@ export function renderUiEffectsCss(input: Theme): string {
     ...tactileVars("light", k, "    "),
     "    background-image: linear-gradient(to bottom, var(--ui-tactile-wash-top), var(--ui-tactile-wash-bottom));",
     "    --tw-inset-shadow: inset 0 1px 0 0 var(--ui-tactile-highlight), inset 0 -1px 0 0 var(--ui-tactile-lower), 0 0 0 1px var(--ui-tactile-edge);",
+    `    box-shadow: ${TW_SHADOW_COMPOSITION};`,
     "  }",
     `  ${where}:is(.dark *) {`,
     ...tactileVars("dark", k, "    "),
@@ -128,7 +138,7 @@ export function renderUiEffectsCss(input: Theme): string {
  * the base theme in either mode and stored dedicated values are preserved but unapplied. With it on, the stored
  * dedicated values are emitted directly.
  *
- * UI effects: the targeted `@layer components` block from `renderUiEffectsCss` is appended only while a target is on.
+ * UI effects: the targeted `@layer components` block from `renderUiEffectsCss` is appended only while Tactile is on.
  */
 export function renderShadcnTailwindCss(input: Theme): string {
   const theme = themeSchema.parse(input)

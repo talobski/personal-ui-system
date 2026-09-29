@@ -14,7 +14,7 @@ import { Switch } from "@personal-ui/ui/components/switch"
 import { cssFontStack, findFontOption, FONT_CATALOG, FONT_OPTIONS } from "@personal-ui/ui/lib/fonts"
 import type { FontCategory, FontOption } from "@personal-ui/ui/lib/fonts"
 
-import { buildFontOperation, buildUiEffectsOperation, fontControlCopy, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep, UI_EFFECT_OPTIONS, UI_EFFECT_TARGETS } from "./controls"
+import { buildFontOperation, buildUiEffectsOperation, fontControlCopy, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep, UI_EFFECT_OPTIONS, UI_EFFECTS_HELP } from "./controls"
 import type { NumericControl } from "./controls"
 import type { ColorPickerController } from "./colorPicker"
 import type { WorkbenchIssue } from "./lifecycle"
@@ -110,6 +110,7 @@ export function LiveNumberField({
   disabled,
   apply,
   endGesture,
+  inactive = false,
 }: {
   id: string
   control: NumericControl
@@ -119,6 +120,8 @@ export function LiveNumberField({
   disabled: boolean
   apply: ApplyManual
   endGesture: EndGesture
+  /** Semantically disabled and visually de-emphasized (label included) because the setting it scales is off. */
+  inactive?: boolean
 }) {
   const value = control.read(theme)
   const formatted = formatNumber(value, control.step)
@@ -149,7 +152,7 @@ export function LiveNumberField({
   const sliderValue = Number.isFinite(value) ? Math.min(control.max, Math.max(control.min, value)) : control.min
 
   return (
-    <Field data-invalid={error !== null} data-testid={`control-${id}`}>
+    <Field data-invalid={error !== null} data-disabled={inactive || undefined} data-testid={`control-${id}`}>
       <div className={NUMERIC_ROW_CLASS} data-testid={`${id}-row`}>
         <FieldLabel id={labelId} htmlFor={inputId} className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>
           {labelPrefix && <span className="sr-only">{labelPrefix} </span>}
@@ -163,7 +166,7 @@ export function LiveNumberField({
           max={control.max}
           step={control.step}
           value={[sliderValue]}
-          disabled={disabled}
+          disabled={disabled || inactive}
           onValueChange={([next]) => {
             if (next === undefined) return
             setDraft(formatNumber(next, control.step))
@@ -180,7 +183,7 @@ export function LiveNumberField({
             autoComplete="off"
             spellCheck={false}
             value={draft}
-            disabled={disabled}
+            disabled={disabled || inactive}
             aria-invalid={error !== null}
             aria-describedby={error !== null ? errorId : undefined}
             className="quiet-control h-[2rem] w-[3.5rem] flex-none px-[0.25rem] text-right tabular-nums"
@@ -455,6 +458,42 @@ export function LiveFontField({
 }
 
 /**
+ * The UI EFFECTS Effect select (PUI-119): Off or Tactile, with one short helper naming what Tactile affects. There are
+ * no per-target toggles; the recipe owns its targets. Each change is one committed `setUiEffects` edit; the shared
+ * Strength row is a `LiveNumberField` that is inactive while the effect is Off.
+ */
+export function UiEffectsFields({ theme, disabled, apply }: { theme: Theme; disabled: boolean; apply: ApplyManual }) {
+  const [error, setError] = React.useState<string | null>(null)
+  useReportInvalid("ui-effects", error !== null)
+  const effects = resolveUiEffects(theme)
+  const edit = (patch: Parameters<typeof buildUiEffectsOperation>[1]) => {
+    const issues = apply((base) => buildUiEffectsOperation(base, patch))
+    setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
+  }
+  return (
+    <>
+      <Field data-testid="control-ui-effect" className="gap-1.5">
+        <div className={LABELLED_ROW_CLASS}>
+          <FieldLabel id="ui-effect-label" htmlFor="ui-effect-select" className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>Effect</FieldLabel>
+          <Select items={UI_EFFECT_OPTIONS} value={effects.effect} disabled={disabled} onValueChange={(value) => { if (value && value !== effects.effect) edit({ effect: value as UiEffect }) }}>
+            <SelectTrigger id="ui-effect-select" aria-labelledby="ui-effect-label" aria-describedby="ui-effect-help" className="quiet-control h-8 w-full min-w-0 cursor-pointer">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {UI_EFFECT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value} className="cursor-pointer">{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <FieldDescription id="ui-effect-help" data-testid="ui-effect-help" className="pl-[calc(5rem+0.375rem)] text-xs">{UI_EFFECTS_HELP}</FieldDescription>
+      </Field>
+      {error !== null && <FieldError data-testid="ui-effects-error">{error}</FieldError>}
+    </>
+  )
+}
+
+/**
  * The persistent Sidebar source mode (`setSidebarTokensEnabled`), applied immediately like every manual control. It
  * never hides or disables the dedicated colour fields: off, they stay editable but unapplied; on, they are live.
  * PUI-93: the row sits a small gap below the SIDEBAR trigger with a quieter one-step-smaller muted label. PUI-98: no
@@ -480,50 +519,5 @@ export function SidebarTokensSwitch({ enabled, disabled, apply }: { enabled: boo
       </div>
       {error !== null && <FieldError data-testid="sidebar-tokens-error">{error}</FieldError>}
     </Field>
-  )
-}
-
-/**
- * The UI EFFECTS selection fields (PUI-113): the Effect select (Tactile only) and the independent Outline buttons and
- * Tabs toggles. Each change is one committed `setUiEffects` edit; the shared Strength row is a `LiveNumberField`.
- */
-export function UiEffectsFields({ theme, disabled, apply }: { theme: Theme; disabled: boolean; apply: ApplyManual }) {
-  const [error, setError] = React.useState<string | null>(null)
-  useReportInvalid("ui-effects", error !== null)
-  const effects = resolveUiEffects(theme)
-  const edit = (patch: Parameters<typeof buildUiEffectsOperation>[1]) => {
-    const issues = apply((base) => buildUiEffectsOperation(base, patch))
-    setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
-  }
-  return (
-    <>
-      <Field data-testid="control-ui-effect">
-        <div className={LABELLED_ROW_CLASS}>
-          <FieldLabel id="ui-effect-label" htmlFor="ui-effect-select" className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>Effect</FieldLabel>
-          <Select items={UI_EFFECT_OPTIONS} value={effects.effect} disabled={disabled} onValueChange={(value) => { if (value && value !== effects.effect) edit({ effect: value as UiEffect }) }}>
-            <SelectTrigger id="ui-effect-select" aria-labelledby="ui-effect-label" className="quiet-control h-8 w-full min-w-0 cursor-pointer">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {UI_EFFECT_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value} className="cursor-pointer">{option.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </Field>
-      {UI_EFFECT_TARGETS.map(({ field, label }) => {
-        const switchId = `ui-effects-${field}-switch`
-        return (
-          <Field key={field} data-testid={`control-ui-effects-${field}`}>
-            <div className={LABELLED_ROW_CLASS}>
-              <Label htmlFor={switchId} className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>{label}</Label>
-              <Switch id={switchId} className="cursor-pointer" checked={effects[field]} disabled={disabled} onCheckedChange={(checked) => edit({ [field]: checked })} />
-            </div>
-          </Field>
-        )
-      })}
-      {error !== null && <FieldError data-testid="ui-effects-error">{error}</FieldError>}
-    </>
   )
 }

@@ -1,8 +1,8 @@
 import { normalizeColor, parseLength } from "../theme/color"
 import { admitRemLength, admitShadowProfile, deriveRadiusScale, deriveShadowTiers, MANUAL_CONTROL_BOUNDS, SHADOW_PROFILE_FIELDS } from "../theme/derive"
 import type { ShadowProfile } from "../theme/derive"
-import { COLOR_TOKENS, densitySchema, durationSchema, fontStackSchema, fontWeightSchema, isFontFamilyTarget, isSidebarColorToken, isTypeRole, SHADOW_TOKENS, syncUninitializedSidebarColors, themeSchema, trackingSchema, UI_EFFECTS_FIELDS, uiEffectSchema, uiEffectStrengthSchema, uiEffectsTokens } from "../theme/schema"
-import type { ColorToken, FontFamilyTarget, Theme, TypeRole, UiEffectsValue } from "../theme/schema"
+import { COLOR_TOKENS, densitySchema, durationSchema, fontStackSchema, fontWeightSchema, isFontFamilyTarget, isSidebarColorToken, isTypeRole, SHADOW_TOKENS, syncUninitializedSidebarColors, themeSchema, LEGACY_UI_EFFECTS_FIELDS, normalizeLegacyUiEffects, trackingSchema, UI_EFFECTS_FIELDS, uiEffectSchema, uiEffectStrengthSchema, uiEffectsTokens } from "../theme/schema"
+import type { ColorToken, FontFamilyTarget, LegacyUiEffectsValue, Theme, TypeRole, UiEffectsValue } from "../theme/schema"
 import { renderShadcnTailwindCss } from "../theme/render"
 
 export const MUTATION_SCHEMA_VERSION = "1.0"
@@ -47,11 +47,13 @@ export type SetShadowProfileOperation = { op: "setShadowProfile"; value: ShadowP
  */
 export type SetSidebarTokensEnabledOperation = { op: "setSidebarTokensEnabled"; value: boolean }
 /**
- * Replaces the whole optional `uiEffects` value (PUI-113): the closed effect (`tactile` only), the two target toggles
- * (`outlineButtons`, `tabs`), and the integer strength 0..100. All four fields are required; no other field, target,
- * selector, or CSS can be addressed. Applying it to a theme without `uiEffects` creates the field.
+ * Replaces the whole optional `uiEffects` value (PUI-113, simplified by PUI-119): the closed effect (`off | tactile`)
+ * and the integer strength 0..100. Both fields are required; no other field, target, selector, or CSS can be addressed.
+ * Applying it to a theme without `uiEffects` creates the field. The exact prior four-field value (`effect: "tactile"`,
+ * `outlineButtons`, `tabs`, `strength`, all required) is still admitted and normalized: either target on is Tactile,
+ * both off is Off. Mixed, partial, or extended values are rejected.
  */
-export type SetUiEffectsOperation = { op: "setUiEffects"; value: UiEffectsValue }
+export type SetUiEffectsOperation = { op: "setUiEffects"; value: UiEffectsValue | LegacyUiEffectsValue }
 export type ThemeOperation =
   | SetColorOperation
   | SetRadiusOperation
@@ -157,13 +159,20 @@ const VALUE_CHECKS: Record<string, (value: unknown) => boolean> = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
-/** Per-field checks for the closed `setUiEffects` value; every field is required. */
+/** Per-field checks for the closed canonical `setUiEffects` value; every field is required. */
 const UI_EFFECTS_CHECKS: Record<(typeof UI_EFFECTS_FIELDS)[number], (value: unknown) => boolean> = {
   effect: (value) => uiEffectSchema.safeParse(value).success,
+  strength: (value) => uiEffectStrengthSchema.safeParse(value).success,
+}
+/** Per-field checks for the exact prior four-field value; every field is required and `effect` must be `tactile`. */
+const LEGACY_UI_EFFECTS_CHECKS: Record<(typeof LEGACY_UI_EFFECTS_FIELDS)[number], (value: unknown) => boolean> = {
+  effect: (value) => value === "tactile",
   outlineButtons: (value) => typeof value === "boolean",
   tabs: (value) => typeof value === "boolean",
   strength: (value) => uiEffectStrengthSchema.safeParse(value).success,
 }
+/** A value naming either prior target field is validated as the whole legacy shape, never as a mixed one. */
+const isLegacyUiEffectsInput = (value: Record<string, unknown>) => Object.hasOwn(value, "outlineButtons") || Object.hasOwn(value, "tabs")
 
 /**
  * Validation order: request envelope, operation shape/allowlist, then values,
@@ -211,9 +220,12 @@ export function validateMutation(input: unknown, base: Pick<Theme, "id" | "revis
       } else if (operation.op === "setUiEffects") {
         const value = operation.value
         if (!isRecord(value)) return fail("mutation.invalid-value", `${at}.value`)
-        const allowed = new Set<string>(UI_EFFECTS_FIELDS)
+        const [fields, checks] = isLegacyUiEffectsInput(value)
+          ? [LEGACY_UI_EFFECTS_FIELDS, LEGACY_UI_EFFECTS_CHECKS as Record<string, (value: unknown) => boolean>]
+          : [UI_EFFECTS_FIELDS, UI_EFFECTS_CHECKS as Record<string, (value: unknown) => boolean>]
+        const allowed = new Set<string>(fields)
         for (const key of Object.keys(value)) if (!allowed.has(key)) fail("mutation.unknown-field", `${at}.value.${key}`)
-        for (const field of UI_EFFECTS_FIELDS) if (!UI_EFFECTS_CHECKS[field](value[field])) fail("mutation.invalid-value", `${at}.value.${field}`)
+        for (const field of fields) if (!checks[field]!(value[field])) fail("mutation.invalid-value", `${at}.value.${field}`)
       } else if (!VALUE_CHECKS[operation.op as string]!(operation.value)) {
         fail("mutation.invalid-value", `${at}.value`)
       }
@@ -251,8 +263,8 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
         next.sidebar.useDedicatedTokens.$value = operation.value
         break
       case "setUiEffects": {
-        const { effect, outlineButtons, tabs, strength } = operation.value
-        next.uiEffects = uiEffectsTokens({ effect, outlineButtons, tabs, strength })
+        const value = operation.value
+        next.uiEffects = uiEffectsTokens("outlineButtons" in value ? normalizeLegacyUiEffects(value) : { effect: value.effect, strength: value.strength })
         break
       }
       case "setRadius":
