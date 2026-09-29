@@ -235,7 +235,7 @@ for (const mode of ["light", "dark"] as const) {
       const m = await box(main), leftInset = parseFloat(await css(main, "padding-left"))
       close((await box(view)).x, m.x + leftInset)
       expect(await css(states, "background-color")).toBe(TRANSPARENT)
-      expect(await computedRgba(cards, "background-color")).toEqual(await renderedRgba(main, "secondary", "background-color"))
+      expect(await computedRgba(cards, "background-color")).toEqual(await renderedRgba(main, mode === "dark" ? "color-mix(in oklab, var(--input) 30%, transparent)" : "background", "background-color"))
       if (sidebarStyles) {
         expect(await triggerStyle(cards)).toEqual(sidebarStyles.active)
         expect(await triggerStyle(states)).toEqual(sidebarStyles.inactive)
