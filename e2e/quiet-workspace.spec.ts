@@ -6,8 +6,8 @@ import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import { colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
-/** PUI-86–92 gallery DOM order after PUI-97, plus the PUI-108 Bitcoin card after Studio revenue: the left stack, then the right region top to bottom. */
-const ids = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
+/** PUI-86–92 gallery DOM order after PUI-97, plus the PUI-108 Bitcoin card, placed after the Chat / Recent activity pair by PUI-117: the left stack, then the right region top to bottom. */
+const ids = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments", "offsite-calendar", "local-weather"]
 
 /** The preview iframe's box versus the panel content box it should fill (WTEP-02). */
 async function previewFill(page: import("@playwright/test").Page) {

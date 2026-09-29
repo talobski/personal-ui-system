@@ -18,8 +18,8 @@ const revision = async (page: Page) => Number(await page.locator("#workbench-act
 const toggle = (page: Page) => page.getByRole("switch", { name: "Toggle dark mode", exact: true })
 const close = (actual: number, expected: number, tolerance = 1) => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
 
-/** PUI-86–92 set in the PUI-97 order (workbench-gallery-preview-expansion-v1-001) with the PUI-108 Bitcoin card after Studio revenue: the left stack, then the right region. */
-const ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
+/** PUI-86–92 set in the PUI-97 order (workbench-gallery-preview-expansion-v1-001) with the PUI-108 Bitcoin card, placed after the Chat / Recent activity pair by PUI-117: the left stack, then the right region. */
+const ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments", "offsite-calendar", "local-weather"]
 
 async function open(page: Page) {
   await page.goto("/")
@@ -110,15 +110,16 @@ test.describe("CGS-03 to CGS-05 container-responsive gallery", () => {
     await grow("plan-usage", 1400)
     const tallLeft = await geometry(frame)
     // The right region is untouched by a very tall left card.
-    for (const id of ["revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]) close(tallLeft.items[id]!.y, before.items[id]!.y)
+    for (const id of ["revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments", "offsite-calendar", "local-weather"]) close(tallLeft.items[id]!.y, before.items[id]!.y)
     close(tallLeft.items["quick-find"]!.y - tallLeft.items["plan-usage"]!.bottom, 16)
     await grow("plan-usage", 0)
     await grow("revenue-overview", 1400)
     const tallRight = await geometry(frame)
     for (const id of ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"]) close(tallRight.items[id]!.y, before.items[id]!.y)
-    // PUI-108: the Bitcoin card now directly follows Studio revenue, and the chat pair follows it; each gap stays 16px.
-    close(tallRight.items["bitcoin-price"]!.y - tallRight.items["revenue-overview"]!.bottom, 16)
-    close(tallRight.items["team-chat"]!.y - tallRight.items["bitcoin-price"]!.bottom, 16)
+    // PUI-117: the chat pair directly follows Studio revenue and the Bitcoin card follows the pair; each gap stays 16px.
+    close(tallRight.items["team-chat"]!.y - tallRight.items["revenue-overview"]!.bottom, 16)
+    close(tallRight.items["bitcoin-price"]!.y - Math.max(tallRight.items["team-chat"]!.bottom, tallRight.items["recent-activity"]!.bottom), 16)
+    close(tallRight.items["recent-payments"]!.y - tallRight.items["bitcoin-price"]!.bottom, 16)
     // The intentional local pair starts together and, side by side, shares the taller card's height (PUI-82
     // supersedes the earlier independent pair heights).
     close(tallRight.items["team-chat"]!.y, tallRight.items["recent-activity"]!.y)

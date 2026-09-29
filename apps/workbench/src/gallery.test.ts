@@ -91,7 +91,8 @@ const MODULES: Record<string, string> = {
 }
 const module = (id: string) => read(`../../../packages/ui/src/compositions/${MODULES[id]}.tsx`)
 const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"]
-const RIGHT = ["revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
+// PUI-117: Bitcoin follows the Chat / Recent activity pair and precedes the Data table; nothing else moves.
+const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments", "offsite-calendar", "local-weather"]
 const REMOVED = {
   "account-profile": "account-profile", notifications: "notification-preferences", "team-access": "team-access", "workspace-settings": "workspace-settings", "room-to-think": "room-to-think",
   "upcoming-schedule": "upcoming-schedule", "launch-board": "launch-board", "support-request": "support-request",
@@ -642,19 +643,20 @@ describe("WGCP-07 full-bleed Studio revenue chart (PUI-107)", () => {
   })
 })
 
-describe("WBDS-03/04 static Bitcoin 1Y card (PUI-108)", () => {
+describe("WBDS-03/04/WPIP-08 static Bitcoin card (PUI-108, PUI-117)", () => {
   const source = () => module("bitcoin-price")
   const html = () => section("bitcoin-price")
   /** The frozen FRED/Coinbase packet table, parsed independently of the composition. */
   const reference = () => Array.from(read("../../../docs/evidence/workbench-bitcoin-designsystem-shells/btc-reference-data.md").matchAll(/^\| (\d{4}-\d{2}-\d{2}) \| (\d+\.\d{2}) \|$/gm), match => ({ date: match[1]!, price: Number(match[2]) }))
 
-  it("sits directly after Studio revenue as a full-width card of the right region", () => {
+  it("sits directly after the Chat / Recent activity pair and before the Data table as a full-width card of the right region", () => {
     const { right, source: gallery } = regions()
-    expect(right.slice(0, 2)).toEqual(["revenue-overview", "bitcoin-price"])
-    // Not inside a local pair: a direct child of the right region, like Studio revenue.
-    const body = gallery.slice(gallery.indexOf('<Region side="right"'), gallery.indexOf("<LocalGroup", gallery.indexOf('<Region side="right"')))
-    expect(body).toContain('<Composition id="revenue-overview" />\n          <Composition id="bitcoin-price" />')
-    expect(COMPOSITION_IDS.indexOf("bitcoin-price")).toBe(COMPOSITION_IDS.indexOf("revenue-overview") + 1)
+    expect(right.slice(0, 5)).toEqual(["revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments"])
+    // Not inside a local pair: a direct child of the right region, between the chat pair's close and the table.
+    const body = gallery.slice(gallery.indexOf('<Region side="right"'))
+    expect(body).toContain('<Composition id="recent-activity" />\n          </LocalGroup>\n          <Composition id="bitcoin-price" />\n          <Composition id="recent-payments" />')
+    expect(COMPOSITION_IDS.indexOf("bitcoin-price")).toBe(COMPOSITION_IDS.indexOf("recent-activity") + 1)
+    expect(COMPOSITION_IDS.indexOf("recent-payments")).toBe(COMPOSITION_IDS.indexOf("bitcoin-price") + 1)
   })
 
   it("uses exactly the thirteen frozen first-of-month observations and the recorded one-year change", async () => {
@@ -670,18 +672,25 @@ describe("WBDS-03/04 static Bitcoin 1Y card (PUI-108)", () => {
     const card = html()
     expect(card).toContain('data-testid="btc-price">$88,642.88</p>')
     expect(card).toMatch(/data-testid="btc-change">.*−8\.52%<span class="sr-only"> over one year<\/span>/)
-    // Provenance: the dated source in code and a visible historical note; never a live or "current" claim.
+    // Provenance: the dated source stays in code only; PUI-117 removes the visible caption and adds no replacement.
+    // Never a live or "current" claim.
     expect(source()).toContain("FRED series CBBTCUSD")
     expect(source()).toContain("retrieved 2026-09-28 UTC")
     expect(source()).toContain("first calendar day of the month (not a month-end close or monthly average)")
-    expect(card).toContain("Historical first-of-month BTC/USD, Jan 1, 2025 – Jan 1, 2026. Source: Coinbase via FRED.")
+    expect(card).not.toContain("Historical first-of-month BTC/USD")
+    expect(card.replace(/<figcaption[\s\S]*?<\/figcaption>/, "")).not.toMatch(/Source|FRED|Coinbase|Historical|illustrative|approximate/i)
     expect(card).not.toMatch(/\b(live|current price|real-time|monthly average|close)\b/i)
   })
 
-  it("shows the identifier, fixed 1Y, price and change, then one line with dots and nothing else", () => {
+  it("shows the identifier, the 1Y / 3Y / 5Y range control, price and change, then one line with dots and nothing else", () => {
     const card = html()
     expect(card).toContain(">Bitcoin <span class=\"text-muted-foreground\">BTC</span></h2>")
-    expect(card).toMatch(/data-testid="btc-range">1Y<span class="sr-only"> range<\/span>/)
+    // PUI-117: the fixed badge becomes the accepted single-select ToggleGroup (as in Studio revenue), 1Y selected.
+    expect(card).not.toContain('<span class="sr-only"> range</span>')
+    const control = card.slice(card.indexOf('data-testid="btc-range"'), card.indexOf("</div>", card.indexOf('data-testid="btc-range"')))
+    expect(control).toMatch(/role="radiogroup"[^>]*aria-label="Bitcoin range"/)
+    const items = Array.from(control.matchAll(/<button [^>]*>([^<]+)<\/button>/g), match => [match[1], /aria-(?:checked|pressed)="true"|data-state="on"/.test(match[0])])
+    expect(items).toEqual([["1Y", true], ["3Y", false], ["5Y", false]])
     const code = source()
     expect(code).toContain('import { Line, LineChart, XAxis, YAxis } from "recharts"')
     expect(code.match(/<Line /g)).toHaveLength(1)
@@ -689,7 +698,11 @@ describe("WBDS-03/04 static Bitcoin 1Y card (PUI-108)", () => {
     expect(code).toMatch(/<YAxis hide domain=/)
     expect(code).toContain('dot={{ r: 2.5, fill: "var(--color-price)", strokeWidth: 0 }}')
     expect(code).toContain('color: "var(--chart-1)"')
-    expect(code).not.toMatch(/CartesianGrid|ChartLegend|<Legend|<Area|<Bar|<Button|<button|useState|useEffect|SingleToggleGroup|Tabs/)
+    expect(code).not.toMatch(/CartesianGrid|ChartLegend|<Legend|<Area|<Bar|<Button|<button|useEffect|Tabs|Source: Coinbase via FRED\./)
+    // Range state is card-local and never persisted or shared.
+    expect(code.match(/useState/g)).toHaveLength(2)
+    expect(code).toContain('const [range, setRange] = useState<BitcoinRange>("1Y")')
+    expect(code).toContain('<SingleToggleGroup label="Bitcoin range" value={range} onValueChange={setRange} options={RANGE_OPTIONS} />')
     // Static only: no runtime acquisition of any kind.
     expect(code).not.toMatch(/fetch\(|XMLHttpRequest|WebSocket|EventSource|import\(|setInterval|setTimeout|localStorage|process\.env/)
     expect(code.replace(/\/\*[\s\S]*?\*\//g, "")).not.toMatch(/https?:\/\//)
@@ -698,6 +711,49 @@ describe("WBDS-03/04 static Bitcoin 1Y card (PUI-108)", () => {
     expect(caption.match(/\$\d{2,3},\d{3}\.\d{2}/g)).toHaveLength(13)
     expect(caption).toContain("Jan 1, 2025 $96,903.19")
     expect(caption).toContain("Jan 1, 2026 $88,642.88")
-    expect(card).not.toContain("<button")
+    // The only buttons are the three range items; the chart keeps one fixed footprint.
+    expect(card.match(/<button /g)).toHaveLength(3)
+    expect(code).toContain('<ChartContainer config={config} className="aspect-auto h-36 w-full">')
+  })
+
+  it("keeps 1Y unchanged and adds bounded quarterly 3Y and 5Y series ending on the frozen observation", async () => {
+    const { BTC_FIRST_OF_MONTH_USD, BTC_RANGES } = await import("@personal-ui/ui/compositions/bitcoin-price")
+    const frozen = reference()
+    expect(BTC_RANGES["1Y"].points).toBe(BTC_FIRST_OF_MONTH_USD)
+    expect(BTC_RANGES["1Y"].points).toEqual(frozen)
+    const monthIndex = (iso: string) => Number(iso.slice(0, 4)) * 12 + Number(iso.slice(5, 7)) - 1
+    for (const [range, from, count, step] of [["1Y", "2025-01-01", 13, 1], ["3Y", "2023-01-01", 13, 3], ["5Y", "2021-01-01", 21, 3]] as const) {
+      const points = BTC_RANGES[range].points
+      expect(points, range).toHaveLength(count)
+      expect(points[0]!.date, range).toBe(from)
+      expect(points[points.length - 1], range).toEqual({ date: "2026-01-01", price: 88642.88 })
+      // One fixed cadence per range: every step is the same number of months, always on the first of the month.
+      for (let i = 1; i < points.length; i++) expect(monthIndex(points[i]!.date) - monthIndex(points[i - 1]!.date), `${range} ${points[i]!.date}`).toBe(step)
+      expect(points.every(point => point.date.endsWith("-01") && Number.isFinite(point.price) && point.price > 0), range).toBe(true)
+    }
+    // From 2025 on the longer ranges reuse the frozen observations exactly; earlier points are the rounded illustrative
+    // levels (whole hundreds), never presented as recorded data.
+    for (const range of ["3Y", "5Y"] as const) {
+      for (const point of BTC_RANGES[range].points) {
+        if (point.date >= "2025-01-01") expect(point, `${range} ${point.date}`).toEqual(frozen.find(entry => entry.date === point.date))
+        else expect(point.price % 100, `${range} ${point.date}`).toBe(0)
+      }
+    }
+    expect(BTC_RANGES["3Y"].points).toEqual(BTC_RANGES["5Y"].points.slice(8))
+    expect(source()).toMatch(/Illustrative quarter-start BTC\/USD levels[\s\S]*approximate[\s\S]*not retrieved from\s+\*?\s*any source/)
+  })
+
+  it("derives the headline price and change from the selected range's endpoints", async () => {
+    const { BTC_RANGES, rangeChange } = await import("@personal-ui/ui/compositions/bitcoin-price")
+    const expected = (range: "1Y" | "3Y" | "5Y") => {
+      const points = BTC_RANGES[range].points
+      return Math.round(((points[points.length - 1]!.price - points[0]!.price) / points[0]!.price) * 10000) / 100
+    }
+    expect(rangeChange(BTC_RANGES["1Y"].points)).toBe(-8.52)
+    expect(rangeChange(BTC_RANGES["3Y"].points)).toBe(expected("3Y"))
+    expect(rangeChange(BTC_RANGES["5Y"].points)).toBe(expected("5Y"))
+    expect(rangeChange(BTC_RANGES["3Y"].points)).toBe(433.99)
+    expect(rangeChange(BTC_RANGES["5Y"].points)).toBe(205.67)
+    expect(rangeChange([{ date: "a", price: 200 }, { date: "b", price: 100 }])).toBe(-50)
   })
 })

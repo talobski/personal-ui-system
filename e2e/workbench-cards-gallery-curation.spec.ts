@@ -21,15 +21,16 @@ const close = (actual: number, expected: number, tolerance = 1) => expect(Math.a
 
 // workbench-gallery-preview-expansion-v1-001 (PUI-97): Music closes the left region, and Calendar / Weather is a second
 // local pair closing the right region. The single-pair invariants below now hold for each pair. PUI-108
-// (workbench-bitcoin-designsystem-shells-v1-001) inserts the full-width Bitcoin 1Y card directly after Studio revenue.
+// (workbench-bitcoin-designsystem-shells-v1-001) inserts the full-width Bitcoin card; PUI-117 moves it directly after
+// the Chat / Recent activity pair, before the Data table.
 const LEFT = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing"]
-const RIGHT = ["revenue-overview", "bitcoin-price", "team-chat", "recent-activity", "recent-payments", "offsite-calendar", "local-weather"]
+const RIGHT = ["revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments", "offsite-calendar", "local-weather"]
 const ORDER = [...LEFT, ...RIGHT]
 const PAIR = ["team-chat", "recent-activity"]
 const CALENDAR_PAIR = ["offsite-calendar", "local-weather"]
 const PAIRS = [PAIR, CALENDAR_PAIR]
 /** Right-region flow: full items and the local pairs, each followed by exactly one gap. */
-const RIGHT_FLOW = [["revenue-overview"], ["bitcoin-price"], PAIR, ["recent-payments"], CALENDAR_PAIR]
+const RIGHT_FLOW = [["revenue-overview"], PAIR, ["bitcoin-price"], ["recent-payments"], CALENDAR_PAIR]
 const GAP = 16
 
 async function open(page: Page) {

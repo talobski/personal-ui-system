@@ -88,7 +88,7 @@ test("Weekly steps (the repurposed Productive Week) keeps its data and summary o
   }
 })
 
-test("Bitcoin 1Y draws one static line with thirteen dots on the Chart resource and chart tokens, with no grid, axes or legend (PUI-108)", async ({ page }, testInfo) => {
+test("Bitcoin 1Y (the default range) draws one static line with thirteen dots on the Chart resource and chart tokens, with no grid, axes or legend (PUI-108, PUI-117)", async ({ page }, testInfo) => {
   const external: string[] = []
   page.on("request", (request) => { if (!request.url().startsWith("http://127.0.0.1") && !request.url().startsWith("data:")) external.push(request.url()) })
   for (const mode of colorModes) {
@@ -108,7 +108,10 @@ test("Bitcoin 1Y draws one static line with thirteen dots on the Chart resource 
       const ys = await figure.locator(".recharts-line-dots .recharts-dot").evaluateAll((dots) => dots.map((dot) => Number(dot.getAttribute("cy"))))
       expect(ys.indexOf(Math.min(...ys))).toBe(9)
       expect(ys.indexOf(Math.max(...ys))).toBe(3)
-      // The accepted lightweight keyboard tooltip names each observation's date.
+      // The accepted lightweight keyboard tooltip names each observation's date. PUI-117: the range control (one
+      // roving tab stop) now precedes the chart surface.
+      await page.keyboard.press("Tab")
+      await expect(page.getByRole("radio", { name: "1Y" })).toBeFocused()
       await page.keyboard.press("Tab")
       await page.keyboard.press("ArrowRight")
       await expect(figure.locator(".recharts-tooltip-wrapper")).toContainText(/[A-Z][a-z]{2} 1, 202[56]/)

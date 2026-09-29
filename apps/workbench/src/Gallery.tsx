@@ -18,8 +18,9 @@ import { LocalWeather } from "@personal-ui/ui/compositions/local-weather"
  * their `stable` presentation (PUI-84) or are geometry-stable by construction, so normal interaction never changes a
  * card's footprint in the gallery. PUI-88/90/91 replace This week, Launch checklist and the support form in their
  * slots; PUI-92 adds the range calendar, music and weather cards. PUI-97 moves Music to the end of the smaller left
- * region and pairs the compact Calendar with the wider Weather card at the end of the right region. PUI-108 inserts the static
- * Bitcoin 1Y card directly after Studio revenue as another full-width card of the right region.
+ * region and pairs the compact Calendar with the wider Weather card at the end of the right region. PUI-108 adds the static
+ * Bitcoin card as another full-width card of the right region; PUI-117 moves it directly after the Chat / Recent
+ * activity pair, before the Data table, leaving every other position unchanged.
  */
 export const PREVIEW_COMPOSITIONS = [
   { id: "plan-usage", render: () => <PlanUsage /> },
@@ -28,9 +29,9 @@ export const PREVIEW_COMPOSITIONS = [
   { id: "signup-form", render: () => <SignupForm /> },
   { id: "now-playing", render: () => <NowPlaying /> },
   { id: "revenue-overview", render: () => <RevenueOverview /> },
-  { id: "bitcoin-price", render: () => <BitcoinPrice /> },
   { id: "team-chat", render: () => <TeamChat /> },
   { id: "recent-activity", render: () => <RecentActivity /> },
+  { id: "bitcoin-price", render: () => <BitcoinPrice /> },
   { id: "recent-payments", render: () => <RecentPayments /> },
   { id: "offsite-calendar", render: () => <OffsiteCalendar /> },
   { id: "local-weather", render: () => <LocalWeather /> },
@@ -87,11 +88,11 @@ export function Gallery() {
         </Region>
         <Region side="right" className="@2xl/gallery:col-span-6 @4xl/gallery:col-span-7 @6xl/gallery:col-span-8">
           <Composition id="revenue-overview" />
-          <Composition id="bitcoin-price" />
           <LocalGroup className="@lg:grid-cols-2">
             <Composition id="team-chat" />
             <Composition id="recent-activity" />
           </LocalGroup>
+          <Composition id="bitcoin-price" />
           <Composition id="recent-payments" />
           <LocalGroup natural className="@2xl:grid-cols-[auto_minmax(0,1fr)]">
             <Composition id="offsite-calendar" />

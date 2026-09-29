@@ -65,9 +65,9 @@ async function sidebarTokens(page: Page, on: boolean) {
   await expect(toggle).toHaveAttribute("aria-checked", String(on))
 }
 
-test.describe("WBDS-03/04 static Bitcoin 1Y card (PUI-108)", () => {
+test.describe("WBDS-03/04 static Bitcoin card, 1Y default (PUI-108; placement and range control per PUI-117)", () => {
   for (const mode of ["light", "dark"] as const) {
-    test(`directly after Studio revenue, full width, identifier / 1Y / price / change, one dotted line only (${mode})`, async ({ page }, info) => {
+    test(`directly after the Chat / Recent activity pair, full width, identifier / 1Y / price / change, one dotted line only (${mode})`, async ({ page }, info) => {
       const external: string[] = []
       page.on("request", request => { if (!request.url().startsWith("http://127.0.0.1") && !request.url().startsWith("data:") && !request.url().startsWith("blob:")) external.push(request.url()) })
       await open(page)
@@ -75,25 +75,26 @@ test.describe("WBDS-03/04 static Bitcoin 1Y card (PUI-108)", () => {
       await workspaceMode(page, "Preview")
       const frame = previewFrame(page)
       const right = frame.locator('[data-gallery-region="right"]')
-      expect(await right.locator("[data-composition]").evaluateAll(nodes => nodes.slice(0, 2).map(n => n.getAttribute("data-composition")))).toEqual(["revenue-overview", "bitcoin-price"])
+      expect(await right.locator("[data-composition]").evaluateAll(nodes => nodes.slice(0, 5).map(n => n.getAttribute("data-composition")))).toEqual(["revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments"])
       const card = frame.locator('[data-composition="bitcoin-price"]')
-      // Full width of the right region, one 16px gap below Studio revenue, and a direct child of the region.
-      const [region, revenue, bitcoin] = [await box(right), await box(frame.locator('[data-composition="revenue-overview"]')), await box(card)]
+      // Full width of the right region, one 16px gap below the chat pair, and a direct child of the region.
+      const [region, chat, activity, bitcoin] = [await box(right), await box(frame.locator('[data-composition="team-chat"]')), await box(frame.locator('[data-composition="recent-activity"]')), await box(card)]
       close(bitcoin.x, region.x)
       close(bitcoin.width, region.width)
-      close(bitcoin.y - (revenue.y + revenue.height), 16)
+      close(bitcoin.y - Math.max(chat.y + chat.height, activity.y + activity.height), 16)
       expect(await card.evaluate(el => el.parentElement!.hasAttribute("data-gallery-region"))).toBe(true)
-      // Content: identifier, fixed 1Y, historical price, one-year change and the dated historical source note.
+      // Content: identifier, the range control with 1Y selected (PUI-117 replaces the fixed badge), historical price and
+      // one-year change. PUI-117 removes the visible source note; provenance stays in code and evidence.
       await expect(card.getByRole("heading", { level: 2 })).toHaveText("Bitcoin BTC")
-      await expect(card.getByTestId("btc-range")).toHaveText("1Y range")
-      await expect(card.getByTestId("btc-range")).toHaveCSS("color", await token(frame, "muted-foreground"))
+      await expect(card.getByRole("radiogroup", { name: "Bitcoin range" }).getByRole("radio")).toHaveText(["1Y", "3Y", "5Y"])
+      await expect(card.getByRole("radio", { name: "1Y" })).toBeChecked()
       await expect(card.getByTestId("btc-price")).toHaveText("$88,642.88")
       await expect(card.getByTestId("btc-change")).toHaveText("−8.52% over one year")
-      await expect(card.getByText("Historical first-of-month BTC/USD, Jan 1, 2025 – Jan 1, 2026. Source: Coinbase via FRED.")).toBeVisible()
+      await expect(card.getByText(/Source: Coinbase via FRED|Historical first-of-month/)).toHaveCount(0)
       // Price in the Body family (not the Heading role), larger than the change and identifier.
       expect(await css(card.getByTestId("btc-price"), "font-family")).toBe(await frame.locator("body").evaluate(el => getComputedStyle(el).fontFamily))
       expect(parseFloat(await css(card.getByTestId("btc-price"), "font-size"))).toBeGreaterThanOrEqual(30)
-      // The identifier leads at the top-left and the 1Y label sits at the top-right.
+      // The identifier leads at the top-left and the range control sits at the top-right.
       const [heading, range] = [await box(card.getByRole("heading", { level: 2 })), await box(card.getByTestId("btc-range"))]
       expect(range.x).toBeGreaterThan(heading.x + heading.width)
       close(range.x + range.width, bitcoin.x + bitcoin.width - 24 - 1, 2)
@@ -109,7 +110,7 @@ test.describe("WBDS-03/04 static Bitcoin 1Y card (PUI-108)", () => {
       expect(dot.fill).toBe(await token(frame, "chart-1"))
       await expect(chart.locator("figcaption")).toContainText("Jan 1, 2025 $96,903.19")
       await expect(chart.locator("figcaption")).toContainText("Jan 1, 2026 $88,642.88")
-      // No controls; hovering the chart and focusing its surface never change any card's geometry.
+      // No controls beyond the range radios; hovering the chart and focusing its surface never change any card's geometry.
       await expect(card.getByRole("button")).toHaveCount(0)
       const before = await heights(frame)
       await chart.hover()
