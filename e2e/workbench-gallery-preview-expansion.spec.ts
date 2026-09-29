@@ -78,30 +78,36 @@ test.describe("WGPE-03 chat (PUI-95)", () => {
     const frame = previewFrame(page)
     const chat = frame.locator('[data-composition="team-chat"]')
     // PUI-103 (workbench-gallery-card-polish-v1-001) removes the avatar/name header and its divider; the contact is
-    // named by the visually hidden heading and the conversation log's label.
-    await expect(chat.locator('[data-slot="card-header"], [data-slot="avatar"]')).toHaveCount(0)
+    // named by the visually hidden heading and the conversation log's label. PUI-111 avatars live only in messages.
+    await expect(chat.locator('[data-slot="card-header"]')).toHaveCount(0)
+    await expect(chat.locator('[data-slot="avatar"]')).toHaveCount(4)
+    await expect(chat.locator('[data-slot="avatar"]:not([data-slot="message-avatar"] > *)')).toHaveCount(0)
     await expect(chat.getByRole("heading", { level: 2 })).toHaveText("Maya Chen")
     await expect(chat.getByRole("heading", { level: 2 })).toHaveClass(/\bsr-only\b/)
     await expect(chat.locator('[data-slot="card-title"], [data-slot="card-description"]')).toHaveCount(0)
-    // Messages: two parties, clear start/end alignment, no per-message avatar or delivery metadata.
+    // Messages: two parties, clear start/end alignment, a compact per-message avatar (PUI-111) and no delivery metadata.
     const log = chat.getByRole("log", { name: "Conversation with Maya Chen" })
     await expect(log.locator('[data-slot="message"]')).toHaveCount(4)
-    await expect(log.locator('[data-slot="message-avatar"], [data-slot="message-footer"], [data-slot="message-header"], time')).toHaveCount(0)
+    await expect(log.locator('[data-slot="message-avatar"]')).toHaveCount(4)
+    await expect(log.locator('[data-slot="message-footer"], [data-slot="message-header"], time')).toHaveCount(0)
     for (const text of ["Headings sit at 600 now.", "Jonah", "Delivered", "Design review"]) await expect(chat.getByText(text)).toHaveCount(0)
     await expect(chat.getByText(/^Read( \d|$)/)).toHaveCount(0)
-    const rows = await log.locator('[data-slot="message"]').evaluateAll(nodes => nodes.map(node => { const bubble = node.querySelector('[data-slot="bubble"]')!.getBoundingClientRect(); const r = node.getBoundingClientRect(); return { align: node.getAttribute("data-align"), left: bubble.left - r.left, right: r.right - bubble.right, sender: node.querySelector(".sr-only")!.textContent } }))
+    const rows = await log.locator('[data-slot="message"]').evaluateAll(nodes => nodes.map(node => { const bubble = node.querySelector('[data-slot="bubble"]')!.getBoundingClientRect(); const r = node.getBoundingClientRect(); const avatar = node.querySelector('[data-slot="message-avatar"]')!.getBoundingClientRect(); return { align: node.getAttribute("data-align"), left: avatar.left - r.left, right: r.right - avatar.right, beside: bubble.left >= avatar.right || bubble.right <= avatar.left, sender: node.querySelector(".sr-only")!.textContent } }))
     expect(rows.map(row => [row.align, row.sender])).toEqual([["start", "Maya Chen"], ["end", "You"], ["start", "Maya Chen"], ["end", "You"]])
+    // PUI-111: the avatar leads each row on its alignment edge (start for the contact, end for the local user), the
+    // bubble beside it.
     for (const row of rows) expect(row.align === "start" ? row.left : row.right).toBeLessThanOrEqual(1)
+    for (const row of rows) expect(row.beside).toBe(true)
     await expect(log.locator('[data-align="end"] [data-slot="bubble"]').first()).toHaveCSS("background-color", await token(frame, "primary"))
     await expect(log.locator('[data-align="start"] [data-slot="bubble"]').first()).toHaveCSS("background-color", await token(frame, "muted"))
-    // Composer: a labelled input with the exact placeholder and a named icon-only send button at the far right. PUI-103:
-    // the button is disabled and sits inside the composer field (covered in detail by the card-polish spec).
+    // Composer: a labelled input with the exact placeholder and a named icon-only send button at the far right, inside
+    // the composer field. PUI-111 makes the button enabled and filled (covered in detail by the card-polish spec).
     const input = chat.getByRole("textbox", { name: "Message Maya Chen" })
     await expect(input).toHaveAttribute("placeholder", "Type your message...")
     const send = chat.getByRole("button", { name: "Send message" })
     await expect(send).toHaveText("")
     await expect(send.locator("svg")).toHaveCount(1)
-    await expect(send).toBeDisabled()
+    await expect(send).toBeEnabled()
     const form = await box(chat.locator("form"))
     const sendBox = await box(send)
     expect(sendBox.x + sendBox.width).toBeLessThanOrEqual(form.x + form.width)
@@ -110,13 +116,15 @@ test.describe("WGPE-03 chat (PUI-95)", () => {
     // Reading order: messages, then composer.
     const order = await chat.evaluate(section => ['[role="log"]', "form"].map(selector => section.querySelector(selector)!.getBoundingClientRect().top))
     expect([...order].sort((a, b) => a - b)).toEqual(order)
-    // Sending never inserts content or changes geometry, by keyboard; the disabled button is skipped by Tab.
+    // Sending never inserts content or changes geometry, by keyboard: Enter in the field and the send button (the next
+    // tab stop since PUI-111) are both no-ops.
     const before = await heights(frame)
     await input.fill("Looks good to me")
     await input.focus()
     await page.keyboard.press("Enter")
     await page.keyboard.press("Tab")
-    await expect(send).not.toBeFocused()
+    await expect(send).toBeFocused()
+    await page.keyboard.press("Enter")
     await expect(log.locator('[data-slot="message"]')).toHaveCount(4)
     await expect(chat.getByText("Looks good to me", { exact: true })).toHaveCount(0)
     expect(await heights(frame)).toEqual(before)
@@ -302,14 +310,14 @@ test.describe("WGPE-06/07 Calendar / Weather pair (PUI-97, PUI-100)", () => {
     close(place.x + place.width, content.x + content.width)
     close(condition.x + condition.width, content.x + content.width)
     expect(parseFloat(await css(current, "font-size"))).toBeGreaterThanOrEqual(36)
-    // Bottom zone: five evenly distributed day columns of day, icon, high and low only.
+    // Bottom zone: five evenly distributed day columns of day, icon and high only (PUI-112 removes the lows).
     const days = weather.getByRole("list", { name: "Five-day forecast" }).getByRole("listitem")
     await expect(days).toHaveCount(5)
     const columns = await days.evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return { x: r.left, w: r.width, svg: el.querySelectorAll("svg").length, text: Array.from(el.children).filter(c => !c.classList.contains("sr-only") && c.tagName !== "svg").map(c => c.textContent) } }))
     for (const column of columns) {
       close(column.w, columns[0]!.w, 1)
       expect(column.svg).toBe(1)
-      expect(column.text).toEqual([expect.stringMatching(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/), expect.stringMatching(/^\d+°$/), expect.stringMatching(/^\d+°$/)])
+      expect(column.text).toEqual([expect.stringMatching(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/), expect.stringMatching(/^\d+°$/)])
     }
     for (const [name, id] of [["foreground", "list"], ["muted-foreground", "p.text-sm"]] as const) {
       const color = id === "list" ? await days.first().locator("svg").evaluate(el => getComputedStyle(el).color) : await weather.locator(id).last().evaluate(el => getComputedStyle(el).color)

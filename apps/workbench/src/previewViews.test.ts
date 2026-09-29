@@ -103,25 +103,53 @@ describe("WGPE-10/WBDS-07 App shells view (PUI-102, PUI-110)", () => {
   const html = () => renderToStaticMarkup(createElement(AppShells)).replace(/<style data-precedence="base-ui[^]*?<\/style>/g, "").replace(/ style="[^"]*position:fixed[^"]*"/g, "")
   const shell = (markup: string, title: string) => markup.slice(markup.indexOf(`data-app-shell="${title}"`), markup.indexOf("</section>", markup.indexOf(`data-app-shell="${title}"`)))
 
-  it("renders three distinct contained shells on the accepted Sidebar's non-collapsible branch, stacked vertically", () => {
+  it("renders three distinct contained shells on the accepted Sidebar's in-flow branch, stacked vertically", () => {
     const markup = html()
     expect(Array.from(markup.matchAll(/data-app-shell="([^"]+)"/g), match => match[1])).toEqual(["Classic workspace", "Inset project", "Compact utility"])
     expect(Array.from(markup.matchAll(/data-shell-variant="([^"]+)"/g), match => match[1])).toEqual(["classic", "inset", "compact"])
     expect(markup.match(/data-slot="sidebar"/g)).toHaveLength(3)
-    expect(markup.match(/data-slot="sidebar-wrapper"/g)).toHaveLength(1)
-    // Never the viewport-fixed desktop branch, its gap/container, or the mobile sheet.
-    expect(markup).not.toMatch(/data-slot="sidebar-(gap|container)"|data-collapsible|data-state="(collapsed|expanded)"|\bfixed\b|h-svh|min-h-svh/)
-    expect(source().match(/<Sidebar collapsible="none"/g)).toHaveLength(1)
-    expect(source()).not.toMatch(/SidebarTrigger|SidebarRail|<SidebarInset|useSidebar|collapsible="(icon|offcanvas)"/)
-    // One held-open provider serves every shell, so there is one keyboard-shortcut listener and no state to toggle.
+    // PUI-116: one preview-local provider per shell (the shell frame), never one shared by all three.
+    expect(markup.match(/data-slot="sidebar-wrapper"/g)).toHaveLength(3)
+    // Never the viewport-fixed desktop branch, its gap/container, or the mobile sheet; each rests expanded.
+    expect(markup).not.toMatch(/data-slot="sidebar-(gap|container)"|data-collapsible="(icon|offcanvas)"|\bfixed\b|h-svh|min-h-svh/)
+    expect(markup.match(/<div data-slot="sidebar" [^>]*data-state="expanded" data-collapsible="">/g)).toHaveLength(3)
+    expect(markup.match(/data-shell-state="expanded"/g)).toHaveLength(3)
+    expect(source().match(/<Sidebar\s+collapsible="none"/g)).toHaveLength(1)
+    expect(source()).not.toMatch(/SidebarRail|<SidebarInset|useSidebar|collapsible="(icon|offcanvas)"/)
     expect(source().match(/<SidebarProvider /g)).toHaveLength(1)
-    expect(source()).toContain('<SidebarProvider open className="@container block min-h-0 min-w-0">')
+    expect(source()).toContain('<SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-120 min-h-0 min-w-0 overflow-hidden rounded-xl border shadow-sm"')
     // PUI-110: one vertical sequence (no side-by-side columns), each shell narrower than the panel once it is wide,
-    // centred, with one shared landscape height.
+    // centred, with one shared landscape height, moderately taller than the accepted h-108 (PUI-116).
+    expect(source()).toContain('<div data-app-shells className="@container min-h-0 min-w-0">')
     expect(source()).toContain('<div className="grid min-w-0 gap-8">')
     expect(source()).not.toMatch(/grid-cols-2|col-span|@3xl:grid-cols/)
     expect(source()).toContain('className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[72%]"')
-    expect(markup.match(/class="h-108 min-w-0 overflow-hidden rounded-xl border shadow-sm"/g)).toHaveLength(3)
+    expect(markup.match(/data-slot="sidebar-wrapper"[^>]*class="[^"]*\bh-120\b[^"]*"/g)).toHaveLength(3)
+    expect(markup).not.toContain("h-108")
+  })
+
+  it("gives every shell its own named trigger that controls only its own Sidebar (PUI-116)", () => {
+    const markup = html()
+    const ids = Array.from(markup.matchAll(/<div data-slot="sidebar" [^>]*id="([^"]+)"/g), match => match[1])
+    for (const [index, title] of ["Classic workspace", "Inset project", "Compact utility"].entries()) {
+      const one = shell(markup, title)
+      const trigger = one.match(/<button [^>]*data-slot="sidebar-trigger"[^>]*>/g)!
+      expect(trigger, title).toHaveLength(1)
+      expect(trigger[0]).toContain(`aria-label="Toggle ${title} sidebar"`)
+      expect(trigger[0]).toContain('aria-expanded="true"')
+      const controls = trigger[0]!.match(/aria-controls="([^"]+)"/)![1]!
+      expect(one).toContain(`id="${controls}"`)
+      expect(ids.filter(id => id === controls), title).toHaveLength(1)
+      expect(markup.indexOf(`aria-controls="${controls}"`)).toBe(markup.lastIndexOf(`aria-controls="${controls}"`))
+      expect(ids[index]).toBe(controls)
+    }
+    // The scoped shortcut: provider-originated toggles are ignored, and the shell's own handler stops the event from
+    // reaching any document-wide listener. No listener, persistence or shared state of its own.
+    const code = source().replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "")
+    expect(code).toContain("const ignoreProviderToggle = () => {}")
+    expect(code).toMatch(/event\.preventDefault\(\)\s*event\.stopPropagation\(\)\s*toggle\(\)/)
+    expect(code).toMatch(/const isSidebarShortcut = \(event: KeyboardEvent\) => event\.key === "b" && \(event\.metaKey \|\| event\.ctrlKey\)/)
+    expect(code).not.toMatch(/addEventListener|localStorage|sessionStorage|document\.cookie|createContext|window\./)
   })
 
   it("shares one Sidebar pattern: workspace switcher, grouped icon navigation with one active item, profile footer", () => {
@@ -148,8 +176,10 @@ describe("WGPE-10/WBDS-07 App shells view (PUI-102, PUI-110)", () => {
       expect(content.match(/rounded-lg bg-muted"/g), title).toHaveLength(4)
       expect(content.match(/h-16 rounded-lg bg-muted"/g), title).toHaveLength(3)
     }
-    // Only the three switchers and the navigation are interactive; main areas are abstract.
-    expect(markup.match(/<button /g)).toHaveLength(3 + markup.match(/data-slot="sidebar-menu-button"/g)!.length)
+    // Only the three switchers, the navigation and (PUI-116) one SidebarTrigger per shell are interactive; main areas
+    // are abstract.
+    expect(markup.match(/<button /g)).toHaveLength(3 + 3 + markup.match(/data-slot="sidebar-menu-button"/g)!.length)
+    expect(markup.match(/data-slot="sidebar-trigger"/g)).toHaveLength(3)
     expect(source()).not.toMatch(/<table|<Table|<Chart|<Input|<form|<textarea|recharts/)
   })
 

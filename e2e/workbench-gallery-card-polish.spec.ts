@@ -134,13 +134,15 @@ test.describe("WGCP-03 simplified metadata and Chat composer (PUI-103)", () => {
       await axe(page, info, `metadata-${mode}`)
     })
 
-    test(`Chat has no contact header and a disabled muted named send button inside the composer field (${mode})`, async ({ page }, info) => {
+    test(`Chat has no contact header and an enabled filled named send button inside the composer field (${mode})`, async ({ page }, info) => {
       await open(page)
       await setColorMode(page, mode)
       await workspaceMode(page, "Preview")
       const frame = previewFrame(page)
       const chat = frame.locator('[data-composition="team-chat"]')
-      await expect(chat.locator('[data-slot="card-header"], [data-slot="avatar"], [data-slot="card-title"]')).toHaveCount(0)
+      // PUI-111 adds per-message avatars only; the contact header stays absent and the name stays visually hidden.
+      await expect(chat.locator('[data-slot="card-header"], [data-slot="card-title"]')).toHaveCount(0)
+      await expect(chat.locator('[data-slot="avatar"]:not([data-slot="message-avatar"] > *)')).toHaveCount(0)
       expect(await visibleTexts(chat)).not.toContain("Maya Chen")
       // The thread is the first visible content, directly after the card's top padding; order and alignment are kept.
       const surface = chat.locator('[data-slot="card"]')
@@ -154,7 +156,7 @@ test.describe("WGCP-03 simplified metadata and Chat composer (PUI-103)", () => {
       const input = chat.getByRole("textbox", { name: "Message Maya Chen" })
       const send = chat.getByRole("button", { name: "Send message" })
       await expect(input).toHaveAttribute("placeholder", "Type your message...")
-      await expect(send).toBeDisabled()
+      await expect(send).toBeEnabled()
       await expect(send).toHaveText("")
       await expect(send.locator("svg")).toHaveCount(1)
       expect(await send.evaluate(el => el.parentElement!.getAttribute("data-slot"))).toBe("chat-composer")
@@ -168,13 +170,14 @@ test.describe("WGCP-03 simplified metadata and Chat composer (PUI-103)", () => {
       // Far right: only the field's own border and small end inset remain after the button.
       expect(f.x + f.width - (s.x + s.width)).toBeLessThanOrEqual(parseFloat(await css(field, "padding-right")) + parseFloat(await css(field, "border-right-width")) + 0.5)
       expect(s.x).toBeGreaterThanOrEqual(i.x + i.width - 0.5)
-      // Muted: the disabled Button's own opacity over the muted-foreground token, with no filled surface.
+      // PUI-111 active: the enabled default Button's filled semantic primary surface at full opacity.
       // Polled: the Button's transition-all animates the colour after the preview's first theme message.
-      await expect.poll(() => css(send, "color")).toBe(await token(frame, "muted-foreground"))
-      expect(Number(await css(send, "opacity"))).toBeLessThan(1)
-      expect(await css(send, "background-color")).toBe("rgba(0, 0, 0, 0)")
+      await expect.poll(() => css(send, "background-color")).toBe(await token(frame, "primary"))
+      await expect.poll(() => css(send, "color")).toBe(await token(frame, "primary-foreground"))
+      expect(Number(await css(send, "opacity"))).toBe(1)
 
-      // Keyboard: the input is focusable with the field's ring; Enter inserts nothing; Tab skips the disabled button.
+      // Keyboard: the input is focusable with the field's ring; Enter inserts nothing; Tab reaches the active button,
+      // which shows its own focus ring and also inserts nothing.
       const before = await heights(frame)
       await input.focus()
       await expect.poll(() => css(field, "box-shadow")).toContain("3px")
@@ -184,7 +187,13 @@ test.describe("WGCP-03 simplified metadata and Chat composer (PUI-103)", () => {
       await expect(log.locator('[data-slot="message"]')).toHaveCount(4)
       await expect(chat.getByText("Looks good to me", { exact: true })).toHaveCount(0)
       await page.keyboard.press("Tab")
-      await expect(send).not.toBeFocused()
+      await expect(send).toBeFocused()
+      await expect.poll(() => css(send, "box-shadow")).toContain("3px")
+      await page.keyboard.press("Enter")
+      await page.keyboard.press("Space")
+      await expect(log.locator('[data-slot="message"]')).toHaveCount(4)
+      await expect(chat.getByText("Looks good to me", { exact: true })).toHaveCount(0)
+      await page.keyboard.press("Tab")
       expect(await chat.evaluate(el => el.contains(document.activeElement))).toBe(false)
       expect(await heights(frame)).toEqual(before)
       await axe(page, info, `chat-${mode}`)
@@ -247,6 +256,7 @@ test.describe("WGCP-04 table checkbox tokens and Body amounts (PUI-104)", () => 
 
       // Amount: Body family (the document body's), right-aligned, same values; Status and Email typography unchanged.
       const bodyFamily = await frame.locator("body").evaluate(el => getComputedStyle(el).fontFamily)
+      const bodyWeight = await frame.locator("body").evaluate(el => getComputedStyle(el).fontWeight)
       const amounts = table.getByRole("row").locator("td:nth-child(4)")
       await expect(amounts).toHaveText(["$316.00", "$242.00", "$837.00", "$874.00", "$721.00"])
       for (const cell of await amounts.all()) {
@@ -265,20 +275,22 @@ test.describe("WGCP-04 table checkbox tokens and Body amounts (PUI-104)", () => 
 
 test.describe("WGCP-05 Body weather and natural Calendar / Weather heights (PUI-105)", () => {
   for (const mode of MODES) {
-    test(`temperature and place use the Body family at their size and weight; nothing in Weather uses Heading (${mode})`, async ({ page }, info) => {
+    test(`temperature and place use the Body family and weight at their size; nothing in Weather uses Heading (${mode})`, async ({ page }, info) => {
       await open(page)
       await setColorMode(page, mode)
       await workspaceMode(page, "Preview")
       const frame = previewFrame(page)
       const weather = frame.locator('[data-composition="local-weather"]')
       const bodyFamily = await frame.locator("body").evaluate(el => getComputedStyle(el).fontFamily)
+      const bodyWeight = await frame.locator("body").evaluate(el => getComputedStyle(el).fontWeight)
       const temperature = weather.locator('[data-slot="card-content"] > div > p').first()
       const place = weather.getByRole("heading", { name: "Lisbon", level: 2 })
       await expect(temperature).toHaveText("Now 21°")
       for (const [el, size] of [[temperature, "48px"], [place, "16px"]] as const) {
         expect(await css(el, "font-family")).toBe(bodyFamily)
         expect(await css(el, "font-size")).toBe(size)
-        expect(await css(el, "font-weight")).toBe("600")
+        // PUI-112 supersedes the fixed semibold: both follow the live Body weight (WPIP-04 edits it live).
+        expect(await css(el, "font-weight")).toBe(bodyWeight)
       }
       await expect(weather.locator(".type-heading, .font-mono, .type-mono")).toHaveCount(0)
       expect(await weather.evaluate((root, family) => Array.from(root.querySelectorAll("p, span, h2, li")).every(el => getComputedStyle(el).fontFamily === family), bodyFamily)).toBe(true)

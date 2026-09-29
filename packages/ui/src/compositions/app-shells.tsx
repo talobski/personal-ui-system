@@ -170,7 +170,7 @@ const ignoreProviderToggle = () => {}
  *
  * PUI-116: each shell is its own SidebarProvider (the frame), expanded at rest, controlled by session-local state that
  * is never persisted or shared. Collapse uses the official icon rail: the in-flow `collapsible="none"` Sidebar carries
- * the same `group` / `data-state` / `data-collapsible="icon"` hooks as the official desktop branch, so the accepted
+ * the same `group`, `data-state` and icon-valued `data-collapsible` hooks as the official desktop branch, so the accepted
  * menu-button, group-label, badge and content styles produce the rail, while nothing is viewport-fixed or portalled at
  * any width. The public Sidebar API is unchanged.
  */

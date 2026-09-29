@@ -156,8 +156,9 @@ describe("CGS-07/08 token-driven showcase (current set)", () => {
       const headings = source.match(/<h2 /g) ?? []
       expect(headings, id).toHaveLength(1)
       if (HIDDEN_HEADING[id]) expect(source, id).toContain(`<h2 className="sr-only">${HIDDEN_HEADING[id]}</h2>`)
-      // PUI-105: Weather's place name keeps its size and weight in the Body family instead of the Heading role.
-      else if (id === "local-weather") expect(source, id).toContain('<h2 className="max-w-full truncate text-base font-semibold">')
+      // PUI-105: Weather's place name keeps its size in the Body family instead of the Heading role. PUI-112: the place
+      // sets no weight of its own, so it follows the live Body weight.
+      else if (id === "local-weather") expect(source, id).toContain('<h2 className="max-w-full truncate text-base">')
       // PUI-108: the Bitcoin / BTC identifier is a small Body-role label.
       else if (id === "bitcoin-price") expect(source, id).toContain('<h2 className="truncate text-sm font-medium">Bitcoin <span className="text-muted-foreground">BTC</span></h2>')
       else expect(source, id).toMatch(/<h2 className="type-heading[ "]/)
@@ -267,30 +268,58 @@ describe("WSCG-05 weekly steps (PUI-89)", () => {
   })
 })
 
-describe("WSCG-06/WGPE-03/WGCP-03 chat conversation (PUI-88, PUI-95, PUI-103)", () => {
-  it("builds a static two-party thread from official Message and Bubble parts with no contact header", () => {
+describe("WSCG-06/WGPE-03/WGCP-03/WPIP-03 chat conversation (PUI-88, PUI-95, PUI-103, PUI-111)", () => {
+  it("builds a static two-party thread from official Message, MessageAvatar, Avatar and Bubble parts with no contact header", () => {
     const source = module("team-chat")
     expect(source).toContain('from "../components/message"')
     expect(source).toContain('from "../components/bubble"')
-    // PUI-103: the avatar/name header and its divider are removed; the heading stays for assistive technology only.
-    expect(source).not.toMatch(/components\/avatar|<Avatar|CardHeader|border-b/)
+    // PUI-111: each run leads with a single-initial Avatar in a MessageAvatar. PUI-103's avatar/name header and its
+    // divider stay removed; the heading stays for assistive technology only.
+    expect(source).toContain('from "../components/avatar"')
+    expect(source).toMatch(/<MessageAvatar>\s*<Avatar aria-hidden="true"[^>]*><AvatarFallback[^>]*>\{avatarInitial\(run\.sender\)\}<\/AvatarFallback><\/Avatar>/)
+    expect(source).not.toMatch(/CardHeader|border-b|AvatarImage/)
     // No second chat architecture, no insertion, streaming, timers or per-message metadata parts.
-    expect(source).not.toMatch(/useState|useEffect|setInterval|setTimeout|MessageScroller|MessageAvatar|MessageHeader|MessageFooter|<Textarea|CardTitle|CardDescription/)
+    expect(source).not.toMatch(/useState|useEffect|setInterval|setTimeout|MessageScroller|MessageHeader|MessageFooter|<Textarea|CardTitle|CardDescription/)
     const html = section("team-chat")
-    expect(html).not.toMatch(/data-slot="card-header"|data-slot="avatar"|border-b/)
+    expect(html).not.toMatch(/data-slot="card-header"|border-b/)
     // The card opens on its content: an sr-only heading, then the thread.
     expect(html).toMatch(/^data-composition="team-chat"[^>]*><div data-slot="card"[^>]*><div data-slot="card-content"[^>]*><h2 class="sr-only">Maya Chen<\/h2><div [^>]*role="log" aria-label="Conversation with Maya Chen"/)
     expect(html.match(/data-slot="message" data-align="start"/g)).toHaveLength(2)
     expect(html.match(/data-slot="message" data-align="end"/g)).toHaveLength(2)
     expect(html.match(/data-slot="bubble"/g)).toHaveLength(4)
+    // One decorative avatar per run, first in each Message: the Message's own alignment puts it at the start for the
+    // contact and at the end for the local user. Initials only: M for the contact, Y for the local user.
+    const messages = html.match(/<div data-slot="message" data-align="(start|end)"[^>]*><div data-slot="message-avatar"[^>]*><span [^>]*aria-hidden="true"[^>]*data-slot="avatar"[^>]*>|<div data-slot="message" data-align="(start|end)"[^>]*><div data-slot="message-avatar"[^>]*><span [^>]*data-slot="avatar"[^>]*aria-hidden="true"[^>]*>/g)!
+    expect(messages).toHaveLength(4)
+    expect(html.match(/data-slot="message-avatar"/g)).toHaveLength(4)
+    expect(html.match(/data-slot="avatar-fallback"[^>]*>([A-Z])</g)!.map(match => match.slice(-2, -1))).toEqual(["M", "Y", "M", "Y"])
+    expect(html).toMatch(/data-slot="avatar" class="[^"]*\bsize-6\b/)
     // Sender context stays accessible for every turn; only two parties exist.
     expect(html.match(/<span class="sr-only">Maya Chen<\/span>/g)).toHaveLength(2)
     expect(html.match(/<span class="sr-only">You<\/span>/g)).toHaveLength(2)
     for (const text of ["Headings sit at 600 now.", "Jonah", ">Read<", "Delivered", "09:4", "<time", "This week", "@example"]) expect(html, text).not.toContain(text)
-    expect(html).not.toMatch(/>Read( \d|<)|data-slot="message-(footer|header|avatar)"/)
+    expect(html).not.toMatch(/>Read( \d|<)|data-slot="message-(footer|header)"/)
   })
 
-  it("ends with a labelled composer whose field holds a disabled, muted, named icon-only send button at its far right", () => {
+  it("groups consecutive turns from one sender under one avatar without assuming one avatar per bubble", async () => {
+    const { chatRuns } = await import("@personal-ui/ui/compositions/team-chat")
+    const turn = (id: string, sender: string, align: "start" | "end") => ({ id, sender, align, text: id })
+    const runs = chatRuns([turn("a", "Maya Chen", "start"), turn("b", "Maya Chen", "start"), turn("c", "You", "end"), turn("d", "Maya Chen", "start")])
+    expect(runs.map(run => [run.id, run.sender, run.turns.map(entry => entry.id)])).toEqual([["a", "Maya Chen", ["a", "b"]], ["c", "You", ["c"]], ["d", "Maya Chen", ["d"]]])
+    expect(chatRuns([])).toEqual([])
+  })
+
+  it("is a full-height column whose thread expands so the composer stays on the card's bottom edge", () => {
+    const html = section("team-chat")
+    // Card is the official flex column; the content region takes the free height, the footer follows it.
+    expect(html).toMatch(/<div data-slot="card" class="[^"]*\bflex\b[^"]*\bflex-col\b/)
+    expect(html).toMatch(/<div data-slot="card-content" class="[^"]*\bflex-1\b/)
+    expect(html.indexOf('data-slot="card-footer"')).toBeGreaterThan(html.lastIndexOf('data-slot="bubble"'))
+    const source = module("team-chat").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "")
+    expect(source).not.toMatch(/\babsolute\b|\bfixed\b|\bsticky\b|translate-y|mt-auto|h-\[|\btop-/)
+  })
+
+  it("ends with a labelled composer whose field holds an enabled, filled semantic-primary, named icon-only send button at its far right", () => {
     const html = section("team-chat")
     const footer = html.slice(html.indexOf('data-slot="card-footer"'))
     expect(footer).toMatch(/<form class="w-full min-w-0">/)
@@ -304,16 +333,22 @@ describe("WSCG-06/WGPE-03/WGCP-03 chat conversation (PUI-88, PUI-95, PUI-103)", 
     expect(footer).toContain(`for="${id}"`)
     expect(footer).toMatch(/<label [^>]*class="[^"]*sr-only[^"]*"[^>]*>Message Maya Chen<\/label>/)
     expect(input[0]).toMatch(/class="[^"]*\bborder-0\b[^"]*"/)
-    // The send button is the field's last element: icon only, disabled, muted, with an accessible name.
+    // PUI-111: the send button is the field's last element: icon only, enabled, the default (filled primary) variant
+    // with its visible focus ring, and an accessible name. It is not muted or ghosted.
     const button = footer.match(/<button [^>]*>/g)!
     expect(button).toHaveLength(1)
     expect(button[0]).toMatch(/type="submit"/)
-    expect(button[0]).toMatch(/disabled=""/)
-    expect(button[0]).toContain('data-variant="ghost"')
-    expect(button[0]).toMatch(/class="[^"]*\btext-muted-foreground\b[^"]*\bdisabled:opacity-50\b|class="[^"]*\bdisabled:opacity-50\b[^"]*\btext-muted-foreground\b/)
+    expect(button[0]).not.toMatch(/\sdisabled(=|\s|>)|aria-disabled/)
+    expect(button[0]).toContain('data-variant="default"')
+    expect(button[0]).toMatch(/class="[^"]*\bbg-primary\b/)
+    expect(button[0]).toMatch(/class="[^"]*\btext-primary-foreground\b/)
+    expect(button[0]).toMatch(/class="[^"]*\bfocus-visible:ring-\[3px\]/)
+    expect(button[0]).not.toMatch(/text-muted-foreground|data-variant="ghost"/)
     expect(button[0]).toContain('aria-label="Send message"')
     expect(footer).toMatch(/<div data-slot="chat-composer"[^>]*><input [^>]*><button [^>]*aria-label="Send message"[^>]*><svg [^>]*aria-hidden="true"[^>]*>[\s\S]*<\/svg><\/button><\/div><\/form><\/div><\/div><\/section>$/)
+    // Submitting is a no-op: nothing is sent, inserted or stored.
     expect(module("team-chat")).toContain("onSubmit={event => event.preventDefault()}")
+    expect(module("team-chat")).not.toMatch(/fetch\(|localStorage|sessionStorage|onClick/)
   })
 })
 
@@ -423,21 +458,28 @@ describe("WSCG-10/WGPE-05 music (PUI-92, PUI-99)", () => {
 describe("WSCG-10/WGPE-07/WGCP-05 weather (PUI-92, PUI-100, PUI-105)", () => {
   it("is a two-zone summary and five-day forecast with no removed content", () => {
     const source = module("local-weather")
+    // PUI-112: the forecast data carries highs only; the current summary keeps its own H/L pair.
+    expect(source).not.toMatch(/icon: [A-Za-z]+, high: \d+, low:/)
+    expect(source.match(/\{ day: "[A-Z][a-z]{2}", label: "[^"]+", icon: [A-Za-z]+, high: \d+ \}/g)).toHaveLength(5)
     expect(source).not.toMatch(/MapPin|Wind|Droplets|Sunset|Humidity|HOURS|Now"|14:00|Sample forecast|not live|CardHeader|CardDescription|divide-x/)
     const html = section("local-weather")
     const [top, bottom] = html.split("<ol ")
     // Top: icon, large temperature, stacked high/low, then place and condition right-aligned. PUI-105: temperature and
-    // place keep their size and semibold weight in the Body family; nothing in the card uses the Heading role.
-    expect(top).toMatch(/<svg [^>]*aria-hidden="true"[\s\S]*<p class="shrink-0 text-5xl font-semibold tabular-nums"><span class="sr-only">Now <\/span>21°<\/p><p class="grid shrink-0 text-xs text-muted-foreground tabular-nums"><span>H 24°<\/span><span>L 16°<\/span><\/p><div class="ml-auto grid min-w-0 justify-items-end text-right"><h2 class="max-w-full truncate text-base font-semibold">Lisbon<\/h2><p [^>]*>Partly cloudy<\/p><\/div>/)
+    // place keep their size in the Body family; nothing in the card uses the Heading role. PUI-112: neither sets a
+    // weight of its own (no font-* weight utility), so both follow the live Body weight.
+    expect(top).toMatch(/<svg [^>]*aria-hidden="true"[\s\S]*<p class="shrink-0 text-5xl tabular-nums"><span class="sr-only">Now <\/span>21°<\/p><p class="grid shrink-0 text-xs text-muted-foreground tabular-nums"><span>H 24°<\/span><span>L 16°<\/span><\/p><div class="ml-auto grid min-w-0 justify-items-end text-right"><h2 class="max-w-full truncate text-base">Lisbon<\/h2><p [^>]*>Partly cloudy<\/p><\/div>/)
     expect(source).not.toMatch(/type-heading|type-mono|font-mono|font-serif/)
-    // Bottom: evenly distributed columns of day, icon, high and low only.
+    expect(top!.match(/<p class="shrink-0 text-5xl[^"]*"|<h2 class="max-w-full truncate text-base[^"]*"/g)!.join(" ")).not.toMatch(/\bfont-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black|\[)/)
+    // Bottom: evenly distributed columns of day, icon and high only; PUI-112 removes each low and its sr-only label.
     expect(bottom).toMatch(/^aria-label="Five-day forecast" class="grid grid-cols-5 gap-1">/)
     const days = bottom!.split("<li ").slice(1)
     expect(days).toHaveLength(5)
     for (const day of days) {
       const visible = day.replace(/<span class="sr-only">[^<]*<\/span>/g, "")
-      expect(Array.from(visible.matchAll(/>([^<]+)</g), match => match[1]).filter(text => text.trim())).toEqual([expect.stringMatching(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/), expect.stringMatching(/^\d+°$/), expect.stringMatching(/^\d+°$/)])
+      expect(Array.from(visible.matchAll(/>([^<]+)</g), match => match[1]).filter(text => text.trim())).toEqual([expect.stringMatching(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/), expect.stringMatching(/^\d+°$/)])
       expect(day.match(/<svg /g)).toHaveLength(1)
+      expect(day).not.toMatch(/sr-only">low<|text-muted-foreground tabular-nums/)
+      expect(day.match(/<span class="sr-only">[^<]*, high<\/span>/g)).toHaveLength(1)
     }
     expect(html).not.toMatch(/<button|<input|<hr|data-slot="separator"/)
   })
