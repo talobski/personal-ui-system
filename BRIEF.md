@@ -1,18 +1,19 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`e3f7410033966326785cf74f59429eba8d0d68f0` on `main`. Two separately
-admitted phases are now closed: `tactile-ui-effects-v1-001` delivered PUI-113
-as Tier 3, followed by `workbench-performance-v1-001` for PUI-118 as Tier 2.
-Theme v3 retains version 3.0 with an optional, backward-compatible UI-effects
-value for Tactile on Outline Buttons and selected surface Tabs, two target
-toggles, and shared Strength. Older themes stay flat. One bounded
-`setUiEffects` operation brings the mutation union from 12 to 13; the public
-registry remains 23 resources. PUI-118 measured and reduced redundant preview
-iframe renders without changing visual output or the accepted theme, history,
-Design Command and public contracts. Each phase has its own frozen packet,
-contract, Lead browser evidence, protected verification and closeout. No owner
-visual gate, worker network, paid spend, MAX handoff, or remote push was used.
+`a30f4d3c6a2fad98852fc51ad5e7520d919c7850` on `main`. The single Tier 3
+`ui-effects-showcase-polish-v1-001` phase delivered PUI-119 through PUI-122
+after the closed PUI-113 and PUI-118 sequence. Theme v3 remains 3.0; UI
+Effects now persists Off/Tactile and Strength, safely normalizes accepted
+toggle-based themes and mutation payloads, and styles Secondary Buttons and
+active surface Tabs while Outline Buttons remain flat. The closed mutation
+union has 13 operations and the public registry has 23 resources. Workbench
+category and preview Tabs use natural-width default surfaces; Storage, social
+actions, and compact collapsible triggers use Secondary. Design system color
+hierarchy and Sidebar labels change only in the preview. The phase used its
+one approved Claude STRONG to Codex MAX producer handoff and a fresh Claude
+Sonnet 5 STANDARD verifier. It used $0 paid spend, no worker network, and no
+remote push. Canonical execution state and exact receipts remain in `.loop`.
 The earlier
 nested-gallery phase's record
 preserves a one-time worker execution-envelope violation: Corepack made an
@@ -25,6 +26,40 @@ Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
 Last updated: 2026-09-29
+
+## Phase result: UI Effects Showcase Polish v1
+
+Accepted PUI-119, PUI-120, PUI-121, and PUI-122 together at product commit
+`a30f4d3c6a2fad98852fc51ad5e7520d919c7850`. The Theme v3 UI Effects
+editor now offers Off/Tactile and one Strength control. Exact prior toggle
+payloads migrate by the any-active-target rule; absent older themes stay
+flat. Tactile applies automatically to Secondary Buttons and selected surface
+Tabs with a shared semantic light/dark treatment. Default, Outline,
+destructive, ghost and link Buttons, line Tabs, and Inputs remain flat.
+
+Both Workbench tab groups use content-width default surface Tabs. Storage
+gains an inert Manage storage Secondary action; compact section triggers and
+GitHub/Google specimens use Secondary without changing their measured
+geometry or adding workflows. The Design system Colors preview uses a
+clearer hierarchy and contextual Sidebar display labels while token keys,
+CSS variables, editor labels, aliases and import/export keys remain intact.
+
+Lead's final exact-candidate checks passed 422 Workbench browser tests with
+18 established skips, 118 Storybook browser tests, the credential-empty
+Design Command boundary, 907 unit tests, typecheck, all builds and the phase
+guard. Accepted-base comparison showed identical geometry for 19 compact
+triggers and both social Buttons. Decoded candidate axe results had no new
+serious or critical findings; the moderate landmark/region findings matched
+the base, while the old Default-light muted-trigger contrast finding was
+absent on Secondary triggers. Fresh protected Sonnet 5 verification passed
+the unchanged candidate without repair.
+
+The producer's initial 64-failure browser run, Lead's first 8-failure full
+run, and one producer PageDown occurrence remain disclosed in the phase
+receipts. Corrected assertions and the final clean run are separately
+preserved. Earlier Bitcoin, Type scale, Default contrast and WCN residuals
+remain distinct. Acceptance was recorded before local promotion; no owner
+visual gate or remote publishing was admitted.
 
 ## Phase result: Workbench Performance v1
 
