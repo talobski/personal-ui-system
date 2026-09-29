@@ -1,19 +1,19 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`54849dcbda47f72d3fa9cdec34256b77677d4743` on `main`. Phase
-`workbench-preview-interaction-polish-v1-001` delivered PUI-111, PUI-112,
-PUI-114, PUI-115, PUI-116, and PUI-117 as one Tier 2 batch; PUI-113 remains
-excluded. Chat has grouped message avatars and a bottom composer; Weather
-inherits live Body weight; the Design system preview has concise color labels,
-HEX values and swatches; reset uses a floating Base UI toast with existing
-history Undo; each taller App shell collapses independently; and the Bitcoin
-card has static 1Y / 3Y / 5Y ranges. Theme v3, the 23-resource registry, and
-the 12 mutation operations remain unchanged. The frozen ticket packet and
-reconciled contract govern this phase. Lead browser evidence and fresh
-protected verification passed on the exact product commit; post-promotion
-identity and smoke results are recorded in the phase receipt. No owner visual
-review gate was admitted. The earlier nested-gallery phase's record
+`be63bef26f0f654a2c449533ee83d12f91a80454` on `main`. Phase
+`tactile-ui-effects-v1-001` delivered PUI-113 as a separate Tier 3 phase.
+Theme v3 retains version 3.0 with an optional, backward-compatible UI-effects
+value for Tactile on Outline Buttons and selected surface Tabs, two target
+toggles, and shared Strength. Older themes stay flat. One bounded
+`setUiEffects` operation brings the mutation union from 12 to 13; the public
+registry remains 23 resources. Its frozen PUI-113 packet and reconciled
+contract govern the accepted candidate. Lead browser evidence and fresh
+protected verification passed with an explicit inherited Bitcoin width-sweep
+test instability reproduced on the prior accepted base. No owner visual gate,
+worker network, paid spend, MAX handoff, or remote push was used. PUI-118 is a
+separate performance-only phase and is not included in this result. The earlier
+nested-gallery phase's record
 preserves a one-time worker execution-envelope violation: Corepack made an
 unauthorized pnpm download during its producer verification. The owner accepted
 that documented incident for that phase only; it grants no worker-network
@@ -24,6 +24,26 @@ Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
 Last updated: 2026-09-29
+
+## Phase result: Tactile UI Effects v1
+
+Accepted PUI-113 at product commit `be63bef26f0f654a2c449533ee83d12f91a80454`.
+The Effects tab adds UI EFFECTS with Tactile, Outline buttons and Tabs toggles,
+and Strength. Semantic-token styling is limited to Outline Buttons and active
+surface Tabs; non-outline variants, inactive/line Tabs, Inputs and unrelated
+components stay flat. Theme v3 old imports, new exports, save/reload, history,
+Undo/Redo/Reset and Design Command staging retain their boundaries.
+
+Lead verification recorded 413 Workbench browser passes, 18 established skips,
+and one intermittent legacy Bitcoin width-sweep failure; the unchanged test
+failed 2/5 repeats on the freshly built prior accepted base. New tactile
+browser checks passed 10/10, Storybook 118/118, and the Design Command boundary
+1/1. Four narrow/wide light/dark captures and decoded axe checks found no new
+blocking issue. The fresh protected Codex Terra verifier independently passed
+899 unit tests, typecheck, Workbench/Storybook/registry builds, the phase guard,
+and the exact-candidate source/contract/evidence audit. The full Workbench
+suite is not recorded as a clean pass. Phase receipts in `.loop` retain the
+comparison logs and accepted residuals.
 
 ## Goal
 
