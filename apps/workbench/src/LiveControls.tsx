@@ -13,8 +13,9 @@ import { Slider } from "@personal-ui/ui/components/slider"
 import { Switch } from "@personal-ui/ui/components/switch"
 import { cssFontStack, findFontOption, FONT_CATALOG, FONT_OPTIONS } from "@personal-ui/ui/lib/fonts"
 import type { FontCategory, FontOption } from "@personal-ui/ui/lib/fonts"
+import { Info } from "@personal-ui/ui/lib/workbench-icons"
 
-import { buildFontOperation, buildUiEffectsOperation, fontControlCopy, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep, UI_EFFECT_OPTIONS, UI_EFFECTS_HELP } from "./controls"
+import { buildFontOperation, buildUiEffectsOperation, fontControlCopy, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep, UI_EFFECT_HELP, UI_EFFECT_OPTIONS } from "./controls"
 import type { NumericControl } from "./controls"
 import type { ColorPickerController } from "./colorPicker"
 import type { WorkbenchIssue } from "./lifecycle"
@@ -459,7 +460,8 @@ export function LiveFontField({
 }
 
 /**
- * The UI EFFECTS Effect select (PUI-119): Off or Tactile, with one short helper naming what Tactile affects. There are
+ * The UI EFFECTS Effect select (PUI-119): Off or Tactile. PUI-125: the selected effect's optional helper note (with a
+ * decorative info icon) renders beneath it only when that effect defines one, so Off leaves no row or gap. There are
  * no per-target toggles; the recipe owns its targets. Each change is one committed `setUiEffects` edit; the shared
  * Strength row is a `LiveNumberField` that is inactive while the effect is Off.
  */
@@ -467,6 +469,7 @@ export function UiEffectsFields({ theme, disabled, apply }: { theme: Theme; disa
   const [error, setError] = React.useState<string | null>(null)
   useReportInvalid("ui-effects", error !== null)
   const effects = resolveUiEffects(theme)
+  const help = UI_EFFECT_HELP[effects.effect]
   const edit = (patch: Parameters<typeof buildUiEffectsOperation>[1]) => {
     const issues = apply((base) => buildUiEffectsOperation(base, patch))
     setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
@@ -477,7 +480,7 @@ export function UiEffectsFields({ theme, disabled, apply }: { theme: Theme; disa
         <div className={LABELLED_ROW_CLASS}>
           <FieldLabel id="ui-effect-label" htmlFor="ui-effect-select" className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>Effect</FieldLabel>
           <Select items={UI_EFFECT_OPTIONS} value={effects.effect} disabled={disabled} onValueChange={(value) => { if (value && value !== effects.effect) edit({ effect: value as UiEffect }) }}>
-            <SelectTrigger id="ui-effect-select" aria-labelledby="ui-effect-label" aria-describedby="ui-effect-help" className="quiet-control h-8 w-full min-w-0 cursor-pointer">
+            <SelectTrigger id="ui-effect-select" aria-labelledby="ui-effect-label" aria-describedby={help ? "ui-effect-help" : undefined} className="quiet-control h-8 w-full min-w-0 cursor-pointer">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -487,7 +490,12 @@ export function UiEffectsFields({ theme, disabled, apply }: { theme: Theme; disa
             </SelectContent>
           </Select>
         </div>
-        <FieldDescription id="ui-effect-help" data-testid="ui-effect-help" className="pl-[calc(5rem+0.375rem)] text-xs">{UI_EFFECTS_HELP}</FieldDescription>
+        {help && (
+          <FieldDescription id="ui-effect-help" data-testid="ui-effect-help" className="flex items-center gap-1.5 pl-[calc(5rem+0.375rem)] text-xs">
+            <Info aria-hidden="true" data-testid="ui-effect-help-icon" className="size-3.5 shrink-0" />
+            <span>{help}</span>
+          </FieldDescription>
+        )}
       </Field>
       {error !== null && <FieldError data-testid="ui-effects-error">{error}</FieldError>}
     </>

@@ -12,7 +12,7 @@ import {
   resolveUiEffects,
   stageProposal,
   TACTILE_SECONDARY_BUTTON_SELECTOR,
-  TACTILE_SURFACE_TAB_SELECTOR,
+  TACTILE_SURFACE_TABS_LIST_SELECTOR,
   THEME_SCHEMA_URI,
   THEME_SCHEMA_VERSION,
   UI_EFFECTS_FLAT,
@@ -231,41 +231,64 @@ describe("diff treats absence as the documented Off default", () => {
   })
 })
 
-describe("TUE-05/06 / IESP-05 targeted rendering", () => {
+describe("TUE-05/06 / IESP-05 / ADSR-04 targeted rendering", () => {
   const css = (value: Partial<UiEffectsValue>) => renderUiEffectsCss(apply(base, setUiEffects(value)).theme)
+  const rule = (text: string, selector: string) => {
+    const start = text.indexOf(`  ${selector} {\n`)
+    return start < 0 ? undefined : text.slice(start, text.indexOf("\n  }", start) + 4)
+  }
+  const button = `:where(${TACTILE_SECONDARY_BUTTON_SELECTOR})`
+  const tabsList = `:where(${TACTILE_SURFACE_TABS_LIST_SELECTOR})`
+  const RING = [
+    `  ${tabsList} {`,
+    "    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width, 0px)) var(--tw-ring-color, currentcolor);",
+    "    --tw-ring-color: color-mix(in oklab, var(--ring) 20%, transparent);",
+    "    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);",
+    "  }",
+  ].join("\n")
 
-  it("Tactile targets only the Secondary Button and the active trigger of a non-line Tabs list", () => {
+  it("Tactile targets the Secondary Button with the recipe and a non-line surface TabsList with one fixed ring; no trigger", () => {
     expect(TACTILE_SECONDARY_BUTTON_SELECTOR).toBe('[data-variant="secondary"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])')
-    expect(TACTILE_SURFACE_TAB_SELECTOR).toBe('[data-slot="tabs-list"]:not([data-variant="line"]) > [data-slot="tabs-trigger"][data-state="active"]')
+    expect(TACTILE_SURFACE_TABS_LIST_SELECTOR).toBe('[data-slot="tabs-list"]:not([data-variant="line"])')
     const tactile = css({ effect: "tactile" })
-    const where = `:where(${TACTILE_SECONDARY_BUTTON_SELECTOR}, ${TACTILE_SURFACE_TAB_SELECTOR})`
     const selectors = [...tactile.matchAll(/^ {2}(\S.*) \{$/gm)].map((m) => m[1])
-    expect(selectors).toEqual([where, `${where}:is(.dark *)`, `${where}:active:not(:disabled)`])
-    expect(tactile).not.toMatch(/data-variant="(?:default|outline|ghost|destructive|link)"|data-state="inactive"|toggle|input\]|card|slider|switch|dialog|sidebar/i)
+    expect(selectors).toEqual([button, `${button}:is(.dark *)`, `${button}:active:not(:disabled)`, tabsList])
+    expect(tactile).not.toMatch(/tabs-trigger|data-state|data-variant="(?:default|outline|ghost|destructive|link)"|toggle|input\]|card|slider|switch|dialog|sidebar/i)
+    // The TabsList rule is exactly `ring-1 ring-ring/20` and carries nothing from the tactile recipe.
+    expect(rule(tactile, tabsList)).toBe(RING)
+    expect(rule(tactile, tabsList)).not.toMatch(/ui-tactile|background|--tw-inset-shadow:|--tw-shadow:/)
   })
 
   it("Off renders nothing at any strength; the targets are not separately configurable", () => {
     expect(css({ effect: "off" })).toBe("")
     expect(css({ effect: "off", strength: 90 })).toBe("")
-    expect(css({ effect: "tactile", strength: 90 })).toContain(`:where(${TACTILE_SECONDARY_BUTTON_SELECTOR}, ${TACTILE_SURFACE_TAB_SELECTOR}) {`)
+    expect(css({ effect: "tactile", strength: 90 })).toContain(`${button} {`)
+    expect(css({ effect: "tactile", strength: 90 })).toContain(`${tabsList} {`)
+  })
+
+  it("PUI-124 Strength scales only the Secondary Button: the TabsList ring is byte-identical at every strength, including 0", () => {
+    const rings = [0, 1, 25, 50, 75, 100].map((strength) => rule(css({ effect: "tactile", strength }), tabsList))
+    for (const ring of rings) expect(ring).toBe(RING)
+    expect(rule(css({ effect: "tactile", strength: 0 }), button)).not.toBe(rule(css({ effect: "tactile", strength: 100 }), button))
   })
 
   it("uses only semantic tokens, sets no geometry/typography/colour property, keeps rings, and is layered below utilities", () => {
     const out = css({ effect: "tactile", strength: 100 })
     expect(out).toMatch(/^\/\* UI effects: tactile, strength 100\. \*\/\n@layer components \{/)
     const properties = [...out.matchAll(/^\s+([a-z-]+):/gm)].map((m) => m[1])
-    expect(new Set(properties)).toEqual(new Set(["--ui-tactile-wash-top", "--ui-tactile-wash-bottom", "--ui-tactile-highlight", "--ui-tactile-lower", "--ui-tactile-edge", "--ui-tactile-press", "background-image", "--tw-inset-shadow", "box-shadow"]))
+    expect(new Set(properties)).toEqual(new Set(["--ui-tactile-wash-top", "--ui-tactile-wash-bottom", "--ui-tactile-highlight", "--ui-tactile-lower", "--ui-tactile-edge", "--ui-tactile-press", "background-image", "--tw-inset-shadow", "box-shadow", "--tw-ring-shadow", "--tw-ring-color"]))
     // The base box-shadow is exactly Tailwind's own composition, so ring and shadow utilities keep composing with it.
     expect(out).toContain("    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);")
     expect(out.replaceAll("0 0 #0000", "")).not.toMatch(/#[0-9a-f]{3,8}\b|rgb\(|oklch\(|hsl\(|white|black/i)
-    expect([...out.matchAll(/var\(--([a-z-]+)\)/g)].map((m) => m[1]).filter((name) => !name.startsWith("ui-tactile-") && !name.startsWith("tw-"))).toEqual(expect.arrayContaining(["background", "foreground"]))
-    expect(new Set([...out.matchAll(/var\(--([a-z-]+)\)/g)].map((m) => m[1]).filter((name) => !name.startsWith("ui-tactile-") && !name.startsWith("tw-")))).toEqual(new Set(["background", "foreground"]))
+    const tokens = (text: string) => new Set([...text.matchAll(/var\(--([a-z-]+)[,)]/g)].map((m) => m[1]).filter((name) => !name.startsWith("ui-tactile-") && !name.startsWith("tw-")))
+    expect(tokens(out.slice(0, out.indexOf(`  ${tabsList} {`)))).toEqual(new Set(["background", "foreground"]))
+    expect(tokens(rule(out, tabsList)!)).toEqual(new Set(["ring"]))
     expect(out).toContain(":is(.dark *) {")
     expect(out).toContain(":active:not(:disabled) {")
   })
 
-  it("strength scales the recipe linearly and is bounded: 0 is transparent, 100 caps every layer", () => {
-    const percents = (text: string) => [...text.matchAll(/ ([\d.]+)%, transparent/g)].map((m) => Number(m[1]))
+  it("strength scales the Secondary recipe linearly and is bounded: 0 is transparent, 100 caps every layer", () => {
+    const percents = (text: string) => [...text.slice(0, text.indexOf(`  ${tabsList} {`)).matchAll(/ ([\d.]+)%, transparent/g)].map((m) => Number(m[1]))
     expect(percents(css({ effect: "tactile", strength: 0 })).every((p) => p === 0)).toBe(true)
     const half = percents(css({ effect: "tactile", strength: 50 }))
     const full = percents(css({ effect: "tactile", strength: 100 }))

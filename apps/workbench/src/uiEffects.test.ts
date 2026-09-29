@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { applyProposal, createProposalSession, discardProposal, resolveUiEffects, stageProposal, UI_EFFECTS_FLAT, validateTheme } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 
-import { buildUiEffectsOperation, NUMERIC_CONTROLS, UI_EFFECT_OPTIONS, UI_EFFECTS_HELP } from "./controls"
+import { buildUiEffectsOperation, NUMERIC_CONTROLS, UI_EFFECT_HELP, UI_EFFECT_OPTIONS } from "./controls"
 import { EMPTY_TRACK, isDirty, record, redo, reset, sameDesign, undo } from "./history"
 import { createCustomTheme, editTheme, exportThemeJson, loadBuiltInThemes, previewVariablesCss } from "./lifecycle"
 import { emptySaved, loadSaved, saveTheme, STORAGE_KEY } from "./persistence"
@@ -29,9 +29,11 @@ const memoryStorage = (): StorageLike & { data: Record<string, string> } => {
 }
 
 describe("TUE-04 / IESP-04 controls", () => {
-  it("offer Off and Tactile (Off first and default), one short helper and one bounded Strength; no target toggles", () => {
+  it("offer Off and Tactile (Off first and default), an effect-driven helper and one bounded Strength; no target toggles", () => {
     expect(UI_EFFECT_OPTIONS).toEqual([{ value: "off", label: "Off" }, { value: "tactile", label: "Tactile" }])
-    expect(UI_EFFECTS_HELP).toBe("Affects Secondary buttons and surface-style Tabs.")
+    // PUI-125 / ADSR-05: Off has no note; Tactile has exactly this copy. The mapping covers exactly the offered effects.
+    expect(UI_EFFECT_HELP).toEqual({ off: null, tactile: "Applied to secondary buttons and tabs." })
+    expect(Object.keys(UI_EFFECT_HELP)).toEqual(UI_EFFECT_OPTIONS.map((option) => option.value))
     expect(resolveUiEffects(defaultTheme).effect).toBe("off")
     const strength = NUMERIC_CONTROLS.uiEffectsStrength
     expect([strength.label, strength.min, strength.max, strength.read(defaultTheme)]).toEqual(["Strength", 0, 100, 50])
@@ -67,7 +69,14 @@ describe("TUE-04 / IESP-04 controls", () => {
     expect(app.slice(effects, motion)).toContain('<UiEffectsFields theme={current} disabled={locked} apply={applyManual} />')
     expect(app.slice(effects, motion)).toContain('<LiveNumberField key={`${current.id}-uiEffectsStrength`} id="uiEffectsStrength" control={NUMERIC_CONTROLS.uiEffectsStrength} theme={current} disabled={locked}')
     expect(controlsSource).toMatch(/<Select items=\{UI_EFFECT_OPTIONS\}/)
-    expect(controlsSource).toContain('aria-describedby="ui-effect-help"')
+    expect(controlsSource).toContain('aria-describedby={help ? "ui-effect-help" : undefined}')
+    // The helper row renders only when the selected effect defines a note, with a decorative existing-library icon.
+    const fields = controlsSource.slice(controlsSource.indexOf("export function UiEffectsFields"), controlsSource.indexOf("export function SidebarTokensSwitch"))
+    expect(fields).toContain("const help = UI_EFFECT_HELP[effects.effect]")
+    expect(fields).toMatch(/\{help && \(\s*<FieldDescription id="ui-effect-help"/)
+    expect(fields).toContain('<Info aria-hidden="true"')
+    expect(controlsSource).toContain('import { Info } from "@personal-ui/ui/lib/workbench-icons"')
+    expect(fields).not.toMatch(/bg-|border|rounded|Alert|<svg/)
   })
 })
 
@@ -157,7 +166,8 @@ describe("TUE-05/06/08 surface wiring", () => {
     const flat = previewVariablesCss({ ...defaultTheme, revision: on.revision })
     expect(css.startsWith(`${flat}\n\n/* UI effects: tactile, strength 50. */\n@layer components {`)).toBe(true)
     expect(css).toContain('[data-variant="secondary"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])')
-    expect(css).toContain('[data-slot="tabs-list"]:not([data-variant="line"]) > [data-slot="tabs-trigger"][data-state="active"]')
+    expect(css).toContain(':where([data-slot="tabs-list"]:not([data-variant="line"])) {')
+    expect(css).not.toContain("tabs-trigger")
     expect(css).not.toContain('data-variant="outline"')
     const off = edit(on, buildUiEffectsOperation(on, { effect: "off" }))
     expect(previewVariablesCss(off)).toBe(previewVariablesCss({ ...defaultTheme, revision: off.revision }))
@@ -185,15 +195,15 @@ describe("TUE-05/06/08 surface wiring", () => {
     expect(resolveUiEffects(applied.theme!)).toMatchObject({ effect: "tactile" })
   })
 
-  it("IESP-06 both Workbench category lists are unmarked default surface lists, so Tactile reaches their active trigger", () => {
+  it("IESP-06 / ADSR-04 both Workbench category lists are unmarked default surface lists, so Tactile reaches their TabsList", () => {
     const lines = (source: string) => source.match(/<TabsList[^>]*>/g) ?? []
     expect(lines(app)).toEqual(['<TabsList className="w-max flex-nowrap justify-start" aria-label="Editor categories">'])
     expect(lines(previewFrame)).toEqual([
       '<TabsList className="w-max flex-nowrap justify-start" aria-label="Preview views">',
-      // The States view's ordinary surface/pill sample: unmarked, so its active trigger is the Tabs target.
+      // The States view's ordinary surface/pill sample: unmarked, so its list is the Tabs target.
       '<TabsList aria-label="Surface tabs sample">',
     ])
-    // No local surface/tactile override: the shared recipe alone styles the active trigger.
+    // No local surface/tactile override: the shared fixed ring alone styles the list.
     for (const source of [app, previewFrame]) expect(source).not.toMatch(/data-variant="line"|bg-transparent p-0|tactile|ui-tactile/)
     const surfaceUsages = ["../../../packages/ui/src/compositions/workspace-settings.tsx", "../../../packages/ui/src/components/tabs.stories.tsx"]
     for (const path of surfaceUsages) expect(readFileSync(new URL(path, import.meta.url), "utf8")).not.toContain('data-variant="line"')

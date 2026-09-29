@@ -83,8 +83,14 @@ export const UI_EFFECT_OPTIONS: readonly { value: UiEffect; label: string }[] = 
   { value: "tactile", label: "Tactile" },
 ]
 
-/** The one short helper under the Effect select: what Tactile affects. */
-export const UI_EFFECTS_HELP = "Affects Secondary buttons and surface-style Tabs."
+/**
+ * PUI-125: each effect's optional helper note under the Effect select, naming the components it touches. Off has none,
+ * so no helper row renders. The Tactile note is shorthand for its targets; only Secondary Buttons respond to Strength.
+ */
+export const UI_EFFECT_HELP: Readonly<Record<UiEffect, string | null>> = Object.freeze({
+  off: null,
+  tactile: "Applied to secondary buttons and tabs.",
+})
 
 /** A semantic role's weight: the admitted 100..900 numeric weights, one step per CSS weight. */
 const weightControl = (role: TypeRole): NumericControl => ({

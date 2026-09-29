@@ -8,8 +8,10 @@ import { editorCategory, previewStates, saveTheme, setColorMode, workspaceMode }
 /**
  * tactile-ui-effects-v1-001 producer definitions (PUI-113), retargeted by ui-effects-showcase-polish-v1-001
  * (PUI-119/PUI-120/PUI-121; Lead-executed under playwright.workbench.config.ts at 390x844 and 1440x900). TUE-04 /
- * IESP-04 Off/Tactile controls; TUE-05 / IESP-05 Secondary Button only (Outline flat); TUE-06 active surface Tabs only,
- * now including the default-surface category tabs; TUE-07 light/dark, strength bounds and decoded axe; TUE-02 save/reload.
+ * IESP-04 Off/Tactile controls; TUE-05 / IESP-05 Secondary Button only (Outline flat); TUE-06 surface Tabs, now
+ * including the default-surface category tabs; TUE-07 light/dark, strength bounds and decoded axe; TUE-02 save/reload.
+ * amber-dusk-shell-refinement-v1-001 (PUI-124/PUI-125, ADSR-04/05): surface Tabs take only a fixed TabsList
+ * `ring-1 ring-ring/20` while Tactile, their triggers keep default shadcn styling, and the helper is Tactile-only.
  */
 
 const preview = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
@@ -20,6 +22,8 @@ const style = (el: Locator) => el.evaluate((node) => {
 const variant = (frame: FrameLocator, name: string) => frame.locator(`[data-testid="preview"] section[aria-labelledby="pv-buttons"] [data-slot="button"][data-variant="${name}"]`).first()
 const surfaceTabs = (frame: FrameLocator) => frame.getByRole("tablist", { name: "Surface tabs sample" })
 const tactile = (s: { backgroundImage: string; boxShadow: string }) => s.backgroundImage.includes("linear-gradient") && s.boxShadow.includes("inset")
+/** The fixed PUI-124 TabsList ring: one 1px ring layer in the list's box-shadow. */
+const listRing = (s: { boxShadow: string }) => / 0px 0px 0px 1px/.test(` ${s.boxShadow}`) || /0px 0px 0px 1px/.test(s.boxShadow)
 
 async function open(page: Page) {
   await page.goto("/")
@@ -56,6 +60,8 @@ async function snapshot(page: Page) {
     inactiveTab: await style(tabs.getByRole("tab", { name: "Activity" })),
     categoryTab: await style(frame.getByRole("tablist", { name: "Preview views" }).getByRole("tab", { selected: true })),
     inactiveCategoryTab: await style(frame.getByRole("tablist", { name: "Preview views" }).getByRole("tab", { name: "Cards", exact: true })),
+    surfaceList: await style(tabs),
+    categoryList: await style(frame.getByRole("tablist", { name: "Preview views" })),
   }
 }
 
@@ -76,7 +82,9 @@ test("TUE-04 / IESP-04 the UI EFFECTS section sits between Shadow and Motion wit
   const section = page.getByTestId("section-ui-effects")
   await expect(section.getByRole("button", { name: "UI Effects" })).toBeVisible()
   await expect(c.effect).toHaveText(/Off/)
-  await expect(c.effect).toHaveAccessibleDescription("Affects Secondary buttons and surface-style Tabs.")
+  // PUI-125: Off renders no helper row and no description.
+  await expect(page.getByTestId("ui-effect-help")).toHaveCount(0)
+  await expect(c.effect).not.toHaveAttribute("aria-describedby")
   await c.effect.click()
   await expect(page.getByRole("option")).toHaveText(["Off", "Tactile"])
   await page.keyboard.press("Escape")
@@ -100,22 +108,31 @@ test("TUE-04 / IESP-04 the UI EFFECTS section sits between Shadow and Motion wit
   await expect(c.effect).toHaveText(/Tactile/)
   await expect(c.strength).toBeEnabled()
   await expect(page.getByTestId("control-uiEffectsStrength")).not.toHaveAttribute("data-disabled", "true")
+  await expect(c.effect).toHaveAccessibleDescription("Applied to secondary buttons and tabs.")
+  await expect(page.getByTestId("ui-effect-help")).toHaveText("Applied to secondary buttons and tabs.")
+  await expect(page.getByTestId("ui-effect-help-icon")).toHaveAttribute("aria-hidden", "true")
 })
 
-test("TUE-05/06 / IESP-05 Tactile reaches only Secondary Buttons and active surface tabs; Off is flat", async ({ page }) => {
+test("TUE-05/06 / IESP-05 / ADSR-04 Tactile reaches Secondary Buttons and surface TabsLists only; Off is flat", async ({ page }) => {
   await open(page)
   const flat = await snapshot(page)
   for (const s of [...Object.values(flat.variants), flat.activeTab, flat.inactiveTab, flat.categoryTab, flat.inactiveCategoryTab]) expect(tactile(s)).toBe(false)
+  for (const s of [flat.surfaceList, flat.categoryList]) expect(listRing(s)).toBe(false)
 
   await setEffect(page, "Tactile")
   const on = await snapshot(page)
   expect(tactile(on.variants.secondary!)).toBe(true)
-  expect(tactile(on.activeTab)).toBe(true)
-  expect(tactile(on.categoryTab)).toBe(true)
+  // PUI-124: every trigger, active or not, keeps exactly its default shadcn styling; the list gets the fixed ring.
+  expect(on.activeTab).toEqual(flat.activeTab)
+  expect(on.categoryTab).toEqual(flat.categoryTab)
+  for (const [list, before] of [[on.surfaceList, flat.surfaceList], [on.categoryList, flat.categoryList]] as const) {
+    expect(listRing(list)).toBe(true)
+    expect(list.backgroundImage).toBe("none")
+    for (const key of ["backgroundColor", "borderRadius", "height"] as const) expect(list[key]).toBe(before[key])
+  }
   // Geometry, typography and surface colour are untouched; only the shadow slot and wash change.
   for (const key of ["backgroundColor", "borderRadius", "height", "fontSize", "fontWeight"] as const) {
     expect(on.variants.secondary![key]).toBe(flat.variants.secondary![key])
-    expect(on.activeTab[key]).toBe(flat.activeTab[key])
   }
   // Outline and every other variant, and inactive triggers, stay exactly flat.
   for (const name of ["default", "outline", "ghost", "destructive", "link"]) expect(on.variants[name], name).toEqual(flat.variants[name])
@@ -126,7 +143,8 @@ test("TUE-05/06 / IESP-05 Tactile reaches only Secondary Buttons and active surf
   // outline ToggleGroup items and Outline asChild triggers stay flat.
   await editorCategory(page, "Effects")
   expect(tactile(await style(page.getByTestId("section-ui-effects").locator('[data-slot="collapsible-trigger"]')))).toBe(true)
-  expect(tactile(await style(page.getByRole("tablist", { name: "Editor categories" }).getByRole("tab", { selected: true })))).toBe(true)
+  expect(tactile(await style(page.getByRole("tablist", { name: "Editor categories" }).getByRole("tab", { selected: true })))).toBe(false)
+  expect(listRing(await style(page.getByRole("tablist", { name: "Editor categories" })))).toBe(true)
   expect(tactile(await style(page.getByRole("tablist", { name: "Editor categories" }).getByRole("tab", { name: "Colors", exact: true })))).toBe(false)
   await previewStates(page)
   expect(tactile(await style(preview(page).getByRole("button", { name: "Open dialog", exact: true })))).toBe(false)
@@ -137,7 +155,7 @@ test("TUE-05/06 / IESP-05 Tactile reaches only Secondary Buttons and active surf
   for (const item of await toggleItems.all()) expect(tactile(await style(item))).toBe(false)
   for (const name of ["Manage storage", "GitHub", "Google"]) expect(tactile(await style(preview(page).getByRole("button", { name, exact: true }))), name).toBe(true)
 
-  // Selection moves the effect with it, by keyboard, and keeps selected semantics.
+  // Keyboard selection keeps selected semantics and the ordinary focus-visible ring; no trigger takes the recipe.
   const frame = preview(page)
   await previewStates(page)
   const activity = surfaceTabs(frame).getByRole("tab", { name: "Activity" })
@@ -146,15 +164,18 @@ test("TUE-05/06 / IESP-05 Tactile reaches only Secondary Buttons and active surf
   await expect(activity).toHaveAttribute("aria-selected", "true")
   await expect(activity).toBeFocused()
   const focused = await style(activity)
-  expect(tactile(focused)).toBe(true)
+  expect(tactile(focused)).toBe(false)
   expect(focused.boxShadow).toMatch(/0px 0px 0px 3px/)
   expect(tactile(await style(surfaceTabs(frame).getByRole("tab", { name: "Overview" })))).toBe(false)
+  expect(listRing(await style(surfaceTabs(frame)))).toBe(true)
 
   // Off returns every target to its flat style.
   await setEffect(page, "Off")
   const off = await snapshot(page)
   expect(off.variants).toEqual(flat.variants)
   for (const s of [off.activeTab, off.categoryTab]) expect(tactile(s)).toBe(false)
+  expect(off.surfaceList).toEqual(flat.surfaceList)
+  expect(off.categoryList).toEqual(flat.categoryList)
 })
 
 test("TUE-05 / IESP-05 focus-visible rings, keyboard activation, and the pressed state hold on a tactile Secondary Button", async ({ page }) => {

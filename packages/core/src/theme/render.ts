@@ -49,8 +49,11 @@ const shadowThemeVar = (tier: ShadowToken) => (tier === "default" ? "--shadow" :
  * excluded. Outline, like every other variant, stays flat.
  */
 export const TACTILE_SECONDARY_BUTTON_SELECTOR = '[data-variant="secondary"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])'
-/** The active trigger of a surface/pill Tabs list; a line/minimal list is marked `data-variant="line"` and never matches. */
-export const TACTILE_SURFACE_TAB_SELECTOR = '[data-slot="tabs-list"]:not([data-variant="line"]) > [data-slot="tabs-trigger"][data-state="active"]'
+/**
+ * A surface/pill Tabs list container (PUI-124); a line/minimal list is marked `data-variant="line"` and never matches.
+ * Tactile gives it one fixed ring only; its triggers, including the active one, keep their ordinary shadcn styling.
+ */
+export const TACTILE_SURFACE_TABS_LIST_SELECTOR = '[data-slot="tabs-list"]:not([data-variant="line"])'
 
 /**
  * The shared tactile recipe, as percentages at full strength. Every colour is a `color-mix()` of a semantic token with
@@ -85,19 +88,31 @@ const tactileVars = (mode: keyof typeof TACTILE_RECIPE, k: number, indent: strin
 const TW_SHADOW_COMPOSITION = "var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000)"
 
 /**
+ * The fixed surface Tabs treatment (PUI-124): exactly Tailwind's `ring-1 ring-ring/20` on the list container, written
+ * as the declarations those two utilities compile to (the runtime CSS is not processed by Tailwind). It fills only
+ * Tailwind's own ring slot and composition, so a consumer ring/shadow utility still wins. It takes no Strength input.
+ */
+const TABS_LIST_RING = [
+  "--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width, 0px)) var(--tw-ring-color, currentcolor);",
+  "--tw-ring-color: color-mix(in oklab, var(--ring) 20%, transparent);",
+  `box-shadow: ${TW_SHADOW_COMPOSITION};`,
+] as const
+
+/**
  * The optional UI-effects block (PUI-113), or `""` while the effect is Off, so a flat theme's CSS is unchanged. Tactile
- * owns its targets (PUI-119/PUI-121): Secondary Buttons and the active trigger of a surface Tabs list share one recipe
- * and one Strength mapping. It lives in `@layer components` and fills only Tailwind's own `--tw-inset-shadow` slot (with
- * the matching composition as a base), plus a `background-image` wash over the target's own semantic fill: utility
- * `box-shadow`s keep rendering the theme Shadow tier and focus/invalid rings, and any consumer utility still overrides
- * it. No colour, radius, size, typography, layout, or motion value is set.
+ * owns its targets (PUI-119/PUI-121/PUI-124). Secondary Buttons take the tactile recipe, the only part Strength scales:
+ * it fills only Tailwind's own `--tw-inset-shadow` slot (with the matching composition as a base), plus a
+ * `background-image` wash over the target's own semantic fill, so utility `box-shadow`s keep rendering the theme Shadow
+ * tier and focus/invalid rings. Surface Tabs lists take only the fixed `TABS_LIST_RING`, identical at every Strength;
+ * their triggers are untouched. Everything lives in `@layer components`, so any consumer utility still overrides it. No
+ * colour, radius, size, typography, layout, or motion value is set.
  */
 export function renderUiEffectsCss(input: Theme): string {
   const theme = themeSchema.parse(input)
   const effects = resolveUiEffects(theme)
   if (effects.effect !== "tactile") return ""
   const k = effects.strength / UI_EFFECT_STRENGTH_RANGE.max
-  const where = `:where(${TACTILE_SECONDARY_BUTTON_SELECTOR}, ${TACTILE_SURFACE_TAB_SELECTOR})`
+  const where = `:where(${TACTILE_SECONDARY_BUTTON_SELECTOR})`
   return [
     `/* UI effects: ${effects.effect}, strength ${effects.strength}. */`,
     "@layer components {",
@@ -113,6 +128,9 @@ export function renderUiEffectsCss(input: Theme): string {
     `  ${where}:active:not(:disabled) {`,
     "    background-image: linear-gradient(to bottom, var(--ui-tactile-wash-bottom), var(--ui-tactile-wash-top));",
     "    --tw-inset-shadow: inset 0 1px 2px 0 var(--ui-tactile-press), 0 0 0 1px var(--ui-tactile-edge);",
+    "  }",
+    `  :where(${TACTILE_SURFACE_TABS_LIST_SELECTOR}) {`,
+    ...TABS_LIST_RING.map((line) => `    ${line}`),
     "  }",
     "}",
     "",
