@@ -88,13 +88,14 @@ const tactileVars = (mode: keyof typeof TACTILE_RECIPE, k: number, indent: strin
 const TW_SHADOW_COMPOSITION = "var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000)"
 
 /**
- * The fixed surface Tabs treatment (PUI-124): exactly Tailwind's `ring-1 ring-ring/20` on the list container, written
- * as the declarations those two utilities compile to (the runtime CSS is not processed by Tailwind). It fills only
- * Tailwind's own ring slot and composition, so a consumer ring/shadow utility still wins. It takes no Strength input.
+ * The fixed surface Tabs treatment (PUI-124, PUI-129): exactly Tailwind's `ring-1 ring-border/80` on the list container,
+ * written as the declarations those two utilities compile to (the runtime CSS is not processed by Tailwind). The edge is
+ * decorative, so it reads the semantic `--border`, never the focus `--ring`. It fills only Tailwind's own ring slot and
+ * composition, so a consumer ring/shadow utility (including a focus-visible ring) still wins. It takes no Strength input.
  */
 const TABS_LIST_RING = [
   "--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width, 0px)) var(--tw-ring-color, currentcolor);",
-  "--tw-ring-color: color-mix(in oklab, var(--ring) 20%, transparent);",
+  "--tw-ring-color: color-mix(in oklab, var(--border) 80%, transparent);",
   `box-shadow: ${TW_SHADOW_COMPOSITION};`,
 ] as const
 

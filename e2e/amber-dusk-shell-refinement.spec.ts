@@ -181,8 +181,8 @@ test.describe("ADSR-04 Off/Tactile targets and the fixed TabsList ring (PUI-124)
         }
         expect(readings[0]!.list.boxShadow).toMatch(/0px 0px 0px 1px/)
         for (const key of ["backgroundColor", "width", "height", "backgroundImage"] as const) expect(readings[50]!.list[key]).toBe(off.list[key])
-        // The ring colour is the semantic ring token at 20%.
-        const ringColor = await list.evaluate((node) => { const probe = document.createElement("span"); probe.style.color = "color-mix(in oklab, var(--ring) 20%, transparent)"; node.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c })
+        // PUI-129: the ring colour is the semantic border token at 80%.
+        const ringColor = await list.evaluate((node) => { const probe = document.createElement("span"); probe.style.color = "color-mix(in oklab, var(--border) 80%, transparent)"; node.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c })
         expect(readings[50]!.list.boxShadow).toContain(ringColor)
         // Secondary responds to Strength.
         expect(readings[100]!.secondary.boxShadow).not.toBe(readings[0]!.secondary.boxShadow)
@@ -228,13 +228,13 @@ test.describe("ADSR-05 helper, Colors hierarchy, App shells, Storage and Chat (P
     expect((await box(field)).height).toBe(offHeight)
   })
 
-  test("Colors: uppercase text-base group headings, title-case labels at the HEX size, muted HEX", async ({ page }, info) => {
+  test("Colors: uppercase text-sm group headings (PUI-131), title-case labels at the HEX size, muted HEX", async ({ page }, info) => {
     await open(page)
     await previewView(page, "Design system")
     const colors = preview(page).locator('[data-design-section="colors"]')
     const h3 = colors.getByRole("heading", { level: 3, name: "Primary" })
     expect(await css(h3, "text-transform")).toBe("uppercase")
-    expect(await css(h3, "font-size")).toBe("16px")
+    expect(await css(h3, "font-size")).toBe("14px")
     const labels = colors.getByTestId("token-label")
     for (const label of await labels.all()) expect(await css(label, "text-transform")).toBe("none")
     await expect(colors.locator('[data-token="ring"] [data-testid="token-label"]')).toHaveText("Ring")

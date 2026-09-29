@@ -217,11 +217,11 @@ test("IESP-08 Design system hierarchy, contextual Sidebar labels, live alias and
   const h3 = colors.getByRole("heading", { level: 3, name: "Primary" })
   const label = colors.locator('[data-token="primary"] [data-testid="token-label"]')
   const hex = colors.locator('[data-token="primary"] [data-testid="token-value"]')
-  // Hierarchy: section heading > group heading > label = HEX size. PUI-126 (ADSR-05): the group heading is the
-  // uppercase text-base anchor; the label is title case at its unchanged size in the base foreground; HEX muted.
+  // Hierarchy: section heading > group heading > label = HEX size. PUI-126/PUI-131: the group heading is the
+  // uppercase text-sm anchor; the label is title case at its unchanged size in the base foreground; HEX muted.
   expect(await px(h2, "font-size")).toBeGreaterThan(await px(h3, "font-size"))
   expect(await px(h3, "font-size")).toBeGreaterThan(await px(label, "font-size"))
-  expect(await px(h3, "font-size")).toBe(16)
+  expect(await px(h3, "font-size")).toBe(14)
   expect(await px(label, "font-size")).toBe(await px(hex, "font-size"))
   expect(await h3.evaluate((el) => getComputedStyle(el).textTransform)).toBe("uppercase")
   expect(await label.evaluate((el) => [getComputedStyle(el).textTransform, getComputedStyle(el).fontWeight])).toEqual(["none", "400"])

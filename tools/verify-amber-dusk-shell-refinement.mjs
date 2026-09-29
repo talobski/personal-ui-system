@@ -114,7 +114,8 @@ const render = read("packages/core/src/theme/render.ts")
 assert.match(render, /TACTILE_SECONDARY_BUTTON_SELECTOR = '\[data-variant="secondary"\]\[data-size\]:is\(\[data-slot="button"\], \[data-slot\$="-trigger"\], \[data-slot\$="-close"\]\)'/)
 assert.match(render, /TACTILE_SURFACE_TABS_LIST_SELECTOR = '\[data-slot="tabs-list"\]:not\(\[data-variant="line"\]\)'/)
 assert.doesNotMatch(code(render), /tabs-trigger|TACTILE_SURFACE_TAB_SELECTOR/)
-assert.match(render, /"--tw-ring-color: color-mix\(in oklab, var\(--ring\) 20%, transparent\);"/)
+// Superseded by PUI-129 (tactile-border-designsystem-type-v1-001): the decorative ring reads --border at 80%.
+assert.match(render, /"--tw-ring-color: color-mix\(in oklab, var\(--border\) 80%, transparent\);"/)
 assert.match(render, /calc\(1px \+ var\(--tw-ring-offset-width, 0px\)\)/)
 assert.match(render, /if \(effects\.effect !== "tactile"\) return ""/)
 
@@ -124,7 +125,8 @@ assert.match(controls, /off: null,\s*tactile: "Applied to secondary buttons and 
 assert.match(live, /\{help && \(\s*<FieldDescription id="ui-effect-help"/)
 assert.match(read("packages/ui/src/lib/workbench-icons.ts"), /export \{ Download, Info, Moon, Redo2, RotateCcw, Save, Sun, Undo2 \} from "lucide-react"/)
 const sheet = read("apps/workbench/src/DesignSystemPreview.tsx")
-assert.match(sheet, /<h3 id=\{id\} className="text-base font-medium text-foreground uppercase">/)
+// Superseded by PUI-131: group headings are text-sm.
+assert.match(sheet, /<h3 id=\{id\} className="text-sm font-medium text-foreground uppercase">/)
 assert.match(sheet, /className="truncate text-xs font-normal text-foreground" data-testid="token-label">\{titleCaseLabel\(label\)\}/)
 const shells = read("packages/ui/src/compositions/app-shells.tsx")
 assert.match(shells, /@3xl:w-\[90%\]/)

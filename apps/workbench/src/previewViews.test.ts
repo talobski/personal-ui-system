@@ -29,11 +29,11 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
     expect(tokens).toEqual(grouped)
     // Swatches paint from the live custom property of the same semantic name, never a copied value.
     for (const token of tokens) expect(markup).toContain(`style="background:var(--${token})"`)
-    // PUI-114: every group, Sidebar included, is headed by its plain title with no source suffix. PUI-126 (ADSR-05):
-    // uppercase, one step larger than PUI-122's text-sm (text-base), base foreground.
+    // PUI-114: every group, Sidebar included, is headed by its plain title with no source suffix. PUI-126 (ADSR-05) /
+    // PUI-131: uppercase text-sm, base foreground.
     const labels = DESIGN_SYSTEM_COLOR_GROUPS.map(group => group.title.replace("&", "&amp;"))
     expect(Array.from(markup.matchAll(/<h3 [^>]*>([^<]+)<\/h3>/g), match => match[1])).toEqual(labels)
-    expect(Array.from(markup.matchAll(/<h3 [^>]*class="([^"]+)"/g), match => match[1])).toEqual(Array(labels.length).fill("text-base font-medium text-foreground uppercase"))
+    expect(Array.from(markup.matchAll(/<h3 [^>]*class="([^"]+)"/g), match => match[1])).toEqual(Array(labels.length).fill("text-sm font-medium text-foreground uppercase"))
     expect(markup).not.toMatch(/base aliases|dedicated|sidebar-alias|= (background|foreground|primary|accent|border|ring)/)
     // Local display labels: each pair reads Background / Foreground, unpaired tokens keep their key; PUI-122 names the
     // Sidebar pairs by role and its border/ring as Sidebar Border / Sidebar Ring. PUI-126: shown in title case.

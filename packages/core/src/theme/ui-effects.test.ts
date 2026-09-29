@@ -242,7 +242,7 @@ describe("TUE-05/06 / IESP-05 / ADSR-04 targeted rendering", () => {
   const RING = [
     `  ${tabsList} {`,
     "    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width, 0px)) var(--tw-ring-color, currentcolor);",
-    "    --tw-ring-color: color-mix(in oklab, var(--ring) 20%, transparent);",
+    "    --tw-ring-color: color-mix(in oklab, var(--border) 80%, transparent);",
     "    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);",
     "  }",
   ].join("\n")
@@ -254,7 +254,7 @@ describe("TUE-05/06 / IESP-05 / ADSR-04 targeted rendering", () => {
     const selectors = [...tactile.matchAll(/^ {2}(\S.*) \{$/gm)].map((m) => m[1])
     expect(selectors).toEqual([button, `${button}:is(.dark *)`, `${button}:active:not(:disabled)`, tabsList])
     expect(tactile).not.toMatch(/tabs-trigger|data-state|data-variant="(?:default|outline|ghost|destructive|link)"|toggle|input\]|card|slider|switch|dialog|sidebar/i)
-    // The TabsList rule is exactly `ring-1 ring-ring/20` and carries nothing from the tactile recipe.
+    // PUI-129: the TabsList rule is exactly `ring-1 ring-border/80` and carries nothing from the tactile recipe.
     expect(rule(tactile, tabsList)).toBe(RING)
     expect(rule(tactile, tabsList)).not.toMatch(/ui-tactile|background|--tw-inset-shadow:|--tw-shadow:/)
   })
@@ -282,7 +282,7 @@ describe("TUE-05/06 / IESP-05 / ADSR-04 targeted rendering", () => {
     expect(out.replaceAll("0 0 #0000", "")).not.toMatch(/#[0-9a-f]{3,8}\b|rgb\(|oklch\(|hsl\(|white|black/i)
     const tokens = (text: string) => new Set([...text.matchAll(/var\(--([a-z-]+)[,)]/g)].map((m) => m[1]).filter((name) => !name.startsWith("ui-tactile-") && !name.startsWith("tw-")))
     expect(tokens(out.slice(0, out.indexOf(`  ${tabsList} {`)))).toEqual(new Set(["background", "foreground"]))
-    expect(tokens(rule(out, tabsList)!)).toEqual(new Set(["ring"]))
+    expect(tokens(rule(out, tabsList)!)).toEqual(new Set(["border"]))
     expect(out).toContain(":is(.dark *) {")
     expect(out).toContain(":active:not(:disabled) {")
   })

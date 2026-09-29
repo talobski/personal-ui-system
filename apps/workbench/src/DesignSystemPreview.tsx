@@ -91,13 +91,13 @@ function Swatch({ token, label, value }: { token: string; label: string; value: 
 
 /**
  * One sidebar group. Two columns keep each background / foreground pair side by side; singletons follow in order.
- * PUI-126: the group heading is the uppercase anchor, one step larger (text-base) than before, in the base foreground.
+ * PUI-126/PUI-131: the group heading is the uppercase anchor at text-sm, one step above its labels, in the base foreground.
  */
 function SwatchGroup({ label, children }: { label: string; children: React.ReactNode }) {
   const id = React.useId()
   return (
     <section aria-labelledby={id} className="grid gap-3">
-      <h3 id={id} className="text-base font-medium text-foreground uppercase">{label}</h3>
+      <h3 id={id} className="text-sm font-medium text-foreground uppercase">{label}</h3>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-3">{children}</ul>
     </section>
   )

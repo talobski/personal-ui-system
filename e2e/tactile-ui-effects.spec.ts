@@ -12,6 +12,7 @@ import { editorCategory, previewStates, saveTheme, setColorMode, workspaceMode }
  * including the default-surface category tabs; TUE-07 light/dark, strength bounds and decoded axe; TUE-02 save/reload.
  * amber-dusk-shell-refinement-v1-001 (PUI-124/PUI-125, ADSR-04/05): surface Tabs take only a fixed TabsList
  * `ring-1 ring-ring/20` while Tactile, their triggers keep default shadcn styling, and the helper is Tactile-only.
+ * tactile-border-designsystem-type-v1-001 (PUI-129) recolours that decorative ring to `ring-1 ring-border/80`.
  */
 
 const preview = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
