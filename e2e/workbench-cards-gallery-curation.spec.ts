@@ -211,8 +211,10 @@ test.describe("CGCR-03/06/07 curated gallery, 16px gaps, and the one equal-heigh
     // PUI-105: the natural Calendar / Weather pair is not coupled to it either.
     close(tallPair.items["team-chat"]!.card, 900)
     for (const id of LEFT) { close(tallPair.items[id]!.y, before.items[id]!.y); close(tallPair.items[id]!.card, before.items[id]!.card) }
-    for (const id of ["revenue-overview", "recent-payments", "offsite-calendar", "local-weather"]) close(tallPair.items[id]!.card, before.items[id]!.card)
-    close(tallPair.items["recent-payments"]!.y - tallPair.items["recent-activity"]!.bottom, GAP)
+    for (const id of ["revenue-overview", "bitcoin-price", "recent-payments", "offsite-calendar", "local-weather"]) close(tallPair.items[id]!.card, before.items[id]!.card)
+    // PUI-117: Bitcoin now follows the pair, then the table; both gaps stay 16px.
+    close(tallPair.items["bitcoin-price"]!.y - tallPair.items["recent-activity"]!.bottom, GAP)
+    close(tallPair.items["recent-payments"]!.y - tallPair.items["bitcoin-price"]!.bottom, GAP)
   })
 })
 

@@ -123,16 +123,17 @@ test.describe("WSCG-06 to WSCG-10 new compositions", () => {
     const card = (id: string) => frame.locator(`[data-composition="${id}"]`)
 
     // Chat (PUI-88, superseded in detail by PUI-95): official Message rows aligned start/end, named senders, Bubble
-    // surfaces on semantic tokens; any avatar is decorative (PUI-103 removed the header one) and the composer is its only
-    // textbox.
+    // surfaces on semantic tokens; any avatar is decorative (PUI-103 removed the header one; PUI-111 adds one per message,
+    // leading its row on the row's alignment edge) and the composer is its only textbox.
     const chat = card("team-chat")
     const log = chat.getByRole("log", { name: "Conversation with Maya Chen" })
     await expect(log.locator('[data-slot="message"]')).toHaveCount(4)
     await expect(log.locator('[data-slot="message"][data-align="end"] [data-slot="bubble"]').first()).toHaveCSS("background-color", await token(page, "primary"))
     await expect(log.locator('[data-slot="message"][data-align="start"] [data-slot="bubble"]').first()).toHaveCSS("background-color", await token(page, "muted"))
-    const rows = await log.locator('[data-slot="message"]').evaluateAll(nodes => nodes.map(node => { const bubble = node.querySelector('[data-slot="bubble"]')!.getBoundingClientRect(); const r = node.getBoundingClientRect(); return { left: bubble.left - r.left, right: r.right - bubble.right } }))
+    const rows = await log.locator('[data-slot="message"]').evaluateAll(nodes => nodes.map(node => { const lead = (node.querySelector('[data-slot="message-avatar"]') ?? node.querySelector('[data-slot="bubble"]'))!.getBoundingClientRect(); const r = node.getBoundingClientRect(); return { left: lead.left - r.left, right: r.right - lead.right } }))
     expect(rows[1]!.right).toBeLessThanOrEqual(1)
     expect(rows[0]!.left).toBeLessThanOrEqual(1)
+    await expect(chat.locator('[data-slot="avatar"]')).toHaveCount(4)
     for (const avatar of await chat.locator('[data-slot="avatar"]').all()) await expect(avatar).toHaveAttribute("aria-hidden", "true")
     await expect(chat.getByRole("textbox")).toHaveCount(1)
 
