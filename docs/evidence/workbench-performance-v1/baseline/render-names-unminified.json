@@ -1,0 +1,237 @@
+{
+ "note": "Unminified build of the same base SHA, used only to name re-rendered components; 1 run x 4 samples after 2 warmup.",
+ "scenarios": {
+  "geometry-radius-slider-key": {
+   "parent": {
+    "commits": 2,
+    "renders": 1237,
+    "topComponents": [
+     [
+      "Primitive.span",
+      61
+     ],
+     [
+      "Field",
+      54
+     ],
+     [
+      "Label$1",
+      54
+     ],
+     [
+      "Label",
+      54
+     ],
+     [
+      "Primitive.label",
+      54
+     ],
+     [
+      "FieldLabel",
+      51
+     ],
+     [
+      "Primitive.div",
+      50
+     ],
+     [
+      "Input",
+      46
+     ],
+     [
+      "Collapsible",
+      38
+     ],
+     [
+      "CollapsibleTrigger",
+      38
+     ],
+     [
+      "CollapsibleContent",
+      38
+     ],
+     [
+      "LiveColorField",
+      33
+     ]
+    ]
+   },
+   "preview": {
+    "commits": 2,
+    "renders": 1303,
+    "topComponents": [
+     [
+      "?",
+      124
+     ],
+     [
+      "Button",
+      70
+     ],
+     [
+      "Swatch",
+      64
+     ],
+     [
+      "Day",
+      42
+     ],
+     [
+      "CalendarDayButton",
+      42
+     ],
+     [
+      "ZIndexSvgPortal",
+      36
+     ],
+     [
+      "Primitive.span",
+      31
+     ],
+     [
+      "Primitive.div",
+      25
+     ],
+     [
+      "TableCell",
+      25
+     ],
+     [
+      "SwatchGroup",
+      22
+     ],
+     [
+      "SidebarMenuItem",
+      18
+     ],
+     [
+      "SelectItem",
+      18
+     ]
+    ]
+   }
+  },
+  "preview-tab-switch": {
+   "parent": {
+    "commits": 0,
+    "renders": 0,
+    "topComponents": []
+   },
+   "preview": {
+    "commits": 5.25,
+    "renders": 1236.25,
+    "topComponents": [
+     [
+      "?",
+      122
+     ],
+     [
+      "Button",
+      70
+     ],
+     [
+      "Day",
+      42
+     ],
+     [
+      "CalendarDayButton",
+      42
+     ],
+     [
+      "Swatch",
+      32
+     ],
+     [
+      "Primitive.span",
+      31.75
+     ],
+     [
+      "Primitive.div",
+      26
+     ],
+     [
+      "TableCell",
+      25
+     ],
+     [
+      "SidebarMenuItem",
+      18
+     ],
+     [
+      "SelectItem",
+      18
+     ],
+     [
+      "ZIndexSvgPortal",
+      18
+     ],
+     [
+      "SidebarMenuButton",
+      15
+     ]
+    ]
+   }
+  },
+  "sidebar-category-switch": {
+   "parent": {
+    "commits": 5,
+    "renders": 1289.75,
+    "topComponents": [
+     [
+      "Primitive.span",
+      67.5
+     ],
+     [
+      "Field",
+      54
+     ],
+     [
+      "Label$1",
+      54
+     ],
+     [
+      "Label",
+      54
+     ],
+     [
+      "Primitive.label",
+      54
+     ],
+     [
+      "Primitive.div",
+      52.25
+     ],
+     [
+      "FieldLabel",
+      51
+     ],
+     [
+      "Input",
+      46
+     ],
+     [
+      "SliderThumbProvider",
+      39
+     ],
+     [
+      "Collapsible",
+      38
+     ],
+     [
+      "CollapsibleTrigger",
+      38
+     ],
+     [
+      "CollapsibleContent",
+      38
+     ]
+    ]
+   },
+   "preview": {
+    "commits": 0,
+    "renders": 0,
+    "topComponents": []
+   }
+  }
+ }
+}
