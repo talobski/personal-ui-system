@@ -65,7 +65,7 @@ export function PreviewFrame() {
     >
       <style id="workbench-theme">{state?.css ?? ""}</style>
       <Tabs value={view} onValueChange={setView} className="min-w-0 gap-4">
-        <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" data-variant="line" aria-label="Preview views">
+        <TabsList className="w-max flex-nowrap justify-start" aria-label="Preview views">
           <TabsTrigger value="cards" className={CATEGORY_TRIGGER_CLASS}>Cards</TabsTrigger>
           <TabsTrigger value="design-system" className={CATEGORY_TRIGGER_CLASS}>Design system</TabsTrigger>
           <TabsTrigger value="app-shells" className={CATEGORY_TRIGGER_CLASS}>App shells</TabsTrigger>
@@ -110,7 +110,7 @@ const StatesView = React.memo(function StatesView() {
         </div>
       </section>
 
-      {/* PUI-113: one ordinary surface/pill Tabs sample, the target of the UI Effects Tabs toggle (the category tabs above are line-style). */}
+      {/* PUI-113: one ordinary surface/pill Tabs sample; its active trigger receives Tactile like the category tabs above (PUI-120). */}
       <section aria-labelledby="pv-tabs" className="grid gap-2">
         <h2 id="pv-tabs" className="type-heading text-sm">
           Tabs

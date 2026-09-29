@@ -25,7 +25,7 @@ const defaultTheme = builtIns[0]!
 const canonical = builtIns[1]!
 const VALID = "oklch(0.4 0.1 150)"
 
-it("WSPF-05/06 section triggers use the semantic muted pair; only the known Default light debt falls below 4.5:1", () => {
+it("WSPF-05/06 muted pair debt stays measured; PUI-120 section triggers now use the Secondary pair, which clears 4.5:1", () => {
   const rgb = (color: string) => pickerHex(color).slice(1).match(/../g)!.map(channel => parseInt(channel, 16) / 255)
   const luminance = (channels: number[]) => channels.reduce((sum, c, i) => sum + [0.2126, 0.7152, 0.0722][i]! * (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4), 0)
   const ratio = (a: number[], b: number[]) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05)
@@ -42,11 +42,15 @@ it("WSPF-05/06 section triggers use the semantic muted pair; only the known Defa
   // Default-theme tokens are frozen in this phase.
   expect([defaultTheme.colors.light["muted-foreground"].$value, defaultTheme.colors.light.muted.$value]).toEqual(["oklch(0.555527 0 0)", "oklch(0.970151 0 0)"])
   expect([pickerHex(defaultTheme.colors.light["muted-foreground"].$value), pickerHex(defaultTheme.colors.light.muted.$value)]).toEqual(["#737373", "#f5f5f5"])
+  // PUI-120: the section trigger is the accepted Secondary variant; its resting label pair is secondary-foreground on
+  // secondary, and it clears 4.5:1 in both built-ins and modes.
+  const secondary = builtIns.flatMap(theme => (["light", "dark"] as const).map(mode => ratio(rgb(theme.colors[mode]["secondary-foreground"].$value), rgb(theme.colors[mode].secondary.$value))))
+  for (const value of secondary) expect(value).toBeGreaterThanOrEqual(4.5)
   const source = readFileSync(new URL("./LiveControls.tsx", import.meta.url), "utf8")
-  expect(source).toContain("h-auto w-fit cursor-pointer rounded-sm bg-muted px-2 py-0.5 quiet-section-trigger text-[0.6875rem] uppercase text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180")
+  expect(source).toContain('<Button variant="secondary" size="sm" className="h-auto w-fit cursor-pointer rounded-sm px-2 py-0.5 quiet-section-trigger text-[0.6875rem] uppercase has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">')
   const trigger = source.match(/<CollapsibleTrigger asChild>[\s\S]*?<Button [^>]*className="([^"]+)"/)![1]!
-  // No stronger local foreground workaround, raw colour, or accent treatment.
-  expect(trigger).not.toMatch(/text-foreground|bg-muted\/50|ring-border\/50|accent|\[#|oklch|rgb|hsl/i)
+  // No local colour, ring, shadow, or tactile treatment: the variant alone owns the surface.
+  expect(trigger).not.toMatch(/text-foreground|text-muted|bg-|ring-|shadow|tactile|accent|\[#|oklch|rgb|hsl/i)
   expect(source).toMatch(/className="size-3 transition-transform motion-reduce:transition-none"/)
 })
 
@@ -58,18 +62,19 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
   it("gives the category ScrollArea the full sidebar width with its 16px inset inside the scrolling content", () => {
     // WSTP-06 supersedes the card fill: the category bar follows the Sidebar semantic (base background while off).
     expect(app).toContain('<SidebarGroup className="shrink-0 bg-sidebar p-0">')
-    expect(app).toMatch(/<ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden"[^>]*>\s*<div data-testid="category-inset" className="w-max p-4">\s*(?:\{\/\*[^*]*\*\/\}\s*)?<TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0"/)
+    // PUI-120: the list is the default surface TabsList at content width (no transparent/line override).
+    expect(app).toMatch(/<ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden"[^>]*>\s*<div data-testid="category-inset" className="w-max p-4">\s*(?:\{\/\*[^*]*\*\/\}\s*)?<TabsList className="w-max flex-nowrap justify-start" aria-label="Editor categories">/)
     expect(app.match(/orientation="horizontal"/g)).toHaveLength(1)
     expect(app).toContain('<ScrollArea type="auto" className="quiet-scroll-area min-h-0 flex-1" data-testid="editor-scroll"')
   })
 
-  it("styles category tabs with the approved state tokens while keeping the official trigger", () => {
+  it("PUI-120 keeps the official default surface trigger at natural width, with no local state styling", () => {
     const tabClass = readFileSync(new URL("./workbenchTabs.ts", import.meta.url), "utf8").match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!
-    for (const token of ["w-auto", "flex-none", "shrink-0", "whitespace-nowrap", "px-2", "cursor-pointer", "text-sm", "text-muted-foreground", "data-[state=inactive]:bg-transparent", "data-[state=inactive]:hover:text-muted-foreground/80", "data-[state=active]:bg-secondary", "data-[state=active]:text-secondary-foreground", "data-[state=active]:shadow-none", "h-[calc(100%-7px)]"]) {
-      expect(tabClass.split(" ")).toContain(token)
-    }
-    expect(tabClass).not.toMatch(/(?:^| )(?:flex-1|flex-wrap|hover:bg-|rounded-|py-|font-)/)
+    expect(tabClass.split(" ")).toEqual(["flex-none", "shrink-0", "cursor-pointer"])
+    // No equal-width stretch, wrapping, or local state/colour/shadow override of the official surface trigger.
+    expect(tabClass).not.toMatch(/(?:^| )(?:flex-1|w-full|flex-wrap|hover:bg-|rounded-|py-|font-|bg-|text-|shadow|data-\[state)/)
     expect(app.match(/className=\{CATEGORY_TRIGGER_CLASS\}/g)).toHaveLength(5)
+    expect(styles).not.toMatch(/tabs-trigger|quiet-categories/)
   })
 
   it("adds only a semantic bottom border to the 64px sidebar header", () => {
@@ -78,7 +83,7 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
 
   it("NGIP-07 uses official Tabs with shared trigger styling, left alignment, and mounted state panels", () => {
     expect(preview).toContain('<Tabs value={view} onValueChange={setView}')
-    expect(preview).toContain('className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0"')
+    expect(preview).toContain('<TabsList className="w-max flex-nowrap justify-start" aria-label="Preview views">')
     // PUI-101/102: the final four-view order is Cards / Design system / App shells / States, every panel force-mounted.
     expect(Array.from(preview.matchAll(/<TabsTrigger value="([a-z-]+)" className=\{CATEGORY_TRIGGER_CLASS\}>([^<]+)<\/TabsTrigger>/g), match => [match[1], match[2]])).toEqual([["cards", "Cards"], ["design-system", "Design system"], ["app-shells", "App shells"], ["states", "States"]])
     expect(preview.match(/className=\{CATEGORY_TRIGGER_CLASS\}/g)).toHaveLength(4)
@@ -827,13 +832,16 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(panel("geometry")).toContain('{numeric("spacing")}')
     expect(panel("other")).toContain('{numeric("motion")}')
     expect(panel("other")).toContain('id="shadow-color"')
+    // PUI-120: px-2 now comes from the official default trigger itself; the Workbench adds no padding override.
     const trigger = readFileSync(new URL("./workbenchTabs.ts", import.meta.url), "utf8").match(/const CATEGORY_TRIGGER_CLASS =\s*"([^"]+)"/)![1]!.split(" ")
-    expect(trigger).toContain("px-2")
+    expect(readFileSync(new URL("../../../packages/ui/src/components/tabs.tsx", import.meta.url), "utf8")).toContain("px-2 py-1 text-sm")
+    expect(trigger.filter((token) => /^p[xy]?-/.test(token))).toEqual([])
     expect(trigger).not.toContain("px-3")
   })
 
   it("adds pointer cursors only at bounded enabled call sites; the public Button stays unchanged", () => {
-    expect(controls).toMatch(/<Button variant="ghost" size="sm" className="h-auto w-fit cursor-pointer /)
+    // PUI-120: the section trigger is now the Secondary variant; its bounded pointer cursor is unchanged.
+    expect(controls).toMatch(/<Button variant="secondary" size="sm" className="h-auto w-fit cursor-pointer /)
     expect(app).toContain('<SidebarTrigger className="size-8 cursor-pointer" />')
     // STHG-12: below 640px Export and Save are icon-only (names kept) so the recovery group fits the toolbar.
     expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={locked} onClick={() => { endGesture(); download(exportThemeJson(currentRef.current)) }}>')

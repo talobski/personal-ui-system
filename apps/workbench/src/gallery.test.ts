@@ -197,17 +197,20 @@ describe("CGCR-04 stable gallery interaction (PUI-84, carried forward)", () => {
 })
 
 describe("WSCG-03/WGCP-03 Storage without promotion (PUI-86, PUI-103)", () => {
-  it("ends after the category breakdown with no CTA, button, state, or stable variant", () => {
+  it("ends after the category breakdown with one inert Secondary Manage storage action, and no CTA, state, or stable variant", () => {
     const source = module("plan-usage")
-    expect(source).not.toMatch(/Team plan|100 GB and shared libraries|Upgrade|Sparkles|<Button|useState|shadow-md|stable|role="status"/)
+    // PUI-120 supersedes "no button": exactly one Secondary "Manage storage" Button with no workflow or state.
+    expect(source).not.toMatch(/Team plan|100 GB and shared libraries|Upgrade|Sparkles|useState|shadow-md|stable|role="status"|onClick|href=/)
+    expect(source.match(/<Button /g)).toHaveLength(1)
     const html = section("plan-usage")
     for (const text of [">Storage<", ">18.4<", "of 25 GB used", ">Design files<", ">Video<", ">Documents<", ">Other<"]) expect(html).toContain(text)
     // PUI-103: no plan/renewal subtitle and no per-category values.
     for (const text of ["Pro plan", "renews", "October 31", ">8.6<", ">5.2<", ">3.1<", ">1.5<", 'data-slot="card-description"']) expect(html, text).not.toContain(text)
     expect(html).toContain('role="img" aria-label="74% of storage used"')
-    // The breakdown list is the card content's last child.
-    expect(html).toMatch(/<\/ul><\/div><\/div><\/section>$/)
-    expect(html).not.toContain("<button")
+    // The breakdown list is followed only by the one Secondary action, the card content's last child.
+    expect(html).toMatch(/<\/ul><button [^>]*data-slot="button" data-variant="secondary" data-size="default"[^>]*>Manage storage<\/button><\/div><\/div><\/section>$/)
+    expect(html.match(/<button/g)).toHaveLength(1)
+    expect(html).toContain('type="button"')
   })
 })
 

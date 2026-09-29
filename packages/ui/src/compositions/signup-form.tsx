@@ -47,7 +47,7 @@ export function SignupForm() {
             <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">Or continue with</FieldSeparator>
             <div className="grid grid-cols-2 gap-3">
               {PROVIDERS.map(provider => (
-                <Button key={provider.name} variant="outline" type="button" className="cursor-pointer">
+                <Button key={provider.name} variant="secondary" type="button" className="cursor-pointer">
                   <svg aria-hidden="true" viewBox="0 0 24 24"><path d={provider.path} fill="currentColor" /></svg>
                   {provider.name}
                 </Button>

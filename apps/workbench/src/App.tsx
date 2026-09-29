@@ -592,8 +592,8 @@ export function App() {
             <SidebarGroup className="shrink-0 bg-sidebar p-0">
               <ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden" viewportProps={{ role: "region", "aria-label": "Editor category navigation", tabIndex: 0 }}>
                 <div data-testid="category-inset" className="w-max p-4">
-                  {/* Triggers keep the accepted 29px height (the former 3px-padded 36px list, less 1px), radius, py-1 and type. */}
-                  <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" data-variant="line" aria-label="Editor categories">
+                  {/* PUI-120: the default surface list (36px, 3px padding) keeps the accepted 29px triggers, radius, py-1 and type. */}
+                  <TabsList className="w-max flex-nowrap justify-start" aria-label="Editor categories">
                     <TabsTrigger value="colors" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Colors</TabsTrigger>
                     <TabsTrigger value="typography" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Typography</TabsTrigger>
                     <TabsTrigger value="geometry" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Geometry</TabsTrigger>

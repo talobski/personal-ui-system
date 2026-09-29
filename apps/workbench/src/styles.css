@@ -9,7 +9,6 @@
 .quiet-preview-body { flex: 1 1 0; display: flex; min-height: 0; padding: 0; }
 .quiet-viewport { flex: 1; min-width: 0; overflow: hidden; }
 .quiet-status { display: flex; flex-shrink: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 16px; background: var(--secondary); color: var(--secondary-foreground); font-size: 14px; }
-.quiet-categories [data-slot=tabs-trigger][data-state=active]:not(:focus-visible) { box-shadow: none; }
 
 /* Workbench-owned overlay regions inherit the shared ScrollArea thickness and thumb states; Radix handles input. */
 /* Radix's measurement wrapper defaults to display:table. Vertical app panels must stay width constrained. */

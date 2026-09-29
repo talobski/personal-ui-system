@@ -1,6 +1,7 @@
 /**
- * Content-width category Tabs: active uses the secondary pair without a shadow; inactive stays transparent with muted
- * foreground and a text-only hover. The official trigger's radius, vertical padding, focus ring, and ARIA are unchanged.
+ * PUI-120: both Workbench category lists use the default shadcn surface Tabs (muted list, raised active trigger), so the
+ * active trigger is also the UI Effects surface-Tabs target. Each list follows its content (`w-max` where it is used)
+ * and each trigger its natural label width: `flex-none` replaces the official trigger's equal-width `flex-1`. Radius,
+ * padding, type, focus ring, and ARIA stay the official trigger's.
  */
-export const CATEGORY_TRIGGER_CLASS =
-  "h-[calc(100%-7px)] w-auto flex-none shrink-0 cursor-pointer whitespace-nowrap px-2 text-sm text-muted-foreground dark:text-muted-foreground data-[state=inactive]:bg-transparent data-[state=inactive]:hover:text-muted-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-secondary dark:data-[state=active]:text-secondary-foreground"
+export const CATEGORY_TRIGGER_CLASS = "flex-none shrink-0 cursor-pointer"

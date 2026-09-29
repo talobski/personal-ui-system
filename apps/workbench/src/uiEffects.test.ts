@@ -185,16 +185,30 @@ describe("TUE-05/06/08 surface wiring", () => {
     expect(resolveUiEffects(applied.theme!)).toMatchObject({ effect: "tactile" })
   })
 
-  it("marks only the two line/minimal Workbench category lists, which the surface-tab selector excludes", () => {
+  it("IESP-06 both Workbench category lists are unmarked default surface lists, so Tactile reaches their active trigger", () => {
     const lines = (source: string) => source.match(/<TabsList[^>]*>/g) ?? []
-    expect(lines(app)).toEqual(['<TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" data-variant="line" aria-label="Editor categories">'])
+    expect(lines(app)).toEqual(['<TabsList className="w-max flex-nowrap justify-start" aria-label="Editor categories">'])
     expect(lines(previewFrame)).toEqual([
-      '<TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" data-variant="line" aria-label="Preview views">',
+      '<TabsList className="w-max flex-nowrap justify-start" aria-label="Preview views">',
       // The States view's ordinary surface/pill sample: unmarked, so its active trigger is the Tabs target.
       '<TabsList aria-label="Surface tabs sample">',
     ])
+    // No local surface/tactile override: the shared recipe alone styles the active trigger.
+    for (const source of [app, previewFrame]) expect(source).not.toMatch(/data-variant="line"|bg-transparent p-0|tactile|ui-tactile/)
     const surfaceUsages = ["../../../packages/ui/src/compositions/workspace-settings.tsx", "../../../packages/ui/src/components/tabs.stories.tsx"]
     for (const path of surfaceUsages) expect(readFileSync(new URL(path, import.meta.url), "utf8")).not.toContain('data-variant="line"')
+  })
+
+  it("IESP-07 section triggers, Manage storage and the social Buttons are plain Secondary Buttons with no local recipe", () => {
+    const planUsage = readFileSync(new URL("../../../packages/ui/src/compositions/plan-usage.tsx", import.meta.url), "utf8")
+    const signup = readFileSync(new URL("../../../packages/ui/src/compositions/signup-form.tsx", import.meta.url), "utf8")
+    expect(planUsage.match(/<Button [^>]*>Manage storage<\/Button>/g)).toEqual(['<Button variant="secondary" type="button" className="justify-self-start cursor-pointer">Manage storage</Button>'])
+    expect(planUsage).not.toMatch(/onClick|href|useState|fetch\(|navigate/)
+    expect(signup).toContain('<Button key={provider.name} variant="secondary" type="button" className="cursor-pointer">')
+    expect(signup).not.toMatch(/variant="outline"|fetch\(|https?:\/\/|oauth|signIn\(/i)
+    expect(controlsSource).toMatch(/<CollapsibleTrigger asChild>[\s\S]*?<Button variant="secondary" size="sm"/)
+    const section = controlsSource.slice(controlsSource.indexOf("export function ControlSection"), controlsSource.indexOf("export function LiveNumberField"))
+    for (const source of [planUsage, signup, section]) expect(source).not.toMatch(/tactile|inset-shadow/i)
   })
 
   it("does not change the public Button or Tabs components", () => {

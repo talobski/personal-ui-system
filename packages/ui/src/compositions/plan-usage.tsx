@@ -1,3 +1,4 @@
+import { Button } from "../components/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/card"
 
 const CAPACITY = 25
@@ -13,6 +14,8 @@ const USAGE = [
  * PUI-86: a usage/status card with no promotion; it ends after the category breakdown and has no interaction.
  * PUI-103: the title leads straight into the usage figure (no plan subtitle), and the breakdown reads as colours and
  * names only, with no per-category values.
+ * PUI-120: one inert Secondary "Manage storage" Button below the breakdown, a natural specimen for UI Effects. It has no
+ * workflow, state, navigation, or network behaviour.
  */
 export function PlanUsage() {
   const used = USAGE.reduce((sum, item) => sum + item.gigabytes, 0)
@@ -37,6 +40,7 @@ export function PlanUsage() {
             </li>
           ))}
         </ul>
+        <Button variant="secondary" type="button" className="justify-self-start cursor-pointer">Manage storage</Button>
       </CardContent>
     </Card>
   )

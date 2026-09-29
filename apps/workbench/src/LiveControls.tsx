@@ -80,11 +80,11 @@ export function ControlSection({ id, title, children, defaultOpen = true }: { id
       <h3 className="text-sm">
         <CollapsibleTrigger asChild>
           {/*
-            The semantic muted/muted-foreground pair. In Default light it measures about 4.35:1 for this small text:
-            known, pre-approved Default-theme debt that is measured and reported, not locally worked around.
-            The explicit hover and dark-hover overrides replace the ghost variant's accent hover.
+            PUI-120: the accepted Secondary variant (semantic secondary pair and its hover), so the shared UI Effects
+            recipe reaches it with no local treatment. The compact geometry overrides keep the accepted height, width,
+            padding, 11px uppercase type, radius and 12px chevron instead of the Button size defaults.
           */}
-          <Button variant="ghost" size="sm" className="h-auto w-fit cursor-pointer rounded-sm bg-muted px-2 py-0.5 quiet-section-trigger text-[0.6875rem] uppercase text-muted-foreground ring-1 ring-border hover:bg-muted/80 hover:text-muted-foreground dark:hover:bg-muted/80 has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
+          <Button variant="secondary" size="sm" className="h-auto w-fit cursor-pointer rounded-sm px-2 py-0.5 quiet-section-trigger text-[0.6875rem] uppercase has-[>svg]:px-2 [&[data-state=open]>svg]:rotate-180">
             {title}
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-3 transition-transform motion-reduce:transition-none">
               <path d="m6 9 6 6 6-6" />
