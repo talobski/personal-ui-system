@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "loop-linear-admission-snapshot/1",
+  "retrievedAtUtc": "2026-09-29T10:52:54.561Z",
+  "source": "Linear MCP get_issue(includeRelations,includeReleases,includeCustomerNeeds) and list_comments(limit 250)",
+  "issue": {
+    "id": "PUI-118",
+    "uuid": "c6bbe0b0-974c-44c1-9f1c-c2fddbb9a434",
+    "title": "Profile and optimize Workbench performance",
+    "description": "Focus exclusively on improving Personal UI Workbench runtime performance and perceived responsiveness without changing product behavior, visual design, or feature scope.\n\n## Overall direction\n\nThe Workbench has become noticeably slower as the project has grown. This ticket should identify evidence-backed performance bottlenecks and make targeted optimizations only where profiling shows clear value.\n\nThis is a performance pass, not a redesign or architecture rewrite.\n\nPrimary goals:\n\n* reduce unnecessary rendering/work;\n* improve responsiveness while editing themes and interacting with the Workbench;\n* reduce avoidable preview/iframe update cost where possible;\n* preserve all accepted behavior and visual output.\n\n## 1. Measure before changing\n\nStart with profiling rather than speculative refactoring.\n\nInspect and measure likely hot paths such as:\n\n* Workbench React render frequency;\n* theme update propagation;\n* preview iframe updates/re-renders;\n* large preview tabs and gallery compositions;\n* color/typography/effects control updates;\n* expensive derived calculations;\n* repeated serialization/deserialization;\n* event listeners or observers;\n* unnecessary provider/context invalidation;\n* avoidable layout/reflow work;\n* heavy synchronous work during slider/color/theme interactions.\n\nUse appropriate existing tooling such as React profiling, browser Performance tools, targeted instrumentation, or focused benchmarks.\n\nDo not assume the cause in advance.\n\n## 2. Optimize only demonstrated hotspots\n\nMake the smallest changes that materially improve measured performance.\n\nPossible techniques may include, where justified by evidence:\n\n* memoizing expensive derived values;\n* narrowing context/provider update surfaces;\n* avoiding unnecessary component re-renders;\n* stabilizing props/callbacks where they currently cause broad invalidation;\n* debouncing or batching high-frequency theme updates where behavior remains correct;\n* reducing redundant iframe/theme synchronization;\n* lazy/deferred rendering for non-visible heavy preview content where safe;\n* avoiding repeated expensive formatting/conversion work;\n* removing duplicated subscriptions/listeners;\n* reducing unnecessary DOM/layout work.\n\nDo not apply optimization patterns mechanically if profiling does not justify them.\n\n## 3. Preserve behavior\n\nThis ticket must not intentionally change:\n\n* visual design;\n* layout;\n* component styling;\n* accepted interactions;\n* theme semantics;\n* Theme v3;\n* persistence/history behavior;\n* undo/redo behavior;\n* import/export;\n* Design Command behavior;\n* mutation operations;\n* public registry;\n* accessibility semantics;\n* responsive behavior.\n\nAny optimization that changes visible behavior or interaction timing materially should be treated as a separate product decision rather than silently included here.\n\n## 4. Theme editing responsiveness\n\nPay particular attention to interactions that should feel immediate, including:\n\n* color changes;\n* typography controls;\n* radius/geometry controls;\n* Effects controls;\n* sidebar token changes;\n* light/dark toggles;\n* preview tab switching;\n* gallery interactions.\n\nEnsure optimization does not make live preview updates feel stale or delayed.\n\nIf debounce/throttle is used, keep it bounded and visually responsive.\n\n## 5. Preview / iframe performance\n\nInspect the current preview architecture for redundant work.\n\nPossible questions to verify:\n\n* Are all preview regions updating when only one needs to?\n* Are hidden tabs doing unnecessary work?\n* Are theme messages/state updates duplicated?\n* Are iframes or preview trees remounting unnecessarily?\n* Are expensive previews rendered eagerly when not visible?\n* Are browser observers/listeners duplicated across preview surfaces?\n\nOptimize only where current architecture permits a clean, low-risk improvement.\n\nDo not replace the preview architecture wholesale.\n\n## 6. Performance evidence\n\nRecord before/after evidence for the changes made.\n\nUse practical measurements appropriate to the actual bottlenecks, such as:\n\n* render counts for affected components;\n* React commit duration;\n* interaction/update latency;\n* scripting time;\n* repeated iframe/theme update counts;\n* targeted benchmark timings;\n* browser Performance traces;\n* other reproducible metrics.\n\nThe goal is to prove improvement, not merely claim that code is \"more optimized.\"\n\nDo not establish brittle universal performance budgets unless the existing project already has them.\n\n## 7. Regression protection\n\nAdd or update focused tests where necessary to protect optimized behavior.\n\nPreserve:\n\n* full unit/typecheck/build health;\n* Workbench browser coverage;\n* Storybook coverage where affected;\n* Design Command boundaries;\n* registry/mutation counts unless current accepted reality differs;\n* light/dark behavior;\n* keyboard/focus/accessibility behavior.\n\nPerformance changes must not bypass correctness checks.\n\n## 8. Boundaries\n\nDo not:\n\n* add unrelated features;\n* redesign Workbench UI;\n* remove existing functionality to make benchmarks faster;\n* replace React/state architecture wholesale;\n* introduce a new state-management framework solely for performance;\n* add a new rendering framework;\n* change public APIs without demonstrated necessity;\n* add network behavior;\n* add dependencies unless profiling proves a clear need and existing platform capabilities are insufficient.\n\nPrefer small, evidence-backed optimizations to broad rewrites.\n\n## Acceptance\n\n* Current Workbench performance bottlenecks are profiled and documented before implementation.\n* At least the materially significant identified hotspot(s) are improved with measurable before/after evidence.\n* Theme editing and common Workbench interactions feel at least as responsive as before, preferably materially faster where the bottleneck existed.\n* Unnecessary render/update work is reduced where profiling identifies it.\n* Preview/iframe synchronization avoids demonstrated redundant work where safely possible.\n* No accepted visual, interaction, theme, history, persistence, import/export, Design Command, registry, mutation, responsive, or accessibility behavior regresses.\n* Full relevant verification passes.\n* Final phase evidence records what was measured, what changed, and the observed improvement.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-118/profile-and-optimize-workbench-performance",
+    "gitBranchName": "emmantalob/pui-118-profile-and-optimize-workbench-performance",
+    "createdAt": "2026-09-29T08:38:05.837Z",
+    "updatedAt": "2026-09-29T08:39:52.464Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T08:38:05.837Z",
+        "endedAt": "2026-09-29T08:39:52.455Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T08:39:52.455Z",
+        "endedAt": null
+      }
+    ],
+    "customerNeeds": [],
+    "releases": [],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachments": [],
+  "references": {
+    "documents": [],
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    },
+    "customerNeeds": [],
+    "releases": []
+  }
+}

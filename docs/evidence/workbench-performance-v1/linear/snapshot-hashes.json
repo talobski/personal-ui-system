@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "loop-linear-snapshot-hashes/1",
+  "phase": "workbench-performance-v1-001",
+  "retrievedAtUtc": "2026-09-29T10:52:54.561Z",
+  "tickets": [
+    {
+      "id": "PUI-118",
+      "uuid": "c6bbe0b0-974c-44c1-9f1c-c2fddbb9a434",
+      "path": "docs/evidence/workbench-performance-v1/linear/PUI-118.json",
+      "sha256": "64fe7e3a12eba248ed5c306c7f144088f12d51c20f5c84f115d9d4a9c746ccb5",
+      "updatedAt": "2026-09-29T08:39:52.464Z"
+    }
+  ],
+  "commentAndAttachmentState": "No comments, attachments, documents, relations, customer needs, or releases at retrieval",
+  "admittedTickets": ["PUI-118"]
+}
