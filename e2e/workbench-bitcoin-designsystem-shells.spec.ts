@@ -339,13 +339,14 @@ test.describe("WBDS-07 standardized App shells (PUI-110)", () => {
     await open(page)
     await previewView(page, "App shells")
     const frame = previewFrame(page)
-    const root = frame.locator('[data-slot="sidebar-wrapper"]').first()
+    // PUI-116: each shell is now its own provider, so the shared container is the App shells root.
+    const root = frame.locator("[data-app-shells]")
     const sweep: Record<number, { ratio: number; overflow: string[] }> = {}
     for (const width of [340, 600, 760, 900, 1200]) {
       await root.evaluate((el, w) => { el.style.width = `${w}px` }, width)
       await expect.poll(() => root.evaluate(el => Math.round(el.getBoundingClientRect().width))).toBe(width)
       const ratio = await frame.locator("html").evaluate(() => {
-        const wrapper = document.querySelector('[data-slot="sidebar-wrapper"]')!.getBoundingClientRect().width
+        const wrapper = document.querySelector("[data-app-shells]")!.getBoundingClientRect().width
         return document.querySelector("[data-app-shell]")!.getBoundingClientRect().width / wrapper
       })
       sweep[width] = { ratio, overflow: await overflowing(frame) }

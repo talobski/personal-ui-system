@@ -542,9 +542,11 @@ test.describe("WGPE-10 App shells view (PUI-102; standardized per PUI-110)", () 
       await workspaceMode(page, "Preview")
       await expect.poll(() => css(classic.locator('[data-active="true"]'), "border-top-left-radius")).not.toBe(radius)
       expect(await css(panel.getByRole("heading", { level: 2 }).first(), "font-family")).toBe(await css(frame.locator('[data-composition="plan-usage"] h2'), "font-family"))
-      // Main areas stay abstract: no forms, tables, charts or content controls beyond the Sidebar navigation.
+      // Main areas stay abstract: no forms, tables, charts or content controls beyond the Sidebar navigation and, since
+      // PUI-116, exactly one SidebarTrigger per shell.
       await expect(panel.locator('table, form, input:not([aria-hidden="true"]), textarea, .recharts-surface')).toHaveCount(0)
-      expect(await panel.getByRole("button").count()).toBe(await panel.getByRole("navigation").getByRole("button").count())
+      await expect(panel.locator('[data-slot="sidebar-trigger"]')).toHaveCount(3)
+      expect(await panel.getByRole("button").count()).toBe(await panel.getByRole("navigation").getByRole("button").count() + 3)
       expect(await overflowing(frame)).toEqual([])
       await axe(page, info, `app-shells-${mode}`)
     })

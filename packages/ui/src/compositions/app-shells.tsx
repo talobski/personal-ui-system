@@ -1,10 +1,11 @@
 import { useId, useState } from "react"
-import type { CSSProperties } from "react"
+import type { CSSProperties, KeyboardEvent } from "react"
 import { AudioWaveform, Command, FileText, GalleryVerticalEnd, House, Inbox, Settings, Users } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { Avatar, AvatarFallback, avatarInitial } from "../components/avatar"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../components/select"
+import { Separator } from "../components/separator"
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  SidebarTrigger,
 } from "../components/sidebar"
 
 type NavItem = { label: string; icon: LucideIcon; badge?: string }
@@ -47,7 +49,8 @@ function Logo({ workspace, density }: { workspace: Workspace; density: Density }
 
 /**
  * The header's workspace switcher: the accepted Select on a sidebar-styled trigger, as in the shadcn team-switcher
- * pattern. Choosing a workspace renames the header and the breadcrumb only; nothing routes or persists.
+ * pattern. Choosing a workspace renames the header and the breadcrumb only; nothing routes or persists. On the icon
+ * rail only the logo shows (the trigger keeps its accessible name), as the official lg menu button does.
  */
 function WorkspaceSwitcher({ shell, workspace, onChange, density }: { shell: string; workspace: Workspace; onChange: (id: string) => void; density: Density }) {
   const items = WORKSPACES.map(entry => ({ value: entry.id, label: entry.name }))
@@ -55,10 +58,10 @@ function WorkspaceSwitcher({ shell, workspace, onChange, density }: { shell: str
     <SidebarMenu>
       <SidebarMenuItem>
         <Select items={items} value={workspace.id} onValueChange={id => { if (id) onChange(id) }}>
-          <SelectTrigger aria-label={`${shell} workspace`} className={`w-full cursor-pointer gap-2 border-0 bg-transparent px-2 text-sidebar-foreground shadow-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[popup-open]:bg-sidebar-accent data-[popup-open]:text-sidebar-accent-foreground dark:bg-transparent dark:hover:bg-sidebar-accent ${density === "compact" ? "h-10!" : "h-12!"}`}>
+          <SelectTrigger aria-label={`${shell} workspace`} className={`w-full cursor-pointer gap-2 border-0 bg-transparent px-2 text-sidebar-foreground shadow-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[popup-open]:bg-sidebar-accent data-[popup-open]:text-sidebar-accent-foreground dark:bg-transparent dark:hover:bg-sidebar-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:[&>span:last-child]:hidden ${density === "compact" ? "h-10!" : "h-12!"}`}>
             <SelectValue className="min-w-0 gap-2">
               <Logo workspace={workspace} density={density} />
-              <span className="grid min-w-0 text-left leading-tight">
+              <span className="grid min-w-0 text-left leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="truncate font-medium">{workspace.name}</span>
                 <span className="truncate text-xs">{workspace.plan}</span>
               </span>
@@ -103,11 +106,14 @@ function ShellNav({ label, active, onSelect, density }: { label: string; active:
   )
 }
 
-/** The signed-in profile: the accepted Avatar with one initial, then name and email. Informational, not a control. */
+/**
+ * The signed-in profile: the accepted Avatar with one initial, then name and email. Informational, not a control. On the
+ * icon rail the row clips to the avatar; the name and email stay in the accessibility tree, as menu-button labels do.
+ */
 function Profile({ density }: { density: Density }) {
   const name = "Maya Chen"
   return (
-    <div className={`flex min-w-0 items-center gap-2 rounded-md px-2 ${density === "compact" ? "py-1" : "py-1.5"}`}>
+    <div className={`flex min-w-0 items-center gap-2 overflow-hidden rounded-md px-2 ${density === "compact" ? "py-1 group-data-[collapsible=icon]:px-1.5" : "py-1.5 group-data-[collapsible=icon]:px-0"}`}>
       <Avatar className={density === "compact" ? "size-6" : "size-8"}><AvatarFallback className="text-xs">{avatarInitial(name)}</AvatarFallback></Avatar>
       <span className="grid min-w-0 text-sm leading-tight">
         <span className="truncate font-medium">{name}</span>
@@ -118,17 +124,22 @@ function Profile({ density }: { density: Density }) {
 }
 
 /**
- * The one abstract main panel every shell shares: a breadcrumb/header row, a row of three muted placeholder blocks and
- * one larger muted block. Only the breadcrumb is text; the blocks are hidden neutral silhouettes.
+ * The one abstract main panel every shell shares: a header row holding this shell's SidebarTrigger and the breadcrumb,
+ * a row of three muted placeholder blocks and one larger muted block. Only the breadcrumb is text; the blocks are hidden
+ * neutral silhouettes. The trigger names its shell and reports and controls only that shell's Sidebar.
  */
-function MainPanel({ workspace, page, density }: { workspace: Workspace; page: string; density: Density }) {
+function MainPanel({ title, sidebarId, open, onToggle, workspace, page, density }: { title: string; sidebarId: string; open: boolean; onToggle: () => void; workspace: Workspace; page: string; density: Density }) {
   const gap = density === "compact" ? "gap-2 p-3" : "gap-4 p-4"
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className={`flex shrink-0 items-center gap-2 border-b px-4 text-sm ${density === "compact" ? "h-10" : "h-12"}`} data-shell-header>
+      <div className={`flex shrink-0 items-center gap-2 border-b pr-4 pl-2 text-sm ${density === "compact" ? "h-10" : "h-12"}`}>
+        <SidebarTrigger aria-label={`Toggle ${title} sidebar`} aria-expanded={open} aria-controls={sidebarId} onClick={onToggle} className="shrink-0 cursor-pointer" />
+        <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-4" />
+        <span className="flex min-w-0 items-center gap-2" data-shell-header>
         <span className="truncate text-muted-foreground">{workspace.name}</span>
         <span aria-hidden="true" className="text-muted-foreground">/</span>
         <span className="truncate font-medium">{page}</span>
+        </span>
       </div>
       <div aria-hidden="true" className={`flex min-h-0 flex-1 flex-col ${gap}`} data-shell-content>
         <div className={`grid shrink-0 grid-cols-3 ${density === "compact" ? "gap-2" : "gap-4"}`}>
@@ -142,20 +153,52 @@ function MainPanel({ workspace, page, density }: { workspace: Workspace; page: s
 
 type Variant = "classic" | "inset" | "compact"
 
+/** The accepted SidebarProvider shortcut (Cmd/Ctrl+B), answered here only while focus is inside this shell. */
+const isSidebarShortcut = (event: KeyboardEvent) => event.key === "b" && (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey
+
+/**
+ * Provider-originated changes are ignored: every shell's provider also answers the document-wide shortcut, and below
+ * the md viewport its toggle drives the unused mobile sheet. A shell's state changes only through its own trigger and
+ * the shortcut scoped to its own frame, so no shell (and no enclosing Workbench chrome) can move another.
+ */
+const ignoreProviderToggle = () => {}
+
 /**
  * One shell: the shared Sidebar (switcher header, grouped navigation, profile footer) beside the shared main panel.
  * Variants differ only in restrained treatment: Classic divides a flat sidebar from the page; Inset lifts the page onto
  * a bordered, shadowed surface inside the sidebar colour; Compact tightens density and chooses a narrower sidebar.
+ *
+ * PUI-116: each shell is its own SidebarProvider (the frame), expanded at rest, controlled by session-local state that
+ * is never persisted or shared. Collapse uses the official icon rail: the in-flow `collapsible="none"` Sidebar carries
+ * the same `group` / `data-state` / `data-collapsible="icon"` hooks as the official desktop branch, so the accepted
+ * menu-button, group-label, badge and content styles produce the rail, while nothing is viewport-fixed or portalled at
+ * any width. The public Sidebar API is unchanged.
  */
 function Shell({ title, variant, initial }: { title: string; variant: Variant; initial: { workspace: string; page: string } }) {
   const id = useId()
+  const sidebarId = useId()
+  const [open, setOpen] = useState(true)
   const [workspaceId, setWorkspaceId] = useState(initial.workspace)
   const [page, setPage] = useState(initial.page)
   const workspace = WORKSPACES.find(entry => entry.id === workspaceId)!
   const density: Density = variant === "compact" ? "compact" : "default"
   const width = { classic: "clamp(10rem, 32%, 15rem)", inset: "clamp(10rem, 32%, 14rem)", compact: "clamp(9rem, 28%, 12.5rem)" }[variant]
+  const toggle = () => setOpen(value => !value)
+  const onShortcut = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!isSidebarShortcut(event)) return
+    // Handled here, so the event never reaches the document-wide provider listeners (this shell's or any other).
+    event.preventDefault()
+    event.stopPropagation()
+    toggle()
+  }
   const sidebar = (
-    <Sidebar collapsible="none" className={variant === "inset" ? "bg-transparent" : "border-r border-sidebar-border"}>
+    <Sidebar
+      collapsible="none"
+      id={sidebarId}
+      data-state={open ? "expanded" : "collapsed"}
+      data-collapsible={open ? "" : "icon"}
+      className={`group shrink-0 transition-[width] duration-200 ease-linear data-[collapsible=icon]:w-(--sidebar-width-icon) motion-reduce:transition-none ${variant === "inset" ? "bg-transparent" : "border-r border-sidebar-border"}`}
+    >
       <SidebarHeader className={density === "compact" ? "p-1.5" : undefined}>
         <WorkspaceSwitcher shell={title} workspace={workspace} onChange={setWorkspaceId} density={density} />
       </SidebarHeader>
@@ -167,43 +210,46 @@ function Shell({ title, variant, initial }: { title: string; variant: Variant; i
       </SidebarFooter>
     </Sidebar>
   )
+  const main = <MainPanel title={title} sidebarId={sidebarId} open={open} onToggle={toggle} workspace={workspace} page={page} density={density} />
   return (
-    <section aria-labelledby={id} data-app-shell={title} data-shell-variant={variant} className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[72%]">
+    <section aria-labelledby={id} data-app-shell={title} data-shell-variant={variant} data-shell-state={open ? "expanded" : "collapsed"} className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[72%]">
       <h2 id={id} className="type-heading text-sm">{title}</h2>
-      <div className="h-108 min-w-0 overflow-hidden rounded-xl border shadow-sm" style={{ "--sidebar-width": width } as CSSProperties}>
+      <SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-120 min-h-0 min-w-0 overflow-hidden rounded-xl border shadow-sm" style={{ "--sidebar-width": width } as CSSProperties}>
         {variant === "inset" ? (
           <div className="flex h-full min-w-0 gap-2 bg-sidebar p-2">
             {sidebar}
-            <div className="flex min-w-0 flex-1 rounded-lg border bg-background shadow-sm"><MainPanel workspace={workspace} page={page} density={density} /></div>
+            <div className="flex min-w-0 flex-1 rounded-lg border bg-background shadow-sm">{main}</div>
           </div>
         ) : (
           <div className="flex h-full min-w-0 bg-background">
             {sidebar}
-            <MainPanel workspace={workspace} page={page} density={density} />
+            {main}
           </div>
         )}
-      </div>
+      </SidebarProvider>
     </section>
   )
 }
 
 /**
- * PUI-102/PUI-110: three contained application shells on the accepted shadcn Sidebar, for reading the live theme at app
- * scale. All three share one Sidebar pattern (workspace switcher, grouped icon navigation with an active item, profile
- * footer) and one abstract main panel, and stack vertically at a restrained, centred width that widens to the full
- * panel on narrow containers. Every Sidebar uses the official non-collapsible (`collapsible="none"`) branch, which
- * renders in normal flow: the viewport-fixed desktop branch and mobile sheet are never mounted, and the public Sidebar
- * API is unchanged. One provider, held open, serves all three. The official `SidebarInset` is not used because it
- * renders a `<main>` landmark and the preview document already has one; its inset treatment is composed instead.
+ * PUI-102/PUI-110/PUI-116: three contained application shells on the accepted shadcn Sidebar, for reading the live
+ * theme at app scale. All three share one Sidebar pattern (workspace switcher, grouped icon navigation with an active
+ * item, profile footer) and one abstract main panel, and stack vertically at a restrained, centred width that widens to
+ * the full panel on narrow containers. Each shell owns one preview-local provider and collapses to its icon rail
+ * independently (see Shell). The Sidebar stays on the official in-flow `collapsible="none"` branch: the viewport-fixed
+ * desktop branch and mobile sheet are never mounted. The preview renders in its own iframe document, so neither the
+ * Workbench's provider nor its shortcut listener can reach a shell, and a shell cannot reach them. The official
+ * `SidebarInset` is not used because it renders a `<main>` landmark and the preview document already has one; its inset
+ * treatment is composed instead.
  */
 export function AppShells() {
   return (
-    <SidebarProvider open className="@container block min-h-0 min-w-0">
+    <div data-app-shells className="@container min-h-0 min-w-0">
       <div className="grid min-w-0 gap-8">
         <Shell title="Classic workspace" variant="classic" initial={{ workspace: "northwind", page: "Home" }} />
         <Shell title="Inset project" variant="inset" initial={{ workspace: "atlas", page: "Documents" }} />
         <Shell title="Compact utility" variant="compact" initial={{ workspace: "harbor", page: "Inbox" }} />
       </div>
-    </SidebarProvider>
+    </div>
   )
 }
