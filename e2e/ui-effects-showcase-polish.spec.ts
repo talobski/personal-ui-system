@@ -238,14 +238,14 @@ test("IESP-08 Design system hierarchy, contextual Sidebar labels, live alias and
   await workspaceMode(page, "Controls")
   await editorCategory(page, "Colors")
   await page.getByRole("switch", { name: "Use sidebar tokens" }).click()
-  await page.getByTestId("section-colors-sidebar").getByRole("textbox", { name: "Primary", exact: true }).fill("#1a73e8")
-  await page.getByTestId("section-colors-sidebar").getByRole("textbox", { name: "Primary", exact: true }).blur()
+  await page.getByTestId("section-colors-sidebar").getByRole("textbox", { name: "Sidebar Primary", exact: true }).fill("#1a73e8")
+  await page.getByTestId("section-colors-sidebar").getByRole("textbox", { name: "Sidebar Primary", exact: true }).blur()
   await previewView(page, "Design system")
   await expect(value("sidebar-primary")).toHaveText("#1A73E8")
   await expect(value("primary")).not.toHaveText("#1A73E8")
   // Editor labels are unchanged by the display wording.
   await workspaceMode(page, "Controls")
-  await expect(page.getByTestId("section-colors-sidebar").getByRole("textbox", { name: "Primary", exact: true })).toBeVisible()
+  await expect(page.getByTestId("section-colors-sidebar").getByRole("textbox", { name: "Sidebar Primary", exact: true })).toBeVisible()
   await workspaceMode(page, "Preview")
 
   for (const mode of ["light", "dark"] as const) {
