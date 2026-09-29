@@ -1,8 +1,8 @@
 import { normalizeColor, parseLength } from "../theme/color"
 import { admitRemLength, admitShadowProfile, deriveRadiusScale, deriveShadowTiers, MANUAL_CONTROL_BOUNDS, SHADOW_PROFILE_FIELDS } from "../theme/derive"
 import type { ShadowProfile } from "../theme/derive"
-import { COLOR_TOKENS, densitySchema, durationSchema, fontStackSchema, fontWeightSchema, isFontFamilyTarget, isSidebarColorToken, isTypeRole, SHADOW_TOKENS, syncUninitializedSidebarColors, themeSchema, trackingSchema } from "../theme/schema"
-import type { ColorToken, FontFamilyTarget, Theme, TypeRole } from "../theme/schema"
+import { COLOR_TOKENS, densitySchema, durationSchema, fontStackSchema, fontWeightSchema, isFontFamilyTarget, isSidebarColorToken, isTypeRole, SHADOW_TOKENS, syncUninitializedSidebarColors, themeSchema, trackingSchema, UI_EFFECTS_FIELDS, uiEffectSchema, uiEffectStrengthSchema, uiEffectsTokens } from "../theme/schema"
+import type { ColorToken, FontFamilyTarget, Theme, TypeRole, UiEffectsValue } from "../theme/schema"
 import { renderShadcnTailwindCss } from "../theme/render"
 
 export const MUTATION_SCHEMA_VERSION = "1.0"
@@ -46,6 +46,12 @@ export type SetShadowProfileOperation = { op: "setShadowProfile"; value: ShadowP
  * resolved aliases in both modes, so switching on causes no visual change.
  */
 export type SetSidebarTokensEnabledOperation = { op: "setSidebarTokensEnabled"; value: boolean }
+/**
+ * Replaces the whole optional `uiEffects` value (PUI-113): the closed effect (`tactile` only), the two target toggles
+ * (`outlineButtons`, `tabs`), and the integer strength 0..100. All four fields are required; no other field, target,
+ * selector, or CSS can be addressed. Applying it to a theme without `uiEffects` creates the field.
+ */
+export type SetUiEffectsOperation = { op: "setUiEffects"; value: UiEffectsValue }
 export type ThemeOperation =
   | SetColorOperation
   | SetRadiusOperation
@@ -59,6 +65,7 @@ export type ThemeOperation =
   | SetSpacingBaseOperation
   | SetShadowProfileOperation
   | SetSidebarTokensEnabledOperation
+  | SetUiEffectsOperation
 
 export type MutationRequest = {
   schemaVersion: typeof MUTATION_SCHEMA_VERSION
@@ -111,6 +118,7 @@ const OPERATION_KEYS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
   ["setSpacingBase", new Set(["op", "value"])],
   ["setShadowProfile", new Set(["op", "value"])],
   ["setSidebarTokensEnabled", new Set(["op", "value"])],
+  ["setUiEffects", new Set(["op", "value"])],
 ])
 const REQUEST_KEYS = new Set(["schemaVersion", "requestId", "base", "operations"])
 
@@ -148,6 +156,14 @@ const VALUE_CHECKS: Record<string, (value: unknown) => boolean> = {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
+
+/** Per-field checks for the closed `setUiEffects` value; every field is required. */
+const UI_EFFECTS_CHECKS: Record<(typeof UI_EFFECTS_FIELDS)[number], (value: unknown) => boolean> = {
+  effect: (value) => uiEffectSchema.safeParse(value).success,
+  outlineButtons: (value) => typeof value === "boolean",
+  tabs: (value) => typeof value === "boolean",
+  strength: (value) => uiEffectStrengthSchema.safeParse(value).success,
+}
 
 /**
  * Validation order: request envelope, operation shape/allowlist, then values,
@@ -192,6 +208,12 @@ export function validateMutation(input: unknown, base: Pick<Theme, "id" | "revis
         for (const key of Object.keys(value)) if (!allowed.has(key)) fail("mutation.unknown-field", `${at}.value.${key}`)
         const admission = admitShadowProfile(value)
         if (!admission.ok) for (const field of admission.invalid) fail("mutation.invalid-value", `${at}.value.${field}`)
+      } else if (operation.op === "setUiEffects") {
+        const value = operation.value
+        if (!isRecord(value)) return fail("mutation.invalid-value", `${at}.value`)
+        const allowed = new Set<string>(UI_EFFECTS_FIELDS)
+        for (const key of Object.keys(value)) if (!allowed.has(key)) fail("mutation.unknown-field", `${at}.value.${key}`)
+        for (const field of UI_EFFECTS_FIELDS) if (!UI_EFFECTS_CHECKS[field](value[field])) fail("mutation.invalid-value", `${at}.value.${field}`)
       } else if (!VALUE_CHECKS[operation.op as string]!(operation.value)) {
         fail("mutation.invalid-value", `${at}.value`)
       }
@@ -228,6 +250,11 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
         if (operation.value) initializeSidebarColors(next)
         next.sidebar.useDedicatedTokens.$value = operation.value
         break
+      case "setUiEffects": {
+        const { effect, outlineButtons, tabs, strength } = operation.value
+        next.uiEffects = uiEffectsTokens({ effect, outlineButtons, tabs, strength })
+        break
+      }
       case "setRadius":
         next.radius.md.$value = operation.value
         break

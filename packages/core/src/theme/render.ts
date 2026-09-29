@@ -1,4 +1,4 @@
-import { BASE_COLOR_TOKENS, COLOR_TOKENS, FONT_FAMILY_TARGETS, MOTION_DURATION_TOKENS, RADIUS_SCALE_TOKENS, SHADOW_TOKENS, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, themeSchema, TYPE_ROLES } from "./schema"
+import { BASE_COLOR_TOKENS, COLOR_TOKENS, FONT_FAMILY_TARGETS, MOTION_DURATION_TOKENS, RADIUS_SCALE_TOKENS, resolveUiEffects, SHADOW_TOKENS, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, themeSchema, TYPE_ROLES, UI_EFFECT_STRENGTH_RANGE } from "./schema"
 import type { ShadowLayer, ShadowToken, Theme } from "./schema"
 
 /** CSS generic families and system-font keywords, emitted unquoted; every other family name is quoted. */
@@ -41,6 +41,69 @@ const roleDecls = (role: (typeof TYPE_ROLES)[number]) => [
 /** Tailwind's bare `shadow` utility reads `--shadow`; every other tier is `--shadow-<tier>`. */
 const shadowThemeVar = (tier: ShadowToken) => (tier === "default" ? "--shadow" : `--shadow-${tier}`)
 
+/** The accepted Outline Button: `Button` emits `data-slot` and `data-variant`, so no other variant can match. */
+export const TACTILE_OUTLINE_BUTTON_SELECTOR = '[data-slot="button"][data-variant="outline"]'
+/** The active trigger of a surface/pill Tabs list; a line/minimal list is marked `data-variant="line"` and never matches. */
+export const TACTILE_SURFACE_TAB_SELECTOR = '[data-slot="tabs-list"]:not([data-variant="line"]) > [data-slot="tabs-trigger"][data-state="active"]'
+
+/**
+ * The shared tactile recipe, as percentages at full strength. Every colour is a `color-mix()` of a semantic token with
+ * `transparent`, resolved at the targeted element: `light` is the illuminating token and `shade` the shading one, swapped
+ * in dark subtrees. Layers: a soft vertical wash, a 1px inner top highlight, a 1px inner lower shade, a 1px restrained
+ * outer edge, and a small inset shade for the pressed state. Strength scales every alpha linearly, so 0 is flat.
+ */
+const TACTILE_RECIPE = {
+  light: { light: "--background", shade: "--foreground", washTop: 60, washBottom: 5, highlight: 90, lower: 10, edge: 6, press: 12 },
+  dark: { light: "--foreground", shade: "--background", washTop: 7, washBottom: 20, highlight: 14, lower: 45, edge: 55, press: 55 },
+} as const
+
+const mix = (token: string, percent: number) => `color-mix(in oklab, var(${token}) ${Number(percent.toFixed(2))}%, transparent)`
+
+const tactileVars = (mode: keyof typeof TACTILE_RECIPE, k: number, indent: string) => {
+  const r = TACTILE_RECIPE[mode]
+  return [
+    `${indent}--ui-tactile-wash-top: ${mix(r.light, r.washTop * k)};`,
+    `${indent}--ui-tactile-wash-bottom: ${mix(r.shade, r.washBottom * k)};`,
+    `${indent}--ui-tactile-highlight: ${mix(r.light, r.highlight * k)};`,
+    `${indent}--ui-tactile-lower: ${mix(r.shade, r.lower * k)};`,
+    `${indent}--ui-tactile-edge: ${mix(r.shade, r.edge * k)};`,
+    `${indent}--ui-tactile-press: ${mix(r.shade, r.press * k)};`,
+  ]
+}
+
+/**
+ * The optional UI-effects block (PUI-113), or `""` when no target is enabled, so a flat theme's CSS is unchanged. It lives
+ * in `@layer components` and only fills Tailwind's own `--tw-inset-shadow` slot plus a `background-image` wash: the
+ * element's utility `box-shadow` composition keeps rendering the theme Shadow tier and focus/invalid rings, and any
+ * consumer utility still overrides it. No colour, radius, size, typography, layout, or motion value is set.
+ */
+export function renderUiEffectsCss(input: Theme): string {
+  const theme = themeSchema.parse(input)
+  const effects = resolveUiEffects(theme)
+  const targets = [effects.outlineButtons && TACTILE_OUTLINE_BUTTON_SELECTOR, effects.tabs && TACTILE_SURFACE_TAB_SELECTOR].filter(Boolean)
+  if (targets.length === 0) return ""
+  const k = effects.strength / UI_EFFECT_STRENGTH_RANGE.max
+  const where = `:where(${targets.join(", ")})`
+  return [
+    `/* UI effects: ${effects.effect}, strength ${effects.strength}. */`,
+    "@layer components {",
+    `  ${where} {`,
+    ...tactileVars("light", k, "    "),
+    "    background-image: linear-gradient(to bottom, var(--ui-tactile-wash-top), var(--ui-tactile-wash-bottom));",
+    "    --tw-inset-shadow: inset 0 1px 0 0 var(--ui-tactile-highlight), inset 0 -1px 0 0 var(--ui-tactile-lower), 0 0 0 1px var(--ui-tactile-edge);",
+    "  }",
+    `  ${where}:is(.dark *) {`,
+    ...tactileVars("dark", k, "    "),
+    "  }",
+    `  ${where}:active:not(:disabled) {`,
+    "    background-image: linear-gradient(to bottom, var(--ui-tactile-wash-bottom), var(--ui-tactile-wash-top));",
+    "    --tw-inset-shadow: inset 0 1px 2px 0 var(--ui-tactile-press), 0 0 0 1px var(--ui-tactile-edge);",
+    "  }",
+    "}",
+    "",
+  ].join("\n")
+}
+
 /**
  * The sole theme -> shadcn/Tailwind v4 mapping. `@theme inline` values are substituted literally into utilities at
  * build time, so every category that must change at runtime keeps its value in a plain `:root` custom property and the
@@ -59,12 +122,15 @@ const shadowThemeVar = (tier: ShadowToken) => (tier === "default" ? "--shadow" :
  * `:root` and `.dark` blocks as `var(--<alias>)` of its base semantic (see `SIDEBAR_TOKEN_ALIASES`), so the Sidebar follows
  * the base theme in either mode and stored dedicated values are preserved but unapplied. With it on, the stored
  * dedicated values are emitted directly.
+ *
+ * UI effects: the targeted `@layer components` block from `renderUiEffectsCss` is appended only while a target is on.
  */
 export function renderShadcnTailwindCss(input: Theme): string {
   const theme = themeSchema.parse(input)
   const light = theme.colors.light
   const dark = theme.colors.dark
   const dedicated = theme.sidebar.useDedicatedTokens.$value
+  const effects = renderUiEffectsCss(theme)
   const fontStack = (name: (typeof FONT_FAMILY_TARGETS)[number]) => (name === "mono" ? theme.typography.mono : theme.typography[name].font).$value
   const colorDecls = (set: typeof light) => [
     ...BASE_COLOR_TOKENS.map((name) => decl(`--${name}`, set[name].$value)),
@@ -121,5 +187,5 @@ export function renderShadcnTailwindCss(input: Theme): string {
     "  }",
     "}",
     "",
-  ].join("\n")
+  ].join("\n") + (effects ? `\n${effects}` : "")
 }

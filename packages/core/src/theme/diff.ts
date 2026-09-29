@@ -1,4 +1,4 @@
-import { SIDEBAR_COLOR_TOKENS } from "./schema"
+import { resolveUiEffects, SIDEBAR_COLOR_TOKENS, uiEffectsTokens } from "./schema"
 import type { Theme } from "./schema"
 
 /** One changed token value. Values are JSON, so entries serialize as-is. */
@@ -17,6 +17,8 @@ const tokenValues = (theme: Theme, omitDerivedSidebar: boolean) => {
   // `sidebar` contributes only its `useDedicatedTokens` token; the bare `dedicatedValuesInitialized` bookkeeping flag has
   // no `$value`, so it is never a design difference.
   for (const group of ["colors", "typography", "radius", "space", "shadow", "motion", "sidebar"] as const) leaves(theme[group], group, out)
+  // An absent `uiEffects` is the flat default, so it diffs exactly like an explicit flat value.
+  leaves(uiEffectsTokens(resolveUiEffects(theme)), "uiEffects", out)
   if (omitDerivedSidebar) for (const mode of ["light", "dark"]) for (const name of SIDEBAR_COLOR_TOKENS) out.delete(`colors.${mode}.${name}`)
   return out
 }

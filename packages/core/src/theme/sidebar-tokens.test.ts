@@ -234,8 +234,9 @@ describe("source selection (WSTP-06)", () => {
 
 describe("mutation, diff, and proposal (WSTP-08)", () => {
   it("admits the Sidebar colours in setColor and exactly one new operation", () => {
-    expect(describeOperations().map((o) => o.name)).toHaveLength(12)
-    expect(describeOperations().at(-1)).toEqual({ name: "setSidebarTokensEnabled", fields: ["op", "value"] })
+    // PUI-113 later appended exactly one operation (`setUiEffects`); WSTP-08's addition stays the twelfth.
+    expect(describeOperations().map((o) => o.name)).toHaveLength(13)
+    expect(describeOperations()[11]).toEqual({ name: "setSidebarTokensEnabled", fields: ["op", "value"] })
     const request = (operations: unknown[]) => ({ schemaVersion: MUTATION_SCHEMA_VERSION, requestId: "r", base: { themeId: base.id, revision: base.revision }, operations })
     for (const token of SIDEBAR_COLOR_TOKENS) expect(validateMutation(request([{ op: "setColor", mode: "light", token, value: "#fff" }]), base).ok).toBe(true)
     expect(validateMutation(request([{ op: "setColor", mode: "light", token: "sidebar-input", value: "#fff" }]), base)).toEqual({ ok: false, errors: [{ ruleId: "mutation.unknown-token", path: "operations[0].token" }] })

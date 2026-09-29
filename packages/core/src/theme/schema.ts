@@ -221,6 +221,45 @@ const sidebarState = z
     path: ["useDedicatedTokens", "$value"],
   })
 
+/**
+ * Optional component-targeted UI effects (PUI-113). A closed Theme v3 extension: `effect` names the one recipe
+ * (`tactile` is the only admitted value), `outlineButtons` and `tabs` select its two supported targets, and `strength`
+ * scales it from 0 to 100. The object is strict, so it can never carry CSS, selectors, paths, or other targets.
+ * Absence is the documented flat default (`UI_EFFECTS_FLAT`): older v3 themes and migrated v1/v2 themes have no field
+ * and render exactly as before.
+ */
+export const UI_EFFECTS = ["tactile"] as const
+export type UiEffect = (typeof UI_EFFECTS)[number]
+export const UI_EFFECT_STRENGTH_RANGE = { min: 0, max: 100 } as const
+export const uiEffectSchema = z.enum(UI_EFFECTS)
+export const uiEffectStrengthSchema = z.number().int().min(UI_EFFECT_STRENGTH_RANGE.min).max(UI_EFFECT_STRENGTH_RANGE.max)
+const uiEffectsState = z.strictObject({
+  effect: token("string", uiEffectSchema),
+  outlineButtons: token("boolean", z.boolean()),
+  tabs: token("boolean", z.boolean()),
+  strength: token("number", uiEffectStrengthSchema),
+})
+/** The four UI-effects design values, as `setUiEffects` carries them. */
+export type UiEffectsValue = { effect: UiEffect; outlineButtons: boolean; tabs: boolean; strength: number }
+export const UI_EFFECTS_FIELDS = ["effect", "outlineButtons", "tabs", "strength"] as const satisfies readonly (keyof UiEffectsValue)[]
+/** What an absent `uiEffects` means: the effect is selected but no target receives it. */
+export const UI_EFFECTS_FLAT: Readonly<UiEffectsValue> = Object.freeze({ effect: "tactile", outlineButtons: false, tabs: false, strength: 50 })
+
+/** The canonical token object for a UI-effects value. */
+export const uiEffectsTokens = (value: UiEffectsValue) => ({
+  effect: { $type: "string" as const, $value: value.effect },
+  outlineButtons: { $type: "boolean" as const, $value: value.outlineButtons },
+  tabs: { $type: "boolean" as const, $value: value.tabs },
+  strength: { $type: "number" as const, $value: value.strength },
+})
+
+/** A theme's effective UI-effects values; an absent field resolves to the flat default. */
+export function resolveUiEffects(theme: { uiEffects?: z.output<typeof uiEffectsState> }): UiEffectsValue {
+  const state = theme.uiEffects
+  if (!state) return { ...UI_EFFECTS_FLAT }
+  return { effect: state.effect.$value, outlineButtons: state.outlineButtons.$value, tabs: state.tabs.$value, strength: state.strength.$value }
+}
+
 type ColorSets = { light: Record<ColorToken, { $type: "color"; $value: string }>; dark: Record<ColorToken, { $type: "color"; $value: string }> }
 
 /**
@@ -248,6 +287,7 @@ export const themeSchema = z
     typography: typographyV3,
     ...valueFields,
     sidebar: sidebarState,
+    uiEffects: uiEffectsState.optional(),
     ...extensionsField,
   })
   .transform((theme) => syncUninitializedSidebarColors(theme))

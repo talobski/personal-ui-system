@@ -25,8 +25,10 @@ const apply = (operation: unknown, base: Theme = theme) => {
 const profile = { color: "#000000", opacity: 0.2, blur: "6px", spread: "1px", offsetX: "2px", offsetY: "3px" }
 
 describe("closed operation union (STHG-08: Theme v3 typography replaces setSansFamily with setFontWeight)", () => {
-  it("has exactly twelve operations with targeted typography fields", () => {
-    expect(describeOperations()).toEqual([
+  // PUI-113 supersedes the count in place: the twelve accepted operations keep their exact order and fields, and the one
+  // approved `setUiEffects` addition makes thirteen.
+  it("has exactly twelve pre-existing operations with targeted typography fields plus setUiEffects", () => {
+    expect(describeOperations().slice(0, 12)).toEqual([
       { name: "setColor", fields: ["op", "mode", "token", "value"] },
       { name: "setRadius", fields: ["op", "value"] },
       { name: "setDensity", fields: ["op", "value"] },
@@ -40,7 +42,8 @@ describe("closed operation union (STHG-08: Theme v3 typography replaces setSansF
       { name: "setShadowProfile", fields: ["op", "value"] },
       { name: "setSidebarTokensEnabled", fields: ["op", "value"] },
     ])
-    expect(describeOperations()).toHaveLength(12)
+    expect(describeOperations()).toHaveLength(13)
+    expect(describeOperations().at(-1)).toEqual({ name: "setUiEffects", fields: ["op", "value"] })
     expect(describeOperations().map((d) => d.name)).not.toContain("setSansFamily")
   })
 })

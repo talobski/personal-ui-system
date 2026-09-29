@@ -84,14 +84,20 @@ The recipe sets Tailwind v4's own `--tw-inset-shadow` slot plus a `background-im
   No raw colours, radius, size, typography or layout properties are set. Strength scales every layer linearly from 0
   (visually flat) to a capped maximum; `:active` swaps to a slightly inset pressed layer. No motion is added.
 
-### Where the effect renders
+### Where the effect renders (amended by Lead reconciliation)
 
-- Preview iframe: `previewThemeCss(theme)` = the existing `:root`/`.dark` variables plus the effects block, used for
-  the posted preview state (active theme or staged candidate).
-- Workbench chrome keeps using the unchanged `previewVariablesCss`, so the editor's own toolbar/dialog Outline buttons
-  and category tabs stay flat and never restyle while the effect is edited (chrome continues to follow colours and
-  typography as before). This is a producer choice within "Sidebar stays flat / unrelated behaviour unchanged"; Lead
-  may reconcile if chrome should follow.
+The first draft of this checkpoint kept Workbench chrome flat. The Lead reconciled that: the contract targets
+accepted Outline Buttons generally and grants no chrome exception. As implemented:
+
+- `previewVariablesCss(theme)` (lifecycle) now returns the existing `:root`/`.dark` variables plus the effects block
+  when a target is on; for a flat theme its output is byte-identical to the base.
+- Chrome renders it for `current` only (`activeCss`), so the **active** theme's tactile Outline Buttons appear in
+  Workbench chrome (e.g. Review changes, dialog Cancel buttons). Chrome never receives a staged candidate.
+- The preview renders it for `staged?.candidate ?? current`, so a staged Design Command candidate stays preview-only
+  until Apply.
+- The Workbench's two line/minimal category lists carry `data-variant="line"` and stay flat in both documents (the
+  existing `.quiet-categories` shadow reset remains as well). The Base UI toast action uses `buttonVariants()` classes
+  without `data-slot`, so it is not an accepted `Button` instance and stays flat.
 - Portable consumers get the same block from `renderShadcnTailwindCss`. Storybook compiles the static flat
   `quiet-editorial.css` fixture, so existing stories stay flat and unchanged.
 
@@ -106,3 +112,18 @@ and is disabled with the other manual controls while a proposal is staged or a c
 
 23 registry resources (`registry.json` untouched), no dependency/lockfile change, no public Button/Tabs prop change,
 no Input/Card/Slider/Switch/Dialog/Sidebar/non-outline styling, no network, credential or `.loop` access.
+
+## Checkpoint 2 — core integration
+
+- Core: `schema.ts` (optional `uiEffects`, `resolveUiEffects`, `UI_EFFECTS_FLAT`), `mutation.ts` (`setUiEffects`),
+  `diff.ts` (resolved leaves), `render.ts` (`renderUiEffectsCss`, appended only when a target is on),
+  `capability-descriptions.ts` (the one new description), `index.ts` exports.
+- Workbench: `controls.ts` (`buildUiEffectsOperation`, options, targets, `uiEffectsStrength`), `LiveControls.tsx`
+  (`UiEffectsFields`), `App.tsx` (UI Effects section between Shadow and Motion; `data-variant="line"`),
+  `PreviewFrame.tsx` (`data-variant="line"`), `lifecycle.ts` (`previewVariablesCss` appends the block).
+- Superseded in place (contract-approved 12 → 13 and the new control/section; nothing deleted or skipped):
+  `mutation.v2.test.ts` (first twelve still asserted exactly, plus `setUiEffects` thirteenth), `sidebar-tokens.test.ts`
+  (`setSidebarTokensEnabled` stays twelfth; total 13), `context.get.test.ts` (`operationCount: 13`),
+  `lifecycle.test.ts` (numeric control case for Strength; Effects section order `shadow, ui-effects, motion`).
+- New tests: `packages/core/src/theme/ui-effects.test.ts`, `apps/workbench/src/uiEffects.test.ts`.
+- `pnpm test`: 47 files, 899 tests passed (base: 45 files, 874 tests). `pnpm typecheck`: clean.

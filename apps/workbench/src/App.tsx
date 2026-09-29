@@ -35,7 +35,7 @@ import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, NUMERIC_CONTR
 import type { NumericControlId } from "./controls"
 import { EMPTY_TRACK, isDirty, record, redo, reset, sameDesign, undo } from "./history"
 import type { HistoryStep, HistoryTrack } from "./history"
-import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField, SidebarTokensSwitch } from "./LiveControls"
+import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveNumberField, SidebarTokensSwitch, UiEffectsFields } from "./LiveControls"
 import type { ApplyManual, EndGesture } from "./LiveControls"
 
 import { ColorPickerController } from "./colorPicker"
@@ -593,7 +593,7 @@ export function App() {
               <ScrollArea orientation="horizontal" type="auto" className="quiet-scroll-area w-full min-w-0 max-w-full overflow-hidden" viewportProps={{ role: "region", "aria-label": "Editor category navigation", tabIndex: 0 }}>
                 <div data-testid="category-inset" className="w-max p-4">
                   {/* Triggers keep the accepted 29px height (the former 3px-padded 36px list, less 1px), radius, py-1 and type. */}
-                  <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" aria-label="Editor categories">
+                  <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" data-variant="line" aria-label="Editor categories">
                     <TabsTrigger value="colors" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Colors</TabsTrigger>
                     <TabsTrigger value="typography" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Typography</TabsTrigger>
                     <TabsTrigger value="geometry" className={CATEGORY_TRIGGER_CLASS} onMouseDown={focusCategoryTrigger}>Geometry</TabsTrigger>
@@ -694,6 +694,11 @@ export function App() {
             {numeric("shadowSpread")}
             {numeric("shadowOffsetX")}
             {numeric("shadowOffsetY")}
+          </ControlSection>
+          {/* PUI-113: component-targeted UI effects sit between general Shadow and Motion. */}
+          <ControlSection id="ui-effects" title="UI Effects">
+            <UiEffectsFields theme={current} disabled={locked} apply={applyManual} />
+            {numeric("uiEffectsStrength")}
           </ControlSection>
           <ControlSection id="motion" title="Motion">
             {numeric("motion")}

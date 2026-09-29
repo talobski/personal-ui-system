@@ -1,4 +1,4 @@
-import { applyMutation, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, themeSchema, validateTheme } from "@personal-ui/core"
+import { applyMutation, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, renderUiEffectsCss, themeSchema, validateTheme } from "@personal-ui/core"
 import type { ColorToken, MutationError, Theme, ThemeOperation } from "@personal-ui/core"
 import defaultFixture from "@personal-ui/core/theme/fixtures/default.json"
 import quietEditorialFixture from "@personal-ui/core/theme/fixtures/valid.json"
@@ -69,7 +69,13 @@ export function exportThemeJson(theme: Theme): { filename: string; json: string 
   return { filename: `${checked.id}.theme.json`, json: `${JSON.stringify(checked, null, 2)}\n` }
 }
 
-/** Runtime preview CSS: the `:root` and `.dark` variable blocks of core's rendered theme (drops the compiled `@theme inline`). */
+/**
+ * Runtime theme CSS: the `:root` and `.dark` variable blocks of core's rendered theme (drops the compiled `@theme
+ * inline`), plus the targeted UI-effects block when one is enabled (empty for flat themes, so their output is unchanged).
+ * Chrome renders it for the active theme only; the preview renders it for the active theme or a staged candidate.
+ */
 export function previewVariablesCss(theme: Theme): string {
-  return renderShadcnTailwindCss(theme).split("@theme inline")[0]!.trimEnd()
+  const variables = renderShadcnTailwindCss(theme).split("@theme inline")[0]!.trimEnd()
+  const effects = renderUiEffectsCss(theme)
+  return effects ? `${variables}\n\n${effects.trimEnd()}` : variables
 }

@@ -1,18 +1,20 @@
 import * as React from "react"
 
-import type { FontFamilyTarget, Theme, ThemeOperation } from "@personal-ui/core"
+import { resolveUiEffects } from "@personal-ui/core"
+import type { FontFamilyTarget, Theme, ThemeOperation, UiEffect } from "@personal-ui/core"
 import { Button } from "@personal-ui/ui/components/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@personal-ui/ui/components/collapsible"
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxTrigger } from "@personal-ui/ui/components/combobox"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
 import { Label } from "@personal-ui/ui/components/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@personal-ui/ui/components/select"
 import { Slider } from "@personal-ui/ui/components/slider"
 import { Switch } from "@personal-ui/ui/components/switch"
 import { cssFontStack, findFontOption, FONT_CATALOG, FONT_OPTIONS } from "@personal-ui/ui/lib/fonts"
 import type { FontCategory, FontOption } from "@personal-ui/ui/lib/fonts"
 
-import { buildFontOperation, fontControlCopy, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep } from "./controls"
+import { buildFontOperation, buildUiEffectsOperation, fontControlCopy, formatFontStack, parseNumericDraft, pickedColorInput, pickerHex, roundToStep, UI_EFFECT_OPTIONS, UI_EFFECT_TARGETS } from "./controls"
 import type { NumericControl } from "./controls"
 import type { ColorPickerController } from "./colorPicker"
 import type { WorkbenchIssue } from "./lifecycle"
@@ -478,5 +480,50 @@ export function SidebarTokensSwitch({ enabled, disabled, apply }: { enabled: boo
       </div>
       {error !== null && <FieldError data-testid="sidebar-tokens-error">{error}</FieldError>}
     </Field>
+  )
+}
+
+/**
+ * The UI EFFECTS selection fields (PUI-113): the Effect select (Tactile only) and the independent Outline buttons and
+ * Tabs toggles. Each change is one committed `setUiEffects` edit; the shared Strength row is a `LiveNumberField`.
+ */
+export function UiEffectsFields({ theme, disabled, apply }: { theme: Theme; disabled: boolean; apply: ApplyManual }) {
+  const [error, setError] = React.useState<string | null>(null)
+  useReportInvalid("ui-effects", error !== null)
+  const effects = resolveUiEffects(theme)
+  const edit = (patch: Parameters<typeof buildUiEffectsOperation>[1]) => {
+    const issues = apply((base) => buildUiEffectsOperation(base, patch))
+    setError(issues.length > 0 ? `Rejected, not applied: ${describeIssues(issues)}.` : null)
+  }
+  return (
+    <>
+      <Field data-testid="control-ui-effect">
+        <div className={LABELLED_ROW_CLASS}>
+          <FieldLabel id="ui-effect-label" htmlFor="ui-effect-select" className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>Effect</FieldLabel>
+          <Select items={UI_EFFECT_OPTIONS} value={effects.effect} disabled={disabled} onValueChange={(value) => { if (value && value !== effects.effect) edit({ effect: value as UiEffect }) }}>
+            <SelectTrigger id="ui-effect-select" aria-labelledby="ui-effect-label" className="quiet-control h-8 w-full min-w-0 cursor-pointer">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {UI_EFFECT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value} className="cursor-pointer">{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </Field>
+      {UI_EFFECT_TARGETS.map(({ field, label }) => {
+        const switchId = `ui-effects-${field}-switch`
+        return (
+          <Field key={field} data-testid={`control-ui-effects-${field}`}>
+            <div className={LABELLED_ROW_CLASS}>
+              <Label htmlFor={switchId} className={`${FIELD_LABEL_CLASS} w-full min-w-0`}>{label}</Label>
+              <Switch id={switchId} className="cursor-pointer" checked={effects[field]} disabled={disabled} onCheckedChange={(checked) => edit({ [field]: checked })} />
+            </div>
+          </Field>
+        )
+      })}
+      {error !== null && <FieldError data-testid="ui-effects-error">{error}</FieldError>}
+    </>
   )
 }

@@ -61,7 +61,7 @@ export function PreviewFrame() {
     >
       <style id="workbench-theme">{state?.css ?? ""}</style>
       <Tabs value={view} onValueChange={setView} className="min-w-0 gap-4">
-        <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" aria-label="Preview views">
+        <TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" data-variant="line" aria-label="Preview views">
           <TabsTrigger value="cards" className={CATEGORY_TRIGGER_CLASS}>Cards</TabsTrigger>
           <TabsTrigger value="design-system" className={CATEGORY_TRIGGER_CLASS}>Design system</TabsTrigger>
           <TabsTrigger value="app-shells" className={CATEGORY_TRIGGER_CLASS}>App shells</TabsTrigger>

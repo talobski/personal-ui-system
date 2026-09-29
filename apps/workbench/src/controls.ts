@@ -1,5 +1,5 @@
-import { FONT_WEIGHT_RANGE, isSidebarColorToken, MANUAL_CONTROL_BOUNDS, parseCanonicalOklch, parseLength, readShadowProfile, SIDEBAR_COLOR_TOKENS } from "@personal-ui/core"
-import type { ColorToken, FontFamilyTarget, ShadowProfile, Theme, ThemeOperation, TypeRole } from "@personal-ui/core"
+import { FONT_WEIGHT_RANGE, isSidebarColorToken, MANUAL_CONTROL_BOUNDS, parseCanonicalOklch, parseLength, readShadowProfile, resolveUiEffects, SIDEBAR_COLOR_TOKENS, UI_EFFECT_STRENGTH_RANGE } from "@personal-ui/core"
+import type { ColorToken, FontFamilyTarget, ShadowProfile, Theme, ThemeOperation, TypeRole, UiEffect, UiEffectsValue } from "@personal-ui/core"
 
 /**
  * Manual-control models. Every control reads its value from the canonical active theme and turns a new value into one
@@ -21,6 +21,7 @@ export type NumericControlId =
   | "shadowSpread"
   | "shadowOffsetX"
   | "shadowOffsetY"
+  | "uiEffectsStrength"
 
 export type NumericControl = {
   label: string
@@ -68,6 +69,21 @@ const shadowField = (field: "blur" | "spread" | "offsetX" | "offsetY", label: st
 const durationMs = (value: string) => (value.endsWith("ms") ? Number(value.slice(0, -2)) : Number(value.slice(0, -1)) * 1000)
 
 const B = MANUAL_CONTROL_BOUNDS
+
+/**
+ * UI effects (PUI-113): every control edits one field and sends the whole resolved value through the one closed
+ * `setUiEffects` operation, so an absent (flat) `uiEffects` is completed from the flat default.
+ */
+export const buildUiEffectsOperation = (theme: Theme, patch: Partial<UiEffectsValue>): ThemeOperation => ({ op: "setUiEffects", value: { ...resolveUiEffects(theme), ...patch } })
+
+/** The Effect select's options. Tactile is the only admitted effect. */
+export const UI_EFFECT_OPTIONS: readonly { value: UiEffect; label: string }[] = [{ value: "tactile", label: "Tactile" }]
+
+/** The two independent target toggles, in display order. */
+export const UI_EFFECT_TARGETS: readonly { field: "outlineButtons" | "tabs"; label: string }[] = [
+  { field: "outlineButtons", label: "Outline buttons" },
+  { field: "tabs", label: "Tabs" },
+]
 
 /** A semantic role's weight: the admitted 100..900 numeric weights, one step per CSS weight. */
 const weightControl = (role: TypeRole): NumericControl => ({
@@ -135,6 +151,14 @@ export const NUMERIC_CONTROLS: Record<NumericControlId, NumericControl> = {
   shadowSpread: shadowField("spread", "Spread", B.shadowSpread),
   shadowOffsetX: shadowField("offsetX", "Offset X", B.shadowOffset),
   shadowOffsetY: shadowField("offsetY", "Offset Y", B.shadowOffset),
+  uiEffectsStrength: {
+    ...UI_EFFECT_STRENGTH_RANGE,
+    step: 1,
+    label: "Strength",
+    unit: "",
+    read: (theme) => resolveUiEffects(theme).strength,
+    build: (value, theme) => buildUiEffectsOperation(theme, { strength: value }),
+  },
 }
 
 /** A numeric draft is admissible only as a finite number inside the control's bounds; anything else stays local. */

@@ -31,7 +31,7 @@ describe("context get (ACR-03)", () => {
     expect(result.capabilitiesSummary).toEqual({
       mutationSchemaVersion: "1.0",
       proposalSchemaVersion: "1.0",
-      operationCount: 12,
+      operationCount: 13,
       maxProposalOperations: 8,
     })
   })

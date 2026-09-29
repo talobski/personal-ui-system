@@ -219,6 +219,8 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
     { id: "shadowSpread", value: 2, diff: ["shadow.2xl", "shadow.2xs", "shadow.default", "shadow.lg", "shadow.md", "shadow.sm", "shadow.xl", "shadow.xs"], css: "--shadow-layers-md: 0px 1px 3px 2px oklch(0 0 0 / 0.1), 0px 2px 4px 1px" },
     { id: "shadowOffsetX", value: -4, diff: ["shadow.2xl", "shadow.2xs", "shadow.default", "shadow.lg", "shadow.md", "shadow.sm", "shadow.xl", "shadow.xs"], css: "--shadow-layers-xs: -4px 1px 3px 0px" },
     { id: "shadowOffsetY", value: 6, diff: ["shadow.2xl", "shadow.2xs", "shadow.default", "shadow.lg", "shadow.md", "shadow.sm", "shadow.xl", "shadow.xs"], css: "--shadow-layers-2xs: 0px 6px 3px 0px" },
+    // PUI-113: Strength alone is a design value but, with both targets off, still renders flat (no effects block).
+    { id: "uiEffectsStrength", value: 80, diff: ["uiEffects.strength"], css: ":root {" },
   ]
 
   it("covers every numeric control", () => {
@@ -819,8 +821,8 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     const sections = (value: string) => [...panel(value).matchAll(/<ControlSection id="([a-z-]+)"/g)].map((match) => match[1])
     // Each section appears exactly once, in exactly one panel; control IDs and builders are unchanged.
     expect(sections("geometry")).toEqual(["radius", "spacing"])
-    expect(sections("other")).toEqual(["shadow", "motion"])
-    for (const id of ["radius", "spacing", "shadow", "motion"]) expect(app.match(new RegExp(`<ControlSection id="${id}"`, "g"))).toHaveLength(1)
+    expect(sections("other")).toEqual(["shadow", "ui-effects", "motion"])
+    for (const id of ["radius", "spacing", "shadow", "ui-effects", "motion"]) expect(app.match(new RegExp(`<ControlSection id="${id}"`, "g"))).toHaveLength(1)
     expect(panel("geometry")).toContain('{numeric("radius")}')
     expect(panel("geometry")).toContain('{numeric("spacing")}')
     expect(panel("other")).toContain('{numeric("motion")}')

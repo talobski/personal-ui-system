@@ -23,6 +23,7 @@ export const VALUE_CONSTRAINT_DESCRIPTIONS: Readonly<Record<string, string>> = O
   setSpacingBase: "rem/px length from 0.1rem to 0.5rem",
   setShadowProfile: "{ color: opaque colour, opacity: 0..1, blur: 0..64px, spread/offsetX/offsetY: -32..32px }; derives all eight shadow tiers",
   setSidebarTokensEnabled: "boolean; true renders the dedicated sidebar colours, false renders their base semantic aliases; stored dedicated values are kept either way",
+  setUiEffects: "{ effect: \"tactile\", outlineButtons: boolean, tabs: boolean, strength: integer 0..100 }, all required; replaces the optional uiEffects value; absent uiEffects renders flat",
 })
 
 /** Builds a fresh array/object graph every call; safe to return directly without additional copying or freezing. */
