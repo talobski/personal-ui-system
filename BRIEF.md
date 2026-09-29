@@ -1,8 +1,10 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`5ea846de50c9206fcb7a9e16d3bdf441d1d48d8a` on `main`. The single Tier 3
-`amber-dusk-shell-refinement-v1-001` phase delivered PUI-123 through PUI-128.
+`b2f937a66508bb0a1978dc35c2a4b2bb89c46c83` on `main`. The single Tier 2
+`tactile-border-designsystem-type-v1-001` phase delivered PUI-129 and PUI-131.
+The decorative Tactile TabsList edge now uses the semantic border token at 80%
+opacity, and Design system Colors group headings use `text-sm`.
 Amber Dusk is a built-in Theme v3 preset with three owner-authorized contrast
 adjustments documented against the supplied palette. Secondary Buttons retain
 the Strength-controlled tactile effect; surface Tabs use only a fixed TabsList
@@ -24,6 +26,26 @@ Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
 Last updated: 2026-09-30
+
+## Phase result: Tactile border and Design system type v1
+
+Accepted PUI-129 and PUI-131 together at product commit
+`b2f937a66508bb0a1978dc35c2a4b2bb89c46c83`. The Tactile surface TabsList
+decorative edge changed from `ring-ring/20` to `ring-border/80`. Off still adds
+no decorative ring, Strength still affects Secondary Buttons alone, and tab
+focus-visible continues using the semantic `ring` token. Design system Colors
+group headings are `text-sm` and uppercase; labels, HEX values, swatches,
+grouping, and layout remain unchanged.
+
+Focused Lead checks passed 44 targeted unit tests, touched-package typecheck,
+the Workbench build, the phase guard, and 16 narrow/wide browser cases covering
+Amber Dusk light/dark, strength invariance, keyboard focus, and Colors layout.
+Four decoded axe attachments had no violations. A fresh protected Codex Terra
+verifier passed the unchanged candidate without repair. The older Amber Dusk
+phase guard remains inapplicable to the current base because its historical
+scope check includes a preexisting `BRIEF.md` change; the phase-local guard
+passed. No broad regression suite or remote push was needed for these two
+bounded presentation changes. Exact receipts remain in `.loop`.
 
 ## Phase result: Amber Dusk and shell refinement v1
 
