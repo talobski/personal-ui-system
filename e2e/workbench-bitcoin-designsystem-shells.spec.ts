@@ -171,25 +171,34 @@ test.describe("WBDS-05/06 Design system reference sheet (PUI-109)", () => {
       const [c, s] = [await box(colors), await box(scale)]
       if (isMobileShell(page)) { close(c.x, s.x); expect(s.y).toBeGreaterThanOrEqual(c.y + c.height - 1) } else { close(c.y, s.y); expect(s.x).toBeGreaterThanOrEqual(c.x + c.width - 1) }
       // Colors: sidebar order, related pairs side by side on one row, larger swatches, Body-role values.
-      await expect(colors.getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar · base aliases"])
+      await expect(colors.getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"])
       for (const [background, foreground] of [["primary", "primary-foreground"], ["background", "foreground"], ["card", "card-foreground"], ["destructive", "destructive-foreground"], ["sidebar", "sidebar-foreground"], ["sidebar-accent", "sidebar-accent-foreground"]]) {
         const [a, b] = [await box(panel.locator(`[data-token="${background}"]`)), await box(panel.locator(`[data-token="${foreground}"]`))]
         close(a.y, b.y)
         expect(b.x).toBeGreaterThan(a.x + a.width - 1)
       }
+      // PUI-114 supersedes the 48px square: a wider-than-tall rectangular swatch, 40px tall, inside its own column.
       const swatch = await box(panel.locator('[data-token="primary"] > span').first())
-      expect([Math.round(swatch.width), Math.round(swatch.height)]).toEqual([48, 48])
+      expect(Math.round(swatch.height)).toBe(40)
+      expect(swatch.width).toBeGreaterThan(swatch.height * 1.5)
+      expect(swatch.x + swatch.width).toBeLessThanOrEqual((await box(panel.locator('[data-token="primary"]'))).x + (await box(panel.locator('[data-token="primary"]'))).width + 0.5)
       const bodyFamily = await frame.locator("body").evaluate(el => getComputedStyle(el).fontFamily)
       for (const name of ["primary", "chart-3", "sidebar-ring"]) expect(await css(panel.locator(`[data-token="${name}"]`).getByTestId("token-value"), "font-family")).toBe(bodyFamily)
-      // Sidebar OFF shows base aliases; ON shows dedicated values, immediately.
-      await expect(panel.locator('[data-token="sidebar"]').getByTestId("sidebar-alias")).toHaveText("= background")
+      // Sidebar OFF shows the base aliases' resolved values; ON shows dedicated values, immediately. PUI-114 removes the
+      // alias annotation lines and the heading suffix; the values carry the behaviour.
+      const value = (name: string) => panel.locator(`[data-token="${name}"]`).getByTestId("token-value")
+      await expect(panel.getByTestId("sidebar-alias")).toHaveCount(0)
+      await expect(value("sidebar")).toHaveText(/^#[0-9A-F]{6}$/)
+      await expect(value("sidebar")).toHaveText((await value("background").textContent())!)
       await sidebarTokens(page, true)
       await colorInput(page, "sidebar").fill(EDITS[mode].sidebar)
       await colorInput(page, "sidebar").press("Enter")
       await workspaceMode(page, "Preview")
-      await expect(colors.getByRole("heading", { name: "Sidebar · dedicated", level: 3 })).toBeVisible()
-      await expect(panel.locator('[data-token="sidebar"]').getByTestId("token-value")).toHaveText(EDITS[mode].sidebar)
-      await expect(panel.locator('[data-token="sidebar"]').getByTestId("sidebar-alias")).toHaveCount(0)
+      await expect(colors.getByRole("heading", { name: "Sidebar", exact: true, level: 3 })).toBeVisible()
+      await expect(value("sidebar")).not.toHaveText((await value("background").textContent())!)
+      await expect(value("sidebar")).toHaveText(/^#[0-9A-F]{6}$/)
+      await expect(value("sidebar")).toHaveAttribute("data-resolved", EDITS[mode].sidebar)
+      await expect(panel.getByTestId("sidebar-alias")).toHaveCount(0)
       // Type scale: nine rows, strictly descending, label left and specimen right, specimen at its own size in Body.
       await expect(scale.getByRole("heading", { level: 2 })).toHaveText("Type scale")
       await expect(scale.getByRole("heading", { level: 3 })).toHaveCount(0)

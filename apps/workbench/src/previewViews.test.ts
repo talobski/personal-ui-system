@@ -3,18 +3,18 @@ import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
-import { BASE_COLOR_TOKENS, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES } from "@personal-ui/core"
+import { BASE_COLOR_TOKENS, normalizeColor, SIDEBAR_COLOR_TOKENS } from "@personal-ui/core"
 import { AppShells } from "@personal-ui/ui/compositions/app-shells"
 
 import { COLOR_GROUPS } from "./controls"
-import { DESIGN_SYSTEM_COLOR_GROUPS, DesignSystemPreview, TYPE_SCALE, TYPE_SCALE_SAMPLE } from "./DesignSystemPreview"
+import { DESIGN_SYSTEM_COLOR_GROUPS, DesignSystemPreview, displayHex, swatchLabel, TYPE_SCALE, TYPE_SCALE_SAMPLE } from "./DesignSystemPreview"
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8")
 /** Source without comments, so explanatory prose is not mistaken for an implementation. */
 const code = (path: string) => read(path).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "")
 const rawColour = /#[0-9a-fA-F]{3,8}\b|\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color-mix)\(|\b(bg|text|border|fill|stroke|ring|from|to|via)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone|black|white)\b|\[(#|rgb|hsl|oklch)/
 
-describe("WGPE-09/WBDS-05/06 Design system view (PUI-101, PUI-109)", () => {
+describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-114)", () => {
   const html = () => renderToStaticMarkup(createElement(DesignSystemPreview, { source: "" }))
 
   it("mirrors the Workbench sidebar's colour groups exactly, every semantic token once, with effective Sidebar values", () => {
@@ -29,13 +29,18 @@ describe("WGPE-09/WBDS-05/06 Design system view (PUI-101, PUI-109)", () => {
     expect(tokens).toEqual(grouped)
     // Swatches paint from the live custom property of the same semantic name, never a copied value.
     for (const token of tokens) expect(markup).toContain(`style="background:var(--${token})"`)
-    const labels = [...DESIGN_SYSTEM_COLOR_GROUPS.slice(0, -1).map(group => group.title.replace("&", "&amp;")), "Sidebar · base aliases"]
+    // PUI-114: every group, Sidebar included, is headed by its plain title (rendered uppercase), with no source suffix.
+    const labels = DESIGN_SYSTEM_COLOR_GROUPS.map(group => group.title.replace("&", "&amp;"))
     expect(Array.from(markup.matchAll(/<h3 [^>]*>([^<]+)<\/h3>/g), match => match[1])).toEqual(labels)
-    // Sidebar OFF (the unrendered default): each Sidebar token names its base alias.
-    for (const token of SIDEBAR_COLOR_TOKENS) expect(markup).toMatch(new RegExp(`data-token="${token}"[\\s\\S]*?data-testid="sidebar-alias">= ${SIDEBAR_TOKEN_ALIASES[token]}<`))
+    expect(markup).not.toMatch(/base aliases|dedicated|sidebar-alias|= (background|foreground|primary|accent|border|ring)/)
+    // Local display labels: each pair reads Background / Foreground, unpaired tokens keep their key.
+    const shown = Array.from(markup.matchAll(/data-token="([a-z0-9-]+)"[\s\S]*?data-testid="token-label">(?:<span class="sr-only">[^<]*<\/span>)?([^<]+)</g), match => [match[1], match[2]])
+    expect(shown).toHaveLength(32)
+    const expected: Record<string, string> = { border: "border", input: "input", ring: "ring", "sidebar-border": "sidebar-border", "sidebar-ring": "sidebar-ring", "chart-1": "chart-1", "chart-2": "chart-2", "chart-3": "chart-3", "chart-4": "chart-4", "chart-5": "chart-5" }
+    for (const [token, label] of shown) expect(label, token).toBe(expected[token!] ?? (token === "foreground" || token!.endsWith("-foreground") ? "Foreground" : "Background"))
   })
 
-  it("pairs background and foreground side by side, enlarges swatches and sets values in the Body role", () => {
+  it("pairs background and foreground side by side, with wide rectangular swatches and values in the Body role", () => {
     const markup = html()
     // Two columns per group: each pair occupies one row; singletons (Border / Input / Ring, charts) follow in order.
     expect(markup.match(/<ul class="grid grid-cols-2 gap-x-4 gap-y-3">/g)).toHaveLength(DESIGN_SYSTEM_COLOR_GROUPS.length)
@@ -43,11 +48,13 @@ describe("WGPE-09/WBDS-05/06 Design system view (PUI-101, PUI-109)", () => {
       const pairs = group.tokens.filter(token => token.endsWith("-foreground"))
       for (const foreground of pairs) expect(group.tokens.indexOf(foreground) % 2, `${group.id} ${foreground}`).toBe(1)
     }
-    // Swatches grow from 2.5rem (size-10) to 3rem (size-12).
-    expect(markup.match(/<span aria-hidden="true" class="size-12 rounded-md border"/g)).toHaveLength(32)
-    expect(markup).not.toContain("size-10")
+    // PUI-114: wider-than-tall rectangular swatches (the item's full width at 2.5rem tall) replace the square tiles,
+    // keeping the rounded border; the specimen stacks swatch, label and value inside its own column.
+    expect(markup.match(/<span aria-hidden="true" class="h-10 w-full rounded-md border" data-testid="swatch"/g)).toHaveLength(32)
+    expect(markup).not.toMatch(/size-1[02] rounded-md border/)
+    expect(markup.match(/<li class="grid min-w-0 content-start gap-1.5" data-token=/g)).toHaveLength(32)
     // Values: Body role (no Mono) and still muted, compact and truncated.
-    expect(markup.match(/<span class="truncate text-xs text-muted-foreground" data-testid="token-value"/g)).toHaveLength(32)
+    expect(markup.match(/<span class="truncate text-xs text-muted-foreground tabular-nums" data-testid="token-value"/g)).toHaveLength(32)
     expect(code("./DesignSystemPreview.tsx")).not.toMatch(/font-mono|--font-mono/)
   })
 
@@ -66,7 +73,37 @@ describe("WGPE-09/WBDS-05/06 Design system view (PUI-101, PUI-109)", () => {
     expect(markup).not.toMatch(/data-role=|role-meta|type-heading truncate text-4xl|font-mono/)
     const typeScale = markup.slice(markup.indexOf('data-design-section="type-scale"'))
     expect(typeScale).not.toMatch(/<h3|>Heading<|>Body<|>Mono<|>Muted<|text-muted-foreground" data-role/)
-    expect(markup).toContain('data-testid="type-scale-meta">Body · ')
+    // PUI-114: no summary line beneath the heading, and the metadata is not moved elsewhere in the view.
+    expect(markup).not.toMatch(/type-scale-meta|>Body · |ui-sans-serif · /)
+    expect(typeScale).toMatch(/^data-design-section="type-scale"[^>]*><h2 [^>]*>Type scale<\/h2><ul class="grid gap-5">/)
+  })
+
+  it("maps pairs to Background / Foreground by position in the group only, never renaming a token (PUI-114)", () => {
+    const sidebar = [...SIDEBAR_COLOR_TOKENS]
+    expect(sidebar.map(token => swatchLabel(token, sidebar))).toEqual(["Background", "Foreground", "Background", "Foreground", "Background", "Foreground", "sidebar-border", "sidebar-ring"])
+    expect(["background", "foreground"].map(token => swatchLabel(token, ["background", "foreground"]))).toEqual(["Background", "Foreground"])
+    expect(["primary", "primary-foreground"].map(token => swatchLabel(token, ["primary", "primary-foreground"]))).toEqual(["Background", "Foreground"])
+    // Without its partner in the same group a token is not a pair.
+    expect(swatchLabel("primary", ["primary"])).toBe("primary")
+    expect(swatchLabel("card-foreground", ["card-foreground"])).toBe("card-foreground")
+    // The Sidebar's three shared-wording pairs stay distinguishable to assistive technology.
+    const markup = html()
+    for (const pair of ["primary", "accent"]) expect(markup.match(new RegExp(`<span class="sr-only">Sidebar ${pair} </span>`, "g")), pair).toHaveLength(2)
+    expect(markup.match(/<span class="sr-only">/g)).toHaveLength(4)
+  })
+
+  it("shows display-only uppercase HEX equivalents of canonical OKLCH values, with alpha only when translucent (PUI-114)", () => {
+    const canonical = (input: string) => { const result = normalizeColor(input); if (!result.ok) throw new Error(input); return result.value }
+    expect(displayHex(canonical("#1a73e8"))).toBe("#1A73E8")
+    expect(displayHex(canonical("#ffffff"))).toBe("#FFFFFF")
+    expect(displayHex(canonical("#000000"))).toBe("#000000")
+    expect(displayHex(canonical("rgb(255 255 255 / 0.1)"))).toBe("#FFFFFF1A")
+    expect(displayHex("")).toBe("—")
+    expect(displayHex("var(--background)")).toBe("—")
+    // The unrendered default has no resolved values: every specimen shows the placeholder, never OKLCH text.
+    const markup = html()
+    expect(markup.match(/data-testid="token-value" data-resolved="">—</g)).toHaveLength(32)
+    expect(markup).not.toMatch(/oklch\(/)
   })
 
   it("lays Colors and Type scale out as flat padded sections, side by side only when the view's container is wide", () => {
@@ -86,8 +123,9 @@ describe("WGPE-09/WBDS-05/06 Design system view (PUI-101, PUI-109)", () => {
     const source = code("./DesignSystemPreview.tsx")
     expect(source).not.toMatch(/<input|<button|<Button|<Input|<Slider|<Switch|<Select|onChange|onClick|ThemeOperation|applyManual|setColor|themeSchema|previewVariablesCss|renderShadcnTailwindCss|localStorage|postMessage|fetch\(/)
     expect(source).not.toMatch(/import type \{[^}]*\bTheme\b/)
-    expect(source).toContain("getComputedStyle(root)")
-    expect(source).toContain('document.getElementById("workbench-theme")')
+    // Values are the computed custom properties of the live preview document (aliases substituted), never a copy.
+    expect(source).toContain("getComputedStyle(document.documentElement)")
+    expect(source).toContain("computed.getPropertyValue(name)")
     expect(source).toContain('observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })')
     expect(source).not.toMatch(rawColour)
     const frame = code("./PreviewFrame.tsx")

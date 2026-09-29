@@ -417,25 +417,30 @@ test.describe("WGPE-09 Design system view (PUI-101; superseded layout per PUI-10
       // PUI-109 (workbench-bitcoin-designsystem-shells-v1-001): Type scale replaces Typography, and Colors mirrors the
       // Workbench sidebar's groups.
       await expect(panel.getByRole("heading", { level: 2 })).toHaveText(["Colors", "Type scale"])
-      await expect(panel.getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar · base aliases"])
+      await expect(panel.getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"])
       const swatch = (name: string) => panel.locator(`[data-token="${name}"]`)
       await expect(panel.locator("[data-token]")).toHaveCount(32)
-      // Values are what the iframe CSS resolves to right now, and the swatch paints the same token.
+      // Values are what the iframe CSS resolves to right now (shown as HEX since PUI-114, the resolved value kept as
+      // data), and the swatch paints the same token.
       for (const name of ["background", "primary", "border", "chart-2"]) {
-        await expect(swatch(name).getByTestId("token-value")).toHaveText(await property(frame, `--${name}`))
+        await expect(swatch(name).getByTestId("token-value")).toHaveAttribute("data-resolved", await property(frame, `--${name}`))
+        await expect(swatch(name).getByTestId("token-value")).toHaveText(/^#[0-9A-F]{6}([0-9A-F]{2})?$/)
         expect(await swatch(name).locator("span").first().evaluate(el => getComputedStyle(el).backgroundColor)).toBe(await frame.locator("html").evaluate((_, n) => { const p = document.createElement("span"); p.style.backgroundColor = `var(--${n})`; document.body.append(p); const c = getComputedStyle(p).backgroundColor; p.remove(); return c }, name))
       }
-      // Sidebar OFF: each Sidebar token shows its base alias and the alias's rendered value.
-      await expect(swatch("sidebar").getByTestId("sidebar-alias")).toHaveText("= background")
-      await expect(swatch("sidebar").getByTestId("token-value")).toHaveText(await property(frame, "--background"))
-      await expect(swatch("sidebar-ring").getByTestId("sidebar-alias")).toHaveText("= ring")
+      // Sidebar OFF: each Sidebar token shows its base alias's rendered value; PUI-114 removes the alias annotations.
+      await expect(panel.getByTestId("sidebar-alias")).toHaveCount(0)
+      await expect(swatch("sidebar").getByTestId("token-value")).toHaveAttribute("data-resolved", await property(frame, "--background"))
+      await expect(swatch("sidebar").getByTestId("token-value")).toHaveText((await swatch("background").getByTestId("token-value").textContent())!)
+      await expect(swatch("sidebar-ring").getByTestId("token-value")).toHaveAttribute("data-resolved", await property(frame, "--ring"))
+      await expect(swatch("sidebar-ring").getByTestId("token-value")).toHaveText((await swatch("ring").getByTestId("token-value").textContent())!)
       // A sidebar colour edit (live Workbench control) updates the view immediately.
       await editorCategory(page, "Colors")
       await colorInput(page, "primary").fill(EDITS[mode].primary)
       await colorInput(page, "primary").press("Enter")
       await workspaceMode(page, "Preview")
-      await expect(swatch("primary").getByTestId("token-value")).toHaveText(EDITS[mode].primary)
-      await expect(swatch("sidebar-primary").getByTestId("token-value")).toHaveText(EDITS[mode].primary)
+      await expect(swatch("primary").getByTestId("token-value")).toHaveAttribute("data-resolved", EDITS[mode].primary)
+      await expect(swatch("sidebar-primary").getByTestId("token-value")).toHaveAttribute("data-resolved", EDITS[mode].primary)
+      await expect(swatch("sidebar-primary").getByTestId("token-value")).toHaveText((await swatch("primary").getByTestId("token-value").textContent())!)
       // Sidebar ON: dedicated values, reflected immediately, and dedicated edits show through.
       const { toggle } = await sidebarSwitch(page)
       await toggle.click()
@@ -443,11 +448,12 @@ test.describe("WGPE-09 Design system view (PUI-101; superseded layout per PUI-10
       await colorInput(page, "sidebar").fill(EDITS[mode].sidebar)
       await colorInput(page, "sidebar").press("Enter")
       await workspaceMode(page, "Preview")
-      await expect(panel.getByRole("heading", { name: "Sidebar · dedicated", level: 3 })).toBeVisible()
-      await expect(swatch("sidebar").getByTestId("sidebar-alias")).toHaveCount(0)
-      await expect(swatch("sidebar").getByTestId("token-value")).toHaveText(EDITS[mode].sidebar)
+      await expect(panel.getByRole("heading", { name: "Sidebar", exact: true, level: 3 })).toBeVisible()
+      await expect(panel.getByTestId("sidebar-alias")).toHaveCount(0)
+      await expect(swatch("sidebar").getByTestId("token-value")).toHaveAttribute("data-resolved", EDITS[mode].sidebar)
+      await expect(swatch("sidebar").getByTestId("token-value")).toHaveText(/^#[0-9A-F]{6}$/)
       // Type scale: every specimen uses the live Body role (family, weight, tracking), the class labels are muted, and a
-      // Body font edit updates the specimens and the Body line immediately.
+      // Body font edit updates the specimens immediately. PUI-114 removes the Body summary line beneath the heading.
       // Letter spacing is em-based, so it is compared as the rendered Body tracking property rather than in pixels.
       const bodyStyle = () => frame.locator("body").evaluate(el => { const c = getComputedStyle(el); return [c.fontFamily, c.fontWeight] })
       const specimen = panel.locator('[data-type-size="text-base"] > span').last()
@@ -455,7 +461,7 @@ test.describe("WGPE-09 Design system view (PUI-101; superseded layout per PUI-10
       expect(await specimenStyle()).toEqual(await bodyStyle())
       expect(await specimen.evaluate(el => getComputedStyle(el).letterSpacing)).toBe(await specimen.evaluate(el => { const probe = document.createElement("span"); probe.style.letterSpacing = "var(--tracking-body)"; el.append(probe); const value = getComputedStyle(probe).letterSpacing; probe.remove(); return value }))
       expect(await css(panel.locator('[data-type-size="text-5xl"] > span').first(), "color")).toBe(await token(frame, "muted-foreground"))
-      await expect(panel.getByTestId("type-scale-meta")).toContainText(await property(frame, "--font-weight-body"))
+      await expect(panel.getByTestId("type-scale-meta")).toHaveCount(0)
       await editorCategory(page, "Typography")
       await page.getByRole("combobox", { name: "Body Font", exact: true }).click()
       await page.getByRole("combobox", { name: "Search Body fonts", exact: true }).fill("Manrope")
@@ -463,12 +469,13 @@ test.describe("WGPE-09 Design system view (PUI-101; superseded layout per PUI-10
       await workspaceMode(page, "Preview")
       await expect.poll(() => css(specimen, "font-family")).toContain("Manrope")
       expect(await specimenStyle()).toEqual(await bodyStyle())
-      await expect(panel.getByTestId("type-scale-meta")).toContainText("Manrope")
+      await expect(panel.getByTestId("type-scale-meta")).toHaveCount(0)
+      await expect(panel).not.toContainText("Manrope")
       // The light/dark switch updates the reported values without any other state.
       const background = await swatch("background").getByTestId("token-value").innerText()
       await setColorMode(page, mode === "light" ? "dark" : "light")
       await expect(swatch("background").getByTestId("token-value")).not.toHaveText(background)
-      await expect(swatch("background").getByTestId("token-value")).toHaveText(await property(frame, "--background"))
+      await expect(swatch("background").getByTestId("token-value")).toHaveAttribute("data-resolved", await property(frame, "--background"))
       await setColorMode(page, mode)
       expect(await overflowing(frame)).toEqual([])
       await axe(page, info, `design-system-${mode}`)
