@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-29T20:04:31.911Z",
+  "issue": {
+    "id": "PUI-131",
+    "uuid": "857efe40-2380-49cc-aa9f-2c3fa6ddc032",
+    "title": "Reduce Design system color group headings to text-sm",
+    "description": "Apply a small typography correction to the Design system → Colors preview.\n\n## Context\n\n<issue id=\"7d6f37e2-3db4-4a1f-a06e-a980b219a0eb\" href=\"https://linear.app/emman-systems/issue/PUI-126/refine-design-system-group-and-token-label-hierarchy\">PUI-126</issue> intentionally strengthened the semantic color group headings such as PRIMARY, SECONDARY, ACCENT, BASE, CARD, POPOVER, MUTED, DESTRUCTIVE, BORDER / INPUT / RING, CHARTS, and SIDEBAR.\n\nThe uppercase treatment and hierarchy are correct, but the current heading size is visually too large.\n\n## Change\n\nReduce only the semantic color group heading font size back to:\n\n`text-sm`\n\n## Preserve\n\nKeep everything else from the accepted <issue id=\"7d6f37e2-3db4-4a1f-a06e-a980b219a0eb\" href=\"https://linear.app/emman-systems/issue/PUI-126/refine-design-system-group-and-token-label-hierarchy\">PUI-126</issue> hierarchy unchanged:\n\n* group headings remain uppercase;\n* group headings continue using the base foreground semantic color;\n* token labels remain normal title case;\n* token labels retain their current smaller supporting size;\n* HEX values remain unchanged and visually secondary;\n* swatch dimensions remain unchanged;\n* token grouping/order remains unchanged;\n* two-column layout remains unchanged;\n* current spacing and section structure remain unchanged unless a tiny adjustment is strictly required by the size change.\n\n## Do not change\n\nDo not modify:\n\n* section heading sizes such as Colors / Type scale;\n* token display-label wording;\n* Sidebar display-label mapping;\n* actual token keys;\n* CSS variables;\n* Theme v3;\n* aliases;\n* import/export;\n* persistence/history;\n* Design Command;\n* mutation operations;\n* public registry;\n* dependencies or network behavior.\n\n## Acceptance\n\n* Semantic color group headings render at `text-sm`.\n* Group headings remain uppercase.\n* Group headings continue using base foreground.\n* Token labels remain title case and unchanged in size.\n* HEX values remain unchanged.\n* Swatches, layout, mappings, Theme v3, persistence, Design Command, mutation boundaries, and registry remain unchanged.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-131/reduce-design-system-color-group-headings-to-text-sm",
+    "gitBranchName": "emmantalob/pui-131-reduce-design-system-color-group-headings-to-text-sm",
+    "createdAt": "2026-09-29T19:58:32.036Z",
+    "updatedAt": "2026-09-29T19:58:32.036Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T19:58:32.036Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-126",
+          "title": "Refine Design system group and token label hierarchy"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachments": [],
+  "references": {
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-126",
+          "title": "Refine Design system group and token label hierarchy"
+        }
+      ],
+      "duplicateOf": null
+    },
+    "documents": [],
+    "descriptionLinks": [
+      "https://linear.app/emman-systems/issue/PUI-126/refine-design-system-group-and-token-label-hierarchy",
+      "https://linear.app/emman-systems/issue/PUI-126/refine-design-system-group-and-token-label-hierarchy"
+    ]
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-29T20:04:31.901Z",
+  "issue": {
+    "id": "PUI-129",
+    "uuid": "d5906f93-2fff-4b8b-bef0-d801319fba50",
+    "title": "Use border token for tactile TabsList ring",
+    "description": "Refine the accepted Tactile treatment for surface-style Tabs so the decorative TabsList ring uses the semantic border token rather than the semantic focus ring token.\n\n## Context\n\nThe current accepted Tactile Tabs treatment from <issue id=\"a39a8708-c195-4204-aea7-97a4fd2bb2cb\" href=\"https://linear.app/emman-systems/issue/PUI-124/simplify-tactile-tabs-effect-to-a-fixed-tabslist-ring\">PUI-124</issue> is:\n\n`ring-1 ring-ring/20`\n\non the `TabsList` container.\n\nThat works mechanically, but the `ring` token is a focus/interaction semantic and may legitimately be chromatic in a theme, such as orange, blue, purple, or another accent color.\n\nFor this decorative container edge, that can make the TabsList look like a focus state or brand-accent treatment rather than a restrained tactile surface.\n\nThe `border` token is a safer semantic fit because it is intended for structural separation and remains more consistently subtle across themes.\n\n## Change\n\nWhen UI Effects = Tactile, surface-style Tabs should use:\n\n`ring-1 ring-border/80`\n\non the `TabsList` container.\n\nThis replaces:\n\n`ring-1 ring-ring/20`\n\n## Semantic intent\n\nThe TabsList ring is:\n\n* decorative;\n* structural;\n* part of the tactile surface treatment;\n* not a focus indicator.\n\nTherefore:\n\n* use the semantic `border` token for the decorative TabsList ring;\n* keep actual focus-visible treatments using the semantic `ring` token as currently accepted.\n\nDo not globally replace `ring` with `border`.\n\n## Preserve accepted UI Effects behavior\n\n### Effect = Off\n\n* Secondary Buttons remain flat.\n* Surface-style Tabs use normal/default shadcn appearance.\n* No extra TabsList ring.\n* Strength remains disabled/de-emphasized.\n\n### Effect = Tactile\n\n* Secondary Buttons keep the existing Strength-controlled tactile treatment.\n* Surface-style Tabs keep normal/default shadcn selected trigger styling.\n* TabsList gets exactly:\n  * `ring-1 ring-border/80`\n* Tabs remain unaffected by Strength.\n\nLine/minimal Tabs remain excluded.\n\n## Scope\n\nApply only to the decorative Tactile ring on accepted surface-style `TabsList` containers.\n\nDo not change:\n\n* focus-visible ring semantics;\n* Button tactile treatment;\n* Strength mapping;\n* TabsTrigger selected styling;\n* tab sizing/layout;\n* Theme v3 schema;\n* UI Effects persisted state;\n* history/reset;\n* import/export;\n* Design Command;\n* mutation operations;\n* public registry.\n\nNo new dependency, network behavior, or component API change.\n\n## Verification\n\nVerify at minimum:\n\n* Tactile surface Tabs use `ring-1 ring-border/80`;\n* Off removes the extra ring entirely;\n* changing Strength does not alter Tabs;\n* chromatic theme `ring` values no longer tint the decorative TabsList outline;\n* actual focus-visible treatments still use the semantic `ring` token;\n* light/dark modes remain coherent;\n* Amber Dusk renders the TabsList edge as a restrained structural outline;\n* no regression to keyboard navigation, focus visibility, selected-state semantics, or responsive layout.\n\n## Acceptance\n\n* Decorative Tactile TabsList ring uses `border`, not `ring`, as its color semantic.\n* Final class treatment is `ring-1 ring-border/80` or the exact accepted equivalent if source architecture requires equivalent composition.\n* Actual focus indicators continue using the theme's `ring` token.\n* Tabs remain unaffected by Strength.\n* Off/Tactile behavior otherwise remains unchanged.\n* No Theme v3, schema, persistence, Design Command, mutation, registry, dependency, network, or public API regression is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-129/use-border-token-for-tactile-tabslist-ring",
+    "gitBranchName": "emmantalob/pui-129-use-border-token-for-tactile-tabslist-ring",
+    "createdAt": "2026-09-29T19:50:11.407Z",
+    "updatedAt": "2026-09-29T19:58:17.746Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-29T19:50:11.407Z",
+        "endedAt": "2026-09-29T19:58:17.737Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-29T19:58:17.737Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-124",
+          "title": "Simplify tactile Tabs effect to a fixed TabsList ring"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachments": [],
+  "references": {
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-124",
+          "title": "Simplify tactile Tabs effect to a fixed TabsList ring"
+        }
+      ],
+      "duplicateOf": null
+    },
+    "documents": [],
+    "descriptionLinks": [
+      "https://linear.app/emman-systems/issue/PUI-124/simplify-tactile-tabs-effect-to-a-fixed-tabslist-ring"
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "loop-linear-snapshot-manifest/1",
+  "phase": "tactile-border-designsystem-type-v1-001",
+  "createdAtUtc": "2026-09-29T20:04:47.350Z",
+  "tickets": {
+    "PUI-129": {
+      "uuid": "d5906f93-2fff-4b8b-bef0-d801319fba50",
+      "title": "Use border token for tactile TabsList ring",
+      "updatedAt": "2026-09-29T19:58:17.746Z",
+      "retrievedAtUtc": "2026-09-29T20:04:31.901Z",
+      "sha256": "339f5b9da279da8bd7ba2745f90122e28437f1a1548ca82d0f0fa5e93ef27ae7",
+      "descriptionSha256": "a787dc6462900fe0c987817ce63a1eb967a8f5089aeb94ccdb421cb38fabc0f7",
+      "commentsCount": 0,
+      "attachmentsCount": 0
+    },
+    "PUI-131": {
+      "uuid": "857efe40-2380-49cc-aa9f-2c3fa6ddc032",
+      "title": "Reduce Design system color group headings to text-sm",
+      "updatedAt": "2026-09-29T19:58:32.036Z",
+      "retrievedAtUtc": "2026-09-29T20:04:31.911Z",
+      "sha256": "e595d06991bdbc44b97e8447b08e18f7c3f3157d44567a5f43878bee0de2b7c1",
+      "descriptionSha256": "0a5afeeb6430e6cb47990b3ccee41abada5974d27b78b8add7800b8dc51b006c",
+      "commentsCount": 0,
+      "attachmentsCount": 0
+    }
+  }
+}
