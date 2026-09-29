@@ -548,7 +548,8 @@ test.describe("WGPE-10 App shells view (PUI-102; standardized per PUI-110)", () 
       await expect.poll(() => css(sidebar, "background-color")).toBe(await token(frame, "sidebar"))
       expect(await css(sidebar, "background-color")).not.toBe(await token(frame, "background"))
       await expect(classic.locator('[data-active="true"]')).toHaveCSS("background-color", await token(frame, "sidebar-accent"))
-      await expect(shells.nth(1).locator(":scope > div > div").first()).toHaveCSS("background-color", await token(frame, "sidebar"))
+      // PUI-127 (ADSR-05): the Inset project's sidebar and connected outer body are the semantic muted surface.
+      await expect(shells.nth(1).locator(":scope > div > div").first()).toHaveCSS("background-color", await token(frame, "muted"))
       // Radius and typography follow the theme live.
       const radius = await css(classic.locator('[data-active="true"]'), "border-top-left-radius")
       await editorCategory(page, "Geometry")

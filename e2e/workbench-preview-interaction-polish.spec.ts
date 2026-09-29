@@ -213,10 +213,12 @@ test.describe("WPIP-07 independently collapsible, contained App shells (PUI-116)
     const shells = frame.locator("[data-app-shell]")
     for (const index of [0, 1, 2]) {
       const frameBox = await box(shells.nth(index).locator(":scope > div"))
-      // The accepted frame was 27rem (432px) tall; the increase is moderate, not a redesign.
-      expect(frameBox.height).toBeGreaterThan(432 + 24)
-      expect(frameBox.height).toBeLessThanOrEqual(512)
+      // The accepted frame was 27rem (432px), then 30rem (480px). PUI-127 scales it with the ~90% width to a
+      // believable landscape app window, bounded at 44rem (704px).
+      expect(frameBox.height).toBeGreaterThan(480 + 24)
+      expect(frameBox.height).toBeLessThanOrEqual(704)
       expect(frameBox.width / frameBox.height).toBeGreaterThan(1.3)
+      expect(frameBox.width / frameBox.height).toBeLessThan(2)
     }
     await frame.getByRole("button", { name: "Toggle Inset project sidebar", exact: true }).click()
     const root = frame.locator("[data-app-shells]")
@@ -395,7 +397,7 @@ const bytes = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 
 
 test.describe("WPIP-05 Design system labels, HEX and swatches (PUI-114)", () => {
   for (const mode of ["light", "dark"] as const) {
-    test(`Contextual labels, HEX values, rectangular swatches, title-case Sidebar heading and no Type scale summary (${mode})`, async ({ page }, info) => {
+    test(`Contextual labels, HEX values, rectangular swatches, uppercase Sidebar heading and no Type scale summary (${mode})`, async ({ page }, info) => {
       test.setTimeout(120_000)
       await open(page)
       await setColorMode(page, mode)
@@ -405,8 +407,8 @@ test.describe("WPIP-05 Design system labels, HEX and swatches (PUI-114)", () => 
       const swatch = (name: string) => panel.locator(`[data-token="${name}"]`)
       const value = (name: string) => swatch(name).getByTestId("token-value")
       await expect(panel.locator("[data-token]")).toHaveCount(32)
-      // Labels: display only; unpaired tokens keep their key.
-      for (const [token, label] of [["primary", "Background"], ["primary-foreground", "Foreground"], ["background", "Background"], ["foreground", "Foreground"], ["destructive", "Background"], ["destructive-foreground", "Foreground"], ["sidebar", "Background"], ["sidebar-accent-foreground", "Foreground"], ["border", "border"], ["chart-3", "chart-3"], ["sidebar-ring", "Sidebar Ring"]] as const) {
+      // Labels: display only; unpaired tokens keep their key, shown in title case (PUI-126).
+      for (const [token, label] of [["primary", "Background"], ["primary-foreground", "Foreground"], ["background", "Background"], ["foreground", "Foreground"], ["destructive", "Background"], ["destructive-foreground", "Foreground"], ["sidebar", "Background"], ["sidebar-accent-foreground", "Foreground"], ["border", "Border"], ["chart-3", "Chart-3"], ["sidebar-ring", "Sidebar Ring"]] as const) {
         await expect(swatch(token).getByTestId("token-label")).toHaveText(new RegExp(`${label}$`))
       }
       await expect(swatch("sidebar-primary").getByTestId("token-label")).toHaveText("Primary Background")
@@ -427,9 +429,11 @@ test.describe("WPIP-05 Design system labels, HEX and swatches (PUI-114)", () => 
         expect(shape.radius).toBeGreaterThan(0)
         expect(shape.border).toBe("1px")
       }
-      // PUI-122: title-case group headings; no alias annotations or Type scale summary line.
+      // PUI-126: group headings keep their plain title text and render uppercase; no alias annotations or Type scale
+      // summary line.
       const sidebarHeading = panel.getByRole("heading", { name: "Sidebar", exact: true, level: 3 })
-      expect(await sidebarHeading.innerText()).toBe("Sidebar")
+      expect(await sidebarHeading.textContent()).toBe("Sidebar")
+      expect(await sidebarHeading.innerText()).toBe("SIDEBAR")
       await expect(panel.getByText(/base aliases|dedicated|^= /)).toHaveCount(0)
       const scale = panel.locator('[data-design-section="type-scale"]')
       await expect(scale.locator("[data-type-size]")).toHaveCount(9)

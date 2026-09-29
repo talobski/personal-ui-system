@@ -15,7 +15,7 @@ const USAGE = [
  * PUI-103: the title leads straight into the usage figure (no plan subtitle), and the breakdown reads as colours and
  * names only, with no per-category values.
  * PUI-120: one inert Secondary "Manage storage" Button below the breakdown, a natural specimen for UI Effects. It has no
- * workflow, state, navigation, or network behaviour.
+ * workflow, state, navigation, or network behaviour. PUI-128: it spans the content's full inner width at its own height.
  */
 export function PlanUsage() {
   const used = USAGE.reduce((sum, item) => sum + item.gigabytes, 0)
@@ -40,7 +40,7 @@ export function PlanUsage() {
             </li>
           ))}
         </ul>
-        <Button variant="secondary" type="button" className="justify-self-start cursor-pointer">Manage storage</Button>
+        <Button variant="secondary" type="button" className="w-full cursor-pointer">Manage storage</Button>
       </CardContent>
     </Card>
   )

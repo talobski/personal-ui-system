@@ -7,7 +7,7 @@ import { BASE_COLOR_TOKENS, normalizeColor, SIDEBAR_COLOR_TOKENS } from "@person
 import { AppShells } from "@personal-ui/ui/compositions/app-shells"
 
 import { COLOR_GROUPS } from "./controls"
-import { DESIGN_SYSTEM_COLOR_GROUPS, DesignSystemPreview, displayHex, swatchLabel, TYPE_SCALE, TYPE_SCALE_SAMPLE } from "./DesignSystemPreview"
+import { DESIGN_SYSTEM_COLOR_GROUPS, DesignSystemPreview, displayHex, swatchLabel, titleCaseLabel, TYPE_SCALE, TYPE_SCALE_SAMPLE } from "./DesignSystemPreview"
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8")
 /** Source without comments, so explanatory prose is not mistaken for an implementation. */
@@ -29,17 +29,17 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
     expect(tokens).toEqual(grouped)
     // Swatches paint from the live custom property of the same semantic name, never a copied value.
     for (const token of tokens) expect(markup).toContain(`style="background:var(--${token})"`)
-    // PUI-114: every group, Sidebar included, is headed by its plain title with no source suffix. PUI-122: title case
-    // (no uppercase transform), base foreground, one step larger (text-sm) than the supporting labels.
+    // PUI-114: every group, Sidebar included, is headed by its plain title with no source suffix. PUI-126 (ADSR-05):
+    // uppercase, one step larger than PUI-122's text-sm (text-base), base foreground.
     const labels = DESIGN_SYSTEM_COLOR_GROUPS.map(group => group.title.replace("&", "&amp;"))
     expect(Array.from(markup.matchAll(/<h3 [^>]*>([^<]+)<\/h3>/g), match => match[1])).toEqual(labels)
-    expect(Array.from(markup.matchAll(/<h3 [^>]*class="([^"]+)"/g), match => match[1])).toEqual(Array(labels.length).fill("text-sm font-medium text-foreground"))
+    expect(Array.from(markup.matchAll(/<h3 [^>]*class="([^"]+)"/g), match => match[1])).toEqual(Array(labels.length).fill("text-base font-medium text-foreground uppercase"))
     expect(markup).not.toMatch(/base aliases|dedicated|sidebar-alias|= (background|foreground|primary|accent|border|ring)/)
     // Local display labels: each pair reads Background / Foreground, unpaired tokens keep their key; PUI-122 names the
-    // Sidebar pairs by role and its border/ring as Sidebar Border / Sidebar Ring.
+    // Sidebar pairs by role and its border/ring as Sidebar Border / Sidebar Ring. PUI-126: shown in title case.
     const shown = Array.from(markup.matchAll(/data-token="([a-z0-9-]+)"[\s\S]*?data-testid="token-label">([^<]+)</g), match => [match[1], match[2]])
     expect(shown).toHaveLength(32)
-    const expected: Record<string, string> = { border: "border", input: "input", ring: "ring", "sidebar-primary": "Primary Background", "sidebar-primary-foreground": "Primary Foreground", "sidebar-accent": "Accent Background", "sidebar-accent-foreground": "Accent Foreground", "sidebar-border": "Sidebar Border", "sidebar-ring": "Sidebar Ring", "chart-1": "chart-1", "chart-2": "chart-2", "chart-3": "chart-3", "chart-4": "chart-4", "chart-5": "chart-5" }
+    const expected: Record<string, string> = { border: "Border", input: "Input", ring: "Ring", "sidebar-primary": "Primary Background", "sidebar-primary-foreground": "Primary Foreground", "sidebar-accent": "Accent Background", "sidebar-accent-foreground": "Accent Foreground", "sidebar-border": "Sidebar Border", "sidebar-ring": "Sidebar Ring", "chart-1": "Chart-1", "chart-2": "Chart-2", "chart-3": "Chart-3", "chart-4": "Chart-4", "chart-5": "Chart-5" }
     for (const [token, label] of shown) expect(label, token).toBe(expected[token!] ?? (token === "foreground" || token!.endsWith("-foreground") ? "Foreground" : "Background"))
   })
 
@@ -58,8 +58,9 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
     expect(markup.match(/<li class="grid min-w-0 content-start gap-1.5" data-token=/g)).toHaveLength(32)
     // Values: Body role (no Mono) and still muted, compact and truncated.
     expect(markup.match(/<span class="truncate text-xs text-muted-foreground tabular-nums" data-testid="token-value"/g)).toHaveLength(32)
-    // PUI-122 labels: the HEX size, uppercase, normal weight, base foreground.
-    expect(markup.match(/<span class="truncate text-xs font-normal text-foreground uppercase" data-testid="token-label">/g)).toHaveLength(32)
+    // PUI-126 labels: the HEX size (unchanged), title case with no uppercase transform, normal weight, base foreground.
+    expect(markup.match(/<span class="truncate text-xs font-normal text-foreground" data-testid="token-label">/g)).toHaveLength(32)
+    expect(markup).not.toMatch(/data-testid="token-label"[^>]*uppercase|uppercase[^"]*" data-testid="token-label"/)
     // Groups sit slightly further apart (gap-7) than a group's heading and pairs (gap-3, gap-y-3).
     expect(markup).toContain('<div class="grid min-w-0 gap-7" data-testid="color-groups">')
     expect(markup.match(/<section aria-labelledby="[^"]+" class="grid gap-3">/g)).toHaveLength(DESIGN_SYSTEM_COLOR_GROUPS.length)
@@ -97,6 +98,8 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
     // Without its partner in the same group a token is not a pair.
     expect(swatchLabel("primary", ["primary"])).toBe("primary")
     expect(swatchLabel("card-foreground", ["card-foreground"])).toBe("card-foreground")
+    // PUI-126 casing is display-only and changes nothing but letter case.
+    expect(["border", "chart-1", "Primary Background", "Sidebar Ring", "Background"].map(titleCaseLabel)).toEqual(["Border", "Chart-1", "Primary Background", "Sidebar Ring", "Background"])
     // The contextual Sidebar labels are distinguishable on their own, so no duplicate screen-reader qualifier remains.
     const markup = html()
     expect(markup).not.toContain('<span class="sr-only">')
@@ -167,14 +170,16 @@ describe("WGPE-10/WBDS-07 App shells view (PUI-102, PUI-110)", () => {
     expect(source().match(/<Sidebar\s+collapsible="none"/g)).toHaveLength(1)
     expect(source()).not.toMatch(/SidebarRail|<SidebarInset|useSidebar|collapsible="(icon|offcanvas)"/)
     expect(source().match(/<SidebarProvider /g)).toHaveLength(1)
-    expect(source()).toContain('<SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-120 min-h-0 min-w-0 overflow-hidden rounded-xl border shadow-sm"')
+    expect(source()).toContain('<SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-[clamp(30rem,58cqw,44rem)] min-h-0 min-w-0 overflow-hidden rounded-xl border shadow-sm"')
     // PUI-110: one vertical sequence (no side-by-side columns), each shell narrower than the panel once it is wide,
-    // centred, with one shared landscape height, moderately taller than the accepted h-108 (PUI-116).
+    // centred, with one shared landscape height. PUI-127 (ADSR-05): about 90% of a wide panel, with a height
+    // proportional to the container width between the accepted 30rem (h-120) floor and 44rem.
     expect(source()).toContain('<div data-app-shells className="@container min-h-0 min-w-0">')
     expect(source()).toContain('<div className="grid min-w-0 gap-8">')
     expect(source()).not.toMatch(/grid-cols-2|col-span|@3xl:grid-cols/)
-    expect(source()).toContain('className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[72%]"')
-    expect(markup.match(/data-slot="sidebar-wrapper"[^>]*class="[^"]*\bh-120\b[^"]*"/g)).toHaveLength(3)
+    expect(source()).toContain('className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[90%]"')
+    expect(markup.match(/data-slot="sidebar-wrapper"[^>]*class="[^"]*\bh-\[clamp\(30rem,58cqw,44rem\)\][^"]*"/g)).toHaveLength(3)
+    expect(source()).not.toContain("w-[72%]")
     expect(markup).not.toContain("h-108")
   })
 
@@ -224,7 +229,7 @@ describe("WGPE-10/WBDS-07 App shells view (PUI-102, PUI-110)", () => {
       expect(one, title).toMatch(new RegExp(`data-shell-header="true"><span class="truncate text-muted-foreground">${workspace}</span><span aria-hidden="true" class="text-muted-foreground">/</span><span class="truncate font-medium">${page}</span>`))
       const content = one.slice(one.indexOf("data-shell-content"))
       expect(content.match(/rounded-lg bg-muted"/g), title).toHaveLength(4)
-      expect(content.match(/h-16 rounded-lg bg-muted"/g), title).toHaveLength(3)
+      expect(content.match(new RegExp(`${title === "Compact utility" ? "h-16" : "h-24"} rounded-lg bg-muted"`, "g")), title).toHaveLength(3)
     }
     // Only the three switchers, the navigation and (PUI-116) one SidebarTrigger per shell are interactive; main areas
     // are abstract.
@@ -238,6 +243,21 @@ describe("WGPE-10/WBDS-07 App shells view (PUI-102, PUI-110)", () => {
     for (const module of ["../components/sidebar", "../components/select", "../components/avatar"]) expect(source()).toContain(`from "${module}"`)
     for (const token of ["bg-sidebar", "border-sidebar-border", "bg-sidebar-primary", "text-sidebar-primary-foreground", "hover:bg-sidebar-accent", "bg-background", "bg-muted", "text-muted-foreground", "type-heading", "shadow-sm", "rounded-"]) expect(source()).toContain(token)
     expect(source()).not.toMatch(/fetch\(|https?:\/\/|localStorage|sessionStorage|addEventListener|setTimeout|setInterval/)
+    // PUI-127: only Inset sets its sidebar and connected body on muted, with the restrained shadow-2xs inset panel.
+    const markup = html()
+    const inset = shell(markup, "Inset project")
+    expect(inset).toMatch(/data-slot="sidebar"[^>]*class="[^"]*\bbg-muted\b/)
+    expect(inset).toMatch(/<div class="flex h-full min-w-0 gap-2 bg-muted p-2" data-shell-body="true">/)
+    expect(inset).toMatch(/<div class="flex min-w-0 flex-1 rounded-lg border bg-background shadow-2xs" data-shell-inset="true">/)
+    expect(inset).not.toMatch(/shadow-sm" data-shell-inset|bg-sidebar p-2/)
+    for (const title of ["Classic workspace", "Compact utility"]) {
+      const one = shell(markup, title)
+      expect(one, title).not.toMatch(/data-shell-body|data-shell-inset|data-slot="sidebar"[^>]*class="[^"]*\bbg-muted\b/)
+      expect(one, title).toMatch(/data-slot="sidebar"[^>]*class="[^"]*border-r border-sidebar-border/)
+    }
+    // Desktop-app chrome: the main header matches the h-16 Sidebar header (h-12 compact) with a px-4 inset.
+    expect(source()).toContain('density === "compact" ? "h-12 px-3" : "h-16 px-4"')
+    expect(source()).toContain('classic: "clamp(10rem, 30%, 16rem)", inset: "clamp(10rem, 30%, 16rem)", compact: "clamp(9rem, 26%, 13.5rem)"')
     // Distinct treatments without separate sidebar architectures: one Shell renders all three.
     expect(source().match(/function Shell\(/g)).toHaveLength(1)
     expect(source().match(/<Shell /g)).toHaveLength(3)

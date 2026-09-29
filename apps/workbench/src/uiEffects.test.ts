@@ -212,7 +212,7 @@ describe("TUE-05/06/08 surface wiring", () => {
   it("IESP-07 section triggers, Manage storage and the social Buttons are plain Secondary Buttons with no local recipe", () => {
     const planUsage = readFileSync(new URL("../../../packages/ui/src/compositions/plan-usage.tsx", import.meta.url), "utf8")
     const signup = readFileSync(new URL("../../../packages/ui/src/compositions/signup-form.tsx", import.meta.url), "utf8")
-    expect(planUsage.match(/<Button [^>]*>Manage storage<\/Button>/g)).toEqual(['<Button variant="secondary" type="button" className="justify-self-start cursor-pointer">Manage storage</Button>'])
+    expect(planUsage.match(/<Button [^>]*>Manage storage<\/Button>/g)).toEqual(['<Button variant="secondary" type="button" className="w-full cursor-pointer">Manage storage</Button>'])
     expect(planUsage).not.toMatch(/onClick|href|useState|fetch\(|navigate/)
     expect(signup).toContain('<Button key={provider.name} variant="secondary" type="button" className="cursor-pointer">')
     expect(signup).not.toMatch(/variant="outline"|fetch\(|https?:\/\/|oauth|signIn\(/i)

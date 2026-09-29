@@ -44,7 +44,8 @@ export const chatRuns = (thread: readonly Turn[]): Run[] => thread.reduce<Run[]>
  * full-height column: the thread expands to fill any height the card is given (its stretched pair), so the composer
  * stays on the card's bottom edge. The composer is one input-styled field holding the borderless Input and, at its far
  * right, an enabled filled semantic-primary icon-only send Button with an accessible name. Sending is a no-op: nothing
- * is sent, inserted or stored, so the card never changes height.
+ * is sent, inserted or stored, so the card never changes height. PUI-128: the send Button is a fixed local circle
+ * (`rounded-full`), a deliberate exception to theme radius; the composer field keeps following the theme radius.
  */
 export function TeamChat() {
   const inputId = useId()
@@ -74,7 +75,7 @@ export function TeamChat() {
           <div data-slot="chat-composer" className="flex h-9 min-w-0 items-center gap-2 rounded-md border border-input pr-0.5 pl-3 shadow-xs transition-[color,box-shadow] has-[input:focus-visible]:border-ring has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50 dark:bg-input/30">
             <Input id={inputId} name="message" autoComplete="off" placeholder="Type your message..."
               className="h-auto min-w-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent" />
-            <Button type="submit" size="icon-sm" aria-label="Send message" className="size-7 shrink-0 cursor-pointer"><SendHorizontal /></Button>
+            <Button type="submit" size="icon-sm" aria-label="Send message" className="size-7 shrink-0 cursor-pointer rounded-full"><SendHorizontal /></Button>
           </div>
         </form>
       </CardFooter>

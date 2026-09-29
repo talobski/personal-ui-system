@@ -271,9 +271,9 @@ test.describe("WBDS-07 standardized App shells (PUI-110)", () => {
       }
       if (isMobileShell(page)) close(frames[0]!.width, panelBox.width)
       else {
-        // Restrained and centred at desktop width, with a balanced landscape proportion.
-        expect(frames[0]!.width / panelBox.width).toBeGreaterThan(0.6)
-        expect(frames[0]!.width / panelBox.width).toBeLessThan(0.8)
+        // Centred at desktop width, with a balanced landscape proportion. PUI-127: about 90% of the panel.
+        expect(frames[0]!.width / panelBox.width).toBeGreaterThan(0.85)
+        expect(frames[0]!.width / panelBox.width).toBeLessThan(0.95)
         close(frames[0]!.x - panelBox.x, panelBox.x + panelBox.width - (frames[0]!.x + frames[0]!.width), 2)
         expect(frames[0]!.width / frames[0]!.height).toBeGreaterThan(1.3)
         expect(frames[0]!.width / frames[0]!.height).toBeLessThan(2.2)
@@ -337,7 +337,8 @@ test.describe("WBDS-07 standardized App shells (PUI-110)", () => {
       await colorInput(page, "sidebar-accent").press("Enter")
       await workspaceMode(page, "Preview")
       for (const index of [0, 2]) await expect.poll(() => css(sidebars.nth(index), "background-color")).toBe(await token(frame, "sidebar"))
-      await expect(shells.nth(1).locator(":scope > div > div").first()).toHaveCSS("background-color", await token(frame, "sidebar"))
+      // PUI-127 (ADSR-05): the Inset project's sidebar and connected outer body are the semantic muted surface.
+      await expect(shells.nth(1).locator(":scope > div > div").first()).toHaveCSS("background-color", await token(frame, "muted"))
       for (const index of [0, 1, 2]) await expect(shells.nth(index).locator('[data-active="true"]')).toHaveCSS("background-color", await token(frame, "sidebar-accent"))
       expect(await overflowing(frame)).toEqual([])
       await axe(page, info, `app-shells-${mode}`)
@@ -365,7 +366,7 @@ test.describe("WBDS-07 standardized App shells (PUI-110)", () => {
     await info.attach("wbds-07-app-shells-sweep.json", { body: JSON.stringify(sweep, null, 2), contentType: "application/json" })
     for (const [width, m] of Object.entries(sweep)) {
       expect(m.overflow, width).toEqual([])
-      if (Number(width) >= 768) expect(m.ratio, width).toBeLessThan(0.8)
+      if (Number(width) >= 768) close(m.ratio, 0.9, 0.01)
       else close(m.ratio, 1, 0.01)
     }
   })

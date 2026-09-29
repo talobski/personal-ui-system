@@ -45,6 +45,12 @@ export function swatchLabel(token: string, tokens: readonly string[]): string {
 }
 
 /**
+ * PUI-126 display casing for a swatch label: each word's first letter upper-cased (`border` -> `Border`, `chart-1` ->
+ * `Chart-1`), wording otherwise unchanged. `swatchLabel`'s mapping and every token key stay as they are.
+ */
+export const titleCaseLabel = (label: string) => label.replace(/(^|[\s-])([a-z])/g, (_, lead: string, letter: string) => `${lead}${letter.toUpperCase()}`)
+
+/**
  * PUI-114 display-only HEX for a resolved token value: the nearest sRGB `#RRGGBB` (the editor's own picker conversion),
  * with a trailing alpha byte only when the token is translucent. Stored, edited and exported colours stay OKLCH.
  */
@@ -68,27 +74,30 @@ function readRendered(): Readonly<Record<string, string>> {
 
 /**
  * A rectangular swatch (PUI-122: four fifths of its column, still wider than tall) over its display label and resolved
- * HEX; labels and values truncate rather than overflow. The label is a supporting uppercase line at the HEX size in
- * the base foreground; the HEX stays muted. Labels are contextual, so no extra screen-reader qualifier is added.
+ * HEX; labels and values truncate rather than overflow. PUI-126: the label is a supporting title-case line at the HEX
+ * size in the base foreground; the HEX stays muted. Labels are contextual, so no extra screen-reader qualifier is added.
  */
 function Swatch({ token, label, value }: { token: string; label: string; value: string }) {
   return (
     <li className="grid min-w-0 content-start gap-1.5" data-token={token}>
       <span aria-hidden="true" className="h-10 w-4/5 rounded-md border" data-testid="swatch" style={{ background: `var(--${token})` }} />
       <span className="grid min-w-0">
-        <span className="truncate text-xs font-normal text-foreground uppercase" data-testid="token-label">{label}</span>
+        <span className="truncate text-xs font-normal text-foreground" data-testid="token-label">{titleCaseLabel(label)}</span>
         <span className="truncate text-xs text-muted-foreground tabular-nums" data-testid="token-value" data-resolved={value}>{displayHex(value)}</span>
       </span>
     </li>
   )
 }
 
-/** One sidebar group. Two columns keep each background / foreground pair side by side; singletons follow in order. */
+/**
+ * One sidebar group. Two columns keep each background / foreground pair side by side; singletons follow in order.
+ * PUI-126: the group heading is the uppercase anchor, one step larger (text-base) than before, in the base foreground.
+ */
 function SwatchGroup({ label, children }: { label: string; children: React.ReactNode }) {
   const id = React.useId()
   return (
     <section aria-labelledby={id} className="grid gap-3">
-      <h3 id={id} className="text-sm font-medium text-foreground">{label}</h3>
+      <h3 id={id} className="text-base font-medium text-foreground uppercase">{label}</h3>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-3">{children}</ul>
     </section>
   )
@@ -108,8 +117,8 @@ function Sheet({ name, title, children }: { name: string; title: string; childre
 /**
  * PUI-101/PUI-109/PUI-114: a read-only design-system reference sheet for the live preview theme. It holds no theme state
  * and no controls: the swatches paint from the same custom properties as every other preview surface, and each value
- * is the HEX equivalent of what the iframe CSS currently resolves. PUI-122 hierarchy: section heading, then title-case
- * group heading, then the uppercase supporting label, then the muted HEX. Colors and Type scale are flat padded sections, side
+ * is the HEX equivalent of what the iframe CSS currently resolves. PUI-126 hierarchy: section heading, then uppercase
+ * group heading, then the title-case supporting label, then the muted HEX. Colors and Type scale are flat padded sections, side
  * by side once the view's own container is wide enough and stacked below that. Colors mirrors the Workbench sidebar's
  * groups under their plain titles; the Sidebar group shows the effective values (base aliases while dedicated tokens
  * are off, dedicated values once on) with no alias annotations. Type scale is one descending list of the same sample

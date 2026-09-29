@@ -126,13 +126,15 @@ function Profile({ density }: { density: Density }) {
 /**
  * The one abstract main panel every shell shares: a header row holding this shell's SidebarTrigger and the breadcrumb,
  * a row of three muted placeholder blocks and one larger muted block. Only the breadcrumb is text; the blocks are hidden
- * neutral silhouettes. The trigger names its shell and reports and controls only that shell's Sidebar.
+ * neutral silhouettes. The trigger names its shell and reports and controls only that shell's Sidebar. PUI-127: the
+ * header is desktop-app height (h-16, the Sidebar header's own height; h-12 compact) with the shadcn blocks' px-4 inset,
+ * and the content and its blocks scale with the larger frame.
  */
 function MainPanel({ title, sidebarId, open, onToggle, workspace, page, density }: { title: string; sidebarId: string; open: boolean; onToggle: () => void; workspace: Workspace; page: string; density: Density }) {
-  const gap = density === "compact" ? "gap-2 p-3" : "gap-4 p-4"
+  const gap = density === "compact" ? "gap-3 p-4" : "gap-4 p-6"
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className={`flex shrink-0 items-center gap-2 border-b pr-4 pl-2 text-sm ${density === "compact" ? "h-10" : "h-12"}`}>
+      <div className={`flex shrink-0 items-center gap-2 border-b text-sm ${density === "compact" ? "h-12 px-3" : "h-16 px-4"}`}>
         <SidebarTrigger aria-label={`Toggle ${title} sidebar`} aria-expanded={open} aria-controls={sidebarId} onClick={onToggle} className="shrink-0 cursor-pointer" />
         <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-4" />
         <span className="flex min-w-0 items-center gap-2" data-shell-header>
@@ -142,8 +144,8 @@ function MainPanel({ title, sidebarId, open, onToggle, workspace, page, density 
         </span>
       </div>
       <div aria-hidden="true" className={`flex min-h-0 flex-1 flex-col ${gap}`} data-shell-content>
-        <div className={`grid shrink-0 grid-cols-3 ${density === "compact" ? "gap-2" : "gap-4"}`}>
-          <div className="h-16 rounded-lg bg-muted" /><div className="h-16 rounded-lg bg-muted" /><div className="h-16 rounded-lg bg-muted" />
+        <div className={`grid shrink-0 grid-cols-3 ${density === "compact" ? "gap-3" : "gap-4"}`}>
+          {[0, 1, 2].map(block => <div key={block} className={`${density === "compact" ? "h-16" : "h-24"} rounded-lg bg-muted`} />)}
         </div>
         <div className="min-h-0 flex-1 rounded-lg bg-muted" />
       </div>
@@ -165,8 +167,10 @@ const ignoreProviderToggle = () => {}
 
 /**
  * One shell: the shared Sidebar (switcher header, grouped navigation, profile footer) beside the shared main panel.
- * Variants differ only in restrained treatment: Classic divides a flat sidebar from the page; Inset lifts the page onto
- * a bordered, shadowed surface inside the sidebar colour; Compact tightens density and chooses a narrower sidebar.
+ * Variants differ only in restrained treatment: Classic divides a flat sidebar from the page; Inset (PUI-127) sets the
+ * sidebar and the connected outer body on one semantic `muted` surface and lifts the page onto a bordered background
+ * panel with the theme's lightest shadow tier (`shadow-2xs`), as in the shadcn inset blocks; Compact tightens density
+ * and chooses a narrower sidebar.
  *
  * PUI-116: each shell is its own SidebarProvider (the frame), expanded at rest, controlled by session-local state that
  * is never persisted or shared. Collapse uses the official icon rail: the in-flow `collapsible="none"` Sidebar carries
@@ -182,7 +186,8 @@ function Shell({ title, variant, initial }: { title: string; variant: Variant; i
   const [page, setPage] = useState(initial.page)
   const workspace = WORKSPACES.find(entry => entry.id === workspaceId)!
   const density: Density = variant === "compact" ? "compact" : "default"
-  const width = { classic: "clamp(10rem, 32%, 15rem)", inset: "clamp(10rem, 32%, 14rem)", compact: "clamp(9rem, 28%, 12.5rem)" }[variant]
+  // PUI-127: desktop-app sidebar widths (the official 16rem at most), still bounded for narrow containers.
+  const width = { classic: "clamp(10rem, 30%, 16rem)", inset: "clamp(10rem, 30%, 16rem)", compact: "clamp(9rem, 26%, 13.5rem)" }[variant]
   const toggle = () => setOpen(value => !value)
   const onShortcut = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!isSidebarShortcut(event)) return
@@ -197,7 +202,7 @@ function Shell({ title, variant, initial }: { title: string; variant: Variant; i
       id={sidebarId}
       data-state={open ? "expanded" : "collapsed"}
       data-collapsible={open ? "" : "icon"}
-      className={`group shrink-0 transition-[width] duration-200 ease-linear data-[collapsible=icon]:w-(--sidebar-width-icon) motion-reduce:transition-none ${variant === "inset" ? "bg-transparent" : "border-r border-sidebar-border"}`}
+      className={`group shrink-0 transition-[width] duration-200 ease-linear data-[collapsible=icon]:w-(--sidebar-width-icon) motion-reduce:transition-none ${variant === "inset" ? "bg-muted" : "border-r border-sidebar-border"}`}
     >
       <SidebarHeader className={density === "compact" ? "p-1.5" : undefined}>
         <WorkspaceSwitcher shell={title} workspace={workspace} onChange={setWorkspaceId} density={density} />
@@ -212,13 +217,13 @@ function Shell({ title, variant, initial }: { title: string; variant: Variant; i
   )
   const main = <MainPanel title={title} sidebarId={sidebarId} open={open} onToggle={toggle} workspace={workspace} page={page} density={density} />
   return (
-    <section aria-labelledby={id} data-app-shell={title} data-shell-variant={variant} data-shell-state={open ? "expanded" : "collapsed"} className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[72%]">
+    <section aria-labelledby={id} data-app-shell={title} data-shell-variant={variant} data-shell-state={open ? "expanded" : "collapsed"} className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[90%]">
       <h2 id={id} className="type-heading text-sm">{title}</h2>
-      <SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-120 min-h-0 min-w-0 overflow-hidden rounded-xl border shadow-sm" style={{ "--sidebar-width": width } as CSSProperties}>
+      <SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-[clamp(30rem,58cqw,44rem)] min-h-0 min-w-0 overflow-hidden rounded-xl border shadow-sm" style={{ "--sidebar-width": width } as CSSProperties}>
         {variant === "inset" ? (
-          <div className="flex h-full min-w-0 gap-2 bg-sidebar p-2">
+          <div className="flex h-full min-w-0 gap-2 bg-muted p-2" data-shell-body>
             {sidebar}
-            <div className="flex min-w-0 flex-1 rounded-lg border bg-background shadow-sm">{main}</div>
+            <div className="flex min-w-0 flex-1 rounded-lg border bg-background shadow-2xs" data-shell-inset>{main}</div>
           </div>
         ) : (
           <div className="flex h-full min-w-0 bg-background">
@@ -234,8 +239,10 @@ function Shell({ title, variant, initial }: { title: string; variant: Variant; i
 /**
  * PUI-102/PUI-110/PUI-116: three contained application shells on the accepted shadcn Sidebar, for reading the live
  * theme at app scale. All three share one Sidebar pattern (workspace switcher, grouped icon navigation with an active
- * item, profile footer) and one abstract main panel, and stack vertically at a restrained, centred width that widens to
- * the full panel on narrow containers. Each shell owns one preview-local provider and collapses to its icon rail
+ * item, profile footer) and one abstract main panel, and stack vertically, centred. PUI-127: at desktop container
+ * widths each shell takes about 90% of the panel and a proportional landscape height from the container width
+ * (`clamp(30rem, 58cqw, 44rem)`), reading as a real application window; narrow containers use the full panel at the
+ * 30rem floor. Each shell owns one preview-local provider and collapses to its icon rail
  * independently (see Shell). The Sidebar stays on the official in-flow `collapsible="none"` branch: the viewport-fixed
  * desktop branch and mobile sheet are never mounted. The preview renders in its own iframe document, so neither the
  * Workbench's provider nor its shortcut listener can reach a shell, and a shell cannot reach them. The official

@@ -349,6 +349,10 @@ describe("WSCG-06/WGPE-03/WGCP-03/WPIP-03 chat conversation (PUI-88, PUI-95, PUI
     expect(button[0]).toMatch(/class="[^"]*\bfocus-visible:ring-\[3px\]/)
     expect(button[0]).not.toMatch(/text-muted-foreground|data-variant="ghost"/)
     expect(button[0]).toContain('aria-label="Send message"')
+    // PUI-128: a fixed local circle, independent of theme radius, at the unchanged size-7; the field keeps rounded-md.
+    expect(button[0]).toMatch(/class="[^"]*\bsize-7\b[^"]*\brounded-full\b/)
+    expect(button[0]).not.toMatch(/\brounded-md\b/)
+    expect(footer).toMatch(/<div data-slot="chat-composer" class="[^"]*\brounded-md\b/)
     expect(footer).toMatch(/<div data-slot="chat-composer"[^>]*><input [^>]*><button [^>]*aria-label="Send message"[^>]*><svg [^>]*aria-hidden="true"[^>]*>[\s\S]*<\/svg><\/button><\/div><\/form><\/div><\/div><\/section>$/)
     // Submitting is a no-op: nothing is sent, inserted or stored.
     expect(module("team-chat")).toContain("onSubmit={event => event.preventDefault()}")

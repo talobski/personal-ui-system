@@ -389,7 +389,7 @@ for (const mode of ["light", "dark"] as const) {
     expect(restBg).not.toBe("")
     await trigger.click()
     const rows = page.getByRole("option")
-    await expect(rows).toHaveText(["Default", "Quiet Editorial", "Swatch Check"])
+    await expect(rows).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Swatch Check"])
     for (let i = 0; i < 3; i++) {
       const row = rows.nth(i)
       const found = await swatches(row)
@@ -457,7 +457,7 @@ for (const mode of ["light", "dark"] as const) {
     await expect(page.getByRole("combobox", { name: "Active theme" })).toHaveText("Default")
     await expect(action).toHaveCount(0)
     await page.getByRole("combobox", { name: "Active theme" }).click()
-    await expect(page.getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Keep Me"])
+    await expect(page.getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Keep Me"])
     await page.keyboard.press("Escape")
   })
 

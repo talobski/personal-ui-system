@@ -163,9 +163,9 @@ test("TUE-05/06 / IESP-05 / ADSR-04 Tactile reaches Secondary Buttons and surfac
   await page.keyboard.press("ArrowRight")
   await expect(activity).toHaveAttribute("aria-selected", "true")
   await expect(activity).toBeFocused()
-  const focused = await style(activity)
-  expect(tactile(focused)).toBe(false)
-  expect(focused.boxShadow).toMatch(/0px 0px 0px 3px/)
+  // The trigger transitions its box-shadow, so the settled focus ring is polled.
+  await expect.poll(async () => (await style(activity)).boxShadow).toMatch(/0px 0px 0px 3px/)
+  expect(tactile(await style(activity))).toBe(false)
   expect(tactile(await style(surfaceTabs(frame).getByRole("tab", { name: "Overview" })))).toBe(false)
   expect(listRing(await style(surfaceTabs(frame)))).toBe(true)
 

@@ -159,11 +159,12 @@ test("IESP-07 Manage storage, section triggers and social Buttons are Secondary,
   await expect(storage.getByRole("button")).toHaveCount(1)
   await expect(manage).toHaveAttribute("data-variant", "secondary")
   await expect(manage).toHaveAttribute("type", "button")
-  // It sits below the breakdown, starts at the content edge, and ends the card's content.
+  // It sits below the breakdown, starts at the content edge, and ends the card's content. PUI-128 (ADSR-05): it spans
+  // the full inner content width.
   const [list, button] = [await box(storage.locator("ul")), await box(manage)]
   expect(button.y).toBeGreaterThan(list.y + list.height)
   expect(Math.abs(button.x - list.x)).toBeLessThanOrEqual(0.5)
-  expect(button.width).toBeLessThan(list.width)
+  expect(Math.abs(button.width - list.width)).toBeLessThanOrEqual(0.5)
   const url = page.url()
   const before = await page.evaluate(() => localStorage.getItem("personal-ui-workbench/v1"))
   await manage.click()
@@ -216,12 +217,15 @@ test("IESP-08 Design system hierarchy, contextual Sidebar labels, live alias and
   const h3 = colors.getByRole("heading", { level: 3, name: "Primary" })
   const label = colors.locator('[data-token="primary"] [data-testid="token-label"]')
   const hex = colors.locator('[data-token="primary"] [data-testid="token-value"]')
-  // Hierarchy: section heading > group heading > label = HEX size; label uppercase in the base foreground, HEX muted.
+  // Hierarchy: section heading > group heading > label = HEX size. PUI-126 (ADSR-05): the group heading is the
+  // uppercase text-base anchor; the label is title case at its unchanged size in the base foreground; HEX muted.
   expect(await px(h2, "font-size")).toBeGreaterThan(await px(h3, "font-size"))
   expect(await px(h3, "font-size")).toBeGreaterThan(await px(label, "font-size"))
+  expect(await px(h3, "font-size")).toBe(16)
   expect(await px(label, "font-size")).toBe(await px(hex, "font-size"))
-  expect(await h3.evaluate((el) => getComputedStyle(el).textTransform)).toBe("none")
-  expect(await label.evaluate((el) => [getComputedStyle(el).textTransform, getComputedStyle(el).fontWeight])).toEqual(["uppercase", "400"])
+  expect(await h3.evaluate((el) => getComputedStyle(el).textTransform)).toBe("uppercase")
+  expect(await label.evaluate((el) => [getComputedStyle(el).textTransform, getComputedStyle(el).fontWeight])).toEqual(["none", "400"])
+  await expect(label).toHaveText("Background")
   const fg = await h3.evaluate((el) => getComputedStyle(el).color)
   expect(await label.evaluate((el) => getComputedStyle(el).color)).toBe(fg)
   expect(await hex.evaluate((el) => getComputedStyle(el).color)).not.toBe(fg)
