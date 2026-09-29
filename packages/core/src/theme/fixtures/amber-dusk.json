@@ -33,7 +33,7 @@
       },
       "primary": {
         "$type": "color",
-        "$value": "oklch(0.6171 0.1375 39.0427)"
+        "$value": "oklch(0.5773 0.1375 39.0427)"
       },
       "primary-foreground": {
         "$type": "color",
@@ -53,7 +53,7 @@
       },
       "muted-foreground": {
         "$type": "color",
-        "$value": "oklch(0.6059 0.0075 97.4233)"
+        "$value": "oklch(0.5176 0.0075 97.4233)"
       },
       "accent": {
         "$type": "color",
@@ -167,7 +167,7 @@
       },
       "primary-foreground": {
         "$type": "color",
-        "$value": "oklch(1 0 0)"
+        "$value": "oklch(0.2679 0.0036 106.6427)"
       },
       "secondary": {
         "$type": "color",

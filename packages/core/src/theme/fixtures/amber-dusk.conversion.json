@@ -328,5 +328,67 @@
       "field": "--spacing",
       "reason": "mapped to space.base; Tailwind --spacing is derived by the renderer"
     }
-  ]
+  ],
+  "ownerContrastOverrides": {
+    "document": "docs/evidence/amber-dusk-shell-refinement-v1/owner-contrast-resolution.json",
+    "authority": "Owner-authorized narrow amendment to PUI-123 source-palette preservation: minimal Amber Dusk token-only changes so observed normal-text pairs reach at least 4.5:1. `values` above keeps the original supplied source and its canonical normalization; these overrides replace only the listed canonical fixture values.",
+    "method": "WCAG 2.x relative luminance of the rendered sRGB HEX (the Workbench picker conversion). Light muted-foreground and light primary lower OKLCH lightness only (chroma and hue kept) to the first 0.0001 step clearing 4.6:1. Dark primary is kept, because darkening it would drop primary-as-text on the dark background from 4.86:1 to 3.30:1; dark primary-foreground instead reuses the existing dark background colour.",
+    "values": {
+      "colors.light.muted-foreground": {
+        "source": "oklch(0.6059 0.0075 97.4233)",
+        "override": "oklch(0.5176 0.0075 97.4233)",
+        "hex": {
+          "before": "#83827d",
+          "after": "#696863"
+        },
+        "contrast": {
+          "on colors.light.muted #ede9de": {
+            "before": 3.17,
+            "after": 4.6
+          },
+          "on colors.light.sidebar #f5f4ee": {
+            "before": 3.49,
+            "after": 5.07
+          },
+          "on colors.light.background #faf9f5": {
+            "before": 3.65,
+            "after": 5.3
+          }
+        }
+      },
+      "colors.light.primary": {
+        "source": "oklch(0.6171 0.1375 39.0427)",
+        "override": "oklch(0.5773 0.1375 39.0427)",
+        "hex": {
+          "before": "#c96442",
+          "after": "#bb5836"
+        },
+        "contrast": {
+          "colors.light.primary-foreground #ffffff on it": {
+            "before": 3.9,
+            "after": 4.6
+          },
+          "as text on colors.light.background #faf9f5": {
+            "before": 3.7,
+            "after": 4.37
+          }
+        }
+      },
+      "colors.dark.primary-foreground": {
+        "source": "oklch(1.0000 0 0)",
+        "override": "oklch(0.2679 0.0036 106.6427)",
+        "hex": {
+          "before": "#ffffff",
+          "after": "#262624"
+        },
+        "contrast": {
+          "on colors.dark.primary #d97757": {
+            "before": 3.12,
+            "after": 4.86
+          }
+        }
+      }
+    },
+    "unchanged": "Every other colour, including light ring and sidebar-primary (still the original primary), dark primary, charts, dedicated Sidebar colours, typography, radius, spacing, shadows, Sidebar state and absent UI Effects."
+  }
 }

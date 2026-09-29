@@ -9,6 +9,7 @@ import {
   evaluateContextRequest,
   MUTATION_SCHEMA_VERSION,
   normalizeColor,
+  parseCanonicalOklch,
   readShadowProfile,
   renderShadcnTailwindCss,
   renderUiEffectsCss,
@@ -109,6 +110,36 @@ const SOURCE_SHADOWS = {
   "2xl": [layer("1px", "3px", "0px", 0.25)],
 }
 
+/**
+ * The owner-authorized contrast overrides (docs/evidence/amber-dusk-shell-refinement-v1/owner-contrast-resolution.json),
+ * transcribed independently: every other colour is still exactly its normalized source value.
+ */
+const OVERRIDES: Record<string, string> = {
+  "light.muted-foreground": "oklch(0.5176 0.0075 97.4233)",
+  "light.primary": "oklch(0.5773 0.1375 39.0427)",
+  "dark.primary-foreground": "oklch(0.2679 0.0036 106.6427)",
+}
+
+/** WCAG 2.x contrast of two canonical OKLCH colours as rendered: sRGB channels rounded to 8 bits, as HEX. */
+function contrast(a: string, b: string): number {
+  const channels = (value: string) => {
+    const p = parseCanonicalOklch(value)!
+    const L = p.l + 0.3963377774 * p.c * Math.cos((p.h * Math.PI) / 180) + 0.2158037573 * p.c * Math.sin((p.h * Math.PI) / 180)
+    const M = p.l - 0.1055613458 * p.c * Math.cos((p.h * Math.PI) / 180) - 0.0638541728 * p.c * Math.sin((p.h * Math.PI) / 180)
+    const S = p.l - 0.0894841775 * p.c * Math.cos((p.h * Math.PI) / 180) - 1.291485548 * p.c * Math.sin((p.h * Math.PI) / 180)
+    const [l, m, s] = [L ** 3, M ** 3, S ** 3]
+    const linear = [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s]
+    return linear.map((c) => {
+      const encoded = c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055
+      const byte = Math.round(Math.min(1, Math.max(0, encoded)) * 255) / 255
+      return byte <= 0.04045 ? byte / 12.92 : ((byte + 0.055) / 1.055) ** 2.4
+    })
+  }
+  const luminance = (value: string) => channels(value).reduce((sum, c, i) => sum + [0.2126, 0.7152, 0.0722][i]! * c, 0)
+  const [x, y] = [luminance(a), luminance(b)]
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
+}
+
 const valid = (input: unknown): Theme => {
   const result = validateTheme(input)
   if (!result.ok) throw new Error(JSON.stringify(result.issues))
@@ -135,6 +166,11 @@ describe("ADSR-02 Amber Dusk canonical fixture", () => {
       expect(Object.keys(table)).toHaveLength(32)
       expect(Object.keys(theme.colors[mode]).sort()).toEqual(Object.keys(table).sort())
       for (const [name, source] of Object.entries(table)) {
+        const override = OVERRIDES[`${mode}.${name}`]
+        if (override !== undefined) {
+          expect(theme.colors[mode][name as keyof Theme["colors"]["light"]].$value, `${mode}.${name}`).toBe(override)
+          continue
+        }
         const normalized = normalizeColor(source)
         expect(normalized.ok, `${mode}.${name}`).toBe(true)
         expect(theme.colors[mode][name as keyof Theme["colors"]["light"]].$value, `${mode}.${name}`).toBe(normalized.ok && normalized.value)
@@ -205,10 +241,57 @@ describe("ADSR-02 Amber Dusk canonical fixture", () => {
     expect(renderUiEffectsCss(tactile)).toBe(renderUiEffectsCss(reference))
   })
 
-  it("the conversion report records every source colour and its canonical value", () => {
+  it("owner contrast overrides: exactly three tokens change, and the observed normal-text pairs clear 4.5:1", () => {
+    const changed = (["light", "dark"] as const).flatMap((mode) =>
+      Object.entries(mode === "light" ? LIGHT : DARK).filter(([name, source]) => {
+        const n = normalizeColor(source)
+        return n.ok && theme.colors[mode][name as keyof Theme["colors"]["light"]].$value !== n.value
+      }).map(([name]) => `${mode}.${name}`))
+    expect(changed.sort()).toEqual(Object.keys(OVERRIDES).sort())
+    // Only lightness moved for the two light overrides; the dark foreground reuses the existing dark background colour.
+    const lch = (value: string) => parseCanonicalOklch(value)!
+    for (const key of ["light.muted-foreground", "light.primary"]) {
+      const [mode, name] = key.split(".") as ["light", string]
+      const source = lch(normalizeColor(LIGHT[name]!).ok ? (normalizeColor(LIGHT[name]!) as { value: string }).value : "")
+      const now = lch(theme.colors[mode][name as keyof Theme["colors"]["light"]].$value)
+      expect([now.c, now.h]).toEqual([source.c, source.h])
+      expect(now.l).toBeLessThan(source.l)
+    }
+    expect(theme.colors.dark["primary-foreground"].$value).toBe(theme.colors.dark.background.$value)
+    const light = theme.colors.light, dark = theme.colors.dark
+    // Before: the resolution's observed failures, measured on the original source values.
+    expect(contrast("oklch(0.6059 0.0075 97.4233)", light.sidebar.$value)).toBeCloseTo(3.49, 2)
+    expect(contrast("oklch(0.6059 0.0075 97.4233)", light.background.$value)).toBeCloseTo(3.65, 2)
+    expect(contrast("oklch(1 0 0)", "oklch(0.6171 0.1375 39.0427)")).toBeCloseTo(3.9, 1)
+    expect(contrast("oklch(1 0 0)", dark.primary.$value)).toBeCloseTo(3.12, 2)
+    // After: every observed pair, plus the muted surface itself, is at least 4.5:1.
+    const pairs: [string, string, string][] = [
+      ["light muted-foreground on sidebar", light["muted-foreground"].$value, light.sidebar.$value],
+      ["light muted-foreground on background", light["muted-foreground"].$value, light.background.$value],
+      ["light muted-foreground on muted", light["muted-foreground"].$value, light.muted.$value],
+      ["light muted-foreground on card", light["muted-foreground"].$value, light.card.$value],
+      ["light primary-foreground on primary", light["primary-foreground"].$value, light.primary.$value],
+      ["dark primary-foreground on primary", dark["primary-foreground"].$value, dark.primary.$value],
+    ]
+    for (const [label, fg, bg] of pairs) expect(contrast(fg, bg), label).toBeGreaterThanOrEqual(4.5)
+    // Primary as text is not made worse in either mode.
+    expect(contrast(light.primary.$value, light.background.$value)).toBeGreaterThan(contrast("oklch(0.6171 0.1375 39.0427)", light.background.$value))
+    expect(contrast(dark.primary.$value, dark.background.$value)).toBeGreaterThanOrEqual(4.5)
+    // The report records the authority, the original source and each override.
+    expect(report.ownerContrastOverrides.document).toBe("docs/evidence/amber-dusk-shell-refinement-v1/owner-contrast-resolution.json")
+    for (const [key, value] of Object.entries(OVERRIDES)) {
+      const entry = report.ownerContrastOverrides.values[`colors.${key}` as keyof typeof report.ownerContrastOverrides.values]
+      expect(entry.override).toBe(value)
+      expect(entry.source).toBe((key.startsWith("light") ? LIGHT : DARK)[key.split(".")[1]!])
+    }
+  })
+
+  it("the conversion report records every original source colour and its canonical normalization", () => {
     for (const [mode, table] of [["light", LIGHT], ["dark", DARK]] as const) {
       for (const [name, source] of Object.entries(table)) {
-        expect(report.values[`colors.${mode}.${name}` as keyof typeof report.values]).toEqual({ source, normalized: theme.colors[mode][name as keyof Theme["colors"]["light"]].$value })
+        const normalized = normalizeColor(source)
+        expect(report.values[`colors.${mode}.${name}` as keyof typeof report.values]).toEqual({ source, normalized: normalized.ok && normalized.value })
+        if (OVERRIDES[`${mode}.${name}`] === undefined) expect(theme.colors[mode][name as keyof Theme["colors"]["light"]].$value).toBe(normalized.ok && normalized.value)
       }
     }
     expect(Object.keys(report.values)).toHaveLength(64)

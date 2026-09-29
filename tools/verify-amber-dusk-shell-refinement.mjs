@@ -28,6 +28,14 @@ for (const path of [...tickets.map(id => `${packetDir}/${id}.json`), `${packetDi
 execFileSync("git", ["merge-base", "--is-ancestor", acceptedProduct, "HEAD"])
 execFileSync("git", ["merge-base", "--is-ancestor", base, "HEAD"])
 
+// Owner contrast resolution (Lead-committed at 61c6511): pinned and byte-identical; it authorizes the Amber Dusk
+// colour overrides checked below and nothing else.
+const resolution = "docs/evidence/amber-dusk-shell-refinement-v1/owner-contrast-resolution.json"
+const resolutionCommit = "61c651150df448094f3d9240d04003f174c47e25"
+execFileSync("git", ["merge-base", "--is-ancestor", resolutionCommit, "HEAD"])
+assert.equal(hash(readFileSync(resolution)), "55dc7b8fd4b914dbcaea747b194194b26b693c38d5a48baf6fc5ecf6dce04502", "owner resolution hash")
+assert.ok(readFileSync(resolution).equals(at(resolutionCommit, resolution)), "owner resolution changed")
+
 // Admitted scope only: the contract's likely edit surface, tests, and this phase's producer tooling.
 const allowed = new Set([
   "packages/core/src/theme/fixtures/amber-dusk.json",
@@ -49,6 +57,7 @@ const allowed = new Set([
   "playwright.workbench.config.ts",
   "playwright.config.ts",
   "tools/verify-amber-dusk-shell-refinement.mjs",
+  "docs/evidence/amber-dusk-shell-refinement-v1/owner-contrast-resolution.json",
 ])
 // Include pending tracked edits so a producer cannot pass this scan using stale HEAD-only evidence.
 const changed = git("diff", "--name-only", base).split("\n").filter(Boolean)
@@ -80,6 +89,19 @@ assert.match(read("packages/core/src/context/themes.ts"), /"amber-dusk": \(\) =>
 assert.match(read("apps/workbench/src/lifecycle.ts"), /const BUILT_IN_FIXTURES = \[defaultFixture, quietEditorialFixture, amberDuskFixture\] as const/)
 assert.ok(read("packages/core/src/context/provenance.ts").includes(`sha256: "${hash(readFileSync("packages/core/src/theme/fixtures/amber-dusk.json"))}"`), "amber-dusk provenance hash")
 assert.ok(!existsSync("packages/core/src/theme/fixtures/amber-dusk.css"), "no parallel Amber Dusk stylesheet")
+// Owner contrast overrides: exactly three colour tokens differ from the normalized supplied source, as recorded.
+const report = JSON.parse(read("packages/core/src/theme/fixtures/amber-dusk.conversion.json"))
+assert.equal(report.ownerContrastOverrides.document, resolution)
+const overridden = Object.entries(report.values).filter(([path, entry]) => {
+  const [, mode, name] = path.split(".")
+  return amber.colors[mode][name].$value !== entry.normalized
+}).map(([path]) => path).sort()
+assert.deepEqual(overridden, ["colors.dark.primary-foreground", "colors.light.muted-foreground", "colors.light.primary"])
+for (const path of overridden) {
+  const [, mode, name] = path.split(".")
+  assert.equal(amber.colors[mode][name].$value, report.ownerContrastOverrides.values[path].override, path)
+  assert.equal(report.values[path].source, report.ownerContrastOverrides.values[path].source, path)
+}
 assert.doesNotMatch(code(read("packages/core/src/theme/render.ts")) + code(read("apps/workbench/src/lifecycle.ts")).replace(/amberDuskFixture|amber-dusk\.json/g, ""), /amber/i)
 
 // Theme v3 stays 3.0 and the closed mutation union stays thirteen operations.

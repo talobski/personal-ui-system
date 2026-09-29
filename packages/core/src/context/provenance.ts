@@ -28,7 +28,7 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "theme:amber-dusk": {
     sourceId: "packages/core/src/theme/fixtures/amber-dusk.json",
-    sha256: "4ede754677fa8da0d5908c9c1f8aca6a0cd098332b83903828123f0225f5434d",
+    sha256: "1885fc3d4db271be1f72067b1f2afb5911a0fee696c7922f5b7138ad79096b63",
   },
   "resource:button": {
     sourceId: "packages/core/src/contracts/data/button.ts",
