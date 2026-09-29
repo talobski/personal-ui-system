@@ -1,16 +1,19 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`256c1c7490843c09294753271abc7e39024857bd` on `main`. Phase
-`workbench-bitcoin-designsystem-shells-v1-001` is accepted and promoted for
-PUI-108 through PUI-110. It adds a static, source-dated Bitcoin 1Y gallery
-card, a live flat Colors/Type scale reference, and three standardized shadcn
-Sidebar shell previews. Theme v3, the 23-resource registry, and the 12 mutation
-operations are unchanged. Its immutable packet preserves verbatim
-admission-time Linear snapshots and frozen BTC data alongside the authoritative
-reconciled contract. Lead browser and technical evidence, independent protected
-verification, and post-promotion checks passed. No owner visual-review gate was
-admitted. The earlier nested-gallery phase's record
+`54849dcbda47f72d3fa9cdec34256b77677d4743` on `main`. Phase
+`workbench-preview-interaction-polish-v1-001` delivered PUI-111, PUI-112,
+PUI-114, PUI-115, PUI-116, and PUI-117 as one Tier 2 batch; PUI-113 remains
+excluded. Chat has grouped message avatars and a bottom composer; Weather
+inherits live Body weight; the Design system preview has concise color labels,
+HEX values and swatches; reset uses a floating Base UI toast with existing
+history Undo; each taller App shell collapses independently; and the Bitcoin
+card has static 1Y / 3Y / 5Y ranges. Theme v3, the 23-resource registry, and
+the 12 mutation operations remain unchanged. The frozen ticket packet and
+reconciled contract govern this phase. Lead browser evidence and fresh
+protected verification passed on the exact product commit; post-promotion
+identity and smoke results are recorded in the phase receipt. No owner visual
+review gate was admitted. The earlier nested-gallery phase's record
 preserves a one-time worker execution-envelope violation: Corepack made an
 unauthorized pnpm download during its producer verification. The owner accepted
 that documented incident for that phase only; it grants no worker-network
@@ -235,7 +238,7 @@ Canonical sources of truth are versioned data/schema files and component source,
 
 For substantive implementation work in `personal-ui-system`, STRONG is the
 default producer class. The preferred configured STRONG routes are Codex
-`gpt-5.6-sol` at medium effort and Claude `claude-opus-5-5` at medium effort;
+`gpt-6-sol` at medium effort and Claude `claude-opus-5-5` at medium effort;
 provider selection still uses current admissibility, capacity evidence, and any
 active owner preference.
 
