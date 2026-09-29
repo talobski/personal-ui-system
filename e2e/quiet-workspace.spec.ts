@@ -307,7 +307,8 @@ for (const mode of ["light", "dark"] as const) {
       await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial"])
       const anchor = (await trigger.boundingBox())!
       const region = (await page.locator('[data-slot="sidebar-header"] [data-slot="sidebar-menu-item"]').boundingBox())!
-      const popup = (await page.locator('[data-slot="select-content"]').boundingBox())!
+      // PUI-113: the force-mounted Effects panel holds a second, closed in-place Select popup; measure the open one.
+      const popup = (await page.locator('[data-slot="select-content"]:visible').boundingBox())!
       expect(Math.abs(anchor.x - region.x)).toBeLessThanOrEqual(1)
       expect(Math.abs(anchor.width - region.width)).toBeLessThanOrEqual(1)
       // Base UI preserves a small viewport collision inset while keeping the trigger itself full-region.

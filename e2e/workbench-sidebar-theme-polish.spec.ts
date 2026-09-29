@@ -238,7 +238,7 @@ for (const mode of ["light", "dark"] as const) {
         await expect(tablist.getByRole("tab")).toHaveText(["Colors", "Typography", "Geometry", "Effects", "Command"])
         for (const tab of await tablist.getByRole("tab").all()) expect([await css(tab, "padding-left"), await css(tab, "padding-right"), await css(tab, "cursor")]).toEqual(["8px", "8px", "pointer"])
         await editorCategory(page, "Effects")
-        await expect(page.getByRole("tabpanel", { name: "Effects", exact: true }).getByRole("heading", { level: 3 })).toHaveText(["Shadow", "Motion"])
+        await expect(page.getByRole("tabpanel", { name: "Effects", exact: true }).getByRole("heading", { level: 3 })).toHaveText(["Shadow", "UI Effects", "Motion"])
         await editorCategory(page, "Geometry")
         const effects = page.getByRole("tabpanel", { name: "Geometry", exact: true })
         await expect(effects.getByRole("heading", { level: 3 })).toHaveText(["Radius", "Spacing"])

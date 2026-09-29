@@ -1,0 +1,225 @@
+import AxeBuilder from "@axe-core/playwright"
+import { expect, test } from "@playwright/test"
+import type { FrameLocator, Locator, Page, TestInfo } from "@playwright/test"
+
+import { seriousOutsideKnownDebt } from "./known-contrast-debt"
+import { editorCategory, previewStates, saveTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+
+/**
+ * tactile-ui-effects-v1-001 producer definitions (PUI-113; Lead-executed under playwright.workbench.config.ts at
+ * 390x844 and 1440x900). TUE-04 UI EFFECTS controls; TUE-05 Outline Button only; TUE-06 active surface Tabs only, with
+ * the line-style category tabs flat; TUE-07 light/dark, strength bounds and decoded axe; TUE-02 save/reload.
+ */
+
+const preview = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
+const style = (el: Locator) => el.evaluate((node) => {
+  const s = getComputedStyle(node)
+  return { boxShadow: s.boxShadow, backgroundImage: s.backgroundImage, backgroundColor: s.backgroundColor, borderRadius: s.borderRadius, height: s.height, fontSize: s.fontSize, fontWeight: s.fontWeight }
+})
+const variant = (frame: FrameLocator, name: string) => frame.locator(`[data-testid="preview"] section[aria-labelledby="pv-buttons"] [data-slot="button"][data-variant="${name}"]`).first()
+const surfaceTabs = (frame: FrameLocator) => frame.getByRole("tablist", { name: "Surface tabs sample" })
+const tactile = (s: { backgroundImage: string; boxShadow: string }) => s.backgroundImage.includes("linear-gradient") && s.boxShadow.includes("inset")
+
+async function open(page: Page) {
+  await page.goto("/")
+  await expect(preview(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
+}
+
+async function uiEffects(page: Page) {
+  await editorCategory(page, "Effects")
+  return {
+    effect: page.getByRole("combobox", { name: "Effect", exact: true }),
+    outline: page.getByRole("switch", { name: "Outline buttons", exact: true }),
+    tabs: page.getByRole("switch", { name: "Tabs", exact: true }),
+    strength: page.getByRole("textbox", { name: "Strength", exact: true }),
+    slider: page.getByRole("slider", { name: "Strength", exact: true }),
+  }
+}
+
+async function toggle(page: Page, which: "outline" | "tabs", on: boolean) {
+  const control = (await uiEffects(page))[which]
+  if ((await control.getAttribute("aria-checked")) !== String(on)) await control.click()
+  await expect(control).toHaveAttribute("aria-checked", String(on))
+}
+
+async function snapshot(page: Page) {
+  const frame = preview(page)
+  await previewStates(page)
+  const variants = Object.fromEntries(await Promise.all(["default", "secondary", "outline", "ghost", "destructive", "link"].map(async (name) => [name, await style(variant(frame, name))] as const)))
+  const tabs = surfaceTabs(frame)
+  return {
+    variants,
+    activeTab: await style(tabs.getByRole("tab", { selected: true })),
+    inactiveTab: await style(tabs.getByRole("tab", { name: "Activity" })),
+    categoryTab: await style(frame.getByRole("tablist", { name: "Preview views" }).getByRole("tab", { selected: true })),
+  }
+}
+
+async function axe(page: Page, info: TestInfo, label: string) {
+  await page.mouse.move(0, 0)
+  await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBe(0)
+  const { violations } = await new AxeBuilder({ page }).analyze()
+  const blocking = await seriousOutsideKnownDebt(page, violations, info, `tue-${label}`)
+  await info.attach(`axe-tue-${label}.json`, { body: JSON.stringify(blocking, null, 2), contentType: "application/json" })
+  expect(blocking.filter((v) => v.impact === "critical" || v.impact === "serious"), label).toEqual([])
+}
+
+test("TUE-04 the UI EFFECTS section sits between Shadow and Motion with Tactile, two toggles and one Strength", async ({ page }) => {
+  await open(page)
+  const c = await uiEffects(page)
+  const sections = await page.locator('[role="tabpanel"]:visible [data-testid^="section-"]').evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")))
+  expect(sections).toEqual(["section-shadow", "section-ui-effects", "section-motion"])
+  await expect(page.getByTestId("section-ui-effects").getByRole("button", { name: "UI Effects" })).toBeVisible()
+  await expect(c.effect).toHaveText(/Tactile/)
+  await c.effect.click()
+  await expect(page.getByRole("option")).toHaveText(["Tactile"])
+  await page.keyboard.press("Escape")
+  await expect(c.outline).toHaveAttribute("aria-checked", "false")
+  await expect(c.tabs).toHaveAttribute("aria-checked", "false")
+  await expect(c.slider).toHaveAttribute("aria-valuemin", "0")
+  await expect(c.slider).toHaveAttribute("aria-valuemax", "100")
+  await expect(c.strength).toHaveValue("50")
+})
+
+test("TUE-05/06 each target is independent; only Outline and the active surface tab change", async ({ page }) => {
+  await open(page)
+  const flat = await snapshot(page)
+  for (const s of [...Object.values(flat.variants), flat.activeTab, flat.inactiveTab, flat.categoryTab]) expect(tactile(s)).toBe(false)
+
+  await toggle(page, "outline", true)
+  const outline = await snapshot(page)
+  expect(tactile(outline.variants.outline!)).toBe(true)
+  // Geometry, typography and surface colour are untouched; only the shadow slot and wash change.
+  for (const key of ["backgroundColor", "borderRadius", "height", "fontSize", "fontWeight"] as const) expect(outline.variants.outline![key]).toBe(flat.variants.outline![key])
+  for (const name of ["default", "secondary", "ghost", "destructive", "link"]) expect(outline.variants[name], name).toEqual(flat.variants[name])
+  expect([outline.activeTab, outline.inactiveTab, outline.categoryTab]).toEqual([flat.activeTab, flat.inactiveTab, flat.categoryTab])
+
+  await toggle(page, "outline", false)
+  await toggle(page, "tabs", true)
+  const tabs = await snapshot(page)
+  expect(tactile(tabs.activeTab)).toBe(true)
+  for (const key of ["backgroundColor", "borderRadius", "height", "fontSize", "fontWeight"] as const) expect(tabs.activeTab[key]).toBe(flat.activeTab[key])
+  expect(tabs.inactiveTab).toEqual(flat.inactiveTab)
+  expect(tabs.categoryTab).toEqual(flat.categoryTab)
+  expect(tabs.variants).toEqual(flat.variants)
+  // Outline Buttons composed through asChild triggers keep the effect; outline ToggleGroup items stay flat.
+  await toggle(page, "outline", true)
+  await previewStates(page)
+  expect(tactile(await style(preview(page).getByRole("button", { name: "Open dialog", exact: true })))).toBe(true)
+  const cards = preview(page).getByRole("tablist", { name: "Preview views" }).getByRole("tab", { name: "Cards", exact: true })
+  await cards.click()
+  const toggleItems = preview(page).locator('[data-slot="toggle-group-item"][data-variant="outline"]')
+  expect(await toggleItems.count()).toBeGreaterThan(0)
+  for (const item of await toggleItems.all()) expect(tactile(await style(item))).toBe(false)
+  await toggle(page, "outline", false)
+  // The Workbench chrome's line-style category tabs stay flat as well.
+  await workspaceMode(page, "Controls")
+  expect(tactile(await style(page.getByRole("tablist", { name: "Editor categories" }).getByRole("tab", { selected: true })))).toBe(false)
+
+  // Selection moves the effect with it, by keyboard, and keeps selected semantics.
+  const frame = preview(page)
+  await previewStates(page)
+  const activity = surfaceTabs(frame).getByRole("tab", { name: "Activity" })
+  await surfaceTabs(frame).getByRole("tab", { name: "Overview" }).focus()
+  await page.keyboard.press("ArrowRight")
+  await expect(activity).toHaveAttribute("aria-selected", "true")
+  await expect(activity).toBeFocused()
+  const focused = await style(activity)
+  expect(tactile(focused)).toBe(true)
+  expect(focused.boxShadow).toMatch(/0px 0px 0px 3px/)
+  expect(tactile(await style(surfaceTabs(frame).getByRole("tab", { name: "Overview" })))).toBe(false)
+})
+
+test("TUE-05 focus-visible rings, keyboard activation and the pressed state hold on a tactile Outline Button", async ({ page }) => {
+  await open(page)
+  await toggle(page, "outline", true)
+  const frame = preview(page)
+  await previewStates(page)
+  const outline = variant(frame, "outline")
+  await variant(frame, "secondary").focus()
+  await page.keyboard.press("Tab")
+  await expect(outline).toBeFocused()
+  await expect(outline).toHaveCSS("box-shadow", /0px 0px 0px 3px/)
+  const focused = await style(outline)
+  expect(focused.boxShadow).toMatch(/inset/)
+  expect(focused.boxShadow).toMatch(/0px 0px 0px 3px/)
+  const rest = (await style(outline)).boxShadow
+  const handle = await outline.boundingBox()
+  await page.mouse.move(handle!.x + handle!.width / 2, handle!.y + handle!.height / 2)
+  await page.mouse.down()
+  const pressed = await style(outline)
+  await page.mouse.up()
+  expect(pressed.boxShadow).not.toBe(rest)
+  expect(pressed.boxShadow).toMatch(/0px 1px 2px 0px inset/)
+})
+
+test("TUE-07 strength is bounded and scales; dark mode swaps the semantic light source; decoded axe", async ({ page }, info) => {
+  await open(page)
+  await toggle(page, "outline", true)
+  await toggle(page, "tabs", true)
+  const frame = preview(page)
+  const highlight = async () => {
+    await previewStates(page)
+    return variant(frame, "outline").evaluate((node) => getComputedStyle(node).getPropertyValue("--ui-tactile-lower").trim())
+  }
+  const c = await uiEffects(page)
+  await c.strength.fill("0")
+  await c.strength.blur()
+  expect(await highlight()).toMatch(/ 0%, transparent\)$/)
+  await editorCategory(page, "Effects")
+  await c.strength.fill("100")
+  await c.strength.blur()
+  expect(await highlight()).toMatch(/ 10%, transparent\)$/)
+  await editorCategory(page, "Effects")
+  // Out of bounds is rejected locally (the draft and its error stay visible); the applied strength stays 100.
+  await c.strength.fill("101")
+  await expect(page.getByTestId("uiEffectsStrength-error")).toBeVisible()
+  await expect(c.slider).toHaveAttribute("aria-valuenow", "100")
+  await c.strength.blur()
+  expect(await highlight()).toMatch(/ 10%, transparent\)$/)
+
+  for (const mode of ["light", "dark"] as const) {
+    await setColorMode(page, mode)
+    await previewStates(page)
+    // The highlight is mixed from the semantic Background token in light and the Foreground token in dark.
+    const { highlight: source, token } = await variant(frame, "outline").evaluate((node, name) => ({
+      highlight: getComputedStyle(node).getPropertyValue("--ui-tactile-highlight").trim(),
+      token: getComputedStyle(node).getPropertyValue(name).trim(),
+    }), mode === "light" ? "--background" : "--foreground")
+    expect(source).toBe(`color-mix(in oklab, ${token} ${mode === "light" ? 90 : 14}%, transparent)`)
+    await info.attach(`tue-states-${mode}.png`, { body: await page.screenshot(), contentType: "image/png" })
+    await axe(page, info, `states-${mode}`)
+  }
+})
+
+test("TUE-04/02 history, dirty state, chrome Outline Buttons and save/reload", async ({ page }) => {
+  await open(page)
+  await toggle(page, "outline", true)
+  await workspaceMode(page, "Preview")
+  await expect(page.getByRole("button", { name: "Undo", exact: true })).toBeEnabled()
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
+  await previewStates(page)
+  expect(tactile(await style(variant(preview(page), "outline")))).toBe(false)
+  await workspaceMode(page, "Preview")
+  await page.getByRole("button", { name: "Redo", exact: true }).click()
+  await previewStates(page)
+  expect(tactile(await style(variant(preview(page), "outline")))).toBe(true)
+
+  // The active theme's effect reaches Workbench chrome Outline Buttons (here the Save As dialog's Cancel).
+  await saveTheme(page)
+  const dialog = page.getByRole("dialog", { name: "Save as a custom theme" })
+  await expect(dialog).toBeVisible()
+  expect(tactile(await style(dialog.getByRole("button", { name: "Cancel", exact: true })))).toBe(true)
+  await dialog.getByLabel("Theme name").fill("Tactile Check")
+  await dialog.getByRole("button", { name: "Save theme", exact: true }).click()
+  await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "tactile-check")
+
+  await page.reload()
+  await expect(preview(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
+  const c = await uiEffects(page)
+  await expect(c.outline).toHaveAttribute("aria-checked", "true")
+  await expect(c.tabs).toHaveAttribute("aria-checked", "false")
+  await expect(c.strength).toHaveValue("50")
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!).themes["tactile-check"].uiEffects)
+  expect(stored).toEqual({ effect: { $type: "string", $value: "tactile" }, outlineButtons: { $type: "boolean", $value: true }, tabs: { $type: "boolean", $value: false }, strength: { $type: "number", $value: 50 } })
+})

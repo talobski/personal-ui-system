@@ -120,7 +120,7 @@ describe("TUE-05/06/08 surface wiring", () => {
     const css = previewVariablesCss(on)
     const flat = previewVariablesCss({ ...defaultTheme, revision: on.revision })
     expect(css.startsWith(`${flat}\n\n/* UI effects: tactile, strength 50. */\n@layer components {`)).toBe(true)
-    expect(css).toContain('[data-slot="button"][data-variant="outline"]')
+    expect(css).toContain('[data-variant="outline"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])')
     expect(css).not.toContain("tabs-trigger")
   })
 
@@ -149,7 +149,11 @@ describe("TUE-05/06/08 surface wiring", () => {
   it("marks only the two line/minimal Workbench category lists, which the surface-tab selector excludes", () => {
     const lines = (source: string) => source.match(/<TabsList[^>]*>/g) ?? []
     expect(lines(app)).toEqual(['<TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" data-variant="line" aria-label="Editor categories">'])
-    expect(lines(previewFrame)).toEqual(['<TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" data-variant="line" aria-label="Preview views">'])
+    expect(lines(previewFrame)).toEqual([
+      '<TabsList className="quiet-categories w-max flex-nowrap justify-start bg-transparent p-0" data-variant="line" aria-label="Preview views">',
+      // The States view's ordinary surface/pill sample: unmarked, so its active trigger is the Tabs target.
+      '<TabsList aria-label="Surface tabs sample">',
+    ])
     const surfaceUsages = ["../../../packages/ui/src/compositions/workspace-settings.tsx", "../../../packages/ui/src/components/tabs.stories.tsx"]
     for (const path of surfaceUsages) expect(readFileSync(new URL(path, import.meta.url), "utf8")).not.toContain('data-variant="line"')
   })

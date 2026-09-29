@@ -279,7 +279,8 @@ test.describe("WSCG-12/13 editor polish", () => {
     expect(await sections("Geometry")).toEqual(["section-radius", "section-spacing"])
     await expect(page.getByRole("textbox", { name: "Radius", exact: true })).toHaveValue("0.7")
     await editorCategory(page, "Effects")
-    expect(await sections("Effects")).toEqual(["section-shadow", "section-motion"])
+    // PUI-113 inserts UI Effects between Shadow and Motion.
+    expect(await sections("Effects")).toEqual(["section-shadow", "section-ui-effects", "section-motion"])
     for (const id of ["section-radius", "section-spacing", "section-shadow", "section-motion"]) await expect(page.getByTestId(id)).toHaveCount(1)
     // Keyboard: arrows move between the shared-style triggers in order.
     await page.getByRole("tab", { name: "Typography", exact: true }).focus()

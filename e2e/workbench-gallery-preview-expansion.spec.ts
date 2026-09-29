@@ -580,7 +580,8 @@ test.describe("WGPE-11 four-view preview and gallery integrity", () => {
     for (const [view, check] of [["Design system", "[data-design-system]"], ["App shells", "[data-app-shell]"], ["States", '[data-testid="button-activations"]'], ["Cards", "[data-gallery]"]] as const) {
       await previewView(page, view)
       await expect(frame.locator(check).first()).toBeVisible()
-      await expect(frame.getByRole("tabpanel")).toHaveCount(1)
+      // PUI-113: States now holds a nested surface Tabs sample; exactly one preview-view panel is still shown.
+      await expect(frame.locator('[data-testid="preview"] > [data-slot="tabs"] > [role="tabpanel"]:visible')).toHaveCount(1)
       expect(await overflowing(frame)).toEqual([])
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     }

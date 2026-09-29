@@ -93,6 +93,23 @@ export function PreviewFrame() {
         </div>
       </section>
 
+      {/* PUI-113: one ordinary surface/pill Tabs sample, the target of the UI Effects Tabs toggle (the category tabs above are line-style). */}
+      <section aria-labelledby="pv-tabs" className="grid gap-2">
+        <h2 id="pv-tabs" className="type-heading text-sm">
+          Tabs
+        </h2>
+        <Tabs defaultValue="overview" className="w-fit" data-testid="surface-tabs-sample">
+          <TabsList aria-label="Surface tabs sample">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview" className="text-sm text-muted-foreground">Overview panel.</TabsContent>
+          <TabsContent value="activity" className="text-sm text-muted-foreground">Activity panel.</TabsContent>
+          <TabsContent value="settings" className="text-sm text-muted-foreground">Settings panel.</TabsContent>
+        </Tabs>
+      </section>
+
       <section aria-labelledby="pv-inputs" className="grid gap-3">
         <h2 id="pv-inputs" className="type-heading text-sm">
           Input

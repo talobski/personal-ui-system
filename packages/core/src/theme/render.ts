@@ -41,8 +41,13 @@ const roleDecls = (role: (typeof TYPE_ROLES)[number]) => [
 /** Tailwind's bare `shadow` utility reads `--shadow`; every other tier is `--shadow-<tier>`. */
 const shadowThemeVar = (tier: ShadowToken) => (tier === "default" ? "--shadow" : `--shadow-${tier}`)
 
-/** The accepted Outline Button: `Button` emits `data-slot` and `data-variant`, so no other variant can match. */
-export const TACTILE_OUTLINE_BUTTON_SELECTOR = '[data-slot="button"][data-variant="outline"]'
+/**
+ * The accepted Outline Button. `Button` emits `data-slot="button"`, `data-variant` and `data-size`; when it is composed
+ * through an `asChild` trigger or close (Dialog, Drawer, ResponsiveDialog), the wrapper replaces only `data-slot` (with
+ * a `*-trigger` / `*-close` slot), so the variant and size survive. No other variant can match, and ToggleGroup items
+ * (`toggle-group-item`) or other components that reuse `data-variant="outline"` without a Button's size are excluded.
+ */
+export const TACTILE_OUTLINE_BUTTON_SELECTOR = '[data-variant="outline"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])'
 /** The active trigger of a surface/pill Tabs list; a line/minimal list is marked `data-variant="line"` and never matches. */
 export const TACTILE_SURFACE_TAB_SELECTOR = '[data-slot="tabs-list"]:not([data-variant="line"]) > [data-slot="tabs-trigger"][data-state="active"]'
 

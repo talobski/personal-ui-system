@@ -154,13 +154,13 @@ describe("TUE-05/06 targeted rendering", () => {
   const css = (value: Partial<UiEffectsValue>) => renderUiEffectsCss(apply(base, setUiEffects(value)).theme)
 
   it("targets only the Outline Button and the active trigger of a non-line Tabs list", () => {
-    expect(TACTILE_OUTLINE_BUTTON_SELECTOR).toBe('[data-slot="button"][data-variant="outline"]')
+    expect(TACTILE_OUTLINE_BUTTON_SELECTOR).toBe('[data-variant="outline"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])')
     expect(TACTILE_SURFACE_TAB_SELECTOR).toBe('[data-slot="tabs-list"]:not([data-variant="line"]) > [data-slot="tabs-trigger"][data-state="active"]')
     const both = css({ outlineButtons: true, tabs: true })
     const where = `:where(${TACTILE_OUTLINE_BUTTON_SELECTOR}, ${TACTILE_SURFACE_TAB_SELECTOR})`
     const selectors = [...both.matchAll(/^ {2}(\S.*) \{$/gm)].map((m) => m[1])
     expect(selectors).toEqual([where, `${where}:is(.dark *)`, `${where}:active:not(:disabled)`])
-    expect(both).not.toMatch(/data-variant="(?:default|secondary|ghost|destructive|link)"|data-state="inactive"|input|card|slider|switch|dialog|sidebar/i)
+    expect(both).not.toMatch(/data-variant="(?:default|secondary|ghost|destructive|link)"|data-state="inactive"|toggle|input|card|slider|switch|dialog|sidebar/i)
   })
 
   it("each toggle is independent", () => {
