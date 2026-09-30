@@ -213,6 +213,24 @@ confidence, and the Jev 1.13 jaggedness page, which was last reviewed 2026-09-17
 | Credits | The Master Customer Agreement (2026-09-23) says each submitted input consumes account credits | https://typesafe.ai/legal/mca | Every request, including failures, may cost credits. Do not infer included capacity from the price or from a key being present. |
 | Docs index | Additional primary pages, including evaluation and workflow material | https://docs.typesafe.ai/llms.txt | Not used beyond the Lead summary. |
 
+**Pattern pages used as analogies.** The Lead confirmed on 2026-10-01 that the official index
+(https://docs.typesafe.ai/llms.txt) lists these three pages. This worker could not inspect their current
+contents. The only claims below are the ones recorded in the Lead-audited **2026-09-22** packet
+(`docs/JEV_OFFICIAL_SOURCE_PACKET.md:47-62`). They are historical and have not been re-verified against the
+current pages. Re-reading them is an **unverified follow-up** for the Lead or the Stage 2 reviewer.
+
+| Page | Claim as recorded 2026-09-22 (historical) | How this proposal uses it |
+| --- | --- | --- |
+| https://docs.typesafe.ai/cookbooks/function_calling | Natural language maps to ordinary functions whose arguments come from closed sets. Optional arguments use a separate stated/not-stated judgment. Omitted arguments keep deterministic defaults. | Direct analogy for §4/§5.2. Each facet is a closed-set "argument". Its `unchanged`/`keep` option plays the stated/not-stated role. Presets are the deterministic defaults. One difference: here "not stated" is an option inside a single Choice, not a separate Noul. Whether that is equivalent is an evaluation question for §10. |
+| https://docs.typesafe.ai/patterns/intent-routing | Confidence is a second decision axis. Low confidence routes to a safer handler instead of trusting the selected label. | Basis for §6: `requestKind` below high routes to chips or clarification (the safer handler), never to a best guess. |
+| https://docs.typesafe.ai/patterns/confidence-routing | Listed in the 2026-09-22 packet (item 11). No separate claim was recorded beyond the intent-routing bullet above. | Treated only as corroboration of §6's high/medium/low routing. Any specific thresholds or recommendations on that page are **not** relied on. |
+
+The same packet also recorded the smart-home demo's speculative fan-out, where irrelevant answers are ignored by
+code (`JEV_OFFICIAL_SOURCE_PACKET.md:50-53`). That supports §5.2's one-call shape. The packet also recorded that
+the demo sends compound-command splitting and conversational text to an LLM (`:54-56`). This proposal replaces
+that with deterministic chips (§3.11) rather than an LLM. That choice is a product decision, not something the
+docs endorse.
+
 Other limitations:
 
 - **Latency.** No official latency figure is used here, and none was measured. It is unknown until the spike.
