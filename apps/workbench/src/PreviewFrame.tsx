@@ -110,7 +110,7 @@ const StatesView = React.memo(function StatesView() {
         </div>
       </section>
 
-      {/* PUI-113: one ordinary surface/pill Tabs sample; its active trigger receives Tactile like the category tabs above (PUI-120). */}
+      {/* PUI-113: one ordinary surface/pill Tabs sample; like the category tabs above, its list takes Tactile's fixed edge (PUI-124). */}
       <section aria-labelledby="pv-tabs" className="grid gap-2">
         <h2 id="pv-tabs" className="type-heading text-sm">
           Tabs

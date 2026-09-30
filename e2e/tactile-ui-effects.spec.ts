@@ -13,6 +13,7 @@ import { editorCategory, previewStates, saveTheme, setColorMode, workspaceMode }
  * amber-dusk-shell-refinement-v1-001 (PUI-124/PUI-125, ADSR-04/05): surface Tabs take only a fixed TabsList
  * `ring-1 ring-ring/20` while Tactile, their triggers keep default shadcn styling, and the helper is Tactile-only.
  * tactile-border-designsystem-type-v1-001 (PUI-129) recolours that decorative ring to `ring-1 ring-border/80`.
+ * accepted-implementation-review-inset-tabs-v1-001 (PUI-133) draws it inward: `inset-ring-1 inset-ring-border/80`.
  */
 
 const preview = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
@@ -23,8 +24,12 @@ const style = (el: Locator) => el.evaluate((node) => {
 const variant = (frame: FrameLocator, name: string) => frame.locator(`[data-testid="preview"] section[aria-labelledby="pv-buttons"] [data-slot="button"][data-variant="${name}"]`).first()
 const surfaceTabs = (frame: FrameLocator) => frame.getByRole("tablist", { name: "Surface tabs sample" })
 const tactile = (s: { backgroundImage: string; boxShadow: string }) => s.backgroundImage.includes("linear-gradient") && s.boxShadow.includes("inset")
-/** The fixed PUI-124 TabsList ring: one 1px ring layer in the list's box-shadow. */
-const listRing = (s: { boxShadow: string }) => / 0px 0px 0px 1px/.test(` ${s.boxShadow}`) || /0px 0px 0px 1px/.test(s.boxShadow)
+/**
+ * The fixed PUI-124 TabsList edge, inward since PUI-133: one inset 1px ring layer in the list's box-shadow and no outer
+ * 1px ring layer. Off (`false`) has no 1px layer of either kind.
+ */
+const listRing = (s: { boxShadow: string }) => /0px 0px 0px 1px inset/.test(s.boxShadow) && !/0px 0px 0px 1px(?! inset)/.test(s.boxShadow)
+const anyListRing = (s: { boxShadow: string }) => /0px 0px 0px 1px/.test(s.boxShadow)
 
 async function open(page: Page) {
   await page.goto("/")
@@ -118,7 +123,7 @@ test("TUE-05/06 / IESP-05 / ADSR-04 Tactile reaches Secondary Buttons and surfac
   await open(page)
   const flat = await snapshot(page)
   for (const s of [...Object.values(flat.variants), flat.activeTab, flat.inactiveTab, flat.categoryTab, flat.inactiveCategoryTab]) expect(tactile(s)).toBe(false)
-  for (const s of [flat.surfaceList, flat.categoryList]) expect(listRing(s)).toBe(false)
+  for (const s of [flat.surfaceList, flat.categoryList]) expect(anyListRing(s)).toBe(false)
 
   await setEffect(page, "Tactile")
   const on = await snapshot(page)

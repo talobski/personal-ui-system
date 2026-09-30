@@ -132,8 +132,9 @@ test("IESP-06 both Workbench tab groups are default surface Tabs at natural widt
   const effect = page.getByRole("combobox", { name: "Effect", exact: true })
   await effect.click()
   await page.getByRole("option", { name: "Tactile", exact: true }).click()
-  // PUI-124 (ADSR-04): Tactile reaches the surface TabsList as one fixed ring; no trigger takes the tactile recipe.
-  const ring = (el: Locator) => el.evaluate((node) => /0px 0px 0px 1px/.test(getComputedStyle(node).boxShadow))
+  // PUI-124 (ADSR-04): Tactile reaches the surface TabsList as one fixed ring, inward since PUI-133; no trigger takes the
+  // tactile recipe.
+  const ring = (el: Locator) => el.evaluate((node) => /0px 0px 0px 1px inset/.test(getComputedStyle(node).boxShadow))
   expect(await tactile(page.getByRole("tablist", { name: "Editor categories" }).getByRole("tab", { selected: true }))).toBe(false)
   expect(await tactile(page.getByRole("tablist", { name: "Editor categories" }).getByRole("tab", { name: "Colors", exact: true }))).toBe(false)
   expect(await ring(page.getByRole("tablist", { name: "Editor categories" }))).toBe(true)

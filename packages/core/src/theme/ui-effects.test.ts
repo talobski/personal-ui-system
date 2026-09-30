@@ -241,8 +241,8 @@ describe("TUE-05/06 / IESP-05 / ADSR-04 targeted rendering", () => {
   const tabsList = `:where(${TACTILE_SURFACE_TABS_LIST_SELECTOR})`
   const RING = [
     `  ${tabsList} {`,
-    "    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width, 0px)) var(--tw-ring-color, currentcolor);",
-    "    --tw-ring-color: color-mix(in oklab, var(--border) 80%, transparent);",
+    "    --tw-inset-ring-shadow: inset 0 0 0 1px var(--tw-inset-ring-color, currentcolor);",
+    "    --tw-inset-ring-color: color-mix(in oklab, var(--border) 80%, transparent);",
     "    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);",
     "  }",
   ].join("\n")
@@ -254,9 +254,10 @@ describe("TUE-05/06 / IESP-05 / ADSR-04 targeted rendering", () => {
     const selectors = [...tactile.matchAll(/^ {2}(\S.*) \{$/gm)].map((m) => m[1])
     expect(selectors).toEqual([button, `${button}:is(.dark *)`, `${button}:active:not(:disabled)`, tabsList])
     expect(tactile).not.toMatch(/tabs-trigger|data-state|data-variant="(?:default|outline|ghost|destructive|link)"|toggle|input\]|card|slider|switch|dialog|sidebar/i)
-    // PUI-129: the TabsList rule is exactly `ring-1 ring-border/80` and carries nothing from the tactile recipe.
+    // PUI-133: the TabsList rule is exactly `inset-ring-1 inset-ring-border/80` and carries nothing from the tactile
+    // recipe; the outer ring slot is left to consumer utilities (a focus-visible ring still composes).
     expect(rule(tactile, tabsList)).toBe(RING)
-    expect(rule(tactile, tabsList)).not.toMatch(/ui-tactile|background|--tw-inset-shadow:|--tw-shadow:/)
+    expect(rule(tactile, tabsList)).not.toMatch(/ui-tactile|background|--tw-inset-shadow:|--tw-shadow:|--tw-ring-(?:shadow|color|offset[a-z-]*|inset):/)
   })
 
   it("Off renders nothing at any strength; the targets are not separately configurable", () => {
@@ -266,7 +267,7 @@ describe("TUE-05/06 / IESP-05 / ADSR-04 targeted rendering", () => {
     expect(css({ effect: "tactile", strength: 90 })).toContain(`${tabsList} {`)
   })
 
-  it("PUI-124 Strength scales only the Secondary Button: the TabsList ring is byte-identical at every strength, including 0", () => {
+  it("PUI-124/PUI-133 Strength scales only the Secondary Button: the TabsList inset ring is byte-identical at every strength, including 0", () => {
     const rings = [0, 1, 25, 50, 75, 100].map((strength) => rule(css({ effect: "tactile", strength }), tabsList))
     for (const ring of rings) expect(ring).toBe(RING)
     expect(rule(css({ effect: "tactile", strength: 0 }), button)).not.toBe(rule(css({ effect: "tactile", strength: 100 }), button))
@@ -276,7 +277,7 @@ describe("TUE-05/06 / IESP-05 / ADSR-04 targeted rendering", () => {
     const out = css({ effect: "tactile", strength: 100 })
     expect(out).toMatch(/^\/\* UI effects: tactile, strength 100\. \*\/\n@layer components \{/)
     const properties = [...out.matchAll(/^\s+([a-z-]+):/gm)].map((m) => m[1])
-    expect(new Set(properties)).toEqual(new Set(["--ui-tactile-wash-top", "--ui-tactile-wash-bottom", "--ui-tactile-highlight", "--ui-tactile-lower", "--ui-tactile-edge", "--ui-tactile-press", "background-image", "--tw-inset-shadow", "box-shadow", "--tw-ring-shadow", "--tw-ring-color"]))
+    expect(new Set(properties)).toEqual(new Set(["--ui-tactile-wash-top", "--ui-tactile-wash-bottom", "--ui-tactile-highlight", "--ui-tactile-lower", "--ui-tactile-edge", "--ui-tactile-press", "background-image", "--tw-inset-shadow", "box-shadow", "--tw-inset-ring-shadow", "--tw-inset-ring-color"]))
     // The base box-shadow is exactly Tailwind's own composition, so ring and shadow utilities keep composing with it.
     expect(out).toContain("    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);")
     expect(out.replaceAll("0 0 #0000", "")).not.toMatch(/#[0-9a-f]{3,8}\b|rgb\(|oklch\(|hsl\(|white|black/i)

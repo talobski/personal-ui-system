@@ -179,7 +179,9 @@ test.describe("ADSR-04 Off/Tactile targets and the fixed TabsList ring (PUI-124)
           expect(readings[strength]!.list, `list ${strength}`).toEqual(readings[0]!.list)
           expect(readings[strength]!.active, `active ${strength}`).toEqual(off.active)
         }
-        expect(readings[0]!.list.boxShadow).toMatch(/0px 0px 0px 1px/)
+        // PUI-133: the fixed edge is one inward 1px layer; no outer 1px ring remains.
+        expect(readings[0]!.list.boxShadow).toMatch(/0px 0px 0px 1px inset/)
+        expect(readings[0]!.list.boxShadow).not.toMatch(/0px 0px 0px 1px(?! inset)/)
         for (const key of ["backgroundColor", "width", "height", "backgroundImage"] as const) expect(readings[50]!.list[key]).toBe(off.list[key])
         // PUI-129: the ring colour is the semantic border token at 80%.
         const ringColor = await list.evaluate((node) => { const probe = document.createElement("span"); probe.style.color = "color-mix(in oklab, var(--border) 80%, transparent)"; node.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c })
