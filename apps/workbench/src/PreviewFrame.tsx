@@ -74,7 +74,8 @@ export function PreviewFrame() {
         <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden"><CardsView /></TabsContent>
         {/* PUI-101/102: read-only views of the same posted CSS; the Workbench sidebar remains the only editor. */}
         <TabsContent value="design-system" forceMount className="data-[state=inactive]:hidden"><DesignSystemPreview source={`${state?.mode ?? ""}\n${state?.css ?? ""}`} /></TabsContent>
-        <TabsContent value="app-shells" forceMount className="data-[state=inactive]:hidden"><AppShellsView /></TabsContent>
+        {/* PUI-140: a little more room below the view tabs before the first shell. */}
+        <TabsContent value="app-shells" forceMount className="pt-4 data-[state=inactive]:hidden"><AppShellsView /></TabsContent>
         <TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">
           <StatesView />
         </TabsContent>

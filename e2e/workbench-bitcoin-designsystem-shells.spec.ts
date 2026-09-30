@@ -337,8 +337,8 @@ test.describe("WBDS-07 standardized App shells (PUI-110)", () => {
       await colorInput(page, "sidebar-accent").press("Enter")
       await workspaceMode(page, "Preview")
       for (const index of [0, 2]) await expect.poll(() => css(sidebars.nth(index), "background-color")).toBe(await token(frame, "sidebar"))
-      // PUI-127 (ADSR-05): the Inset project's sidebar and connected outer body are the semantic muted surface.
-      await expect(shells.nth(1).locator(":scope > div > div").first()).toHaveCSS("background-color", await token(frame, "muted"))
+      // PUI-127 (ADSR-05) / PUI-140: the Inset project's sidebar and connected outer body are the dedicated sidebar surface.
+      await expect(shells.nth(1).locator(":scope > div > div").first()).toHaveCSS("background-color", await token(frame, "sidebar"))
       for (const index of [0, 1, 2]) await expect(shells.nth(index).locator('[data-active="true"]')).toHaveCSS("background-color", await token(frame, "sidebar-accent"))
       expect(await overflowing(frame)).toEqual([])
       await axe(page, info, `app-shells-${mode}`)

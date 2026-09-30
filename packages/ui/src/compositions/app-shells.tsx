@@ -168,9 +168,10 @@ const ignoreProviderToggle = () => {}
 /**
  * One shell: the shared Sidebar (switcher header, grouped navigation, profile footer) beside the shared main panel.
  * Variants differ only in restrained treatment: Classic divides a flat sidebar from the page; Inset (PUI-127) sets the
- * sidebar and the connected outer body on one semantic `muted` surface and lifts the page onto a bordered background
- * panel with the theme's lightest shadow tier (`shadow-2xs`), as in the shadcn inset blocks; Compact tightens density
- * and chooses a narrower sidebar.
+ * sidebar and the connected outer body on one surface, the dedicated semantic `sidebar` background since PUI-140, and
+ * lifts the page onto a bordered background panel with the theme's lightest shadow tier (`shadow-2xs`), as in the shadcn
+ * inset blocks; Compact tightens density and chooses a narrower sidebar. PUI-140: the outer frame is flat, edged only by
+ * the semantic `border` (no `shadow-sm`), so no shell reads as a floating card; elevation inside a shell is unchanged.
  *
  * PUI-116: each shell is its own SidebarProvider (the frame), expanded at rest, controlled by session-local state that
  * is never persisted or shared. Collapse uses the official icon rail: the in-flow `collapsible="none"` Sidebar carries
@@ -202,7 +203,7 @@ function Shell({ title, variant, initial }: { title: string; variant: Variant; i
       id={sidebarId}
       data-state={open ? "expanded" : "collapsed"}
       data-collapsible={open ? "" : "icon"}
-      className={`group shrink-0 transition-[width] duration-200 ease-linear data-[collapsible=icon]:w-(--sidebar-width-icon) motion-reduce:transition-none ${variant === "inset" ? "bg-muted" : "border-r border-sidebar-border"}`}
+      className={`group shrink-0 transition-[width] duration-200 ease-linear data-[collapsible=icon]:w-(--sidebar-width-icon) motion-reduce:transition-none ${variant === "inset" ? "bg-sidebar" : "border-r border-sidebar-border"}`}
     >
       <SidebarHeader className={density === "compact" ? "p-1.5" : undefined}>
         <WorkspaceSwitcher shell={title} workspace={workspace} onChange={setWorkspaceId} density={density} />
@@ -218,10 +219,10 @@ function Shell({ title, variant, initial }: { title: string; variant: Variant; i
   const main = <MainPanel title={title} sidebarId={sidebarId} open={open} onToggle={toggle} workspace={workspace} page={page} density={density} />
   return (
     <section aria-labelledby={id} data-app-shell={title} data-shell-variant={variant} data-shell-state={open ? "expanded" : "collapsed"} className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[90%]">
-      <h2 id={id} className="type-heading text-sm">{title}</h2>
-      <SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-[clamp(30rem,58cqw,44rem)] min-h-0 min-w-0 overflow-hidden rounded-xl border shadow-sm" style={{ "--sidebar-width": width } as CSSProperties}>
+      <h2 id={id} className="type-heading text-base">{title}</h2>
+      <SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-[clamp(30rem,58cqw,44rem)] min-h-0 min-w-0 overflow-hidden rounded-xl border" style={{ "--sidebar-width": width } as CSSProperties}>
         {variant === "inset" ? (
-          <div className="flex h-full min-w-0 gap-2 bg-muted p-2" data-shell-body>
+          <div className="flex h-full min-w-0 gap-2 bg-sidebar p-2" data-shell-body>
             {sidebar}
             <div className="flex min-w-0 flex-1 rounded-lg border bg-background shadow-2xs" data-shell-inset>{main}</div>
           </div>
@@ -242,7 +243,7 @@ function Shell({ title, variant, initial }: { title: string; variant: Variant; i
  * item, profile footer) and one abstract main panel, and stack vertically, centred. PUI-127: at desktop container
  * widths each shell takes about 90% of the panel and a proportional landscape height from the container width
  * (`clamp(30rem, 58cqw, 44rem)`), reading as a real application window; narrow containers use the full panel at the
- * 30rem floor. Each shell owns one preview-local provider and collapses to its icon rail
+ * 30rem floor. PUI-140: the shells stand 3rem apart and each title is one type step larger (`text-base`). Each shell owns one preview-local provider and collapses to its icon rail
  * independently (see Shell). The Sidebar stays on the official in-flow `collapsible="none"` branch: the viewport-fixed
  * desktop branch and mobile sheet are never mounted. The preview renders in its own iframe document, so neither the
  * Workbench's provider nor its shortcut listener can reach a shell, and a shell cannot reach them. The official
@@ -252,7 +253,7 @@ function Shell({ title, variant, initial }: { title: string; variant: Variant; i
 export function AppShells() {
   return (
     <div data-app-shells className="@container min-h-0 min-w-0">
-      <div className="grid min-w-0 gap-8">
+      <div className="grid min-w-0 gap-12">
         <Shell title="Classic workspace" variant="classic" initial={{ workspace: "northwind", page: "Home" }} />
         <Shell title="Inset project" variant="inset" initial={{ workspace: "atlas", page: "Documents" }} />
         <Shell title="Compact utility" variant="compact" initial={{ workspace: "harbor", page: "Inbox" }} />

@@ -170,12 +170,17 @@ describe("WGPE-10/WBDS-07 App shells view (PUI-102, PUI-110)", () => {
     expect(source().match(/<Sidebar\s+collapsible="none"/g)).toHaveLength(1)
     expect(source()).not.toMatch(/SidebarRail|<SidebarInset|useSidebar|collapsible="(icon|offcanvas)"/)
     expect(source().match(/<SidebarProvider /g)).toHaveLength(1)
-    expect(source()).toContain('<SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-[clamp(30rem,58cqw,44rem)] min-h-0 min-w-0 overflow-hidden rounded-xl border shadow-sm"')
+    expect(source()).toContain('<SidebarProvider open={open} onOpenChange={ignoreProviderToggle} onKeyDown={onShortcut} className="block h-[clamp(30rem,58cqw,44rem)] min-h-0 min-w-0 overflow-hidden rounded-xl border"')
+    // PUI-140 (TCHS-04): the outer frame is flat, edged by the semantic border only; inner elevation is unchanged.
+    expect(markup.match(/data-slot="sidebar-wrapper"[^>]*class="[^"]*\brounded-xl border"/g)).toHaveLength(3)
+    expect(markup.match(/data-slot="sidebar-wrapper"[^>]*class="[^"]*shadow-/g)).toBeNull()
     // PUI-110: one vertical sequence (no side-by-side columns), each shell narrower than the panel once it is wide,
     // centred, with one shared landscape height. PUI-127 (ADSR-05): about 90% of a wide panel, with a height
     // proportional to the container width between the accepted 30rem (h-120) floor and 44rem.
     expect(source()).toContain('<div data-app-shells className="@container min-h-0 min-w-0">')
-    expect(source()).toContain('<div className="grid min-w-0 gap-8">')
+    expect(source()).toContain('<div className="grid min-w-0 gap-12">')
+    expect(markup.match(/<h2 id="[^"]+" class="type-heading text-base">/g)).toHaveLength(3)
+    expect(code("./PreviewFrame.tsx")).toContain('<TabsContent value="app-shells" forceMount className="pt-4 data-[state=inactive]:hidden"><AppShellsView /></TabsContent>')
     expect(source()).not.toMatch(/grid-cols-2|col-span|@3xl:grid-cols/)
     expect(source()).toContain('className="mx-auto grid w-full min-w-0 gap-2 @3xl:w-[90%]"')
     expect(markup.match(/data-slot="sidebar-wrapper"[^>]*class="[^"]*\bh-\[clamp\(30rem,58cqw,44rem\)\][^"]*"/g)).toHaveLength(3)
@@ -241,15 +246,17 @@ describe("WGPE-10/WBDS-07 App shells view (PUI-102, PUI-110)", () => {
   it("stays on semantic tokens and the unchanged public Sidebar, Select and Avatar APIs", () => {
     expect(source()).not.toMatch(rawColour)
     for (const module of ["../components/sidebar", "../components/select", "../components/avatar"]) expect(source()).toContain(`from "${module}"`)
-    for (const token of ["bg-sidebar", "border-sidebar-border", "bg-sidebar-primary", "text-sidebar-primary-foreground", "hover:bg-sidebar-accent", "bg-background", "bg-muted", "text-muted-foreground", "type-heading", "shadow-sm", "rounded-"]) expect(source()).toContain(token)
+    for (const token of ["bg-sidebar", "border-sidebar-border", "bg-sidebar-primary", "text-sidebar-primary-foreground", "hover:bg-sidebar-accent", "bg-background", "bg-muted", "text-muted-foreground", "type-heading", "shadow-2xs", "rounded-"]) expect(source()).toContain(token)
     expect(source()).not.toMatch(/fetch\(|https?:\/\/|localStorage|sessionStorage|addEventListener|setTimeout|setInterval/)
-    // PUI-127: only Inset sets its sidebar and connected body on muted, with the restrained shadow-2xs inset panel.
+    // PUI-127/PUI-140: only Inset sets its sidebar and connected body on one surface, now the dedicated sidebar
+    // background, with the restrained shadow-2xs inset panel.
     const markup = html()
     const inset = shell(markup, "Inset project")
-    expect(inset).toMatch(/data-slot="sidebar"[^>]*class="[^"]*\bbg-muted\b/)
-    expect(inset).toMatch(/<div class="flex h-full min-w-0 gap-2 bg-muted p-2" data-shell-body="true">/)
+    expect(inset).toMatch(/data-slot="sidebar"[^>]*class="[^"]*\bbg-sidebar\b/)
+    expect(inset).not.toMatch(/data-slot="sidebar"[^>]*class="[^"]*\bbg-muted\b/)
+    expect(inset).toMatch(/<div class="flex h-full min-w-0 gap-2 bg-sidebar p-2" data-shell-body="true">/)
     expect(inset).toMatch(/<div class="flex min-w-0 flex-1 rounded-lg border bg-background shadow-2xs" data-shell-inset="true">/)
-    expect(inset).not.toMatch(/shadow-sm" data-shell-inset|bg-sidebar p-2/)
+    expect(inset).not.toMatch(/shadow-sm" data-shell-inset|bg-muted p-2/)
     for (const title of ["Classic workspace", "Compact utility"]) {
       const one = shell(markup, title)
       expect(one, title).not.toMatch(/data-shell-body|data-shell-inset|data-slot="sidebar"[^>]*class="[^"]*\bbg-muted\b/)

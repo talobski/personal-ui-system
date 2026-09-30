@@ -250,7 +250,7 @@ test.describe("ADSR-05 helper, Colors hierarchy, App shells, Storage and Chat (P
   })
 
   for (const mode of ["light", "dark"] as const) {
-    test(`App shells are about 90% wide, proportionally tall, with a muted Inset body and restrained panel (${mode})`, async ({ page }, info) => {
+    test(`App shells are about 90% wide, proportionally tall, with a sidebar-surface Inset body and restrained panel (${mode})`, async ({ page }, info) => {
       test.setTimeout(90_000)
       await open(page)
       await setColorMode(page, mode)
@@ -274,10 +274,17 @@ test.describe("ADSR-05 helper, Colors hierarchy, App shells, Storage and Chat (P
       const headerHeight = (title: string) => frame.locator(`[data-app-shell="${title}"] [data-shell-header]`).evaluate((el) => el.parentElement!.getBoundingClientRect().height)
       expect(await headerHeight("Classic workspace")).toBe(64)
       expect(await headerHeight("Compact utility")).toBe(48)
-      // Inset: sidebar and connected body are muted; the inset panel is the background surface with the 2xs shadow.
+      // Inset: sidebar and connected body are the dedicated sidebar surface (PUI-140, formerly muted); the inset panel is
+      // the background surface with the 2xs shadow.
       const inset = frame.locator('[data-app-shell="Inset project"]')
-      expect(await css(inset.locator('[data-slot="sidebar"]'), "background-color")).toBe(await token(frame, "muted"))
-      expect(await css(inset.locator("[data-shell-body]"), "background-color")).toBe(await token(frame, "muted"))
+      expect(await css(inset.locator('[data-slot="sidebar"]'), "background-color")).toBe(await token(frame, "sidebar"))
+      expect(await css(inset.locator("[data-shell-body]"), "background-color")).toBe(await token(frame, "sidebar"))
+      // PUI-140: every outer shell frame is flat, edged by the semantic border rather than an outer shadow.
+      for (const title of ["Classic workspace", "Inset project", "Compact utility"]) {
+        const outer = frame.locator(`[data-app-shell="${title}"] [data-slot="sidebar-wrapper"]`)
+        expect(await css(outer, "box-shadow"), title).toBe("none")
+        expect(await css(outer, "border-top-color"), title).toBe(await token(frame, "border"))
+      }
       expect(await css(inset.locator("[data-shell-inset]"), "background-color")).toBe(await token(frame, "background"))
       const insetShadow = await css(inset.locator("[data-shell-inset]"), "box-shadow")
       // Tailwind composes the theme's 2xs tier (runtime variable --shadow-layers-2xs) after its empty ring/inset slots.
