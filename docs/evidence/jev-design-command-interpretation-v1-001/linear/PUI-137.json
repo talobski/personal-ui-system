@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T17:31:41Z",
+  "issue": {
+    "id": "PUI-137",
+    "uuid": "3fd1a926-95ec-412d-9564-937514edbcf3",
+    "title": "Explore Jev-powered Design Command interpretation",
+    "description": "Research and design a bounded Jev-powered interpretation layer for Personal UI Design Command, with a phase-local owner approval gate before any technical spike or implementation work.\n\n## Goal\n\nDetermine whether Jev by TypeSafe AI is a genuinely good fit for interpreting natural-language design intent into bounded Personal UI design mutations.\n\nExample user intent:\n\n* `Make it feel like Spotify`\n* `Make it more editorial and less SaaS-like`\n* `Make it playful and soft`\n* `Make it better`\n\nThe desired product experience is potentially:\n\nuser command\n→ Personal UI interprets design intent\n→ safe preview of theme changes\n→ user evaluates / refines / undoes\n→ user saves the resulting theme\n\nThe research must determine whether Jev can support that experience without becoming an unconstrained generative design engine.\n\n## Primary principle\n\nJev should only be considered for bounded semantic judgment.\n\nDeterministic Personal UI code must remain responsible for:\n\n* admissibility;\n* allowed mutation set;\n* actual token values;\n* mutation execution;\n* validation;\n* Theme v3 constraints;\n* history / undo;\n* persistence;\n* permissions / safety boundaries.\n\nJev must not be allowed to generate arbitrary CSS, bypass the closed mutation system, or directly mutate Theme v3 outside accepted operations.\n\n## Phase shape\n\nThis ticket is intended for one future phase with a REQUIRED mid-phase owner approval gate.\n\nThe phase should have two possible stages:\n\n### Stage 1 — Research and proposal\n\nWorker researches feasibility and produces a concrete proposal.\n\nNo product implementation or behavior change is authorized in Stage 1.\n\n### OWNER GATE — REQUIRED\n\nAfter the proposal is complete:\n\n* STOP;\n* present the proposal to the owner;\n* do not proceed to a spike or implementation until the owner explicitly approves the next step.\n\nThis approval gate is **phase-local to this ticket only**.\n\nIt does not modify the normal Loop Engineering interruption policy for future phases.\n\n### Stage 2 — Optional bounded spike\n\nOnly if explicitly approved at the owner gate:\n\n* perform the exact approved technical spike;\n* do not expand into full production implementation unless separately approved;\n* keep the spike minimal and reversible.\n\nIf the owner does not approve Stage 2, close the phase with research/proposal only.\n\n## 1. Research current Design Command architecture\n\nInspect the current accepted Personal UI implementation and document:\n\n* current Design Command entry points;\n* current mutation contract;\n* current closed mutation operation set;\n* deterministic admissibility logic;\n* current validation flow;\n* history / undo behavior;\n* Theme v3 constraints;\n* any existing Jev adapter or project-local Jev integration;\n* any assumptions that would need to change for natural-language style-reference commands.\n\nDo not reopen verified architecture without evidence.\n\n## 2. Research current Jev capabilities\n\nUse current TypeSafe primary documentation as the basis for the assessment.\n\nInspect current semantics of:\n\n* Choice;\n* Score;\n* Noul;\n* confidence / probabilities;\n* model / API constraints;\n* structured outputs;\n* latency / failure modes;\n* authentication;\n* usage / credit implications;\n* any relevant agent-skill guidance.\n\nDo not rely on stale assumptions if current documentation differs.\n\n## 3. Evaluate the intended Design Command use case\n\nAssess whether a command such as:\n\n`Make it feel like Spotify`\n\ncan be safely decomposed into bounded semantic decisions such as:\n\n* overall design direction;\n* typography implication;\n* color implication;\n* geometry / radius implication;\n* density implication;\n* contrast implication;\n* surface/chrome implication;\n* ambiguity / actionability;\n* selection among currently admissible mutations.\n\nThe proposal should distinguish clearly between:\n\n### Jev responsibility\n\nExamples may include:\n\n* classify design intent;\n* choose among fixed design directions;\n* score strength of an implication;\n* determine whether a design dimension is implicated;\n* select among already-admissible mutation candidates;\n* detect ambiguity / low confidence.\n\n### Deterministic code responsibility\n\nMust include:\n\n* what mutations are legal;\n* actual token values;\n* clamping / limits;\n* applying mutations;\n* validation;\n* history;\n* persistence;\n* save behavior;\n* accessibility constraints where deterministic measurement is available.\n\n## 4. Reference-style commands\n\nResearch how reference-style commands should be interpreted.\n\nExamples:\n\n* `Make it feel like Spotify`\n* `Make it feel like Linear`\n* `Make it more editorial`\n* `Make it less SaaS-like`\n\nThe proposal must avoid treating these as instructions to clone another product exactly.\n\nInstead, determine whether Jev can translate them into Personal UI's own bounded design vocabulary.\n\nFor example, a reference-style command may resolve to concepts such as:\n\n* dark;\n* high contrast;\n* dense;\n* restrained radius;\n* vivid accent;\n* minimal surface decoration.\n\nThe exact vocabulary should be proposed based on the current mutation system, not invented independently of it.\n\n## 5. Ambiguous-command behavior\n\nResearch what should happen for vague requests such as:\n\n`Make it better`\n\nThe proposal must define a confidence / ambiguity policy.\n\nPossible outcomes may include:\n\n* high confidence → safe preview;\n* medium confidence → conservative preview or user confirmation;\n* low confidence → ask a focused follow-up and do not mutate.\n\nDo not assume one universal confidence threshold without justification.\n\nIf different decision types need different thresholds, document that explicitly.\n\n## 6. Exact Jev contract proposal\n\nThe Stage 1 proposal must include concrete examples of the exact Jev decision contracts it recommends.\n\nFor each proposed Jev call, document:\n\n* input context;\n* fixed options / answer space;\n* whether it is Choice, Score, or Noul;\n* expected output;\n* confidence / acceptance policy;\n* deterministic fallback;\n* failure handling.\n\nDo not keep the proposal at the level of vague statements such as \"use Jev to interpret intent.\"\n\nThe owner should be able to inspect the actual proposed decision boundaries before approving a spike.\n\n## 7. Proposed user flow\n\nProduce a clear end-user flow for the Workbench.\n\nAt minimum address:\n\n* where the Design Command input lives;\n* what happens after submit;\n* loading / processing state;\n* how preview changes appear;\n* whether changes apply immediately or require confirmation;\n* how the user refines the result;\n* undo / reset interaction;\n* saving the resulting custom theme;\n* ambiguous-command follow-up;\n* API/service failure state.\n\nThe user should not need to know Jev exists.\n\nJev is an internal interpretation layer, not a product-facing concept.\n\n## 8. Architecture / service implications\n\nAssess the cost of introducing Jev into this product path.\n\nDocument:\n\n* hosted API/network dependency;\n* API key handling;\n* whether a server/proxy boundary is required;\n* local-only / offline implications;\n* latency;\n* retry behavior;\n* timeout behavior;\n* provider unavailability;\n* deterministic fallback behavior;\n* privacy / what command or theme context leaves the app;\n* model/version drift;\n* observability / audit needs;\n* testability and calibration;\n* cost / TypeSafe credit usage.\n\nDo not minimize these costs.\n\n## 9. Compare alternatives\n\nCompare at minimum:\n\n### A. Deterministic-only interpretation\n\n### B. Jev-assisted bounded interpretation\n\n### C. Conventional LLM interpretation\n\n### D. Hybrid approach\n\nFor each, assess:\n\n* quality of natural-language understanding;\n* determinism;\n* safety / boundedness;\n* latency;\n* cost;\n* implementation complexity;\n* offline behavior;\n* testability;\n* maintainability;\n* fit with current Personal UI architecture.\n\nDo not recommend Jev merely because the ticket is about Jev.\n\n## 10. Stage 1 deliverable\n\nBefore the owner gate, produce a concise but concrete proposal containing:\n\n 1. current architecture summary;\n 2. Jev capability summary from current primary docs;\n 3. candidate Design Command user flow;\n 4. internal pipeline;\n 5. exact proposed Jev Choice / Score / Noul contracts;\n 6. deterministic vs probabilistic responsibility split;\n 7. confidence / ambiguity policy;\n 8. service / network architecture implications;\n 9. comparison against deterministic-only and conventional-LLM alternatives;\n10. risks / anti-patterns;\n11. smallest useful technical spike;\n12. success criteria for that spike;\n13. recommendation:\n\n* proceed to spike;\n* research further;\n* or do not use Jev for this feature.\n\n## 11. Required owner gate\n\nAfter Stage 1:\n\n**STOP AND REQUEST OWNER APPROVAL.**\n\nDo not:\n\n* make live Jev calls;\n* change product code;\n* change Design Command;\n* add network behavior;\n* add credentials;\n* add dependencies;\n* modify Theme v3;\n* modify the mutation system;\n* create a production integration.\n\nThe owner may:\n\n* approve the proposed spike;\n* approve with changes;\n* request another research pass;\n* reject the spike and close research-only.\n\n## 12. Optional Stage 2 spike\n\nOnly if explicitly approved.\n\nThe preferred spike shape should be minimal.\n\nPotential fixture commands may include:\n\n* `Make it feel like Spotify`\n* `Make it more editorial`\n* `Make it playful and soft`\n* `Make it better`\n\nThe spike should test whether Jev can produce useful bounded decisions that map to the existing mutation system.\n\nIt should not become a full Workbench feature unless separately authorized.\n\nAny live Jev call must stay within explicitly approved TypeSafe credit / spend policy.\n\n## 13. Verification / closeout\n\nCloseout should record:\n\n* research sources;\n* proposal;\n* owner decision at the phase-local gate;\n* spike scope if approved;\n* live Jev call count / credit usage if any;\n* results;\n* failure cases;\n* whether the hypothesis was supported;\n* recommended next ticket, if any.\n\nIf no spike is approved, research-only closeout is valid.\n\n## Acceptance\n\n* Feasibility is evaluated against the current accepted Personal UI architecture.\n* Current TypeSafe/Jev primary documentation is used.\n* Exact proposed Jev decision contracts are shown.\n* User flow is concrete and understandable.\n* Deterministic vs probabilistic responsibilities are explicit.\n* Reference-style commands are handled as bounded design interpretation, not literal cloning.\n* Ambiguity / low-confidence behavior is specified.\n* Service/network/privacy/cost implications are documented.\n* Alternatives are compared fairly.\n* Stage 1 completes before any technical spike.\n* Required owner gate is honored.\n* No Stage 2 work occurs without explicit owner approval.\n* This phase-local approval gate does not change default policy for later phases.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-137/explore-jev-powered-design-command-interpretation",
+    "gitBranchName": "emmantalob/pui-137-explore-jev-powered-design-command-interpretation",
+    "createdAt": "2026-09-30T15:06:50.513Z",
+    "updatedAt": "2026-09-30T17:15:23.246Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Research",
+      "Feature"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-30T15:06:50.513Z",
+        "endedAt": "2026-09-30T17:15:23.236Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T17:15:23.236Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentPaginationComplete": true,
+  "attachmentsState": {
+    "issueAttachments": [],
+    "documents": [],
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  }
+}

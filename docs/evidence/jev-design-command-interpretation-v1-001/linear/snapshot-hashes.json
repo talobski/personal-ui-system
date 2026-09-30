@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "linear-admission-manifest/1",
+  "phase": "jev-design-command-interpretation-v1-001",
+  "tickets": [
+    {
+      "id": "PUI-137",
+      "path": "docs/evidence/jev-design-command-interpretation-v1-001/linear/PUI-137.json",
+      "sha256": "754a545443115a7901fb2cfc5282d6d8a97e5349e6a6c464135c007bdd20e5e3"
+    }
+  ]
+}
