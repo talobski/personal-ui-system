@@ -3,6 +3,12 @@
 Status: ACTIVE — the accepted product is
 `e16bc37051915954fb39196636245c11070bf309` on `main`. The single Tier 2
 `theme-action-export-dialog-v1-001` phase delivered PUI-134, PUI-135, and PUI-136.
+The next single Tier 2 phase admits PUI-138 through PUI-141 for Theme code,
+top-bar icon tooltips, App shell presentation, and diagnosed text-selection
+geometry. Its frozen packet and governing contract are under
+`docs/evidence/theme-code-header-shell-selection-v1-001/linear/` and
+`docs/THEME_CODE_HEADER_SHELL_SELECTION_CONTRACT.md`; `.loop` records its
+execution state. Admission does not change the accepted product pointer.
 PUI-137 closed successfully as research-only after its mandatory owner gate.
 Its verified Stage 1 proposal is retained at `d5cb9d9`; Stage 2 was not
 admitted. PUI-142 remains a Backlog follow-up for a fair deterministic, LLM,

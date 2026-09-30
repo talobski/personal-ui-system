@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T18:48:12.041Z",
+  "issue": {
+    "id": "PUI-138",
+    "uuid": "d2b80900-47cb-402b-a25c-c5e710113e7f",
+    "title": "Polish Theme code dialog and replace Export header action",
+    "description": "Refine the recently added theme export surface so it is presented as a focused code-view/copy experience rather than a generic export/download flow.\n\n## Goal\n\nRename the header action and dialog around the concept of theme code, remove the now-unneeded download flow, and improve the code panel structure and scrolling.\n\nThe resulting interaction should feel like:\n\nCode\n→ Theme code dialog\n→ choose JSON or Tailwind CSS\n→ inspect code\n→ copy code\n\n## 1. Rename the header action\n\nChange the existing header action label from:\n\n**Export**\n\nto:\n\n**Code**\n\nUpdate the icon accordingly.\n\nRequirements:\n\n* replace the current export/download icon with an appropriate existing code icon;\n* prefer an already-installed Lucide code glyph such as `Code2` or the closest accepted equivalent;\n* preserve the action's current position in the header;\n* preserve keyboard/focus/accessibility behavior;\n* accessible name should match the visible action: **Code**.\n\nDo not retain export/download semantics in the iconography.\n\n## 2. Rename the dialog\n\nChange the dialog title from:\n\n**Export theme**\n\nto:\n\n**Theme code**\n\n## 3. Simplify the supporting copy\n\nReplace the current verbose description with concise copy:\n\n**Copy your theme as JSON or Tailwind CSS.**\n\nRequirements:\n\n* keep the copy directly beneath the dialog title;\n* use the existing muted/supporting text treatment;\n* do not include the current theme name in the paragraph;\n* do not mention downloading.\n\n## 4. Remove Download\n\nRemove the Download action entirely from this dialog.\n\nRequirements:\n\n* no Download button in the footer;\n* no file download behavior from this dialog;\n* no unused footer space left behind;\n* remove obsolete download-specific handlers/state/tests where safe;\n* keep JSON and CSS generation intact because both remain available for preview/copy.\n\nThe dialog should become copy-oriented rather than file-export-oriented.\n\n## 5. Move Copy into a code toolbar\n\nMove the Copy action out of the dialog footer.\n\nAdd a slim toolbar/header directly above the code content.\n\nToolbar behavior:\n\n* visually attached to the code panel;\n* Copy aligned to the right;\n* use the existing Copy icon;\n* button should contain:\n  * Copy icon\n  * `Copy` label;\n* preserve existing copied-state feedback if present;\n* Copy must continue copying the exact currently displayed format output.\n\nThe toolbar should read as part of the code surface rather than as a global dialog footer.\n\nPrefer a subtle divider between the toolbar and code viewport.\n\n## 6. Code panel structure\n\nThe code panel should conceptually be:\n\ncode panel\n├─ toolbar\n│  └─ Copy\n└─ scrollable code viewport\n\nPreserve:\n\n* monospace rendering;\n* whitespace/newlines;\n* read-only behavior;\n* exact preview/output equality;\n* JSON / CSS format switching.\n\nDo not add code editing.\n\n## 7. Use the existing shadcn ScrollArea\n\nReplace the current/native-looking code scrollbar treatment with the accepted shadcn ScrollArea component already used elsewhere in the Workbench.\n\nRequirements:\n\n* reuse the existing Workbench ScrollArea implementation/pattern;\n* do not introduce a new scrollbar library;\n* keep scrolling local to the code viewport;\n* keep the dialog itself contained on narrow and wide viewports;\n* preserve keyboard scrolling;\n* avoid page-level overflow;\n* keep code readable at long output lengths.\n\nThe scrollbar should visually match other Workbench scroll surfaces.\n\n## 8. Format selector\n\nPreserve the existing format selector:\n\n* JSON\n* CSS / Tailwind v4\n\nChanging formats must continue to update the code preview immediately.\n\nDo not redesign the selector as part of this ticket unless a tiny spacing adjustment is necessary to integrate the revised code panel.\n\n## 9. Preserve code generation contracts\n\nDo not change:\n\n* canonical Theme v3 JSON serialization;\n* JSON import compatibility;\n* current Tailwind v4 CSS renderer;\n* light/dark CSS output;\n* built-in/custom theme output semantics;\n* Theme v3 schema;\n* persistence/history;\n* Design Command;\n* mutation operations;\n* public registry.\n\nThis is primarily an interaction/presentation refinement.\n\n## 10. Accessibility\n\nVerify:\n\n* Code header action has an appropriate accessible name;\n* dialog title is exposed correctly;\n* Copy remains keyboard accessible;\n* Copy icon is decorative when accompanied by visible label;\n* ScrollArea remains keyboard-scrollable;\n* Escape and close-button behavior remain unchanged;\n* focus trap and logical tab order remain intact;\n* format selector remains keyboard operable.\n\n## 11. Verification\n\nVerify at minimum:\n\n* header action now reads **Code**;\n* header action uses an appropriate code icon rather than export/download icon;\n* clicking Code opens the dialog;\n* dialog title is **Theme code**;\n* supporting copy reads exactly:\n  * `Copy your theme as JSON or Tailwind CSS.`\n* Download button and file-download path are absent from the dialog;\n* Copy appears in the code toolbar with the Copy icon;\n* Copy copies the exact visible JSON output;\n* Copy copies the exact visible CSS output;\n* changing formats updates preview and Copy target correctly;\n* code viewport uses the existing shadcn ScrollArea pattern;\n* long JSON/CSS output scrolls cleanly;\n* narrow/wide dialog containment remains correct;\n* focus, Escape, close, and keyboard scrolling remain correct;\n* no regression to JSON/CSS generation or Theme v3 contracts.\n\n## Acceptance\n\n* Header action is renamed from Export to **Code**.\n* Header icon is changed to an appropriate code icon.\n* Dialog title is **Theme code**.\n* Dialog supporting copy is exactly **“Copy your theme as JSON or Tailwind CSS.”**\n* Download functionality is removed from the dialog.\n* Copy is moved into a toolbar directly above the code viewport.\n* Copy includes an appropriate existing Copy icon.\n* Code scrolling uses the existing shadcn ScrollArea pattern.\n* JSON and CSS preview/copy output remains exact and unchanged semantically.\n* No Theme v3, persistence, Design Command, mutation, registry, dependency, network, or public API regression is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-138/polish-theme-code-dialog-and-replace-export-header-action",
+    "gitBranchName": "emmantalob/pui-138-polish-theme-code-dialog-and-replace-export-header-action",
+    "createdAt": "2026-09-30T16:30:17.946Z",
+    "updatedAt": "2026-09-30T18:38:44.478Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-30T16:30:17.946Z",
+        "endedAt": "2026-09-30T18:38:44.471Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T18:38:44.471Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a"
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}

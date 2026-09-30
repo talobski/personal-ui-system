@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T18:48:12.041Z",
+  "issue": {
+    "id": "PUI-139",
+    "uuid": "b8320a0e-06b9-4633-bf13-63f1d8dd3c97",
+    "title": "Normalize top-bar icon controls and add tooltips",
+    "description": "Polish the Workbench top-bar icon-only controls so the newly repositioned Delete theme action matches the established toolbar styling, and standardize discoverability/accessibility with shadcn tooltips.\n\n## Goal\n\nMake the right-side header utilities feel like one coherent control system.\n\nThis ticket has two parts:\n\n1. normalize the Delete theme control so it uses the same visual/icon treatment as sibling top-bar icon buttons;\n2. add shadcn Tooltip behavior to icon-only top-bar actions that do not have visible text labels.\n\n## 1. Normalize Delete theme styling\n\nThe Delete theme action currently looks visually inconsistent with the surrounding top-bar icon controls.\n\nObserved differences include:\n\n* Delete icon appears larger than sibling toolbar icons;\n* Delete does not appear to follow the same default base foreground color treatment as the rest of the header icons.\n\nDo not hard-code a one-off size such as 14px merely to match the current screenshot.\n\nInstead:\n\n* inspect the existing top-bar icon-only controls such as Undo / Redo / Reset / dark-mode toggle;\n* identify the accepted shared icon sizing treatment, class, wrapper, or component pattern;\n* make Delete use that same sizing treatment;\n* identify the accepted default foreground color treatment used by sibling controls;\n* make Delete use that same default semantic foreground treatment.\n\nThe intent is system consistency, not matching a literal pixel value.\n\n## 2. Preserve destructive semantics without making resting state inconsistent\n\nDelete should still communicate destructive intent where interaction semantics require it.\n\nPreferred behavior:\n\n* resting/default icon color matches sibling top-bar controls;\n* destructive styling may appear on hover, focus, pressed, or confirmation states using existing accepted patterns;\n* do not make Delete permanently visually dominant in its resting state.\n\nPreserve:\n\n* icon-only presentation;\n* current header position;\n* divider placement;\n* current hit target/button dimensions;\n* confirmation flow;\n* delete behavior;\n* built-in/custom deletion rules.\n\n## 3. Add shadcn Tooltips to icon-only top-bar controls\n\nStandardize tooltips for top-bar controls that:\n\n* are interactive;\n* use only an icon;\n* do not have a visible text label.\n\nAudit the current right-side header utilities and apply the existing shadcn Tooltip pattern where appropriate.\n\nExpected candidates include:\n\n* Delete theme;\n* dark/light mode toggle;\n* Undo;\n* Redo;\n* Reset;\n* any other equivalent icon-only top-bar action discovered during source inspection.\n\nDo not add tooltips to controls that already have visible text labels such as Code or Save unless source inspection reveals a clear accessibility/discoverability need.\n\n## 4. Tooltip copy\n\nKeep tooltip labels concise and action-oriented.\n\nExamples:\n\n* Delete theme\n* Toggle dark mode / Toggle light mode\n* Undo\n* Redo\n* Reset theme\n\nUse wording that matches the actual action semantics in the current product.\n\nDo not introduce verbose descriptions in these tooltips.\n\n## 5. Accessibility\n\nTooltips must supplement accessibility, not replace it.\n\nRequirements:\n\n* every icon-only control keeps or gains an appropriate accessible name;\n* Tooltip text must not be the sole accessible name;\n* preserve aria-label / accessible naming independently;\n* keyboard focus should trigger or expose tooltip behavior according to the accepted shadcn implementation;\n* disabled icon actions such as Undo/Redo must remain semantically disabled.\n\nIf the current Tooltip implementation requires a wrapper around disabled controls, use the established accessible pattern rather than breaking disabled semantics.\n\n## 6. Use existing primitives\n\nReuse the existing shadcn Tooltip primitive already accepted in the project, if present.\n\nDo not:\n\n* add a tooltip library;\n* create custom hover-only tooltip CSS;\n* introduce a new icon sizing token solely for this change;\n* create one-off Delete sizing/color rules if the existing toolbar treatment can be reused.\n\nPrefer joining existing shared styles/components over duplicating them.\n\n## 7. Preserve header behavior\n\nDo not change:\n\n* header height;\n* top-bar ordering;\n* divider structure except what is necessary to integrate shared control styling;\n* dark/light mode behavior;\n* undo/redo/reset semantics;\n* Code behavior;\n* Save behavior;\n* persistence/history;\n* Theme v3;\n* Design Command;\n* mutation operations;\n* registry;\n* network/dependency boundaries.\n\n## 8. Verification\n\nVerify at minimum:\n\n* Delete icon now uses the same accepted sizing treatment as sibling top-bar icon controls;\n* Delete resting color uses the same accepted semantic foreground treatment as siblings;\n* destructive hover/focus behavior remains appropriate;\n* Delete placement/divider/confirmation behavior remain unchanged;\n* all intended icon-only top-bar controls expose concise shadcn tooltips;\n* tooltip copy matches actual action semantics;\n* icon-only controls have independent accessible names;\n* keyboard focus behavior remains correct;\n* disabled Undo/Redo states remain semantically disabled and tooltip-compatible;\n* controls with visible text labels are not redundantly tooltipped without reason;\n* no regression to top-bar layout at narrow/wide widths.\n\n## Acceptance\n\n* Delete visually matches the established top-bar icon sizing and default foreground treatment through the same shared styling approach used by sibling controls.\n* No static one-off pixel sizing is introduced solely for Delete when an existing shared treatment is available.\n* Icon-only top-bar actions use the accepted shadcn Tooltip pattern where appropriate.\n* Tooltips supplement, rather than replace, accessible names.\n* Disabled-state semantics remain correct.\n* Existing header layout, delete semantics, Theme v3, persistence, Design Command, mutation, registry, dependency, and network boundaries remain unchanged.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-139/normalize-top-bar-icon-controls-and-add-tooltips",
+    "gitBranchName": "emmantalob/pui-139-normalize-top-bar-icon-controls-and-add-tooltips",
+    "createdAt": "2026-09-30T16:39:36.020Z",
+    "updatedAt": "2026-09-30T18:38:47.799Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-30T16:39:36.020Z",
+        "endedAt": "2026-09-30T18:38:47.790Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T18:38:47.790Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a"
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}

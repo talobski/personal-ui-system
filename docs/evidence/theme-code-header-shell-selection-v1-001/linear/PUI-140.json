@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T18:48:12.041Z",
+  "issue": {
+    "id": "PUI-140",
+    "uuid": "34d69e2c-d1c0-49bb-bd0e-49958cd22b94",
+    "title": "Refine App shell framing, spacing, and Inset sidebar surface",
+    "description": "Polish the App shells preview presentation so the examples feel cleaner, more consistent with the system's semantic tokens, and less like elevated cards.\n\n## Goal\n\nRefine the outer presentation of the three App shell examples without redesigning their internal UI.\n\nThis ticket covers:\n\n* align Inset project's connected outer shell/sidebar surface with the dedicated Sidebar background token;\n* remove outer shell shadows from all App shell examples;\n* replace those outer shadows with a restrained semantic ring/border-style edge;\n* increase vertical spacing between App shell examples;\n* add more separation between the App shells tab row and the first shell example;\n* increase App shell labels by one typography step.\n\nThe key boundary is that this ticket targets the **outer shell preview framing**, not shadows or elevation used by components inside each shell.\n\n## 1. Inset project: use Sidebar background token\n\nThe Inset project currently uses a muted outer shell/sidebar treatment.\n\nChange the connected sidebar / outer shell surface to use the accepted semantic Sidebar background token so it aligns with the other App shell examples.\n\nRequirements:\n\n* use the dedicated `sidebar` background semantic;\n* preserve related Sidebar foreground/accent/border behavior where already wired;\n* preserve light/dark and theme responsiveness;\n* preserve the distinct inset main content panel;\n* do not hard-code a one-off color;\n* prefer reusing the same Sidebar token treatment/pattern already used by the other App shell previews.\n\nConceptually:\n\ncurrent:\n`bg-muted`\n\ntarget:\n`bg-sidebar`\n\nor the exact accepted equivalent in the current composition.\n\n## 2. Remove outer App shell shadows\n\nRemove the shadow/elevation applied to the **outer shell container itself** for all App shell examples.\n\nThis applies to:\n\n* Classic workspace;\n* Inset project;\n* Compact utility.\n\nImportant:\n\nDo **not** remove shadows used by components inside those shells.\n\nExamples of internal treatments that should remain untouched unless source inspection proves they are actually part of the outer framing:\n\n* cards;\n* menus/popovers;\n* controls;\n* inset content surfaces;\n* internal panels;\n* other component-level elevation.\n\nThe target is only the shadow that makes the entire shell preview look like a floating card.\n\n## 3. Replace outer shadow with restrained ring/border edge\n\nAfter removing the outer shell shadow, preserve visual separation using a subtle semantic ring/border-style edge.\n\nRequirements:\n\n* inspect existing Workbench preview/container patterns first;\n* reuse the closest accepted semantic treatment rather than inventing a new one;\n* do not hard-code an arbitrary raw color;\n* use existing border/ring semantics appropriate for structural framing;\n* keep the edge restrained and theme-responsive;\n* preserve shell radius and current geometry.\n\nThe three App shell previews should use the same outer framing treatment unless source inspection identifies an intentional accepted exception.\n\n## 4. Increase spacing between App shell examples\n\nIncrease vertical spacing between the individual App shell preview blocks.\n\nRequirements:\n\n* provide visibly clearer separation between:\n  * Classic workspace;\n  * Inset project;\n  * Compact utility;\n* preserve the vertical stacked sequence;\n* keep spacing consistent across all three;\n* avoid excessive whitespace;\n* tune through browser evidence rather than adding arbitrary large gaps.\n\n## 5. Increase spacing below App shells tab row\n\nAdd slightly more vertical separation between the App shells tab/navigation row and the first App shell example.\n\nRequirements:\n\n* preserve current tab control size and placement;\n* do not redesign the tabs;\n* increase only the spacing below the tabs / above the first shell section enough to improve hierarchy;\n* keep narrow-width layouts contained.\n\n## 6. Increase App shell labels one typography step\n\nIncrease the labels for each shell example by one typography step.\n\nExamples:\n\n* Classic workspace\n* Inset project\n* Compact utility\n\nRequirements:\n\n* preserve wording;\n* preserve foreground semantic color;\n* preserve current label placement;\n* increase only one typography step from the current implementation;\n* do not make labels visually compete with main page/section headings;\n* avoid hard-coding a raw pixel size if an accepted typography utility/class already exists.\n\n## 7. Preserve shell internals\n\nDo not change:\n\n* shell identities;\n* sidebar nav content;\n* workspace switchers;\n* active nav behavior;\n* collapse behavior;\n* preview-local collapse isolation;\n* Workbench sidebar isolation;\n* internal main-panel compositions;\n* Theme v3;\n* UI Effects;\n* persistence/history;\n* Design Command;\n* mutation operations;\n* public registry;\n* dependencies;\n* network behavior.\n\nNo internal shell redesign is part of this ticket.\n\n## 8. Accessibility and responsiveness\n\nPreserve:\n\n* keyboard/focus behavior;\n* sidebar collapse controls;\n* icon-only accessibility;\n* logical reading order;\n* responsive containment;\n* no page-level horizontal overflow;\n* light/dark contrast.\n\nSpacing and framing changes must not regress shell containment or collapse behavior.\n\n## 9. Verification\n\nVerify at minimum:\n\n* Inset project's connected outer shell/sidebar surface uses the semantic Sidebar background treatment;\n* Classic workspace, Inset project, and Compact utility outer shell containers no longer use their previous outer shadow;\n* internal component shadows remain unchanged;\n* all three shells use the accepted restrained semantic ring/border framing;\n* spacing between shell examples is increased consistently;\n* spacing between App shells tabs and first shell example is increased appropriately;\n* shell labels are one typography step larger;\n* shell label wording/color/placement remain unchanged;\n* light/dark mode remains coherent;\n* built-in/custom themes remain coherent;\n* collapse/isolation behavior remains intact;\n* narrow/wide layouts remain contained.\n\n## Acceptance\n\n* Inset project outer/sidebar surface uses the dedicated Sidebar background semantic rather than muted.\n* Outer shell shadows are removed from all App shell previews.\n* Internal component shadows are preserved.\n* A restrained semantic ring/border-style edge replaces the outer shell shadow.\n* Vertical spacing between App shell examples is increased.\n* Spacing between the App shells tab row and first shell example is increased.\n* App shell labels are one typography step larger using the existing typography system.\n* Existing shell behavior, Theme v3, UI Effects, persistence, Design Command, mutation, registry, dependency, and network boundaries remain unchanged.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-140/refine-app-shell-framing-spacing-and-inset-sidebar-surface",
+    "gitBranchName": "emmantalob/pui-140-refine-app-shell-framing-spacing-and-inset-sidebar-surface",
+    "createdAt": "2026-09-30T16:51:04.753Z",
+    "updatedAt": "2026-09-30T18:38:50.377Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-30T16:51:04.753Z",
+        "endedAt": "2026-09-30T18:38:50.370Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T18:38:50.370Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a"
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}

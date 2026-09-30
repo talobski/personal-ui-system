@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T18:48:12.041Z",
+  "issue": {
+    "id": "PUI-141",
+    "uuid": "aa0d36f6-f65d-4549-ac4c-d0202cb798fc",
+    "title": "Keep text selection highlight independent of theme radius",
+    "description": "Prevent text selection highlight styling from inheriting or responding to the global Geometry radius control.\n\n## Context\n\nThe current text selection highlight appears to become rounded when the theme radius is increased.\n\nObserved behavior:\n\n* with low/zero radius, selected text highlight appears sharp/rectangular;\n* with larger theme radius, the selected-text highlight appears to inherit rounded corners.\n\nThis is not desirable. Text selection should remain visually crisp and rectangular regardless of the theme's component radius.\n\n## Goal\n\nMake text selection highlight a deliberate local exception to global radius theming.\n\nChanging the Geometry radius control should continue to affect accepted radius-aware UI, but it should not alter the shape of selected-text highlighting.\n\n## 1. Preserve sharp selection edges\n\nText selection highlight should remain square/sharp at all theme radius values.\n\nRequirements:\n\n* no rounded selection corners;\n* no inherited radius from theme/component geometry;\n* no dependence on the global radius token;\n* preserve current selection foreground/background colors;\n* preserve native/browser text-selection behavior.\n\n## 2. Fix the correct source\n\nDo not patch only the specific command/search input shown in the observed screenshot.\n\nInspect the implementation to determine whether the rounded selection is caused by:\n\n* a shared `::selection` rule;\n* inherited border-radius styling;\n* a selection wrapper;\n* component-specific styling;\n* another shared theme-rendering path.\n\nFix the behavior at the correct shared source so equivalent text-selection surfaces remain consistent.\n\n## 3. Scope\n\nAudit text-selectable surfaces affected by the shared implementation, including where applicable:\n\n* text inputs;\n* search/command input;\n* textareas;\n* code/text preview surfaces;\n* other selectable Workbench text.\n\nDo not broaden the ticket into redesigning selection colors or input styling.\n\n## 4. Preserve theme behavior\n\nDo not change:\n\n* Geometry radius behavior for normal components;\n* input/container radius;\n* Button radius behavior;\n* card/dialog/popover radius;\n* Theme v3 schema;\n* color tokens;\n* UI Effects;\n* persistence/history;\n* Design Command;\n* mutation operations;\n* public registry;\n* dependencies;\n* network behavior.\n\nThe only intended behavior change is selection-highlight geometry.\n\n## 5. Accessibility / interaction\n\nPreserve:\n\n* native text selection;\n* keyboard selection;\n* mouse/pointer selection;\n* focus behavior;\n* selection contrast;\n* selection colors in light/dark modes;\n* browser editing behavior.\n\nDo not replace native text selection with a custom selection system.\n\n## 6. Verification\n\nVerify at minimum:\n\n* selected text remains rectangular at radius = 0;\n* selected text remains rectangular at medium radius;\n* selected text remains rectangular at high/max supported radius;\n* command/search input selection is unaffected by radius;\n* any other shared affected selectable surfaces remain sharp;\n* selection foreground/background colors remain unchanged;\n* normal component radii still respond to the Geometry radius control;\n* light/dark modes remain coherent;\n* no regression to keyboard/mouse text selection.\n\n## Acceptance\n\n* Text selection highlight no longer changes shape with the global radius control.\n* Selection edges remain sharp/rectangular across supported radius values.\n* The fix is applied at the correct shared source rather than as a one-off patch for a single field.\n* Selection colors and native interaction behavior remain unchanged.\n* Normal theme/component radius behavior remains intact.\n* No Theme v3, persistence, Design Command, mutation, registry, dependency, network, or public API regression is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-141/keep-text-selection-highlight-independent-of-theme-radius",
+    "gitBranchName": "emmantalob/pui-141-keep-text-selection-highlight-independent-of-theme-radius",
+    "createdAt": "2026-09-30T17:12:09.941Z",
+    "updatedAt": "2026-09-30T18:38:54.912Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-30T17:12:09.941Z",
+        "endedAt": "2026-09-30T18:38:54.903Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T18:38:54.903Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a"
+  },
+  "comments": [],
+  "commentsHasNextPage": false
+}
