@@ -29,6 +29,7 @@ export default defineConfig({
     "tactile-ui-effects.spec.ts",
     "ui-effects-showcase-polish.spec.ts",
     "amber-dusk-shell-refinement.spec.ts",
+    "theme-code-header-shell-selection.spec.ts",
   ],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },

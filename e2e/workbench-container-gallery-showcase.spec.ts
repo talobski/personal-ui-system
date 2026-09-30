@@ -303,7 +303,8 @@ test.describe("CGS-10/11 toolbar colour-mode Switch", () => {
       const swBox = (await sw.boundingBox())!
       // The Switch leads the right-aligned action cluster (with Undo and Save), which ends at the toolbar's 16px inset;
       // the space between the left SidebarTrigger and that cluster is free.
-      const cluster = await sw.evaluate(el => { const c = el.parentElement!; const r = c.getBoundingClientRect(); return { left: r.left, right: r.right, hasUndo: !!c.querySelector('[aria-label="Undo"]'), hasSave: !!c.querySelector('[title="Save"]'), marginLeft: getComputedStyle(c).marginLeft } })
+      // PUI-139: the Switch sits inside its tooltip wrapper, whose parent is the action cluster.
+      const cluster = await sw.evaluate(el => { const c = el.closest('[data-slot="tooltip-trigger"]')!.parentElement!; const r = c.getBoundingClientRect(); return { left: r.left, right: r.right, hasUndo: !!c.querySelector('[aria-label="Undo"]'), hasSave: !!c.querySelector('[title="Save"]'), marginLeft: getComputedStyle(c).marginLeft } })
       expect(cluster).toMatchObject({ hasUndo: true, hasSave: true })
       close(cluster.right, bar.x + bar.width - 16)
       expect(swBox.x).toBeGreaterThan(trigger.x + trigger.width + 8)
