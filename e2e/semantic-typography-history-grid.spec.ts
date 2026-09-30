@@ -55,7 +55,7 @@ test.describe("STHG-09 to STHG-12 manual history and recovery", () => {
     const toolbar = page.getByTestId("workbench-toolbar")
     const names = await toolbar.getByRole("button").evaluateAll(els => els.map(el => el.getAttribute("aria-label") ?? el.textContent!.trim()))
     const at = (name: string) => names.indexOf(name)
-    expect(names.slice(at("Undo"), at("Undo") + 5)).toEqual(["Undo", "Redo", "Reset", "Export", "Save"])
+    expect(names.slice(at("Undo"), at("Undo") + 5)).toEqual(["Undo", "Redo", "Reset", "Code", "Save"])
     for (const name of ["Undo", "Redo", "Reset"] as const) await expect(history(page, name)).toBeDisabled()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect(await toolbar.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
@@ -270,7 +270,7 @@ test.describe("STHG-06/07 semantic roles reach Workbench chrome and the preview"
     expect(await family(page.getByTestId("section-type-heading").locator("h3 button"))).not.toContain("Playfair Display")
     await workspaceMode(page, "Preview")
     // PUI-80 removed the visible "Dark mode" label; the toolbar's remaining visible chrome text (Export) carries Body.
-    await expect.poll(() => family(page.getByTestId("workbench-toolbar").getByRole("button", { name: "Export", exact: true }).locator("span"))).toContain("Manrope")
+    await expect.poll(() => family(page.getByTestId("workbench-toolbar").getByRole("button", { name: "Code", exact: true }).locator("span"))).toContain("Manrope")
     const title = frame.locator('[data-composition="plan-usage"] h2')
     await expect.poll(() => family(title)).toContain("Playfair Display")
     // PUI-103 removed Recent activity's subtitle; its activity rows carry the Body role instead.

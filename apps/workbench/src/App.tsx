@@ -1,11 +1,11 @@
 import * as React from "react"
-import { Download, Moon, Redo2, RotateCcw, Save, Sun, Undo2 } from "@personal-ui/ui/lib/workbench-icons"
+import { Code2, Copy, Moon, Redo2, RotateCcw, Save, Sun, Trash, Undo2 } from "@personal-ui/ui/lib/workbench-icons"
 
 import { applyProposal, createProposalSession, discardProposal, isSidebarColorToken, resolveUiEffects, stageProposal } from "@personal-ui/core"
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button, buttonVariants } from "@personal-ui/ui/components/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@personal-ui/ui/components/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@personal-ui/ui/components/dialog"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
 import { Panel } from "@personal-ui/ui/components/panel"
@@ -42,6 +42,7 @@ import type { ApplyManual, EndGesture } from "./LiveControls"
 
 import { ColorPickerController } from "./colorPicker"
 import { CATEGORY_TRIGGER_CLASS } from "./workbenchTabs"
+import { WorkbenchTooltip, WorkbenchTooltipProvider } from "./WorkbenchTooltip"
 
 const builtIns = loadBuiltInThemes()
 const builtInIds = builtIns.map((theme) => theme.id)
@@ -61,26 +62,17 @@ const focusCategoryTrigger = (event: React.MouseEvent<HTMLButtonElement>) => {
   if (event.button === 0) event.currentTarget.focus({ focusVisible: false })
 }
 
-/** PUI-134: one generated export for the selected format; its `content` is previewed, copied and downloaded unchanged. */
+/** PUI-134/PUI-138: one generated code value for the selected format; its `content` is previewed and copied unchanged. */
 type ExportFormat = "json" | "css"
-type ExportFile = { filename: string; content: string; type: string }
+type ExportFile = { filename: string; content: string }
 
 function exportFile(theme: Theme, format: ExportFormat): ExportFile {
   if (format === "css") {
     const { filename, css } = exportThemeCss(theme)
-    return { filename, content: css, type: "text/css" }
+    return { filename, content: css }
   }
   const { filename, json } = exportThemeJson(theme)
-  return { filename, content: json, type: "application/json" }
-}
-
-function download({ filename, content, type }: ExportFile) {
-  const url = URL.createObjectURL(new Blob([content], { type }))
-  const link = document.createElement("a")
-  link.href = url
-  link.download = filename
-  link.click()
-  URL.revokeObjectURL(url)
+  return { filename, content: json }
 }
 
 function Notice({ children }: { children: React.ReactNode }) {
@@ -147,18 +139,8 @@ function ThemeSwatches({ theme, mode }: { theme: Theme; mode: Mode }) {
   )
 }
 
-function TrashIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 6h18" />
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-  )
-}
-
 /** Opens the command editor while a command evaluates, otherwise closes the mobile sidebar and shows the staged review. */
-/** The one short toolbar group divider, shared so every group boundary (mode | history | export/save) matches. */
+/** The one short toolbar group divider, shared so every group boundary (mode | history | code/save) matches. */
 function ToolbarSeparator() {
   return <div role="separator" aria-orientation="vertical" className="h-8 w-px shrink-0 bg-border" />
 }
@@ -169,10 +151,11 @@ const EXPORT_FORMATS: readonly { value: ExportFormat; label: string }[] = [
 ]
 
 /**
- * PUI-134: Export opens this dialog instead of downloading. Nothing downloads until Download is pressed; the preview,
- * Copy and Download all use the one generated value for the selected format, regenerated when the format changes.
+ * PUI-134/PUI-138: Code opens this Theme code dialog; it never downloads. The code panel is one bordered surface: a slim
+ * toolbar with Copy on the right, then the shared ScrollArea viewport. Preview and Copy use the one generated value for
+ * the selected format, regenerated when the format changes.
  */
-function ExportDialog({ theme, disabled, onOpen }: { theme: Theme; disabled: boolean; onOpen: () => void }) {
+function ThemeCodeDialog({ theme, disabled, onOpen }: { theme: Theme; disabled: boolean; onOpen: () => void }) {
   const [open, setOpen] = React.useState(false)
   const [format, setFormat] = React.useState<ExportFormat>("json")
   const [copyStatus, setCopyStatus] = React.useState<"idle" | "copied" | "failed">("idle")
@@ -206,49 +189,55 @@ function ExportDialog({ theme, disabled, onOpen }: { theme: Theme; disabled: boo
       }}
     >
       <DialogTrigger asChild>
-        {/* Below 640px the recovery group needs the room: Export and Save keep their names but show only their icons. */}
-        <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={disabled}>
-          <Download aria-hidden="true" className="size-3.5" />
-          <span className="max-sm:sr-only">Export</span>
+        {/* Below 640px the recovery group needs the room: Code and Save keep their names but show only their icons. */}
+        <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Code" disabled={disabled}>
+          <Code2 aria-hidden="true" className="size-3.5" />
+          <span className="max-sm:sr-only">Code</span>
         </Button>
       </DialogTrigger>
       <DialogContent data-testid="export-dialog" className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle><span className="type-heading">Export theme</span></DialogTitle>
-          <DialogDescription>Copy or download “{theme.name}” as canonical Theme v3 JSON or as generated CSS for Tailwind v4.</DialogDescription>
+          <DialogTitle><span className="type-heading">Theme code</span></DialogTitle>
+          <DialogDescription>Copy your theme as JSON or Tailwind CSS.</DialogDescription>
         </DialogHeader>
         <Tabs value={format} onValueChange={(value) => setFormat(value as ExportFormat)} className="min-h-0 min-w-0 flex-1 gap-3">
-          <TabsList aria-label="Export format" className="w-max max-w-full">
+          <TabsList aria-label="Code format" className="w-max max-w-full">
             {EXPORT_FORMATS.map(({ value, label }) => (
               <TabsTrigger key={value} value={value} className="cursor-pointer">{label}</TabsTrigger>
             ))}
           </TabsList>
-          {EXPORT_FORMATS.map(({ value }) => (
-            <TabsContent
-              key={value}
-              value={value}
-              data-testid="export-preview-scroll"
-              className="min-h-0 overflow-auto rounded-md border bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            >
+          {EXPORT_FORMATS.map(({ value, label }) => (
+            // The panel itself is not a tab stop: Copy, then the scrollable code viewport, follow the format tabs.
+            <TabsContent key={value} value={value} tabIndex={-1} data-testid="export-code-panel" className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-md border bg-muted">
               {file && value === format && (
-                <pre data-testid="export-preview" data-format={format} data-filename={file.filename} className="w-max min-w-full p-3 font-mono text-xs leading-relaxed whitespace-pre text-foreground">
-                  <code>{file.content}</code>
-                </pre>
+                <>
+                  {/* The toolbar keeps the dialog surface, so its muted status text keeps the accepted foreground/background pair. */}
+                  <div data-testid="export-code-toolbar" className="flex min-h-9 shrink-0 items-center gap-2 border-b bg-background py-1 pr-1 pl-3">
+                    <p role="status" data-testid="export-copy-status" className={`min-w-0 flex-1 text-xs ${copyStatus === "failed" ? "text-destructive" : "text-muted-foreground"}`}>
+                      {copyStatus === "copied" && "Copied to clipboard."}
+                      {copyStatus === "failed" && "Could not copy. Select the preview text and copy it manually."}
+                    </p>
+                    <Button variant="ghost" size="sm" className="shrink-0 cursor-pointer" onClick={copy}>
+                      <Copy aria-hidden="true" className="size-3.5" />
+                      Copy
+                    </Button>
+                  </div>
+                  <ScrollArea
+                    type="auto"
+                    orientation="both"
+                    data-testid="export-preview-scroll"
+                    className="flex min-h-0 min-w-0 flex-1 flex-col"
+                    viewportProps={{ role: "region", "aria-label": `${label} code`, tabIndex: 0, className: "min-h-0 flex-1 focus-visible:ring-inset" }}
+                  >
+                    <pre data-testid="export-preview" data-format={format} data-filename={file.filename} className="w-max min-w-full p-3 font-mono text-xs leading-relaxed whitespace-pre text-foreground">
+                      <code>{file.content}</code>
+                    </pre>
+                  </ScrollArea>
+                </>
               )}
             </TabsContent>
           ))}
         </Tabs>
-        <DialogFooter className="sm:items-center">
-          <p role="status" data-testid="export-copy-status" className={`text-sm sm:mr-auto ${copyStatus === "failed" ? "text-destructive" : "text-muted-foreground"}`}>
-            {copyStatus === "copied" && "Copied to clipboard."}
-            {copyStatus === "failed" && "Could not copy. Select the preview text and copy it manually."}
-          </p>
-          <Button variant="outline" className="cursor-pointer" disabled={!file} onClick={copy}>Copy</Button>
-          <Button className="cursor-pointer" disabled={!file} onClick={() => { if (file) download(file) }}>
-            <Download aria-hidden="true" className="size-3.5" />
-            Download
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
@@ -490,7 +479,7 @@ export function App() {
 
   /**
    * PUI-136: routine theme-action success (Save, Save As, Delete) is one transient toast on the shared surface instead of
-   * a persistent inline notice; failures keep the inline notice or field error. Export opening adds no feedback.
+   * a persistent inline notice; failures keep the inline notice or field error. Opening Theme code adds no feedback.
    */
   const showSuccess = (title: string, description?: string) => toasts.add({ id: SUCCESS_TOAST_ID, title, description })
 
@@ -642,6 +631,7 @@ export function App() {
   const activeCustom = !builtInCopy && Object.hasOwn(saved.themes, current.id)
 
   return (
+    <WorkbenchTooltipProvider>
     <SidebarProvider className="quiet-shell" data-theme-status={status} style={{ "--sidebar-width": "28rem" } as React.CSSProperties}>
       <style id="workbench-active-theme" data-theme-id={current.id} data-revision={current.revision}>{activeCss}</style>
       <Sidebar>
@@ -892,17 +882,21 @@ export function App() {
       <SidebarInset className="quiet-preview">
         <h1 className="sr-only">Personal UI Workbench</h1>
         <div data-testid="workbench-toolbar" className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="size-8 cursor-pointer" />
+          {/* PUI-139: every icon-only header control carries a concise tooltip beside its own accessible name. */}
+          <WorkbenchTooltip label="Toggle sidebar"><SidebarTrigger className="size-8 cursor-pointer" /></WorkbenchTooltip>
           <div className="ml-auto flex items-center gap-2">
-            {/* PUI-135: the active custom theme's Delete leads the right cluster, set apart from mode, history, Export and Save. */}
+            {/* PUI-135: the active custom theme's Delete leads the right cluster, set apart from mode, history, Code and Save. */}
             {activeCustom && (
               <>
                 <ResponsiveDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                  {/* PUI-139: the siblings' ghost icon Button, size-3.5 glyph and resting foreground; destructive only on interaction. */}
+                  <WorkbenchTooltip label="Delete theme">
                   <ResponsiveDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" aria-label="Delete theme" title="Delete theme" data-testid="delete-theme" disabled={locked} className="size-8 text-muted-foreground enabled:cursor-pointer hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:text-destructive focus-visible:ring-destructive/20 disabled:cursor-default dark:hover:bg-destructive/20 dark:focus-visible:ring-destructive/40">
-                      <TrashIcon />
+                    <Button variant="ghost" size="icon" aria-label="Delete theme" data-testid="delete-theme" disabled={locked} className="size-8 enabled:cursor-pointer hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:text-destructive focus-visible:ring-destructive/20 disabled:cursor-default aria-expanded:text-destructive dark:hover:bg-destructive/20 dark:focus-visible:ring-destructive/40">
+                      <Trash aria-hidden="true" className="size-3.5" />
                     </Button>
                   </ResponsiveDialogTrigger>
+                  </WorkbenchTooltip>
                   <ResponsiveDialogContent>
                     <ResponsiveDialogHeader>
                       <ResponsiveDialogTitle><span className="type-heading">Delete custom theme?</span></ResponsiveDialogTitle>
@@ -920,6 +914,7 @@ export function App() {
               </>
             )}
             {/* PUI-80: icon-only colour mode Switch; the thumb glyph mirrors the current mode. */}
+            <WorkbenchTooltip label="Toggle dark mode">
             <Switch
               id="color-mode-switch"
               aria-label="Toggle dark mode"
@@ -928,21 +923,28 @@ export function App() {
               onCheckedChange={(checked) => { endGesture(); setMode(checked ? "dark" : "light") }}
               thumbContent={mode === "dark" ? <Moon aria-hidden="true" data-icon="moon" className="size-2.5" /> : <Sun aria-hidden="true" data-icon="sun" className="size-2.5" />}
             />
+            </WorkbenchTooltip>
             <ToolbarSeparator />
-            {/* Recovery group (PUI-3 owner decision): compact icon buttons immediately before Export and Save. */}
+            {/* Recovery group (PUI-3 owner decision): compact icon buttons immediately before Code and Save. */}
             <div role="group" aria-label="Edit history" data-testid="history-controls" className="flex items-center">
-              <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Undo" title="Undo" disabled={locked || track.past.length === 0} onClick={undoEdit}>
-                <Undo2 aria-hidden="true" className="size-3.5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Redo" title="Redo" disabled={locked || track.future.length === 0} onClick={redoEdit}>
-                <Redo2 aria-hidden="true" className="size-3.5" />
-              </Button>
+              <WorkbenchTooltip label="Undo">
+                <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Undo" disabled={locked || track.past.length === 0} onClick={undoEdit}>
+                  <Undo2 aria-hidden="true" className="size-3.5" />
+                </Button>
+              </WorkbenchTooltip>
+              <WorkbenchTooltip label="Redo">
+                <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Redo" disabled={locked || track.future.length === 0} onClick={redoEdit}>
+                  <Redo2 aria-hidden="true" className="size-3.5" />
+                </Button>
+              </WorkbenchTooltip>
               <ResponsiveDialog open={resetOpen} onOpenChange={setResetOpen}>
+                <WorkbenchTooltip label="Reset theme">
                 <ResponsiveDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Reset" title="Reset" disabled={locked || !dirty || baseline === undefined}>
+                  <Button variant="ghost" size="icon" className="size-8 enabled:cursor-pointer disabled:cursor-default" aria-label="Reset" disabled={locked || !dirty || baseline === undefined}>
                     <RotateCcw aria-hidden="true" className="size-3.5" />
                   </Button>
                 </ResponsiveDialogTrigger>
+                </WorkbenchTooltip>
                 <ResponsiveDialogContent>
                   <ResponsiveDialogHeader>
                     <ResponsiveDialogTitle><span className="type-heading">Reset {current.name}?</span></ResponsiveDialogTitle>
@@ -961,7 +963,7 @@ export function App() {
               </ResponsiveDialog>
             </div>
             <ToolbarSeparator />
-            <ExportDialog theme={current} disabled={locked} onOpen={endGesture} />
+            <ThemeCodeDialog theme={current} disabled={locked} onOpen={endGesture} />
                   <ResponsiveDialog open={saveAsOpen} onOpenChange={setSaveAsOpen}>
                     <ResponsiveDialogTrigger asChild>
                       <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Save" disabled={locked} onClick={save}>
@@ -1061,5 +1063,6 @@ export function App() {
       </SidebarInset>
       <Toast.Provider toastManager={toasts}><WorkbenchToasts /></Toast.Provider>
     </SidebarProvider>
+    </WorkbenchTooltipProvider>
   )
 }

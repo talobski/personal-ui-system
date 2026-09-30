@@ -3,7 +3,7 @@ import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { Locator } from "@playwright/test"
 import { getValidatedTheme } from "../packages/core/src/context/themes"
-import { downloadExport, editorCategory, setColorMode, workspaceMode } from "./workbench-navigation"
+import { copyThemeCode, editorCategory, setColorMode, workspaceMode } from "./workbench-navigation"
 
 const defaultTheme = getValidatedTheme("default")!
 
@@ -27,7 +27,7 @@ for (const mode of ["light", "dark"] as const) {
       expect(await toolbar.evaluate(el => [getComputedStyle(el).paddingTop, getComputedStyle(el).paddingRight, getComputedStyle(el).paddingBottom, getComputedStyle(el).paddingLeft])).toEqual(["0px", "16px", "0px", "16px"])
       const toggle = page.getByRole("button", { name: "Toggle Sidebar" })
       close((await box(toggle)).x - (await box(toolbar)).x, 16)
-      for (const name of ["Export", "Save"]) {
+      for (const name of ["Code", "Save"]) {
         const action = toolbar.getByRole("button", { name, exact: true })
         await expect(action).toHaveAttribute("data-variant", "ghost")
         await expect(action.locator("svg[aria-hidden=true]")).toHaveCount(1)
@@ -36,11 +36,11 @@ for (const mode of ["light", "dark"] as const) {
         await expect(action).toBeFocused()
         await expect.poll(() => action.evaluate(el => getComputedStyle(el).boxShadow)).toContain("3px")
       }
-      const exportBox = await box(toolbar.getByRole("button", { name: "Export", exact: true }))
+      const exportBox = await box(toolbar.getByRole("button", { name: "Code", exact: true }))
       const saveBox = await box(toolbar.getByRole("button", { name: "Save", exact: true }))
       expect(exportBox.x).toBeLessThan(saveBox.x)
       close(saveBox.x + saveBox.width, (await box(toolbar)).x + (await box(toolbar)).width - 16)
-      expect((await downloadExport(page, { open: () => toolbar.getByRole("button", { name: "Export", exact: true }).press("Enter") })).suggestedFilename()).toMatch(/\.json$/)
+      expect((await copyThemeCode(page, { open: () => toolbar.getByRole("button", { name: "Code", exact: true }).press("Enter") })).filename).toMatch(/\.json$/)
       await toolbar.getByRole("button", { name: "Save", exact: true }).press("Enter")
       await expect(page.getByRole("dialog", { name: "Save as a custom theme" })).toBeVisible()
       await page.keyboard.press("Escape")

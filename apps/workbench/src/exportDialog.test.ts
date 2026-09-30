@@ -13,7 +13,7 @@ const between = (source: string, start: string, end: string) => source.slice(sou
 
 const builtIns = loadBuiltInThemes()
 
-describe("TAED-01/02 Export dialog (PUI-134)", () => {
+describe("TAED-01/02, TCHS-01/02 Theme code dialog (PUI-134, PUI-138)", () => {
   it("CSS export is exactly core's renderShadcnTailwindCss, with light, dark and UI Effects blocks", () => {
     for (const theme of builtIns) {
       const { filename, css } = exportThemeCss(theme)
@@ -40,31 +40,49 @@ describe("TAED-01/02 Export dialog (PUI-134)", () => {
     }
   })
 
-  it("Export opens the shadcn Dialog; one generated value per format feeds preview, Copy and Download", () => {
+  it("Code opens the Theme code Dialog; one generated value per format feeds preview and Copy, and nothing downloads (PUI-138)", () => {
     const source = app()
     expect(source).toContain('from "@personal-ui/ui/components/dialog"')
-    const dialog = between(source, "function ExportDialog(", "function ReviewChangesButton(")
+    const dialog = between(source, "function ThemeCodeDialog(", "function ReviewChangesButton(")
     expect(dialog).toContain("<DialogTrigger asChild>")
-    expect(dialog).toContain('<span className="type-heading">Export theme</span>')
-    expect(dialog).toContain('<TabsList aria-label="Export format"')
+    expect(dialog).toContain('title="Code"')
+    expect(dialog).toContain('<Code2 aria-hidden="true" className="size-3.5" />')
+    expect(dialog).toContain('<span className="max-sm:sr-only">Code</span>')
+    expect(dialog).toContain('<span className="type-heading">Theme code</span>')
+    expect(dialog).toContain("<DialogDescription>Copy your theme as JSON or Tailwind CSS.</DialogDescription>")
+    expect(dialog).toContain('<TabsList aria-label="Code format"')
     expect(dialog).toContain("const file = React.useMemo(() => (open ? exportFile(theme, format) : null), [open, theme, format])")
     expect(dialog).toContain("<code>{file.content}</code>")
     expect(dialog).toContain("navigator.clipboard.writeText(file.content)")
-    expect(dialog).toContain("download(file)")
-    expect(dialog.match(/download\(/g)).toHaveLength(1)
+    // Copy lives in the code panel's toolbar, above the shared ScrollArea viewport, with its icon and visible label.
+    const panel = between(dialog, 'data-testid="export-code-toolbar"', "</ScrollArea>")
+    expect(panel).toMatch(/<Copy aria-hidden="true" className="size-3\.5" \/>\s*Copy\s*<\/Button>/)
+    expect(panel.indexOf("<ScrollArea")).toBeGreaterThan(panel.indexOf("onClick={copy}"))
+    expect(panel).toContain('orientation="both"')
     expect(dialog).toContain("whitespace-pre")
-    expect(dialog).toContain("overflow-auto")
-    // The toolbar only opens the dialog: the one download call site lives behind the dialog's Download button.
-    const toolbar = between(source, 'data-testid="workbench-toolbar"', 'title="Save"')
-    expect(toolbar).not.toContain("download(")
-    expect(source.match(/\bdownload\(file\)/g)).toHaveLength(1)
-    expect(source.match(/\bdownload\(/g)).toHaveLength(2) // the helper's definition and its one call
-    const exporter = between(source, "function exportFile(", "function download(")
+    expect(dialog).not.toContain("overflow-auto")
+    // No Download: no button, footer, handler, Blob or file flow anywhere in the Workbench.
+    expect(dialog).not.toMatch(/Download|DialogFooter|download/)
+    expect(source).not.toMatch(/\bdownload\(|createObjectURL|new Blob|\.download =|\bDownload\b|Export theme/)
+    const exporter = between(source, "function exportFile(", "function Notice(")
     expect(exporter).toContain("exportThemeCss(theme)")
     expect(exporter).toContain("exportThemeJson(theme)")
     expect(exporter).not.toMatch(/renderShadcnTailwindCss|JSON\.stringify/)
-    // No syntax-highlighting or toast dependency.
-    for (const manifest of ["../package.json", "../../../packages/ui/package.json"]) expect(read(manifest)).not.toMatch(/prism|shiki|highlight|sonner/i)
+    // No syntax-highlighting, tooltip or toast dependency.
+    for (const manifest of ["../package.json", "../../../packages/ui/package.json"]) expect(read(manifest)).not.toMatch(/prism|shiki|highlight|sonner|tooltip/i)
+  })
+
+  it("the previewed and copied value is exactly the canonical JSON or the core CSS render, for built-in and custom themes", () => {
+    const custom = editTheme(builtIns[0]!, buildUiEffectsOperation(builtIns[0]!, { effect: "tactile" }))
+    expect(custom.ok).toBe(true)
+    if (!custom.ok) return
+    for (const theme of [...builtIns, { ...custom.theme, id: "my-theme", name: "My Theme" }]) {
+      // JSON stays import-compatible: importing the copied text and copying again yields the identical text.
+      const imported = validateTheme(JSON.parse(exportThemeJson(theme).json))
+      expect(imported.ok).toBe(true)
+      if (imported.ok) expect(exportThemeJson(imported.theme).json).toBe(exportThemeJson(theme).json)
+      expect(exportThemeCss(theme).css).toBe(renderShadcnTailwindCss(theme))
+    }
   })
 })
 
@@ -76,10 +94,10 @@ describe("TAED-03 Delete placement (PUI-135)", () => {
     expect(source).not.toContain("SidebarMenuAction")
     const cluster = between(source, 'className="ml-auto flex items-center gap-2"', 'id="color-mode-switch"')
     expect(cluster).toContain("{activeCustom && (")
-    expect(cluster).toContain('<Button variant="ghost" size="icon" aria-label="Delete theme" title="Delete theme" data-testid="delete-theme" disabled={locked}')
-    expect(cluster).toContain("<TrashIcon />")
+    expect(cluster).toContain('<Button variant="ghost" size="icon" aria-label="Delete theme" data-testid="delete-theme" disabled={locked}')
+    expect(cluster).toContain('<Trash aria-hidden="true" className="size-3.5" />')
     expect(cluster).toContain('<Button variant="destructive" className="cursor-pointer" onClick={deleteActive}>Delete theme</Button>')
-    expect(cluster).toMatch(/<\/ResponsiveDialog>\s*<ToolbarSeparator \/>\s*<\/>\s*\)\}\s*(?:\{\}\s*)?<Switch/)
+    expect(cluster).toMatch(/<\/ResponsiveDialog>\s*<ToolbarSeparator \/>\s*<\/>\s*\)\}\s*(?:\{\}\s*)?<WorkbenchTooltip label="Toggle dark mode">\s*<Switch/)
     expect(source).toContain("const activeCustom = !builtInCopy && Object.hasOwn(saved.themes, current.id)")
     expect(source).toContain("if (locked || builtInCopy || !Object.hasOwn(saved.themes, current.id)) return")
   })
@@ -99,8 +117,8 @@ describe("TAED-04/05 routine success toasts (PUI-136)", () => {
     expect(remove).toContain("setNotice(`Not deleted: ${describeIssues(result.issues)}`)")
     expect(source).not.toMatch(/as a custom theme\. \$\{|locally\.`\)|setNotice\(`Saved|setNotice\(`Deleted/)
     expect(source).toContain("const showSuccess = (title: string, description?: string) => toasts.add({ id: SUCCESS_TOAST_ID, title, description })")
-    // Export opening adds no feedback; only one toast manager exists.
-    expect(between(source, "function ExportDialog(", "function ReviewChangesButton(")).not.toContain("toasts.add")
+    // Opening Theme code adds no feedback; only one toast manager exists.
+    expect(between(source, "function ThemeCodeDialog(", "function ReviewChangesButton(")).not.toContain("toasts.add")
     expect(source.match(/Toast\.createToastManager\(\)/g)).toHaveLength(1)
   })
 
@@ -109,5 +127,40 @@ describe("TAED-04/05 routine success toasts (PUI-136)", () => {
     expect(source.match(/<Toast\.Root\b/g)).toHaveLength(1)
     expect(source).toContain('className="rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-lg')
     expect(source).not.toMatch(/bg-white|bg-background p-4/)
+  })
+})
+
+describe("TCHS-03 header icon system (PUI-139)", () => {
+  it("Delete joins the sibling icon treatment: ghost size-8 Button, size-3.5 Lucide glyph, resting foreground, destructive only on interaction", () => {
+    const source = app()
+    const del = between(source, 'data-testid="delete-theme"', "</Button>")
+    expect(del).toContain('<Trash aria-hidden="true" className="size-3.5" />')
+    expect(del).not.toMatch(/text-muted-foreground|size-4|\[\d+px\]|<svg/)
+    expect(del).toContain("className=\"size-8 enabled:cursor-pointer hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:text-destructive")
+    expect(del).toContain("aria-expanded:text-destructive")
+    expect(source).not.toContain("function TrashIcon")
+    for (const name of ["Undo", "Redo", "Reset"]) expect(between(source, `aria-label="${name}"`, "</Button>")).toContain('className="size-3.5"')
+  })
+
+  it("every icon-only header control has a shadcn tooltip beside its own accessible name; Code and Save do not", () => {
+    const source = app()
+    expect(read("../../../packages/ui/src/lib/workbench-tooltip.ts").replace(/^\/\/.*\n/gm, "")).toBe('export { Tooltip as TooltipPrimitive } from "radix-ui"\n')
+    const tooltip = code("./WorkbenchTooltip.tsx")
+    expect(tooltip).toContain('import { TooltipPrimitive } from "@personal-ui/ui/lib/workbench-tooltip"')
+    expect(tooltip).toContain("<TooltipPrimitive.Trigger asChild>")
+    expect(tooltip).toContain("bg-foreground px-3 py-1.5 text-xs text-balance text-background")
+    expect(tooltip).not.toMatch(/tabIndex|aria-label|title=/)
+    expect(source.match(/<WorkbenchTooltipProvider>/g)).toHaveLength(1)
+    const toolbar = between(source, 'data-testid="workbench-toolbar"', "<ThemeCodeDialog ")
+    expect(Array.from(toolbar.matchAll(/<WorkbenchTooltip label="([^"]+)">/g), (m) => m[1])).toEqual(["Toggle sidebar", "Delete theme", "Toggle dark mode", "Undo", "Redo", "Reset theme"])
+    // Names are independent of the tooltips; the icon-only controls drop the duplicate native title.
+    for (const name of ["Delete theme", "Toggle dark mode", "Undo", "Redo", "Reset"]) expect(toolbar).toContain(`aria-label="${name}"`)
+    expect(toolbar).not.toMatch(/title="(Undo|Redo|Reset|Delete theme)"/)
+    // Disabled semantics stay on the Buttons themselves.
+    expect(toolbar).toContain("disabled={locked || track.past.length === 0}")
+    expect(toolbar).toContain("disabled={locked || track.future.length === 0}")
+    // Visible-text Code and Save are not tooltipped.
+    expect(between(source, "function ThemeCodeDialog(", "function ReviewChangesButton(")).not.toContain("WorkbenchTooltip")
+    expect(between(source, "<ThemeCodeDialog ", 'title="Save"')).not.toContain("WorkbenchTooltip")
   })
 })

@@ -6,7 +6,7 @@ import type { Locator, Page, TestInfo } from "@playwright/test"
 import { prepareCommand } from "./design-command-fixture"
 import { flatGalleryRegression } from "./fixtures/flat-gallery-regression"
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
-import { downloadExport, editorCategory, isMobileShell, previewView, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { copyThemeCode, editorCategory, isMobileShell, previewView, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * workbench-nested-gallery-interaction-polish-v1-001 producer definitions (Lead-executed under
@@ -367,12 +367,12 @@ for (const mode of ["light", "dark"] as const) {
     expect(toolbarBox.height).toBe(64)
     const names = await toolbar.locator("button, [role=separator]").evaluateAll(els => els.map(el => el.getAttribute("role") === "separator" ? "|" : el.getAttribute("aria-label") ?? el.textContent!.trim()))
     const from = names.indexOf("Undo")
-    expect(names.slice(from, from + 6)).toEqual(["Undo", "Redo", "Reset", "|", "Export", "Save"])
+    expect(names.slice(from, from + 6)).toEqual(["Undo", "Redo", "Reset", "|", "Code", "Save"])
     await expect(toolbar.getByRole("button", { name: /Export JSON/ })).toHaveCount(0)
-    const exportButton = toolbar.getByRole("button", { name: "Export", exact: true })
-    await expect(exportButton).toHaveAttribute("title", "Export")
-    if (isMobileShell(page)) await expect(exportButton.getByText("Export")).toHaveClass(/sr-only/)
-    else await expect(exportButton).toHaveText("Export")
+    const exportButton = toolbar.getByRole("button", { name: "Code", exact: true })
+    await expect(exportButton).toHaveAttribute("title", "Code")
+    if (isMobileShell(page)) await expect(exportButton.getByText("Code")).toHaveClass(/sr-only/)
+    else await expect(exportButton).toHaveText("Code")
 
     // A semantic vertical separator: button height, centred, border token, between Reset and Export. PUI-80 adds a
     // matching one after the colour-mode Switch (checked in CGS-10), so this targets the Reset/Export boundary.
@@ -426,9 +426,9 @@ for (const mode of ["light", "dark"] as const) {
     await expect(toolbar.getByRole("button", { name: "Save", exact: true })).toBeFocused()
 
     // Label-only rename: the payload is the same canonical JSON file.
-    const file = await downloadExport(page, { open: () => exportButton.click() })
-    expect(file.suggestedFilename()).toMatch(/\.json$/)
-    const exported = JSON.parse(readFileSync((await file.path())!, "utf8"))
+    const file = await copyThemeCode(page, { open: () => exportButton.click() })
+    expect(file.filename).toMatch(/\.json$/)
+    const exported = JSON.parse(file.text)
     expect(exported).toMatchObject({ id: "default", schemaVersion: "3.0" })
     expect(exported.radius.base.$value).toMatch(/^0\.5/)
     await axe(page, info, `toolbar-${mode}`)
@@ -613,8 +613,8 @@ test.describe("NGIP-12/13 picker debounce, flush, latest value, lifecycle, and h
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "custom, saved")
     await editorCategory(page, "Colors")
     // PUI-134: opening Export flushes the picker; the dialog's Download then carries the flushed value.
-    const file = await downloadExport(page, { open: () => drive(page, "color-primary-picker", [["input", "#ff0000"], ["wait", 20], ["click", "Export"]]) })
-    const exported = JSON.parse(readFileSync((await file.path())!, "utf8"))
+    const file = await copyThemeCode(page, { open: () => drive(page, "color-primary-picker", [["input", "#ff0000"], ["wait", 20], ["click", "Code"]]) })
+    const exported = JSON.parse(file.text)
     expect(exported.colors.light.primary.$value).toBe(RED)
     // The modal Export dialog dismisses the mobile editor sheet it was driven over (a synthetic path: a user cannot reach
     // Export under the modal sheet). Wait until that sheet has fully closed and detached, then reopen it and Colors.

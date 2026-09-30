@@ -122,7 +122,7 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
       await slider.focus(); await slider.press("ArrowRight")
       expect(Number(await slider.getAttribute("aria-valuenow"))).toBeGreaterThan(value)
       await workspaceMode(page, "Preview")
-      for (const name of ["Save", "Export"]) {
+      for (const name of ["Save", "Code"]) {
         const svg = page.getByRole("button", { name, exact: true }).locator("svg")
         await expect(svg).toHaveClass(/(?:^| )size-3\.5(?: |$)/)
         expect((await geometry(svg)).width).toBeCloseTo(Number(spacing) * 16 * 3.5, 1)

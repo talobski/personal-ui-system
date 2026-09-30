@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test"
 import type { FrameLocator, Page, TestInfo } from "@playwright/test"
 
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
-import { downloadExport, colorInput, editorCategory, isMobileShell, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { copyThemeCode, colorInput, editorCategory, isMobileShell, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * workbench-container-gallery-showcase-v1-001 producer definitions (Lead-executed under playwright.workbench.config.ts at
@@ -297,7 +297,7 @@ test.describe("CGS-10/11 toolbar colour-mode Switch", () => {
       expect(bar.height).toBe(64)
       // Exact right-cluster order; the SidebarTrigger alone stays on the left.
       const sequence = await toolbar.locator("button, [role=switch], [role=separator]").evaluateAll(els => els.map(el => el.getAttribute("role") === "separator" ? "|" : el.getAttribute("role") === "switch" ? "switch" : el.getAttribute("aria-label") ?? el.textContent!.trim()))
-      expect(sequence).toEqual(["Toggle Sidebar", "switch", "|", "Undo", "Redo", "Reset", "|", "Export", "Save"])
+      expect(sequence).toEqual(["Toggle Sidebar", "switch", "|", "Undo", "Redo", "Reset", "|", "Code", "Save"])
       const sw = toggle(page)
       const trigger = (await page.getByRole("button", { name: "Toggle Sidebar", exact: true }).boundingBox())!
       const swBox = (await sw.boundingBox())!
@@ -339,7 +339,7 @@ test.describe("CGS-10/11 toolbar colour-mode Switch", () => {
     const sw = toggle(page)
     const r0 = await revision(page)
     const exportJson = async () => {
-      return readFileSync((await (await downloadExport(page)).path())!, "utf8")
+      return (await copyThemeCode(page)).text
     }
     const lightPayload = await exportJson()
     // Keyboard modality: Tab from the SidebarTrigger reaches the Switch next.
@@ -356,7 +356,7 @@ test.describe("CGS-10/11 toolbar colour-mode Switch", () => {
     // Focus order: the Switch comes next before the history group; on a clean theme Undo/Redo/Reset are disabled, so
     // Tab lands on Export.
     await page.keyboard.press("Tab")
-    await expect(page.getByRole("button", { name: "Export", exact: true })).toBeFocused()
+    await expect(page.getByRole("button", { name: "Code", exact: true })).toBeFocused()
     // Colour mode is presentation only: no revision, history entry, or dirty state.
     expect(await revision(page)).toBe(r0)
     await expect(page.getByRole("button", { name: "Undo", exact: true })).toBeDisabled()

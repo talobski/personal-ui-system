@@ -75,20 +75,26 @@ export async function saveTheme(page: Page, name?: string) {
 }
 
 /**
- * PUI-134: Export opens the "Export theme" dialog and never downloads by itself. Opens it (by default by clicking the
- * toolbar Export action), downloads the selected format (JSON unless `format` is chosen), then closes it with Escape.
+ * PUI-134/PUI-138: Code opens the "Theme code" dialog, which never downloads. Opens it (by default by clicking the
+ * toolbar Code action), copies the selected format (JSON unless `format` is chosen) with the code toolbar's Copy, then
+ * closes it with Escape. Returns the exact clipboard text and the format's canonical file name (`data-filename`).
  */
-export async function downloadExport(page: Page, { open, format }: { open?: () => Promise<unknown>; format?: "JSON" | "CSS / Tailwind v4" } = {}) {
-  await (open ? open() : page.getByRole("button", { name: "Export", exact: true }).click())
-  const dialog = page.getByRole("dialog", { name: "Export theme", exact: true })
+export async function copyThemeCode(page: Page, { open, format }: { open?: () => Promise<unknown>; format?: "JSON" | "CSS / Tailwind v4" } = {}) {
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"])
+  await (open ? open() : page.getByTestId("workbench-toolbar").getByRole("button", { name: "Code", exact: true }).click())
+  const dialog = page.getByRole("dialog", { name: "Theme code", exact: true })
   await expect(dialog).toBeVisible()
   if (format) await dialog.getByRole("tab", { name: format, exact: true }).click()
-  const download = page.waitForEvent("download")
-  await dialog.getByRole("button", { name: "Download", exact: true }).click()
-  const file = await download
+  const preview = dialog.getByTestId("export-preview")
+  const filename = (await preview.getAttribute("data-filename"))!
+  const shown = await preview.evaluate(el => el.textContent!)
+  await dialog.getByRole("button", { name: "Copy", exact: true }).click()
+  await expect(dialog.getByTestId("export-copy-status")).toHaveText("Copied to clipboard.")
+  const text = await page.evaluate(() => navigator.clipboard.readText())
+  expect(text).toBe(shown)
   await page.keyboard.press("Escape")
   await expect(dialog).toHaveCount(0)
-  return file
+  return { filename, text }
 }
 
 /** Selects a theme through the Active theme select (a built-in id or a saved id). */
@@ -116,7 +122,7 @@ export async function assertActiveControls(page: Page, disabled: boolean) {
   // Active-versus-staged clarity: the manual panel says why its controls are paused.
   await expect(page.locator('[data-testid="manual-locked-note"]:visible')).toHaveCount(disabled ? 1 : 0)
   await workspaceMode(page, "Preview")
-  await check(page.getByRole("button", { name: "Save", exact: true })); await check(page.getByRole("button", { name: "Export", exact: true }))
+  await check(page.getByRole("button", { name: "Save", exact: true })); await check(page.getByRole("button", { name: "Code", exact: true }))
   // No Fork workflow remains anywhere in the Workbench.
   await expect(page.getByRole("button", { name: /fork/i })).toHaveCount(0)
   // The mode Switch is presentation-only and stays usable while locked.

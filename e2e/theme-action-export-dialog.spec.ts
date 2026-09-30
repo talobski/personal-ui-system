@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { Locator, Page, TestInfo } from "@playwright/test"
@@ -8,14 +7,16 @@ import { editorCategory, isMobileShell, saveTheme, setColorMode, workspaceMode }
 
 /**
  * Theme action Export dialog v1 (PUI-134, PUI-135, PUI-136): TAED-01 deliberate Export, TAED-02 exact export identity,
- * TAED-03 Delete placement, TAED-04/05 routine success toasts on the shared semantic surface. Producer self-checks only.
+ * TAED-03 Delete placement, TAED-04/05 routine success toasts on the shared semantic surface. PUI-138/PUI-139 (TCHS-01
+ * to TCHS-03) adapt it: Export is now Code and its Theme code dialog only previews and copies (no Download); Delete
+ * uses the siblings' resting foreground. Producer self-checks only.
  */
 
 const STORAGE_KEY = "personal-ui-workbench/v1"
 const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
 const box = async (el: Locator) => (await el.boundingBox())!
-const exportDialog = (page: Page) => page.getByRole("dialog", { name: "Export theme", exact: true })
-const exportButton = (page: Page) => page.getByTestId("workbench-toolbar").getByRole("button", { name: "Export", exact: true })
+const exportDialog = (page: Page) => page.getByRole("dialog", { name: "Theme code", exact: true })
+const exportButton = (page: Page) => page.getByTestId("workbench-toolbar").getByRole("button", { name: "Code", exact: true })
 
 async function open(page: Page) {
   await page.goto("/")
@@ -43,12 +44,8 @@ async function axe(page: Page, info: TestInfo, label: string) {
 
 const previewText = (page: Page) => exportDialog(page).getByTestId("export-preview").evaluate(el => el.textContent!)
 
-async function downloadSelected(page: Page) {
-  const download = page.waitForEvent("download")
-  await exportDialog(page).getByRole("button", { name: "Download", exact: true }).click()
-  const file = await download
-  return { name: file.suggestedFilename(), text: readFileSync((await file.path())!, "utf8") }
-}
+/** The selected format's canonical file name, still carried by the preview (formerly the download name). */
+const previewFilename = (page: Page) => exportDialog(page).getByTestId("export-preview").getAttribute("data-filename")
 
 async function copySelected(page: Page) {
   await exportDialog(page).getByRole("button", { name: "Copy", exact: true }).click()
@@ -62,7 +59,7 @@ test.beforeEach(async ({ context }) => {
 
 test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)", () => {
   for (const mode of ["light", "dark"] as const) {
-    test(`Export opens the dialog without downloading; preview, Copy and Download match per format (${mode})`, async ({ page }, info) => {
+    test(`Code opens the Theme code dialog, which never downloads; preview and Copy match per format (${mode})`, async ({ page }, info) => {
       test.setTimeout(90_000)
       await open(page)
       await setColorMode(page, mode)
@@ -76,7 +73,13 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       await expect(dialog).toBeVisible()
       await page.waitForTimeout(300)
       expect(downloads).toEqual([])
-      // No routine feedback for opening Export.
+      await expect(dialog.getByText("Copy your theme as JSON or Tailwind CSS.", { exact: true })).toBeVisible()
+      // PUI-138: no Download action anywhere in the dialog; Copy sits in the code toolbar above the viewport.
+      await expect(dialog.getByRole("button", { name: /download/i })).toHaveCount(0)
+      const toolbarCopy = dialog.getByTestId("export-code-toolbar").getByRole("button", { name: "Copy", exact: true })
+      await expect(toolbarCopy.locator('svg[aria-hidden="true"]')).toHaveCount(1)
+      expect((await box(toolbarCopy)).y + (await box(toolbarCopy)).height).toBeLessThanOrEqual((await box(dialog.getByTestId("export-preview-scroll"))).y)
+      // No routine feedback for opening Code.
       await expect(page.getByTestId("success-toast")).toHaveCount(0)
 
       // JSON (default): canonical Theme v3, identical to the stored custom theme, and the same bytes everywhere.
@@ -86,7 +89,7 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       expect(JSON.parse(json)).toEqual(stored)
       expect(JSON.parse(json)).toMatchObject({ id: "export-probe", schemaVersion: "3.0" })
       expect(await copySelected(page)).toBe(json)
-      expect(await downloadSelected(page)).toEqual({ name: "export-probe.theme.json", text: json })
+      expect(await previewFilename(page)).toBe("export-probe.theme.json")
 
       // CSS / Tailwind v4 by keyboard: arrows move between the format tabs and update the one previewed value.
       await dialog.getByRole("tab", { name: "JSON", exact: true }).focus()
@@ -100,15 +103,22 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       expect(css).toContain(`.dark {\n  --background: ${stored.colors.dark.background.$value};`)
       expect(css).toContain("@theme inline {")
       expect(await copySelected(page)).toBe(css)
-      expect(await downloadSelected(page)).toEqual({ name: "export-probe.theme.css", text: css })
-      expect(downloads).toEqual(["export-probe.theme.json", "export-probe.theme.css"])
+      expect(await previewFilename(page)).toBe("export-probe.theme.css")
+      expect(downloads).toEqual([])
 
-      // Preview: monospaced, whitespace-preserving, internally scrollable and contained on narrow viewports.
+      // Preview: monospaced, whitespace-preserving, and scrolled locally by the shared shadcn ScrollArea, keyboard included.
       const preview = dialog.getByTestId("export-preview")
       expect(await preview.evaluate(el => getComputedStyle(el).whiteSpace)).toBe("pre")
       expect(await preview.evaluate(el => getComputedStyle(el).fontFamily)).toMatch(/mono/i)
-      const scroller = dialog.getByRole("tabpanel", { name: "CSS / Tailwind v4" })
-      expect(await scroller.evaluate(el => el.scrollHeight > el.clientHeight && getComputedStyle(el).overflowY === "auto")).toBe(true)
+      await expect(dialog.getByTestId("export-preview-scroll")).toHaveAttribute("data-slot", "scroll-area")
+      const scroller = dialog.getByRole("region", { name: "CSS / Tailwind v4 code", exact: true })
+      await expect(scroller).toHaveAttribute("data-slot", "scroll-area-viewport")
+      expect(await scroller.evaluate(el => el.scrollHeight > el.clientHeight && el.scrollWidth > el.clientWidth)).toBe(true)
+      await toolbarCopy.focus()
+      await page.keyboard.press("Tab")
+      await expect(scroller).toBeFocused()
+      await page.keyboard.press("PageDown")
+      await expect.poll(() => scroller.evaluate(el => el.scrollTop)).toBeGreaterThan(0)
       const d = await box(dialog), viewport = page.viewportSize()!
       expect(d.x).toBeGreaterThanOrEqual(0)
       expect(d.y).toBeGreaterThanOrEqual(0)
@@ -117,7 +127,7 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
       await axe(page, info, `export-dialog-css-${mode}`)
 
-      // Focus trap: Tab cycles inside the dialog; Escape closes it and returns focus to Export.
+      // Focus trap: Tab cycles inside the dialog; Escape closes it and returns focus to Code.
       for (let i = 0; i < 8; i++) {
         await page.keyboard.press("Tab")
         expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true)
@@ -130,9 +140,9 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       await expect(dialog.getByRole("tab", { name: "JSON", exact: true })).toHaveAttribute("aria-selected", "true")
       await dialog.getByRole("button", { name: "Close", exact: true }).click()
       await expect(dialog).toHaveCount(0)
-      expect(downloads).toHaveLength(2)
+      expect(downloads).toEqual([])
 
-      // Import compatibility: the downloaded JSON, stored back as a custom theme, loads and renders.
+      // Import compatibility: the copied JSON, stored back as a custom theme, loads and renders.
       await page.evaluate(([key, theme]) => localStorage.setItem(key as string, JSON.stringify({ themes: { "export-import": theme }, activeId: "export-import", bases: { "export-import": "default" } })), [STORAGE_KEY, { ...JSON.parse(json), id: "export-import", name: "Export Import" }])
       await open(page)
       await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "export-import")
@@ -152,9 +162,8 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
     expect(css).toContain(":root {")
     expect(css).toContain(".dark {")
     expect(css).toContain("/* UI effects: tactile")
-    const { name, text } = await downloadSelected(page)
-    expect(name).toBe("default.theme.css")
-    expect(text).toBe(css)
+    expect(await previewFilename(page)).toBe("default.theme.css")
+    expect(await copySelected(page)).toBe(css)
   })
 })
 
@@ -173,16 +182,20 @@ test.describe("TAED-03 Delete placement (PUI-135)", () => {
       await expect(action).toHaveCount(1)
       await expect(page.locator('[data-slot="sidebar-header"]').getByTestId("delete-theme")).toHaveCount(0)
       await expect(action).toHaveAccessibleName("Delete theme")
-      await expect(action).toHaveAttribute("title", "Delete theme")
-      expect(await toolbar.locator("button, [role=separator]").evaluateAll(els => els.map(el => el.getAttribute("role") === "separator" ? "|" : el.getAttribute("aria-label") ?? el.textContent!.trim()))).toEqual(["Toggle Sidebar", "Delete theme", "|", "Toggle dark mode", "|", "Undo", "Redo", "Reset", "|", "Export", "Save"])
+      await expect(action).not.toHaveAttribute("title")
+      expect(await toolbar.locator("button, [role=separator]").evaluateAll(els => els.map(el => el.getAttribute("role") === "separator" ? "|" : el.getAttribute("aria-label") ?? el.textContent!.trim()))).toEqual(["Toggle Sidebar", "Delete theme", "|", "Toggle dark mode", "|", "Undo", "Redo", "Reset", "|", "Code", "Save"])
       expect((await box(toolbar)).height).toBe(64)
       const a = await box(action), sep = await box(toolbar.getByRole("separator").first()), sw = await box(page.getByRole("switch", { name: "Toggle dark mode" }))
       expect(a.x + a.width).toBeLessThanOrEqual(sep.x)
       expect(sep.x + sep.width).toBeLessThanOrEqual(sw.x)
       expect(await toolbar.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-      // Restrained at rest, destructive on hover and keyboard focus.
-      expect(await action.evaluate(el => getComputedStyle(el).color)).toBe(await resolved(page, "muted-foreground"))
+      // PUI-139: the siblings' resting foreground and 14px glyph in the same 32px target; destructive on hover and focus.
+      const reset = page.getByRole("button", { name: "Reset", exact: true })
+      expect(await action.evaluate(el => getComputedStyle(el).color)).toBe(await reset.evaluate(el => getComputedStyle(el).color))
+      expect(await action.evaluate(el => getComputedStyle(el).color)).toBe(await resolved(page, "foreground"))
+      expect((await box(action.locator("svg"))).width).toBe((await box(reset.locator("svg"))).width)
+      expect(await box(action)).toMatchObject({ width: (await box(reset)).width, height: (await box(reset)).height })
       await action.hover()
       await expect.poll(() => action.evaluate(el => getComputedStyle(el).color)).toBe(await resolved(page, "destructive"))
       await page.mouse.move(0, 0)

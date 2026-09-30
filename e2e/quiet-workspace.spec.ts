@@ -4,7 +4,7 @@ import { FONT_OPTIONS } from "../packages/ui/src/lib/fonts"
 import AxeBuilder from "@axe-core/playwright"
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
-import { downloadExport, colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
+import { copyThemeCode, colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
 /** PUI-86–92 gallery DOM order after PUI-97, plus the PUI-108 Bitcoin card, placed after the Chat / Recent activity pair by PUI-117: the left stack, then the right region top to bottom. */
 const ids = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments", "offsite-calendar", "local-weather"]
@@ -424,7 +424,8 @@ for (const mode of ["light", "dark"] as const) {
     await workspaceMode(page, "Preview")
     await expect(action).toHaveCount(1)
     await expect(action).toHaveAccessibleName("Delete theme")
-    await expect(action).toHaveAttribute("title", "Delete theme")
+    // PUI-139: a shadcn tooltip replaces the native title; the accessible name stays the Button's own aria-label.
+    await expect(action).not.toHaveAttribute("title")
     // PUI-135: in the toolbar's right cluster immediately before the colour-mode Switch, behind a separator.
     expect(await action.evaluate(el => el.closest('[data-testid="workbench-toolbar"]') !== null && el.closest('[data-slot="sidebar-header"]') === null)).toBe(true)
     const toolbar = page.getByTestId("workbench-toolbar")
@@ -544,7 +545,7 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
       }
       // Export measures the actual canonical active value for every option.
       await workspaceMode(page, "Preview")
-      const data = JSON.parse(readFileSync((await (await downloadExport(page)).path())!, "utf8"))
+      const data = JSON.parse((await copyThemeCode(page)).text)
       expect(stackOf(data, target)).toEqual(option.stack)
       await saveTheme(page)
       await page.reload()

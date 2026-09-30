@@ -1,4 +1,4 @@
-import { downloadExport, colorInput, editorCategory, previewStates, saveTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { copyThemeCode, colorInput, editorCategory, previewStates, saveTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
@@ -150,9 +150,9 @@ test.describe("workbench theme lifecycle", () => {
 
       // Portable export.
       await workspaceMode(page, "Preview")
-      const file = await downloadExport(page)
-      expect(file.suggestedFilename()).toBe("my-theme.theme.json")
-      const exported = JSON.parse(await (await import("node:fs/promises")).readFile((await file.path())!, "utf8"))
+      const file = await copyThemeCode(page)
+      expect(file.filename).toBe("my-theme.theme.json")
+      const exported = JSON.parse(file.text)
       expect(exported).toMatchObject({ id: "my-theme", name: "My Theme", kind: "personal-ui-theme", revision: 1, schemaVersion: "3.0" })
       expect(exported.colors[mode].primary.$value).toBe(EDIT[mode])
 

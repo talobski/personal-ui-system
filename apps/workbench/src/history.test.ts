@@ -180,16 +180,16 @@ describe("STHG-11 lifecycle integration", () => {
 
 describe("STHG-12 recovery UI source contract", () => {
   const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8")
-  it("places Undo, Redo, Reset immediately before Export and Save, with accessible names and disabled states", () => {
+  it("places Undo, Redo, Reset immediately before Code and Save, with accessible names and disabled states", () => {
     const toolbar = app.slice(app.indexOf('data-testid="workbench-toolbar"'))
-    // PUI-134: Export is the ExportDialog's trigger, rendered at this position in the toolbar.
-    const order = ['aria-label="Undo"', 'aria-label="Redo"', 'aria-label="Reset"', '<ExportDialog ', 'title="Save"'].map((needle) => toolbar.indexOf(needle))
+    // PUI-134/PUI-138: Code is the ThemeCodeDialog's trigger, rendered at this position in the toolbar.
+    const order = ['aria-label="Undo"', 'aria-label="Redo"', 'aria-label="Reset"', '<ThemeCodeDialog ', 'title="Save"'].map((needle) => toolbar.indexOf(needle))
     expect(order.every((index) => index > 0)).toBe(true)
     expect([...order].sort((a, b) => a - b)).toEqual(order)
     expect(toolbar).toContain('disabled={locked || track.past.length === 0} onClick={undoEdit}')
     expect(toolbar).toContain('disabled={locked || track.future.length === 0} onClick={redoEdit}')
     expect(toolbar).toContain("disabled={locked || !dirty || baseline === undefined}")
     // Reset confirms through the accepted Responsive Dialog/Drawer pattern.
-    expect(toolbar.slice(toolbar.indexOf('aria-label="Reset"') - 400, toolbar.indexOf('<ExportDialog '))).toContain("<ResponsiveDialog open={resetOpen} onOpenChange={setResetOpen}>")
+    expect(toolbar.slice(toolbar.indexOf('aria-label="Reset"') - 400, toolbar.indexOf('<ThemeCodeDialog '))).toContain("<ResponsiveDialog open={resetOpen} onOpenChange={setResetOpen}>")
   })
 })

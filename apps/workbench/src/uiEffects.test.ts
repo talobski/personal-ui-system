@@ -198,8 +198,8 @@ describe("TUE-05/06/08 surface wiring", () => {
   it("IESP-06 / ADSR-04 both Workbench category lists are unmarked default surface lists, so Tactile reaches their TabsList", () => {
     const lines = (source: string) => source.match(/<TabsList[^>]*>/g) ?? []
     expect(lines(app)).toEqual([
-      // PUI-134: the Export dialog's format list is an ordinary unmarked surface list too.
-      '<TabsList aria-label="Export format" className="w-max max-w-full">',
+      // PUI-134/PUI-138: the Theme code dialog's format list is an ordinary unmarked surface list too.
+      '<TabsList aria-label="Code format" className="w-max max-w-full">',
       '<TabsList className="w-max flex-nowrap justify-start" aria-label="Editor categories">',
     ])
     expect(lines(previewFrame)).toEqual([
