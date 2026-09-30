@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T14:23:26.573Z",
+  "issue": {
+    "id": "PUI-134",
+    "uuid": "a33f9099-2d05-4d10-bca6-d379f09f5cbc",
+    "title": "Replace immediate theme JSON download with Export dialog",
+    "description": "Replace the current immediate theme-export download behavior with a dedicated Export dialog that can present multiple export formats and actions.\n\n## Context\n\nCurrent behavior:\n\n* user clicks Export;\n* the current Theme v3 JSON file downloads immediately.\n\nDesired behavior:\n\n* clicking Export opens a dialog;\n* the dialog becomes the main export surface;\n* user can inspect the generated output first;\n* user can copy or download the selected format from the dialog.\n\nReference interaction pattern is the provided Theme Code dialog screenshot: modal surface, export-format controls, code preview, and explicit copy/save actions.\n\nAdapt the interaction model to Personal UI rather than copying unrelated package-manager or registry controls.\n\n## Goal\n\nChange Export from an immediate side effect into a deliberate two-step flow:\n\nExport\n→ Export dialog\n→ choose format\n→ inspect/copy/download\n\nThis should also create a clean foundation for future export formats without changing the current Theme v3 data contract.\n\n## 1. Export button behavior\n\nChange the existing Export action so it no longer immediately downloads JSON.\n\nInstead:\n\n* clicking Export opens the new Export dialog;\n* no file download occurs until the user explicitly chooses Download inside the dialog;\n* preserve current keyboard/accessibility behavior for opening the export action.\n\n## 2. Dialog\n\nUse the accepted shadcn Dialog primitive and existing Personal UI composition patterns.\n\nRecommended title:\n\n**Export theme**\n\nDialog should contain:\n\n* format selector;\n* code/output preview area;\n* Copy action;\n* Download action;\n* standard close behavior.\n\nKeep the visual treatment consistent with the existing Workbench shell and accepted Dialog styling.\n\nDo not copy unrelated controls from the reference such as package-manager tabs unless they correspond to real supported export behavior.\n\n## 3. Supported formats\n\nFor this ticket, support:\n\n### JSON\n\n* canonical Theme v3 export;\n* generated from the same source/state used by the current export flow;\n* preserve current import/export compatibility;\n* preserve existing JSON schema and semantics;\n* Download should produce the same accepted Theme v3 JSON payload as today, except now only after explicit user action.\n\n### CSS / Tailwind v4\n\nAdd a generated CSS export suitable for the current Tailwind v4 theme model.\n\nThe CSS output should be derived from the accepted Theme v3 theme state and existing renderer logic where practical.\n\nDo not create a parallel styling system.\n\nThe CSS export should reflect the current theme's accepted semantic tokens and supported Theme v3 values, including light/dark values where the current renderer supports them.\n\nPrefer reusing existing rendering/serialization logic rather than duplicating token conversion.\n\nIf the exact CSS output shape requires source inspection before implementation, keep the format bounded to the accepted current Tailwind v4 theme representation.\n\n## 4. Format selector\n\nProvide a simple selector for:\n\n* JSON\n* CSS / Tailwind v4\n\nUse existing accepted controls, such as shadcn Tabs, segmented control, Select, or another established pattern already present in the Workbench.\n\nDo not introduce a new control primitive solely for this dialog.\n\nChanging the selected format should update the preview immediately.\n\n## 5. Code/output preview\n\nShow the generated output in a readable code surface.\n\nRequirements:\n\n* monospaced text;\n* scrollable when content exceeds the available height;\n* preserve whitespace/newlines;\n* avoid editable behavior unless existing code-view primitives already support it cleanly;\n* preview must reflect the exact content copied/downloaded.\n\nIf syntax highlighting already exists in the project and can be reused without new dependencies, it may be used.\n\nDo not add a syntax-highlighting dependency for this ticket.\n\n## 6. Copy action\n\nAdd a Copy action for the currently selected format.\n\nRequirements:\n\n* copies the exact currently previewed output;\n* accessible label/state;\n* optional transient copied feedback if it can be implemented using existing patterns;\n* no dependency or network behavior.\n\n## 7. Download action\n\nAdd a Download action for the currently selected format.\n\nRequirements:\n\n* JSON downloads with the existing accepted theme JSON behavior and suitable filename;\n* CSS downloads as a .css file with a suitable theme-derived filename;\n* no download occurs until the user explicitly activates Download;\n* downloaded content must exactly match the current preview for the selected format.\n\n## 8. Preserve current contracts\n\nDo not change:\n\n* Theme v3 schema;\n* JSON import compatibility;\n* persistence/history;\n* Save/Save As behavior;\n* built-in/custom theme semantics;\n* Design Command;\n* mutation operations;\n* public registry;\n* existing theme rendering behavior;\n* network behavior;\n* dependencies unless separately approved.\n\nThe existing Theme v3 JSON remains canonical.\n\nCSS is an additional export representation, not a new persisted theme format.\n\n## 9. Accessibility and interaction\n\nPreserve:\n\n* focus trap;\n* Escape-to-close;\n* close button;\n* keyboard operation of format selector and actions;\n* logical tab order;\n* accessible action names;\n* no accidental download on open.\n\nDialog should remain usable on narrow viewports, with code content scrolling inside the dialog rather than overflowing the page.\n\n## 10. Verification\n\nVerify at minimum:\n\n* Export opens the dialog instead of downloading immediately;\n* opening the dialog causes no download;\n* JSON preview matches the canonical Theme v3 export payload;\n* JSON Copy copies the exact preview;\n* JSON Download matches the preview and remains import-compatible;\n* CSS / Tailwind v4 preview reflects the current theme;\n* CSS Copy copies the exact preview;\n* CSS Download matches the preview;\n* switching formats updates preview/actions correctly;\n* light/dark values are represented correctly where supported;\n* built-in and custom themes export correctly;\n* keyboard/focus/close behavior is correct;\n* narrow/wide layout remains contained;\n* no regression to import, persistence/history, Theme v3, Design Command, mutations, or registry.\n\n## Acceptance\n\n* Clicking Export opens an **Export theme** dialog.\n* No immediate file download occurs.\n* Dialog supports JSON and CSS / Tailwind v4.\n* User can preview, copy, and download the selected format.\n* JSON remains the canonical Theme v3 export and remains import-compatible.\n* CSS export is derived from accepted current theme state/rendering logic and does not introduce a parallel theme system.\n* Downloaded/copied content matches the preview exactly.\n* Existing Theme v3, import, persistence, Design Command, mutation, registry, dependency, and network boundaries remain intact.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-134/replace-immediate-theme-json-download-with-export-dialog",
+    "gitBranchName": "emmantalob/pui-134-replace-immediate-theme-json-download-with-export-dialog",
+    "createdAt": "2026-09-30T14:00:32.042Z",
+    "updatedAt": "2026-09-30T14:12:47.040Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Feature",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-30T14:00:32.042Z",
+        "endedAt": "2026-09-30T14:12:47.032Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T14:12:47.032Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  },
+  "attachments": [],
+  "references": {
+    "documents": [],
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "commentPaginationComplete": true
+}

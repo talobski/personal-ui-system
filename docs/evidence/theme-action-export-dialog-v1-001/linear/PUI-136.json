@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T14:23:26.823Z",
+  "issue": {
+    "id": "PUI-136",
+    "uuid": "2c7e220c-17a1-4ed3-9942-200d92748803",
+    "title": "Standardize theme action feedback with popover-styled toasts",
+    "description": "Standardize theme-action success feedback so normal successful actions use the existing transient toast pattern instead of persistent inline status text, and style those toasts using semantic popover tokens.\n\n## Context\n\nCurrent save flows still render persistent success messaging at the top of the Workbench content area.\n\nObserved examples include:\n\n* saving an existing custom theme:\n  * `Saved \"Amber Dusk Custom\" locally.`\n* saving an edited built-in theme as a custom theme:\n  * `Saved \"Default Custom\" as a custom theme. Default is unchanged.`\n\nReset already uses the newer transient toast pattern.\n\nThis ticket should unify successful theme-action feedback around that pattern.\n\n## Goal\n\nReplace stale/persistent inline success messaging with transient, semantic, theme-aware toast feedback.\n\nPrimary principle:\n\n* success feedback should be temporary and non-blocking;\n* errors and warnings should remain explicit and must not be suppressed;\n* theme actions should feel like one coherent feedback system.\n\n## 1. Save existing custom theme\n\nWhen saving changes to an existing custom theme:\n\n* do not render a persistent inline success message in the content area;\n* show a transient toast instead.\n\nRecommended concise copy:\n\n**Theme saved**\n\nPreserve the existing save behavior and persistence semantics.\n\n## 2. Save edited built-in theme / Save As flow\n\nWhen saving an edited built-in theme as a custom theme:\n\n* preserve the existing Save As / naming flow;\n* preserve built-in immutability;\n* after successful creation/save, do not render a persistent inline status message;\n* show a transient toast instead.\n\nRecommended concise copy:\n\n**Theme saved as custom theme**\n\nDo not reintroduce the old inline message such as:\n\n`Saved \"Default Custom\" as a custom theme. Default is unchanged.`\n\nThe underlying semantic behavior remains unchanged; only the success-feedback presentation changes.\n\n## 3. Audit equivalent theme-action success messaging\n\nSearch the Workbench/app for other persistent or duplicated normal-success messages associated with theme actions.\n\nAudit at minimum:\n\n* Save\n* Save As / custom-theme creation\n* Reset\n* Import\n* Export\n* Delete\n* theme duplication/creation paths if present\n* other local theme persistence actions\n\nFor each:\n\n* retain useful error/warning/confirmation behavior;\n* normalize routine success feedback to the existing transient toast system where appropriate;\n* avoid duplicated feedback such as both inline status + toast for the same success event;\n* do not invent new toast messages where an action currently has no need for success feedback.\n\nThis should be a systematic audit rather than a one-string removal.\n\n## 4. Toast surface styling\n\nUpdate the shared theme-action toast surface to use semantic popover tokens rather than a hard-coded/generic white surface.\n\nPreferred semantic treatment:\n\n* background: `popover`\n* foreground: `popover-foreground`\n* border: `border`\n* retain existing subtle shadow/elevation\n\nConceptually:\n\n`bg-popover text-popover-foreground border-border`\n\nor the exact accepted equivalent in the current toast implementation.\n\nRequirements:\n\n* theme-responsive;\n* coherent in light/dark mode;\n* works with built-in and custom themes;\n* no toast-specific color token;\n* no hard-coded white background.\n\n## 5. Reset toast consistency\n\nThe existing Reset toast should adopt the same shared popover surface treatment.\n\nPreserve:\n\n* title/copy;\n* Undo action;\n* Dismiss action;\n* timing/dismiss behavior;\n* reset semantics.\n\nThis ticket should not redesign Reset interaction.\n\n## 6. Success semantics\n\nKeep normal success toasts visually restrained.\n\nDo not make the entire toast green or introduce a large success-colored surface.\n\nIf an existing success icon/accent pattern is already available and appropriate, it may be reused, but the primary surface remains neutral:\n\n* `popover`\n* `popover-foreground`\n* `border`\n\n## 7. Preserve important non-success feedback\n\nDo not suppress or downgrade:\n\n* validation errors;\n* persistence errors;\n* import failures;\n* destructive confirmations;\n* warnings;\n* unsaved-state warnings;\n* any message that requires user attention or action.\n\nThis ticket targets routine successful-action feedback only.\n\n## 8. Boundaries\n\nDo not change:\n\n* Theme v3 schema;\n* persistence format;\n* Save / Save As semantics;\n* built-in/custom theme rules;\n* Reset semantics;\n* Import/Export data contracts;\n* Delete semantics;\n* history/undo behavior;\n* Design Command;\n* mutation operations;\n* public registry;\n* dependencies;\n* network behavior;\n* public component APIs.\n\nPrefer reusing the existing toast implementation and current shadcn/Sonner-style composition.\n\n## 9. Verification\n\nVerify at minimum:\n\n* saving an existing custom theme shows no persistent inline success message;\n* saving an existing custom theme shows the transient success toast;\n* saving an edited built-in theme through Save As shows no persistent inline success message;\n* Save As success shows the transient success toast;\n* Reset still uses toast feedback and retains Undo/Dismiss behavior;\n* theme-action toast surface uses semantic popover/background tokens rather than hard-coded white;\n* popover styling responds correctly to built-in/custom themes;\n* light/dark mode remains coherent;\n* no duplicate inline + toast success feedback remains in audited theme-action paths;\n* error/warning/confirmation flows remain intact;\n* keyboard/focus behavior is not regressed.\n\n## Acceptance\n\n* Routine theme-action success feedback is standardized on transient toasts.\n* Existing custom-theme Save no longer leaves persistent inline success text.\n* Built-in-theme Save As success no longer leaves persistent inline success text.\n* Shared toast surface uses `popover`, `popover-foreground`, and semantic border treatment or exact accepted equivalent.\n* Reset uses the same shared toast surface without changing its interaction semantics.\n* Equivalent stale success-message paths are audited and normalized where appropriate.\n* Errors, warnings, destructive confirmations, and other important feedback remain intact.\n* No Theme v3, persistence, Design Command, mutation, registry, dependency, network, or public API regression is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-136/standardize-theme-action-feedback-with-popover-styled-toasts",
+    "gitBranchName": "emmantalob/pui-136-standardize-theme-action-feedback-with-popover-styled-toasts",
+    "createdAt": "2026-09-30T14:11:41.912Z",
+    "updatedAt": "2026-09-30T14:12:53.867Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-30T14:11:41.912Z",
+        "endedAt": "2026-09-30T14:12:53.860Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T14:12:53.860Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  },
+  "attachments": [],
+  "references": {
+    "documents": [],
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "commentPaginationComplete": true
+}

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "loop-linear-ticket-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T14:23:26.750Z",
+  "issue": {
+    "id": "PUI-135",
+    "uuid": "8fe12fb3-855a-4a2a-8efc-0696887fb085",
+    "title": "Move Delete theme action into the right-side header utilities",
+    "description": "Reposition the existing Delete theme action so it no longer sits beside the theme selector/name on the left side of the header.\n\n## Goal\n\nMake the header hierarchy clearer by grouping Delete with the other theme-level utility actions while keeping destructive behavior visually separated from constructive actions such as Export and Save.\n\n## Change\n\nMove the existing Delete theme control into the right-side header utility cluster.\n\nPreferred order:\n\n* Delete theme\n* vertical divider\n* dark mode toggle\n* undo\n* redo\n* reset\n* export\n* save\n\nDelete should sit immediately to the left of the dark mode toggle, with a vertical divider separating it from the rest of the utility controls.\n\n## Delete control\n\nKeep Delete as an icon-only action if that matches the existing header control language.\n\nRequirements:\n\n* use the existing delete/trash icon;\n* accessible name: **Delete theme**;\n* tooltip: **Delete theme**;\n* retain existing delete behavior and confirmation flow;\n* use the existing destructive hover/focus treatment if available;\n* do not make the action visually dominant in its resting state.\n\n## Divider\n\nAdd a subtle vertical divider between Delete and the dark mode toggle.\n\nRequirements:\n\n* use an existing semantic border/divider token;\n* keep the divider visually restrained;\n* align it with the current header height and spacing rhythm;\n* do not introduce a new custom color or spacing token.\n\n## Remove old placement\n\nRemove the Delete control from its current position beside the theme selector/name.\n\nPreserve:\n\n* theme selector/name behavior;\n* dropdown behavior;\n* built-in/custom theme semantics;\n* current header height;\n* dark mode toggle behavior;\n* undo/redo/reset/export/save behavior.\n\n## Safety / interaction\n\nDo not:\n\n* change delete semantics;\n* remove confirmation;\n* allow built-in themes to become deletable if they are not currently deletable;\n* change Save/Export placement;\n* place Delete next to Save or Export;\n* change persistence/history behavior;\n* add dependencies or network behavior.\n\n## Accessibility\n\nVerify:\n\n* icon-only Delete has an accessible name;\n* tooltip is available;\n* keyboard focus order follows visual order;\n* destructive focus/hover remains perceivable;\n* confirmation remains keyboard accessible;\n* divider is decorative/non-interactive.\n\n## Acceptance\n\n* Delete theme is removed from the left-side theme selector area.\n* Delete theme appears immediately left of the dark mode toggle in the right-side utility cluster.\n* A subtle vertical divider separates Delete from the dark mode toggle.\n* Delete remains icon-only, accessible, and confirmed before execution.\n* Existing theme selector, dark mode, undo/redo/reset, Export, Save, persistence, and theme semantics remain unchanged.\n* No dependency, network, schema, or public API changes are introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-135/move-delete-theme-action-into-the-right-side-header-utilities",
+    "gitBranchName": "emmantalob/pui-135-move-delete-theme-action-into-the-right-side-header",
+    "createdAt": "2026-09-30T14:02:46.702Z",
+    "updatedAt": "2026-09-30T14:12:50.556Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-09-30T14:02:46.702Z",
+        "endedAt": "2026-09-30T14:12:50.547Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T14:12:50.547Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": {
+    "comments": [],
+    "hasNextPage": false
+  },
+  "attachments": [],
+  "references": {
+    "documents": [],
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "commentPaginationComplete": true
+}
