@@ -74,6 +74,23 @@ export async function saveTheme(page: Page, name?: string) {
   await dialog.getByRole("button", { name: "Save theme", exact: true }).click()
 }
 
+/**
+ * PUI-134: Export opens the "Export theme" dialog and never downloads by itself. Opens it (by default by clicking the
+ * toolbar Export action), downloads the selected format (JSON unless `format` is chosen), then closes it with Escape.
+ */
+export async function downloadExport(page: Page, { open, format }: { open?: () => Promise<unknown>; format?: "JSON" | "CSS / Tailwind v4" } = {}) {
+  await (open ? open() : page.getByRole("button", { name: "Export", exact: true }).click())
+  const dialog = page.getByRole("dialog", { name: "Export theme", exact: true })
+  await expect(dialog).toBeVisible()
+  if (format) await dialog.getByRole("tab", { name: format, exact: true }).click()
+  const download = page.waitForEvent("download")
+  await dialog.getByRole("button", { name: "Download", exact: true }).click()
+  const file = await download
+  await page.keyboard.press("Escape")
+  await expect(dialog).toHaveCount(0)
+  return file
+}
+
 /** Selects a theme through the Active theme select (a built-in id or a saved id). */
 export async function selectTheme(page: Page, id: string) {
   await workspaceMode(page, "Controls")

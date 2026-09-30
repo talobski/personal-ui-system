@@ -4,7 +4,7 @@ import { FONT_OPTIONS } from "../packages/ui/src/lib/fonts"
 import AxeBuilder from "@axe-core/playwright"
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
-import { colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
+import { downloadExport, colorInput, editorCategory, isMobileShell, setColorMode, settledSheet, sidebarSheet, workspaceMode, saveTheme, previewStates, selectTheme } from "./workbench-navigation"
 
 /** PUI-86–92 gallery DOM order after PUI-97, plus the PUI-108 Bitcoin card, placed after the Chat / Recent activity pair by PUI-117: the left stack, then the right region top to bottom. */
 const ids = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments", "offsite-calendar", "local-weather"]
@@ -407,25 +407,28 @@ for (const mode of ["light", "dark"] as const) {
     await page.keyboard.press("Escape")
   })
 
-  test(`only the active custom theme exposes a sibling delete action; confirmed deletion removes it and persists Default — ${mode}`, async ({ page }, info) => {
+  test(`only the active custom theme exposes the toolbar Delete theme action; confirmed deletion removes it and persists Default — ${mode}`, async ({ page }, info) => {
     await page.goto("/")
     await setColorMode(page, mode)
     const action = page.getByTestId("delete-theme")
     // Built-ins never expose delete.
     for (const id of ["default", "quiet-editorial"]) {
       await selectTheme(page, id)
-      await workspaceMode(page, "Controls")
+      await workspaceMode(page, "Preview")
       await expect(action).toHaveCount(0)
       await expect(page.getByRole("button", { name: /^Delete /, exact: false })).toHaveCount(0)
     }
     await saveTheme(page, "Keep Me")
     await selectTheme(page, "default")
     await saveTheme(page, "Temporary")
-    await workspaceMode(page, "Controls")
+    await workspaceMode(page, "Preview")
     await expect(action).toHaveCount(1)
-    await expect(action).toHaveAccessibleName("Delete Temporary")
-    // A sibling of the Select trigger, not inside it or its rows.
-    expect(await action.evaluate(el => el.closest('[data-slot="select-trigger"], [role="option"]') === null && el.parentElement!.querySelector('[data-slot="select-trigger"]') !== null)).toBe(true)
+    await expect(action).toHaveAccessibleName("Delete theme")
+    await expect(action).toHaveAttribute("title", "Delete theme")
+    // PUI-135: in the toolbar's right cluster immediately before the colour-mode Switch, behind a separator.
+    expect(await action.evaluate(el => el.closest('[data-testid="workbench-toolbar"]') !== null && el.closest('[data-slot="sidebar-header"]') === null)).toBe(true)
+    const toolbar = page.getByTestId("workbench-toolbar")
+    expect(await toolbar.locator("button, [role=separator]").evaluateAll(els => els.slice(1, 4).map(el => el.getAttribute("role") === "separator" ? "|" : el.getAttribute("aria-label")))).toEqual(["Delete theme", "|", "Toggle dark mode"])
     // Cancel changes nothing and never opens the Select.
     await action.click()
     const dialog = page.getByRole("dialog", { name: "Delete custom theme?" })
@@ -440,14 +443,16 @@ for (const mode of ["light", "dark"] as const) {
     await expect(dialog).toHaveCount(0)
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "temporary")
     // Keyboard path: focus the action, open with Enter, confirm.
-    await workspaceMode(page, "Controls")
+    await workspaceMode(page, "Preview")
     await action.focus()
     await page.keyboard.press("Enter")
     await expect(dialog).toBeVisible()
     await dialog.getByRole("button", { name: "Delete theme", exact: true }).click()
     await expect(dialog).toHaveCount(0)
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "default")
-    await expect(page.getByTestId("notice")).toContainText('Deleted "Temporary"')
+    // PUI-136: routine Delete success is a transient toast, not a persistent inline notice.
+    await expect(page.getByTestId("success-toast")).toContainText("Theme deleted")
+    await expect(page.getByTestId("notice")).toHaveCount(0)
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("personal-ui-workbench/v1")!))
     expect(stored.activeId).toBe("default")
     expect(Object.keys(stored.themes)).toEqual(["keep-me"])
@@ -539,9 +544,7 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
       }
       // Export measures the actual canonical active value for every option.
       await workspaceMode(page, "Preview")
-      const downloaded = page.waitForEvent("download")
-      await page.getByRole("button", { name: "Export", exact: true }).click()
-      const data = JSON.parse(readFileSync((await (await downloaded).path())!, "utf8"))
+      const data = JSON.parse(readFileSync((await (await downloadExport(page)).path())!, "utf8"))
       expect(stackOf(data, target)).toEqual(option.stack)
       await saveTheme(page)
       await page.reload()

@@ -3,7 +3,7 @@ import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
 import type { Locator } from "@playwright/test"
 import { getValidatedTheme } from "../packages/core/src/context/themes"
-import { editorCategory, setColorMode, workspaceMode } from "./workbench-navigation"
+import { downloadExport, editorCategory, setColorMode, workspaceMode } from "./workbench-navigation"
 
 const defaultTheme = getValidatedTheme("default")!
 
@@ -40,9 +40,7 @@ for (const mode of ["light", "dark"] as const) {
       const saveBox = await box(toolbar.getByRole("button", { name: "Save", exact: true }))
       expect(exportBox.x).toBeLessThan(saveBox.x)
       close(saveBox.x + saveBox.width, (await box(toolbar)).x + (await box(toolbar)).width - 16)
-      const download = page.waitForEvent("download")
-      await toolbar.getByRole("button", { name: "Export", exact: true }).press("Enter")
-      expect((await download).suggestedFilename()).toMatch(/\.json$/)
+      expect((await downloadExport(page, { open: () => toolbar.getByRole("button", { name: "Export", exact: true }).press("Enter") })).suggestedFilename()).toMatch(/\.json$/)
       await toolbar.getByRole("button", { name: "Save", exact: true }).press("Enter")
       await expect(page.getByRole("dialog", { name: "Save as a custom theme" })).toBeVisible()
       await page.keyboard.press("Escape")

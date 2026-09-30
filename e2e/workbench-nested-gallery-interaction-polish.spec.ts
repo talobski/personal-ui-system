@@ -6,7 +6,7 @@ import type { Locator, Page, TestInfo } from "@playwright/test"
 import { prepareCommand } from "./design-command-fixture"
 import { flatGalleryRegression } from "./fixtures/flat-gallery-regression"
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
-import { editorCategory, isMobileShell, previewView, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { downloadExport, editorCategory, isMobileShell, previewView, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * workbench-nested-gallery-interaction-polish-v1-001 producer definitions (Lead-executed under
@@ -426,9 +426,7 @@ for (const mode of ["light", "dark"] as const) {
     await expect(toolbar.getByRole("button", { name: "Save", exact: true })).toBeFocused()
 
     // Label-only rename: the payload is the same canonical JSON file.
-    const download = page.waitForEvent("download")
-    await exportButton.click()
-    const file = await download
+    const file = await downloadExport(page, { open: () => exportButton.click() })
     expect(file.suggestedFilename()).toMatch(/\.json$/)
     const exported = JSON.parse(readFileSync((await file.path())!, "utf8"))
     expect(exported).toMatchObject({ id: "default", schemaVersion: "3.0" })
@@ -614,9 +612,9 @@ test.describe("NGIP-12/13 picker debounce, flush, latest value, lifecycle, and h
     await saveTheme(page, "Picker Flush")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "custom, saved")
     await editorCategory(page, "Colors")
-    const download = page.waitForEvent("download")
-    await drive(page, "color-primary-picker", [["input", "#ff0000"], ["wait", 20], ["click", "Export"]])
-    const exported = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
+    // PUI-134: opening Export flushes the picker; the dialog's Download then carries the flushed value.
+    const file = await downloadExport(page, { open: () => drive(page, "color-primary-picker", [["input", "#ff0000"], ["wait", 20], ["click", "Export"]]) })
+    const exported = JSON.parse(readFileSync((await file.path())!, "utf8"))
     expect(exported.colors.light.primary.$value).toBe(RED)
     const saved = await drive(page, "color-primary-picker", [["input", "#00ff00"], ["wait", 20], ["click", "Save"]])
     expect(saved.revisions).toHaveLength(1)

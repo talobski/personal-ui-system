@@ -1,4 +1,4 @@
-import { colorInput, editorCategory, previewStates, saveTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { downloadExport, colorInput, editorCategory, previewStates, saveTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 import AxeBuilder from "@axe-core/playwright"
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
 import { expect, test } from "@playwright/test"
@@ -133,7 +133,9 @@ test.describe("workbench theme lifecycle", () => {
       await expect(page.getByRole("dialog")).toHaveCount(0)
       await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "my-theme")
       await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "custom, saved")
-      await expect(page.getByTestId("notice")).toContainText('Saved "My Theme" as a custom theme')
+      // PUI-136: Save As success is a transient toast, not a persistent inline notice.
+      await expect(page.getByTestId("success-toast").getByRole("heading", { name: "Theme saved as custom theme", exact: true })).toBeVisible()
+      await expect(page.getByTestId("notice")).toHaveCount(0)
 
       // Survive a browser refresh.
       await page.reload()
@@ -146,10 +148,8 @@ test.describe("workbench theme lifecycle", () => {
       await expect(colorInput(page, "primary")).toHaveValue(EDIT[mode])
 
       // Portable export.
-      const download = page.waitForEvent("download")
       await workspaceMode(page, "Preview")
-      await page.getByRole("button", { name: "Export", exact: true }).click()
-      const file = await download
+      const file = await downloadExport(page)
       expect(file.suggestedFilename()).toBe("my-theme.theme.json")
       const exported = JSON.parse(await (await import("node:fs/promises")).readFile((await file.path())!, "utf8"))
       expect(exported).toMatchObject({ id: "my-theme", name: "My Theme", kind: "personal-ui-theme", revision: 1, schemaVersion: "3.0" })

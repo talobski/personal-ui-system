@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test"
 import type { FrameLocator, Page, TestInfo } from "@playwright/test"
 
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
-import { colorInput, editorCategory, isMobileShell, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { downloadExport, colorInput, editorCategory, isMobileShell, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * workbench-container-gallery-showcase-v1-001 producer definitions (Lead-executed under playwright.workbench.config.ts at
@@ -339,9 +339,7 @@ test.describe("CGS-10/11 toolbar colour-mode Switch", () => {
     const sw = toggle(page)
     const r0 = await revision(page)
     const exportJson = async () => {
-      const download = page.waitForEvent("download")
-      await page.getByRole("button", { name: "Export", exact: true }).click()
-      return readFileSync((await (await download).path())!, "utf8")
+      return readFileSync((await (await downloadExport(page)).path())!, "utf8")
     }
     const lightPayload = await exportJson()
     // Keyboard modality: Tab from the SidebarTrigger reaches the Switch next.

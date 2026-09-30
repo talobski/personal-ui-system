@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs"
 import { expect, test } from "@playwright/test"
 import type { Page, TestInfo } from "@playwright/test"
 
-import { expectEditorContainment, colorInput, editorCategory, previewStates, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { downloadExport, expectEditorContainment, colorInput, editorCategory, previewStates, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * TSV2 Workbench evidence (runs under playwright.workbench.config.ts at 390x844 and 1440x900): Default fresh state and
@@ -113,10 +113,8 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await workspaceMode(page, "Controls")
     await expect(page.getByRole("combobox", { name: "Active theme" })).toHaveText("Legacy Fork")
     await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-theme-id", "legacy-fork")
-    const download = page.waitForEvent("download")
     await workspaceMode(page, "Preview")
-    await page.getByRole("button", { name: "Export", exact: true }).click()
-    const exported = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
+    const exported = JSON.parse(readFileSync((await (await downloadExport(page)).path())!, "utf8"))
     expect(exported).toMatchObject({ id: "legacy-fork", schemaVersion: "3.0", $schema: "https://personal-ui.local/schema/theme-3.json" })
     expect(Object.keys(exported.typography)).toEqual(["heading", "body", "mono"])
     expect(exported.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: false }, dedicatedValuesInitialized: false })
@@ -424,9 +422,7 @@ for (const mode of MODES) {
 
       // Export carries the canonical OKLCH values, never picker hex.
       await setColorMode(page, mode)
-      const download = page.waitForEvent("download")
-      await page.getByRole("button", { name: "Export", exact: true }).click()
-      const exported = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
+      const exported = JSON.parse(readFileSync((await (await downloadExport(page)).path())!, "utf8"))
       expect(exported.colors[mode].primary.$value).toBe("oklch(0.627955 0.257683 29.23388)")
       expect(exported.colors[mode].border.$value).toBe("oklch(0.499314 0.098664 250.433057 / 0.4)")
     })

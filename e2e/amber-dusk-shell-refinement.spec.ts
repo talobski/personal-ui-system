@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { FrameLocator, Locator, Page, TestInfo } from "@playwright/test"
 
-import { editorCategory, isMobileShell, previewStates, previewView, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { downloadExport, editorCategory, isMobileShell, previewStates, previewView, saveTheme, selectTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * amber-dusk-shell-refinement-v1-001 producer definitions (PUI-123..PUI-128; Lead-executed under
@@ -126,10 +126,8 @@ test.describe("ADSR-02/03 Amber Dusk built-in (PUI-123)", () => {
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "built-in, edited")
     await saveTheme(page, "Amber Copy")
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "amber-copy")
-    const download = page.waitForEvent("download")
     await workspaceMode(page, "Preview")
-    await page.getByRole("button", { name: "Export", exact: true }).click()
-    const exported = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
+    const exported = JSON.parse(readFileSync((await (await downloadExport(page)).path())!, "utf8"))
     expect(exported).toMatchObject({ id: "amber-copy", name: "Amber Copy", schemaVersion: "3.0" })
     expect(exported.radius.base.$value).toBe("1rem")
     expect(exported.colors).toEqual(FIXTURE.colors)

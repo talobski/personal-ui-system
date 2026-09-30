@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test"
 import type { Locator, Page, TestInfo } from "@playwright/test"
 
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
-import { editorCategory, isMobileShell, previewView, setColorMode, workspaceMode } from "./workbench-navigation"
+import { downloadExport, editorCategory, isMobileShell, previewView, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * ui-effects-showcase-polish-v1-001 producer definitions (PUI-119..PUI-122; Lead-executed under
@@ -37,9 +37,7 @@ test("IESP-02 saved toggle-based themes load by the any-target rule, save back a
   // Seed from the Workbench's own export of Default, so only uiEffects differs from an accepted Theme v3 document.
   await open(page)
   await workspaceMode(page, "Preview")
-  const download = page.waitForEvent("download")
-  await page.getByRole("button", { name: "Export", exact: true }).click()
-  const theme = JSON.parse(readFileSync((await (await download).path())!, "utf8"))
+  const theme = JSON.parse(readFileSync((await (await downloadExport(page)).path())!, "utf8"))
   const legacy = (outlineButtons: boolean, tabs: boolean) => ({ effect: { $type: "string", $value: "tactile" }, outlineButtons: { $type: "boolean", $value: outlineButtons }, tabs: { $type: "boolean", $value: tabs }, strength: { $type: "number", $value: 72 } })
   const seeds = [legacy(true, false), legacy(false, true), legacy(false, false)]
   const ids = ["legacy-outline", "legacy-tabs", "legacy-none", "legacy-bad"]
