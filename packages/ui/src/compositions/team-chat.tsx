@@ -46,6 +46,7 @@ export const chatRuns = (thread: readonly Turn[]): Run[] => thread.reduce<Run[]>
  * right, an enabled filled semantic-primary icon-only send Button with an accessible name. Sending is a no-op: nothing
  * is sent, inserted or stored, so the card never changes height. PUI-128: the send Button is a fixed local circle
  * (`rounded-full`), a deliberate exception to theme radius; the composer field keeps following the theme radius.
+ * PUI-141: the borderless Input inside it is `rounded-none`, as in Quick find, so its native selection stays square.
  */
 export function TeamChat() {
   const inputId = useId()
@@ -74,7 +75,7 @@ export function TeamChat() {
           <Label htmlFor={inputId} className="sr-only">Message {CONTACT}</Label>
           <div data-slot="chat-composer" className="flex h-9 min-w-0 items-center gap-2 rounded-md border border-input pr-0.5 pl-3 shadow-xs transition-[color,box-shadow] has-[input:focus-visible]:border-ring has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50 dark:bg-input/30">
             <Input id={inputId} name="message" autoComplete="off" placeholder="Type your message..."
-              className="h-auto min-w-0 flex-1 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent" />
+              className="h-auto min-w-0 flex-1 rounded-none border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent" />
             <Button type="submit" size="icon-sm" aria-label="Send message" className="size-7 shrink-0 cursor-pointer rounded-full"><SendHorizontal /></Button>
           </div>
         </form>

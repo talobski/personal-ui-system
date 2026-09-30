@@ -16,7 +16,9 @@ const COMMANDS = [
  * `stable` is the gallery presentation: every command row stays in place. Filtering disables and dims non-matching
  * rows, and opening a command marks its row selected, so the card keeps its footprint while it responds.
  * PUI-103: no visible title or subtitle, so the search field is the first visible content; the heading remains for
- * assistive technology.
+ * assistive technology. PUI-141: the embedded Input is `rounded-none` (as shadcn's InputGroupInput) because the row
+ * owns the visible radius; the browser clips an input's text to its own rounded box, so an invisible radius on this
+ * padless field would round the ends of the native selection highlight as the theme radius grows.
  */
 export function QuickFind({ stable = false }: { stable?: boolean }) {
   const id = useId()
@@ -33,7 +35,7 @@ export function QuickFind({ stable = false }: { stable?: boolean }) {
         <div className="flex h-9 items-center gap-2 rounded-md border border-input px-3 shadow-xs transition-[color,box-shadow] has-[input:focus-visible]:border-ring has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50 dark:bg-input/30">
           <Search aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
           <Input id={id} type="search" value={query} placeholder="Search or type a command" autoComplete="off" onChange={e => { setQuery(e.target.value); setOpened(null) }}
-            className="h-auto min-w-0 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent" />
+            className="h-auto min-w-0 rounded-none border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent" />
           <kbd aria-hidden="true" className="rounded border bg-muted px-1.5 font-mono text-[0.6875rem] text-foreground">⌘K</kbd>
         </div>
         <p aria-live="polite" className="sr-only">{results.length === 1 ? "1 result" : `${results.length} results`}</p>
