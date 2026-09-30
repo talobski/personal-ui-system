@@ -616,7 +616,9 @@ test.describe("NGIP-12/13 picker debounce, flush, latest value, lifecycle, and h
     const file = await downloadExport(page, { open: () => drive(page, "color-primary-picker", [["input", "#ff0000"], ["wait", 20], ["click", "Export"]]) })
     const exported = JSON.parse(readFileSync((await file.path())!, "utf8"))
     expect(exported.colors.light.primary.$value).toBe(RED)
-    // The modal Export dialog dismisses the mobile editor sheet it was driven over; reopen Colors for the Save half.
+    // The modal Export dialog dismisses the mobile editor sheet it was driven over (a synthetic path: a user cannot reach
+    // Export under the modal sheet). Wait until that sheet has fully closed and detached, then reopen it and Colors.
+    await workspaceMode(page, "Preview")
     await editorCategory(page, "Colors")
     const saved = await drive(page, "color-primary-picker", [["input", "#00ff00"], ["wait", 20], ["click", "Save"]])
     expect(saved.revisions).toHaveLength(1)
