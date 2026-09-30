@@ -243,7 +243,7 @@ test.describe("TAED-04/05 routine success toasts on the shared popover surface (
       await radius.blur()
       await workspaceMode(page, "Preview")
       await page.getByRole("button", { name: "Reset", exact: true }).click()
-      await page.getByRole("dialog").getByRole("button", { name: "Reset theme", exact: true }).click()
+      await page.getByRole("dialog", { name: /^Reset / }).getByRole("button", { name: "Reset theme", exact: true }).click()
       const reset = page.getByTestId("reset-toast")
       await expect(reset.getByRole("heading", { name: "Reset to last saved" })).toBeVisible()
       await expect(reset.getByRole("button", { name: "Undo", exact: true })).toBeVisible()

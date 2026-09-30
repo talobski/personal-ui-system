@@ -130,7 +130,8 @@ test.describe("workbench theme lifecycle", () => {
       await expectNoSeriousViolations(page, `${mode}-save-as-error`, testInfo)
       await page.getByRole("dialog").getByLabel("Theme name").fill("My Theme")
       await page.getByRole("dialog").getByRole("button", { name: "Save theme", exact: true }).click()
-      await expect(page.getByRole("dialog")).toHaveCount(0)
+      // PUI-136: the success toast is a Base UI (non-modal) dialog, so only Save As must be absent.
+      await expect(page.getByRole("dialog", { name: "Save as a custom theme" })).toHaveCount(0)
       await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "my-theme")
       await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "custom, saved")
       // PUI-136: Save As success is a transient toast, not a persistent inline notice.

@@ -172,7 +172,9 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await setNumber(page, "Radius", "0.75")
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "custom, unsaved changes")
     await saveTheme(page)
-    await expect(page.getByRole("dialog")).toHaveCount(0)
+    // PUI-136: the success toast is a Base UI (non-modal) dialog, so only Save As must be absent.
+    await expect(page.getByRole("dialog", { name: "Save as a custom theme" })).toHaveCount(0)
+    await expect(page.getByTestId("success-toast").getByRole("heading", { name: "Theme saved", exact: true })).toBeVisible()
     await expect(page.locator(".quiet-shell")).toHaveAttribute("data-theme-status", "custom, saved")
     const updated = JSON.parse((await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY))!)
     expect(Object.keys(updated.themes)).toEqual(["rounder"])
