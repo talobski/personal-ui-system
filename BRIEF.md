@@ -3,6 +3,10 @@
 Status: ACTIVE — the accepted product is
 `e16bc37051915954fb39196636245c11070bf309` on `main`. The single Tier 2
 `theme-action-export-dialog-v1-001` phase delivered PUI-134, PUI-135, and PUI-136.
+PUI-137 closed successfully as research-only after its mandatory owner gate.
+Its verified Stage 1 proposal is retained at `d5cb9d9`; Stage 2 was not
+admitted. PUI-142 remains a Backlog follow-up for a fair deterministic, LLM,
+and Jev comparison. No product behavior changed in the research phase.
 Export now opens a deliberate JSON/CSS preview, Copy and Download dialog. Custom-theme
 Delete sits before dark mode in the right header utilities, and routine theme-action
 success feedback uses the shared semantic popover toast.
@@ -29,7 +33,29 @@ owner-abandoned, unaccepted, and excluded from future implementation bases.
 Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
+
+## Phase result: Jev Design Command interpretation research
+
+PUI-137 closed as successful research-only work. The Stage 1 proposal at
+`d5cb9d91e6925bb5008da96e5a93607cb8fcbb43` maps the current closed
+Design Command mutation and preview boundaries, product-local Jev integration,
+and the tradeoffs among deterministic, frontier LLM, Jev, and hybrid intent
+interpretation. An initial protected review found missing enforceable Jev
+credit limits and an unspecified LLM route; the proposal was corrected and
+the final exact document passed fresh protected review. The owner declined
+Stage 2 for this phase and assigned the comparison to PUI-142 in Backlog.
+
+The existing bounded Jev architecture is safe, but its literal question
+catalog has not demonstrated strong indirect or reference-style intent
+handling. Jev must show incremental value against an LLM plus deterministic
+Personal UI admissibility, mutation, validation, history, and persistence
+before its future role is decided. This phase made no live Jev or LLM API
+calls, accessed no credentials, authorized no network or paid spend, and made
+no product, Theme v3, mutation-contract, or accepted-behavior change. Stage 1
+used three agent runs; lifetime accounting ended at 100/100. The proposal,
+initial and final reviews, owner acceptance, and closeout receipts are retained
+in `docs/evidence/jev-design-command-interpretation-v1-001/` and `.loop`.
 
 ## Phase result: Theme action Export dialog v1
 
