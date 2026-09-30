@@ -1,8 +1,9 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`b2f937a66508bb0a1978dc35c2a4b2bb89c46c83` on `main`. The single Tier 2
-`tactile-border-designsystem-type-v1-001` phase delivered PUI-129 and PUI-131.
+`5d0536d038d7ebce5429fa1460c0d7af21af51ef` on `main`. The single Tier 2
+`accepted-implementation-review-inset-tabs-v1-001` phase delivered PUI-132 and PUI-133.
+The accepted implementation was audited and the Tactile TabsList edge now draws inward.
 The decorative Tactile TabsList edge now uses the semantic border token at 80%
 opacity, and Design system Colors group headings use `text-sm`.
 Amber Dusk is a built-in Theme v3 preset with three owner-authorized contrast
@@ -26,6 +27,34 @@ Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
 Last updated: 2026-09-30
+
+## Phase result: Accepted implementation review and inset TabsList v1
+
+Accepted PUI-132 and PUI-133 together at product commit
+`5d0536d038d7ebce5429fa1460c0d7af21af51ef`. The committed audit records
+12 findings before source edits. Three stale comments now correctly identify
+the TabsList as the effect target, and focused browser assertions distinguish
+an inset edge from an outer one. Shared CSS render/parse duplication was
+documented and deferred because its small benefit would require changing the
+shared editor and preview path. No broader runtime refactor was selected.
+
+The sole behavior change is the decorative Tactile surface TabsList edge:
+
+`inset-ring-1 inset-ring-border/80` replaces the outer ring equivalent. The
+installed Tailwind 4.3.3 compiler confirmed the generated inset declarations.
+Off remains edge-free; Tabs remain Strength-invariant; Secondary Button
+tactility, selected triggers, line Tabs, and semantic focus-visible rings are
+unchanged. Theme 3.0, 13 mutations, 23 registry resources, persistence,
+Design Command, dependencies, and public APIs remain intact.
+
+Lead's exact-candidate checks passed 242 targeted unit tests, touched-package
+typechecks, the Workbench build, the phase guard, and 14 focused narrow/wide
+browser cases. Eight decoded axe captures had no violations. A fresh protected
+Codex Terra verifier passed without repair. Candidate-core override configs
+were used for worktree checks because symlinked dependencies otherwise resolve
+core from canonical main; the final bundle was verified to contain the inset
+rule. Historical phase guards remain base-inapplicable. Exact findings,
+evidence, and receipts are retained in `.loop` and the phase evidence folder.
 
 ## Phase result: Tactile border and Design system type v1
 
