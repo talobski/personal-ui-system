@@ -1,21 +1,20 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`e16bc37051915954fb39196636245c11070bf309` on `main`. The single Tier 2
-`theme-action-export-dialog-v1-001` phase delivered PUI-134, PUI-135, and PUI-136.
-The next single Tier 2 phase admits PUI-138 through PUI-141 for Theme code,
-top-bar icon tooltips, App shell presentation, and diagnosed text-selection
-geometry. Its frozen packet and governing contract are under
-`docs/evidence/theme-code-header-shell-selection-v1-001/linear/` and
-`docs/THEME_CODE_HEADER_SHELL_SELECTION_CONTRACT.md`; `.loop` records its
-execution state. Admission does not change the accepted product pointer.
+`7e2746e5e43dd6f6d39fb0df94242e4956c3fb19` on `main`. The single Tier 2
+`theme-code-header-shell-selection-v1-001` phase delivered PUI-138 through PUI-141
+and is durably closed; no phase or worker is active. Its frozen packet, contract,
+and receipts are under `docs/evidence/theme-code-header-shell-selection-v1-001/`,
+`docs/THEME_CODE_HEADER_SHELL_SELECTION_CONTRACT.md`, and `.loop`.
 PUI-137 closed successfully as research-only after its mandatory owner gate.
 Its verified Stage 1 proposal is retained at `d5cb9d9`; Stage 2 was not
 admitted. PUI-142 remains a Backlog follow-up for a fair deterministic, LLM,
 and Jev comparison. No product behavior changed in the research phase.
-Export now opens a deliberate JSON/CSS preview, Copy and Download dialog. Custom-theme
-Delete sits before dark mode in the right header utilities, and routine theme-action
-success feedback uses the shared semantic popover toast.
+Code now opens a JSON/CSS preview and Copy dialog with no Download action.
+Custom-theme Delete sits before dark mode with the sibling icon treatment;
+icon-only header controls have tooltips, and routine theme-action success feedback
+uses the shared semantic popover toast. App shell frames and Inset surfaces were
+refined, and native selection stays square in the two embedded Inputs.
 The accepted implementation was previously audited and the Tactile TabsList edge draws inward.
 The decorative Tactile TabsList edge now uses the semantic border token at 80%
 opacity, and Design system Colors group headings use `text-sm`.
@@ -40,6 +39,38 @@ Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
 Last updated: 2026-10-01
+
+## Phase result: Theme code, header, shell, and selection polish v1
+
+Accepted PUI-138, PUI-139, PUI-140, and PUI-141 together at product commit
+`7e2746e5e43dd6f6d39fb0df94242e4956c3fb19`. The header action is now
+`Code`; its `Theme code` dialog retains canonical Theme v3 JSON and the existing
+CSS renderer, shows the exact supporting copy, and places Copy in an attached
+toolbar over a scrollable read-only code panel. Opening it never downloads a
+file, and preview text is the clipboard source. Icon-only header actions use
+Workbench-private tooltips and independent accessible names; Delete matches
+the shared resting icon treatment and retains its custom-only confirmation.
+
+All three App shell outer frames now use a restrained semantic border without
+an outer shadow. Inset project's connected outer/sidebar surface uses dedicated
+Sidebar tokens; internal elevation and per-shell collapse/Workbench isolation
+remain. The shells have more vertical space and one-step-larger labels.
+PUI-141 was reproduced and traced to Chromium clipping native selection inside
+two borderless embedded Inputs whose invisible `rounded-md` radius followed
+Geometry. Those Inputs now use `rounded-none`; visible row radius, the public
+Input primitive, selection colors, and native selection remain unchanged.
+
+Lead exact-candidate checks passed 21 focused dialog/header browser cases with
+one intentional mobile selection-sweep skip, 10 shell/isolation cases, 126
+focused unit tests, touched-package typechecks, and a Workbench build. Twelve
+decoded browser axe attachments had no findings; additional shell scans found
+only the established moderate landmark/region findings. Fresh protected Codex
+Terra verification passed without repair. Promoted-main smoke passed 20 tests.
+The producer's first four-case structural probe failure after Tooltip wrapping,
+and the Lead's initial Vite PATH launch failure before tests, remain disclosed
+in `.loop`; the corrected exact-candidate checks passed. Theme 3.0, 13 mutation
+operations, 23 registry resources, dependencies, and public component APIs are
+unchanged. No remote push was performed.
 
 ## Phase result: Jev Design Command interpretation research
 
