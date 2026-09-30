@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "linear-admission-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T06:14:49.902Z",
+  "issue": {
+    "id": "PUI-133",
+    "uuid": "91e37790-61bc-4ea0-93a1-f71487f64fb3",
+    "title": "Use inset ring for tactile TabsList edge",
+    "description": "Refine the accepted Tactile treatment for surface-style Tabs so the decorative TabsList edge is drawn inward rather than outward.\n\n## Context\n\nThe current accepted Tactile TabsList treatment from <issue id=\"d5906f93-2fff-4b8b-bef0-d801319fba50\" href=\"https://linear.app/emman-systems/issue/PUI-129/use-border-token-for-tactile-tabslist-ring\">PUI-129</issue> is:\n\n`ring-1 ring-border/80`\n\nThis uses the semantic `border` token correctly, but the ring is still rendered as an outer ring around the TabsList.\n\nFor the Tactile effect, an inward edge may feel more integrated with the surface and less like an external outline.\n\n## Change\n\nWhen UI Effects = Tactile, change the surface-style TabsList treatment from:\n\n`ring-1 ring-border/80`\n\nto:\n\n`inset-ring-1 inset-ring-border/80`\n\nor the exact accepted equivalent if the current Tailwind/shadcn implementation expresses inset ring utilities differently.\n\n## Intent\n\nThe TabsList decorative edge should:\n\n* remain subtle;\n* remain structural rather than focus-semantic;\n* read as an inward/tactile edge;\n* stay visually integrated with the TabsList surface;\n* avoid increasing the apparent outer dimensions of the control.\n\n## Preserve accepted semantics\n\n### Effect = Off\n\n* Secondary Buttons remain flat.\n* Surface-style Tabs use normal/default shadcn appearance.\n* No extra decorative TabsList ring.\n* Strength remains disabled/de-emphasized.\n\n### Effect = Tactile\n\n* Secondary Buttons keep the existing Strength-controlled tactile treatment.\n* Surface-style Tabs keep normal/default shadcn selected trigger styling.\n* TabsList gets the inward decorative treatment:\n  * `inset-ring-1 inset-ring-border/80`\n* Tabs remain unaffected by Strength.\n\n## Important semantic boundary\n\nThis change applies only to the decorative Tactile TabsList edge.\n\nDo not change actual focus-visible behavior.\n\nActual focus indicators should continue using the accepted semantic `ring` token and existing focus-visible implementation.\n\nDo not globally replace outer rings or focus rings with inset rings.\n\n## Scope\n\nApply only to accepted surface-style TabsList containers participating in UI Effects.\n\nDo not change:\n\n* focus-visible semantics;\n* TabsTrigger selected styling;\n* tab dimensions/layout;\n* Button tactile treatment;\n* Strength mapping;\n* line/minimal Tabs;\n* Theme v3;\n* UI Effects persisted state;\n* history/reset;\n* import/export;\n* Design Command;\n* mutation operations;\n* public registry;\n* dependencies;\n* network behavior;\n* public component APIs.\n\n## Verification\n\nVerify at minimum:\n\n* Tactile TabsList uses the inward decorative edge;\n* Off removes the extra decorative edge entirely;\n* Strength does not alter Tabs;\n* selected triggers remain default shadcn styling;\n* focus-visible behavior remains distinct and unchanged;\n* Amber Dusk still uses the semantic border color for the decorative edge;\n* light/dark modes remain coherent;\n* no clipping or visual artifact is introduced by the inset edge;\n* keyboard navigation and selected-state semantics remain correct.\n\n## Acceptance\n\n* Tactile TabsList decorative treatment is inward rather than outward.\n* Intended treatment is `inset-ring-1 inset-ring-border/80` or exact accepted equivalent.\n* Decorative edge continues using the semantic `border` token.\n* Focus-visible indicators remain on the accepted semantic `ring` behavior.\n* Tabs remain unaffected by Strength.\n* Off/Tactile behavior otherwise remains unchanged.\n* No Theme v3, persistence, Design Command, mutation, registry, dependency, network, or public API regression is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-133/use-inset-ring-for-tactile-tabslist-edge",
+    "gitBranchName": "emmantalob/pui-133-use-inset-ring-for-tactile-tabslist-edge",
+    "createdAt": "2026-09-30T06:06:22.083Z",
+    "updatedAt": "2026-09-30T06:06:22.083Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Polish",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T06:06:22.083Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [
+        {
+          "id": "PUI-129",
+          "title": "Use border token for tactile TabsList ring"
+        }
+      ],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsComplete": true,
+  "attachments": [],
+  "documents": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "PUI-129",
+        "title": "Use border token for tactile TabsList ring"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

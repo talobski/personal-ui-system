@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "linear-admission-snapshot/1",
+  "retrievedAtUtc": "2026-09-30T06:14:49.733Z",
+  "issue": {
+    "id": "PUI-132",
+    "uuid": "dcd337b6-10b5-4628-a195-2aa8eb74240e",
+    "title": "Review and refactor accepted Personal UI implementation",
+    "description": "Run a bounded maintenance phase to review the current accepted Personal UI System implementation for code quality, duplication, coupling, stale patterns, and refactor opportunities, then apply only worthwhile low-risk refactors that preserve accepted product behavior.\n\n## Goal\n\nImprove implementation quality without changing the accepted product.\n\nPrimary principle:\n\n**same accepted behavior, cleaner implementation**\n\nThis is not a redesign phase, feature phase, or architecture rewrite.\n\n## Phase shape\n\nUse one admitted phase with two internal steps:\n\n1. **Code review / audit**\n   * inspect the current accepted implementation;\n   * identify concrete maintainability issues;\n   * produce a bounded findings list with evidence and rationale.\n2. **Targeted refactor**\n   * apply only findings that are clearly worthwhile, low-risk, and safely verifiable inside the approved envelope;\n   * leave speculative, broad, or behavior-changing ideas documented rather than implementing them.\n\nDo not refactor for style preference alone.\n\n## Review areas\n\nInspect at minimum:\n\n### Theme / UI Effects\n\n* duplicated theme rendering logic;\n* duplicated or scattered UI Effects conditions;\n* unnecessary special cases;\n* stale branches from older behavior;\n* places where accepted semantics are implemented inconsistently;\n* opportunities to centralize clearly repeated logic without changing public behavior.\n\n### Workbench / previews\n\n* overly coupled preview components;\n* repeated card/shell composition patterns that can be simplified safely;\n* preview-only exceptions that are hard to reason about;\n* one-off geometry/styling exceptions that should remain local but can be expressed more clearly;\n* accidental duplication introduced by recent ticket-by-ticket changes.\n\n### Components / utilities\n\n* dead code;\n* unused props/helpers;\n* repeated utility functions;\n* inconsistent naming;\n* overly large components/functions;\n* avoidable indirection;\n* custom code that can be simplified using already-installed accepted primitives.\n\n### Tests\n\n* brittle assertions;\n* redundant tests that provide no additional coverage;\n* missing focused tests around shared logic;\n* duplicated fixtures/helpers;\n* tests that encode obsolete implementation details instead of accepted behavior.\n\n### Types / contracts\n\n* unnecessary type duplication;\n* weakly expressed invariants;\n* stale aliases/interfaces;\n* internal APIs that can be simplified without changing the public registry or product contract.\n\n## Boundaries\n\nDo not:\n\n* change accepted UI/UX behavior;\n* redesign any component;\n* add new product features;\n* change Theme v3 schema;\n* change persisted state shape;\n* change Design Command semantics;\n* change mutation operation count unless a true existing defect requires escalation;\n* change public registry resources;\n* change public component APIs unless a concrete defect is found and separately surfaced;\n* add dependencies;\n* add network behavior;\n* perform a framework migration;\n* rewrite large areas merely for aesthetic consistency;\n* introduce speculative abstraction for possible future requirements.\n\nIf a potential improvement would alter accepted behavior, architecture boundaries, public APIs, schema, or persisted state, document it as a finding and stop there unless separately approved.\n\n## Refactor admission rules\n\nA finding may be implemented only if all are true:\n\n* concrete current maintainability benefit;\n* behavior-preserving;\n* low or moderate localized risk;\n* bounded edit surface;\n* objective verification is available;\n* no new dependency or authority is required.\n\nOtherwise, record it for later.\n\nPrefer deletion, simplification, consolidation, clearer naming, and smaller local abstractions over introducing new layers.\n\n## Verification\n\nVerification should be proportional to the actual refactors selected.\n\nAt minimum:\n\n* targeted unit tests for touched behavior;\n* touched-package typechecks;\n* Workbench build if affected;\n* focused browser checks for any touched UI path;\n* Git integrity before/after;\n* fresh protected verifier auditing the exact candidate and confirming behavior preservation.\n\nDo not automatically run the full broad regression matrix unless the selected refactors touch broad shared runtime/theme/component infrastructure.\n\nIf the audit concludes that no worthwhile refactor is needed, it is acceptable for the phase to close with findings only and no product commit.\n\n## Deliverables\n\nThe phase should produce:\n\n1. a concise review findings artifact/section containing:\n   * finding;\n   * evidence/location;\n   * impact;\n   * recommendation;\n   * disposition:\n     * refactor now;\n     * defer;\n     * no action.\n2. a bounded behavior-preserving refactor candidate, only if justified.\n3. verification evidence showing accepted behavior remains intact.\n4. durable closeout recording any deferred findings.\n\n## Acceptance\n\n* Current implementation is reviewed systematically rather than opportunistically.\n* Concrete maintainability issues are identified with evidence.\n* Only justified, behavior-preserving refactors are implemented.\n* No accepted product behavior changes.\n* No unnecessary abstraction or rewrite.\n* No Theme v3, persistence, Design Command, mutation, registry, dependency, network, or public API regression.\n* Exact candidate passes proportional verification and fresh protected verification.\n* Deferred higher-risk findings remain documented rather than silently implemented.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-132/review-and-refactor-accepted-personal-ui-implementation",
+    "gitBranchName": "emmantalob/pui-132-review-and-refactor-accepted-personal-ui-implementation",
+    "createdAt": "2026-09-30T05:51:21.785Z",
+    "updatedAt": "2026-09-30T05:51:21.785Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-09-30T05:51:21.785Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsComplete": true,
+  "attachments": [],
+  "documents": [],
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

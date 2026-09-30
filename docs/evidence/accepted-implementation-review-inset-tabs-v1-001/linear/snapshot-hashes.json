@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "linear-admission-manifest/1",
+  "phase": "accepted-implementation-review-inset-tabs-v1-001",
+  "tickets": [
+    {
+      "id": "PUI-132",
+      "path": "docs/evidence/accepted-implementation-review-inset-tabs-v1-001/linear/PUI-132.json",
+      "sha256": "3c18691af02fa9f26b09f689a5a89dc0b4b4c2ccaab36a3c74befcb7da3402f4"
+    },
+    {
+      "id": "PUI-133",
+      "path": "docs/evidence/accepted-implementation-review-inset-tabs-v1-001/linear/PUI-133.json",
+      "sha256": "5cff65a70c87a462981c6d7451647467b4c2f02cae066e087a16236b3515ffc1"
+    }
+  ]
+}
