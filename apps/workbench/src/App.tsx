@@ -5,12 +5,13 @@ import { applyProposal, createProposalSession, discardProposal, isSidebarColorTo
 import type { ProposalError, ProposalSession } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 import { Button, buttonVariants } from "@personal-ui/ui/components/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@personal-ui/ui/components/dialog"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@personal-ui/ui/components/field"
 import { Input } from "@personal-ui/ui/components/input"
 import { Panel } from "@personal-ui/ui/components/panel"
 import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogClose } from "@personal-ui/ui/components/responsive-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@personal-ui/ui/components/select"
-import { Sidebar, SidebarContent, SidebarGroup, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuAction, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from "@personal-ui/ui/components/sidebar"
+import { Sidebar, SidebarContent, SidebarGroup, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from "@personal-ui/ui/components/sidebar"
 import { ScrollArea } from "@personal-ui/ui/components/scroll-area"
 import { Switch } from "@personal-ui/ui/components/switch"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@personal-ui/ui/components/tabs"
@@ -22,6 +23,7 @@ import {
   createCustomTheme,
   DEFAULT_THEME_ID,
   editTheme,
+  exportThemeCss,
   exportThemeJson,
   loadBuiltInThemes,
   previewVariablesCss,
@@ -59,8 +61,21 @@ const focusCategoryTrigger = (event: React.MouseEvent<HTMLButtonElement>) => {
   if (event.button === 0) event.currentTarget.focus({ focusVisible: false })
 }
 
-function download({ filename, json }: { filename: string; json: string }) {
-  const url = URL.createObjectURL(new Blob([json], { type: "application/json" }))
+/** PUI-134: one generated export for the selected format; its `content` is previewed, copied and downloaded unchanged. */
+type ExportFormat = "json" | "css"
+type ExportFile = { filename: string; content: string; type: string }
+
+function exportFile(theme: Theme, format: ExportFormat): ExportFile {
+  if (format === "css") {
+    const { filename, css } = exportThemeCss(theme)
+    return { filename, content: css, type: "text/css" }
+  }
+  const { filename, json } = exportThemeJson(theme)
+  return { filename, content: json, type: "application/json" }
+}
+
+function download({ filename, content, type }: ExportFile) {
+  const url = URL.createObjectURL(new Blob([content], { type }))
   const link = document.createElement("a")
   link.href = url
   link.download = filename
@@ -80,9 +95,11 @@ function Notice({ children }: { children: React.ReactNode }) {
 const RESET_TOAST_ID = "workbench-reset"
 /** Long enough to reach Undo; Base UI also pauses the timer while the toast is hovered or focused. */
 const RESET_TOAST_TIMEOUT = 8000
+/** PUI-136: routine theme-action successes share one toast that updates in place, on Base UI's default timeout. */
+const SUCCESS_TOAST_ID = "workbench-success"
 
 /**
- * PUI-115: transient Workbench feedback on the official shadcn Base UI toast recipe, built on the installed Base UI
+ * PUI-115 / PUI-136: transient Workbench feedback (Reset, and routine Save, Save As and Delete success) on the official shadcn Base UI toast recipe, built on the installed Base UI
  * Toast primitive with semantic tokens only. The viewport is portalled and fixed at the bottom-right, so a toast never
  * enters document flow or moves Workbench content. It announces politely and never takes focus (F6 or Tab reaches it);
  * Escape, Dismiss or its timeout closes it, and closing changes no history.
@@ -96,8 +113,8 @@ function WorkbenchToasts() {
           <Toast.Root
             key={toast.id}
             toast={toast}
-            data-testid="reset-toast"
-            className="rounded-lg border bg-popover p-4 text-popover-foreground shadow-lg transition-[opacity,translate] duration-200 ease-out data-[ending-style]:opacity-0 data-[starting-style]:translate-y-2 data-[starting-style]:opacity-0 motion-reduce:transition-none"
+            data-testid={toast.id === RESET_TOAST_ID ? "reset-toast" : "success-toast"}
+            className="rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-lg transition-[opacity,translate] duration-200 ease-out data-[ending-style]:opacity-0 data-[starting-style]:translate-y-2 data-[starting-style]:opacity-0 motion-reduce:transition-none"
           >
             <Toast.Content className="grid gap-3">
               <div className="grid gap-1">
@@ -144,6 +161,97 @@ function TrashIcon() {
 /** The one short toolbar group divider, shared so every group boundary (mode | history | export/save) matches. */
 function ToolbarSeparator() {
   return <div role="separator" aria-orientation="vertical" className="h-8 w-px shrink-0 bg-border" />
+}
+
+const EXPORT_FORMATS: readonly { value: ExportFormat; label: string }[] = [
+  { value: "json", label: "JSON" },
+  { value: "css", label: "CSS / Tailwind v4" },
+]
+
+/**
+ * PUI-134: Export opens this dialog instead of downloading. Nothing downloads until Download is pressed; the preview,
+ * Copy and Download all use the one generated value for the selected format, regenerated when the format changes.
+ */
+function ExportDialog({ theme, disabled, onOpen }: { theme: Theme; disabled: boolean; onOpen: () => void }) {
+  const [open, setOpen] = React.useState(false)
+  const [format, setFormat] = React.useState<ExportFormat>("json")
+  const [copyStatus, setCopyStatus] = React.useState<"idle" | "copied" | "failed">("idle")
+  const file = React.useMemo(() => (open ? exportFile(theme, format) : null), [open, theme, format])
+  React.useEffect(() => setCopyStatus("idle"), [file])
+  React.useEffect(() => {
+    if (copyStatus !== "copied") return
+    const timer = window.setTimeout(() => setCopyStatus("idle"), 2000)
+    return () => window.clearTimeout(timer)
+  }, [copyStatus])
+
+  const copy = async () => {
+    if (!file) return
+    try {
+      await navigator.clipboard.writeText(file.content)
+      setCopyStatus("copied")
+    } catch {
+      setCopyStatus("failed")
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (next) {
+          onOpen()
+          setFormat("json")
+        }
+        setOpen(next)
+      }}
+    >
+      <DialogTrigger asChild>
+        {/* Below 640px the recovery group needs the room: Export and Save keep their names but show only their icons. */}
+        <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={disabled}>
+          <Download aria-hidden="true" className="size-3.5" />
+          <span className="max-sm:sr-only">Export</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent data-testid="export-dialog" className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle><span className="type-heading">Export theme</span></DialogTitle>
+          <DialogDescription>Copy or download “{theme.name}” as canonical Theme v3 JSON or as generated CSS for Tailwind v4.</DialogDescription>
+        </DialogHeader>
+        <Tabs value={format} onValueChange={(value) => setFormat(value as ExportFormat)} className="min-h-0 min-w-0 flex-1 gap-3">
+          <TabsList aria-label="Export format" className="w-max max-w-full">
+            {EXPORT_FORMATS.map(({ value, label }) => (
+              <TabsTrigger key={value} value={value} className="cursor-pointer">{label}</TabsTrigger>
+            ))}
+          </TabsList>
+          {EXPORT_FORMATS.map(({ value }) => (
+            <TabsContent
+              key={value}
+              value={value}
+              data-testid="export-preview-scroll"
+              className="min-h-0 overflow-auto rounded-md border bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            >
+              {file && value === format && (
+                <pre data-testid="export-preview" data-format={format} data-filename={file.filename} className="w-max min-w-full p-3 font-mono text-xs leading-relaxed whitespace-pre text-foreground">
+                  <code>{file.content}</code>
+                </pre>
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+        <DialogFooter className="sm:items-center">
+          <p role="status" data-testid="export-copy-status" className={`text-sm sm:mr-auto ${copyStatus === "failed" ? "text-destructive" : "text-muted-foreground"}`}>
+            {copyStatus === "copied" && "Copied to clipboard."}
+            {copyStatus === "failed" && "Could not copy. Select the preview text and copy it manually."}
+          </p>
+          <Button variant="outline" className="cursor-pointer" disabled={!file} onClick={copy}>Copy</Button>
+          <Button className="cursor-pointer" disabled={!file} onClick={() => { if (file) download(file) }}>
+            <Download aria-hidden="true" className="size-3.5" />
+            Download
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 function ReviewChangesButton({ evaluating, showCommand }: { evaluating: boolean; showCommand: () => void }) {
@@ -380,6 +488,12 @@ export function App() {
     }
   }, [current.id, current.revision, locked, toasts])
 
+  /**
+   * PUI-136: routine theme-action success (Save, Save As, Delete) is one transient toast on the shared surface instead of
+   * a persistent inline notice; failures keep the inline notice or field error. Export opening adds no feedback.
+   */
+  const showSuccess = (title: string, description?: string) => toasts.add({ id: SUCCESS_TOAST_ID, title, description })
+
   const showProposalErrors = (errors: ProposalError[]) => setProposalIssues(errors.map(({ ruleId, path }) => ({ ruleId, path })))
 
   const applyStaged = () => {
@@ -456,7 +570,8 @@ export function App() {
     const result = saveTheme(window.localStorage, saved, currentRef.current, builtInIds, saved.bases[current.id] ?? DEFAULT_THEME_ID)
     if (!result.ok) return setNotice(`Not saved: ${describeIssues(result.issues)}`)
     setSaved(result.saved)
-    setNotice(`Saved "${current.name}" locally.`)
+    setNotice("")
+    showSuccess("Theme saved")
   }
 
   const saveAs = (event: React.FormEvent) => {
@@ -474,7 +589,8 @@ export function App() {
     setActive(copy.theme)
     setSaveAsIssues([])
     setSaveAsOpen(false)
-    setNotice(`Saved "${copy.theme.name}" as a custom theme. ${builtInCopy.name} is unchanged.`)
+    setNotice("")
+    showSuccess("Theme saved as custom theme")
   }
 
   /**
@@ -492,7 +608,8 @@ export function App() {
     writeTracks(without(tracksRef.current, current.id))
     setActive(fallback)
     setDeleteOpen(false)
-    setNotice(`Deleted "${name}". ${defaultTheme.name} is now active.`)
+    setNotice("")
+    showSuccess("Theme deleted", `“${name}” was removed. ${defaultTheme.name} is now active.`)
   }
 
   /** Switching keeps each theme's in-session working state and history: leaving stores it, returning restores it. */
@@ -533,7 +650,7 @@ export function App() {
           <SidebarMenu>
             <SidebarMenuItem>
               <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id && id !== current.id) load(id) }}>
-                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-control quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent group-has-data-[sidebar=menu-action]/menu-item:pr-11">
+                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-control quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent">
                   <SelectValue>
                     <ThemeSwatches theme={current} mode={mode} />
                     <span className="truncate font-medium">{current.name}</span>
@@ -562,27 +679,6 @@ export function App() {
                   )}
                 </SelectContent>
               </Select>
-              {activeCustom && (
-                <ResponsiveDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                  <ResponsiveDialogTrigger asChild>
-                    <SidebarMenuAction aria-label={`Delete ${current.name}`} data-testid="delete-theme" disabled={locked} className="top-1/2 right-2 size-8 -translate-y-1/2 cursor-pointer disabled:pointer-events-none disabled:opacity-50">
-                      <TrashIcon />
-                    </SidebarMenuAction>
-                  </ResponsiveDialogTrigger>
-                  <ResponsiveDialogContent>
-                    <ResponsiveDialogHeader>
-                      <ResponsiveDialogTitle><span className="type-heading">Delete custom theme?</span></ResponsiveDialogTitle>
-                      <ResponsiveDialogDescription>
-                        “{current.name}” is removed from this browser, including unsaved edits. {defaultTheme.name} becomes the active theme. This cannot be undone.
-                      </ResponsiveDialogDescription>
-                    </ResponsiveDialogHeader>
-                    <ResponsiveDialogFooter>
-                      <Button variant="destructive" className="cursor-pointer" onClick={deleteActive}>Delete theme</Button>
-                      <ResponsiveDialogClose asChild><Button variant="outline" className="cursor-pointer">Cancel</Button></ResponsiveDialogClose>
-                    </ResponsiveDialogFooter>
-                  </ResponsiveDialogContent>
-                </ResponsiveDialog>
-              )}
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
@@ -798,7 +894,32 @@ export function App() {
         <div data-testid="workbench-toolbar" className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="size-8 cursor-pointer" />
           <div className="ml-auto flex items-center gap-2">
-            {/* PUI-80: icon-only colour mode Switch leads the right cluster; the thumb glyph mirrors the current mode. */}
+            {/* PUI-135: the active custom theme's Delete leads the right cluster, set apart from mode, history, Export and Save. */}
+            {activeCustom && (
+              <>
+                <ResponsiveDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                  <ResponsiveDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="Delete theme" title="Delete theme" data-testid="delete-theme" disabled={locked} className="size-8 text-muted-foreground enabled:cursor-pointer hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:text-destructive focus-visible:ring-destructive/20 disabled:cursor-default dark:hover:bg-destructive/20 dark:focus-visible:ring-destructive/40">
+                      <TrashIcon />
+                    </Button>
+                  </ResponsiveDialogTrigger>
+                  <ResponsiveDialogContent>
+                    <ResponsiveDialogHeader>
+                      <ResponsiveDialogTitle><span className="type-heading">Delete custom theme?</span></ResponsiveDialogTitle>
+                      <ResponsiveDialogDescription>
+                        “{current.name}” is removed from this browser, including unsaved edits. {defaultTheme.name} becomes the active theme. This cannot be undone.
+                      </ResponsiveDialogDescription>
+                    </ResponsiveDialogHeader>
+                    <ResponsiveDialogFooter>
+                      <Button variant="destructive" className="cursor-pointer" onClick={deleteActive}>Delete theme</Button>
+                      <ResponsiveDialogClose asChild><Button variant="outline" className="cursor-pointer">Cancel</Button></ResponsiveDialogClose>
+                    </ResponsiveDialogFooter>
+                  </ResponsiveDialogContent>
+                </ResponsiveDialog>
+                <ToolbarSeparator />
+              </>
+            )}
+            {/* PUI-80: icon-only colour mode Switch; the thumb glyph mirrors the current mode. */}
             <Switch
               id="color-mode-switch"
               aria-label="Toggle dark mode"
@@ -840,11 +961,7 @@ export function App() {
               </ResponsiveDialog>
             </div>
             <ToolbarSeparator />
-            {/* Below 640px the recovery group needs the room: Export and Save keep their names but show only their icons. */}
-            <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={locked} onClick={() => { endGesture(); download(exportThemeJson(currentRef.current)) }}>
-              <Download aria-hidden="true" className="size-3.5" />
-              <span className="max-sm:sr-only">Export</span>
-            </Button>
+            <ExportDialog theme={current} disabled={locked} onOpen={endGesture} />
                   <ResponsiveDialog open={saveAsOpen} onOpenChange={setSaveAsOpen}>
                     <ResponsiveDialogTrigger asChild>
                       <Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Save" disabled={locked} onClick={save}>

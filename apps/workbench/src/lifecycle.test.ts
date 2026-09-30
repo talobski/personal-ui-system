@@ -613,12 +613,13 @@ describe("custom theme deletion (WSSP-06)", () => {
   it("exposes the delete action only for the active custom theme, confirmed through ResponsiveDialog", () => {
     const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8")
     expect(app).toContain("const activeCustom = !builtInCopy && Object.hasOwn(saved.themes, current.id)")
-    expect(app).toMatch(/\{activeCustom && \(\s*<ResponsiveDialog open=\{deleteOpen\}/)
-    expect(app).toMatch(/<ResponsiveDialogTrigger asChild>\s*<SidebarMenuAction aria-label=\{`Delete \$\{current.name\}`\}/)
+    // PUI-135: the action moved to the toolbar's right cluster; its confirmation and guard are unchanged.
+    expect(app).toMatch(/\{activeCustom && \(\s*<>\s*<ResponsiveDialog open=\{deleteOpen\}/)
+    expect(app).toMatch(/<ResponsiveDialogTrigger asChild>\s*<Button variant="ghost" size="icon" aria-label="Delete theme" title="Delete theme" data-testid="delete-theme"/)
     expect(app).toMatch(/if \(locked \|\| builtInCopy \|\| !Object.hasOwn\(saved.themes, current.id\)\) return/)
     // The action is a sibling of the Select, never inside its trigger or rows.
     const trigger = app.slice(app.indexOf("<SelectTrigger"), app.indexOf("</Select>"))
-    expect(trigger).not.toContain("SidebarMenuAction")
+    expect(trigger).not.toContain("delete-theme")
   })
 })
 
@@ -817,7 +818,8 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
   it("shows Colors / Typography / Geometry / Effects / Command with px-2 triggers; Effects keeps the internal other value (PUI-94)", () => {
     const tabs = [...app.matchAll(/<TabsTrigger value="([a-z]+)" className=\{CATEGORY_TRIGGER_CLASS\} onMouseDown=\{focusCategoryTrigger\}>([A-Za-z]+)<\/TabsTrigger>/g)].map((match) => [match[1], match[2]])
     expect(tabs).toEqual([["colors", "Colors"], ["typography", "Typography"], ["geometry", "Geometry"], ["other", "Effects"], ["command", "Command"]])
-    expect(app.match(/<TabsTrigger /g)).toHaveLength(5)
+    // PUI-134's Export dialog maps its own format triggers (`key={value}`); the editor still has exactly five.
+    expect(app.match(/<TabsTrigger value=/g)).toHaveLength(5)
     // Every category trigger takes focus before Radix's mousedown activation hides the outgoing panel, so the mobile
     // sheet's focus restoration never pulls focus off the pressed tab.
     expect(app).toContain("if (event.button === 0) event.currentTarget.focus({ focusVisible: false })")
@@ -847,7 +849,9 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(controls).toMatch(/<Button variant="secondary" size="sm" className="h-auto w-fit cursor-pointer /)
     expect(app).toContain('<SidebarTrigger className="size-8 cursor-pointer" />')
     // STHG-12: below 640px Export and Save are icon-only (names kept) so the recovery group fits the toolbar.
-    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={locked} onClick={() => { endGesture(); download(exportThemeJson(currentRef.current)) }}>')
+    // PUI-134: Export only opens the Export dialog (its trigger); nothing downloads on click.
+    expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Export" disabled={disabled}>')
+    expect(app).toContain('<ExportDialog theme={current} disabled={locked} onOpen={endGesture} />')
     expect(app).toContain('<Button variant="ghost" size="sm" className="cursor-pointer max-sm:w-8 max-sm:px-0" title="Save" disabled={locked} onClick={save}>')
     expect(app).toContain('<span className="max-sm:sr-only">Export</span>')
     // PUI-68: recovery actions show a pointer only while enabled; disabled ones keep a default cursor.
@@ -855,7 +859,7 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     // A short button-height semantic separator sits between the recovery group and Export; PUI-80 shares the one
     // definition with the separator after the colour-mode Switch, so both boundaries match by construction.
     expect(app).toContain('function ToolbarSeparator() {\n  return <div role="separator" aria-orientation="vertical" className="h-8 w-px shrink-0 bg-border" />\n}')
-    expect(app).toMatch(/data-testid="history-controls"[\s\S]*?<\/div>\s*<ToolbarSeparator \/>[\s\S]*?title="Export"/)
+    expect(app).toMatch(/data-testid="history-controls"[\s\S]*?<\/div>\s*<ToolbarSeparator \/>\s*<ExportDialog /)
     expect(app.match(/role="separator" aria-orientation="vertical"/g)).toHaveLength(1)
     expect(app).not.toContain("Export JSON")
     // Disabled buttons drop pointer events, so no pointer cursor can show while disabled.
@@ -865,10 +869,10 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(controls).not.toMatch(/<(?:FieldLabel|Slider|FieldDescription|span)[^>]*cursor-pointer/)
   })
 
-  it("CGS-10/11 groups the right toolbar as colour-mode Switch | history | export/save with an icon-only thumb (PUI-80)", () => {
+  it("CGS-10/11 groups the right toolbar as [custom Delete |] colour-mode Switch | history | export/save with an icon-only thumb (PUI-80, PUI-135)", () => {
     const toolbar = app.slice(app.indexOf('data-testid="workbench-toolbar"'), app.indexOf('title="Save"'))
     const at = (needle: string) => { const index = toolbar.indexOf(needle); expect(index, needle).toBeGreaterThan(-1); return index }
-    const order = ["<SidebarTrigger", 'className="ml-auto flex items-center gap-2"', 'id="color-mode-switch"', "<ToolbarSeparator />", 'data-testid="history-controls"', 'aria-label="Undo"', 'aria-label="Redo"', 'aria-label="Reset"', "</ResponsiveDialog>\n            </div>\n            <ToolbarSeparator />", 'title="Export"'].map(at)
+    const order = ["<SidebarTrigger", 'className="ml-auto flex items-center gap-2"', "{activeCustom && (", 'aria-label="Delete theme" title="Delete theme" data-testid="delete-theme"', "</ResponsiveDialog>\n                <ToolbarSeparator />", 'id="color-mode-switch"', "/>\n            <ToolbarSeparator />\n", 'data-testid="history-controls"', 'aria-label="Undo"', 'aria-label="Redo"', 'aria-label="Reset"', "</ResponsiveDialog>\n            </div>\n            <ToolbarSeparator />", "<ExportDialog "].map(at)
     expect([...order].sort((a, b) => a - b)).toEqual(order)
     // No visible label: a stable accessible name, the shared Switch semantics, and a mode-mirroring thumb glyph.
     expect(app).not.toMatch(/>\s*Dark mode\s*</)

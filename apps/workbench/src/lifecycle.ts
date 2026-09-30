@@ -71,6 +71,14 @@ export function exportThemeJson(theme: Theme): { filename: string; json: string 
 }
 
 /**
+ * PUI-134: the CSS / Tailwind v4 export is core's full rendered theme, unchanged (`:root`, `.dark`, `@theme inline`
+ * and the UI-effects block while Tactile is on). An additional representation only; Theme v3 JSON stays canonical.
+ */
+export function exportThemeCss(theme: Theme): { filename: string; css: string } {
+  return { filename: `${theme.id}.theme.css`, css: renderShadcnTailwindCss(theme) }
+}
+
+/**
  * Runtime theme CSS: the `:root` and `.dark` variable blocks of core's rendered theme (drops the compiled `@theme
  * inline`), plus the targeted UI-effects block when one is enabled (empty for flat themes, so their output is unchanged).
  * Chrome renders it for the active theme only; the preview renders it for the active theme or a staged candidate.

@@ -18,7 +18,7 @@ describe("WPIP-06 reset toast (PUI-115)", () => {
     for (const manifest of ["../package.json", "../../../packages/ui/package.json"]) expect(read(manifest)).not.toMatch(/sonner/)
   })
 
-  it("replaces only reset's inline notice; the notice channel remains for save, delete and error messages", () => {
+  it("replaces reset's inline notice; the notice channel remains for save and delete errors (PUI-136 moves routine success to toasts)", () => {
     const source = app()
     expect(source).not.toMatch(/Undo restores your edits/)
     const reset = source.slice(source.indexOf("const resetToBaseline = () => {"), source.indexOf("undoResetRef.current = () => {"))
@@ -26,7 +26,8 @@ describe("WPIP-06 reset toast (PUI-115)", () => {
     expect(reset).toContain("toasts.add({")
     expect(reset).toContain("id: RESET_TOAST_ID")
     expect(reset).toContain('actionProps: { children: "Undo", onClick: () => undoResetRef.current() }')
-    for (const message of ["setNotice(`Saved", "setNotice(`Deleted", "setNotice(`Not saved:", "setNotice(`Not deleted:"]) expect(source).toContain(message)
+    for (const message of ["setNotice(`Not saved:", "setNotice(`Not deleted:"]) expect(source).toContain(message)
+    for (const message of ["setNotice(`Saved", "setNotice(`Deleted"]) expect(source).not.toContain(message)
     expect(source).toContain("{notice && <div className=\"px-4 py-2\"><Notice>{notice}</Notice></div>}")
   })
 
@@ -47,7 +48,7 @@ describe("WPIP-06 reset toast (PUI-115)", () => {
     const source = app()
     expect(source).toContain("<Toast.Portal>")
     expect(source).toMatch(/<Toast\.Viewport data-testid="toast-viewport" className="fixed right-4 bottom-4 [^"]*"/)
-    expect(source).toMatch(/className="rounded-lg border bg-popover p-4 text-popover-foreground shadow-lg [^"]*motion-reduce:transition-none"/)
+    expect(source).toMatch(/className="rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-lg [^"]*motion-reduce:transition-none"/)
     expect(source).toContain("<Toast.Action ")
     expect(source).not.toContain("<Toast.Close")
     expect(source).toContain('onClick={() => close(toast.id)}>Dismiss</Button>')
