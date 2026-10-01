@@ -1,16 +1,13 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`7e2746e5e43dd6f6d39fb0df94242e4956c3fb19` on `main`. The single Tier 2
-`theme-code-header-shell-selection-v1-001` phase delivered PUI-138 through PUI-141
-and is durably closed. The next single Tier 3 phase admits PUI-143 and PUI-144
-for a shadcn-based landing page at `/` and stable built-in Workbench URLs under
-`/workbench`. Its frozen two-ticket packet and authoritative contract are at
-`docs/evidence/landing-workbench-routes-v1-001/linear/` and
-`docs/LANDING_WORKBENCH_ROUTES_CONTRACT.md`; `.loop` records live execution.
-Admission does not change the accepted product pointer. The phase uses Claude
-Opus 5.5 STRONG as its sole producer route and pauses cleanly if that route
-becomes too constrained; it has no automatic producer fallback.
+`8f847c7b1f784ab6f0deb49c6d6b10a71e4a4499` on `main`. The single Tier 3
+`landing-workbench-routes-v1-001` phase delivered PUI-143 and PUI-144 together:
+the public landing page is at `/`, the editor is at `/workbench`, and stable
+built-in theme links use `/workbench/themes/:slug`. The frozen two-ticket packet,
+authoritative contract, and durable receipts are at
+`docs/evidence/landing-workbench-routes-v1-001/linear/`,
+`docs/LANDING_WORKBENCH_ROUTES_CONTRACT.md`, and `.loop`.
 The prior phase's packet, contract, and receipts remain under
 `docs/evidence/theme-code-header-shell-selection-v1-001/`,
 `docs/THEME_CODE_HEADER_SHELL_SELECTION_CONTRACT.md`, and `.loop`.
@@ -47,6 +44,48 @@ Canonical execution state remains in `.loop/state.json`; older checkpoint
 documents are historical evidence rather than current control state.
 
 Last updated: 2026-10-01
+
+## Phase result: Landing and Workbench routes v1
+
+Accepted PUI-143 and PUI-144 together at product commit
+`8f847c7b1f784ab6f0deb49c6d6b10a71e4a4499`. The root landing page uses
+accepted shadcn primitives and built-in Theme v3 data to show real Personal UI
+compositions in light and dark mode. Its primary call to action opens the
+Workbench. The page describes the current Design Command flow as experimental
+and does not claim future reference-style interpretation is shipped.
+
+The existing editor moved to `/workbench`. Explicit stable links for Default,
+Quiet Editorial, and Amber Dusk select the named built-in on initial load
+without overwriting the stored selection. Subsequent built-in selection updates
+the URL; local custom themes use plain `/workbench`. Unknown built-in slugs
+normalize safely to `/workbench`. The preview iframe now uses
+`/workbench?preview=1`; its isolation and message behavior remain. `/themes`
+and `/themes/:slug` remain reserved. Deployment-host deep-link HTML fallback
+remains a separate infrastructure concern; local Vite production preview served
+direct links during verification.
+
+Lead exact-candidate evidence passed 32 landing/route browser cases, 69
+representative Workbench cases with three established skips, one credential-empty
+Design Command boundary case, 89 focused unit tests, typechecks, and the
+Workbench build. Sixteen decoded axe attachments had no blocking findings.
+Lead's promoted-main smoke passed root, CTA, back/forward, all three built-in
+links, and invalid-slug normalization, plus 89 focused unit tests, typecheck,
+and build. The producer's broad Workbench run was not clean: 495 passed,
+19 skipped, and four WGPE-10 cases failed. Lead reproduced the same four stale
+Inset `muted` assertions on the accepted pre-phase base, whose product already
+uses the `sidebar` surface.
+
+The fresh protected verifier found no product defect but returned a process-only
+FAIL requiring owner disposition. The producer's exact reported command
+`pnpm build:workbench` materialized worktree `node_modules` despite the phase's
+no-install rule; whether any packages came from the network could not be
+established. The owner accepted this as a one-time disclosed incident for this
+phase, and acceptance was recorded before local-main promotion. Package
+manifests, lockfile, registry, Theme 3.0, 13 mutation operations, and 23 public
+resources are unchanged. This exception grants no future dependency, package
+materialization, worker-network, paid, or permission authority. Two agent runs
+were used, lifetime accounting ended at 104/106, paid spend stayed $0, and no
+remote push was performed.
 
 ## Phase result: Theme code, header, shell, and selection polish v1
 
