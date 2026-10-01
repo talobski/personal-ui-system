@@ -86,7 +86,11 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await expect.poll(() => previewStyle(page, "elevation-sample", "borderRadius")).toBe("8px")
     const stored = JSON.parse((await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY))!)
     expect(stored).toMatchObject({ activeId: "quiet-editorial", themes: {} })
-    await page.reload()
+    // PUI-144: selecting a built-in makes its stable URL current, and a URL-named built-in wins on load. Persisted
+    // selection is therefore reloaded at the plain editor route, where only local state decides (the later reloads
+    // stay on that route).
+    await expect.poll(() => page.evaluate(() => location.pathname)).toBe("/workbench/themes/quiet-editorial")
+    await page.goto("/workbench")
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "quiet-editorial")
     await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-theme-id", "quiet-editorial")
 

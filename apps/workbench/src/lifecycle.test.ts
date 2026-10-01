@@ -105,7 +105,7 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
     // The Workbench never wraps the iframe in an outer ScrollArea.
     const viewport = app.slice(app.indexOf('<div className="quiet-preview-body">'), app.indexOf("</SidebarInset>"))
     expect(viewport).not.toContain("ScrollArea")
-    expect(viewport).toContain('<iframe ref={iframeRef} title="Component preview" src="/?preview=1"')
+    expect(viewport).toContain('<iframe ref={iframeRef} title="Component preview" src="/workbench?preview=1"')
   })
 })
 
