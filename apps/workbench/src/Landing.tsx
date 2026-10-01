@@ -514,7 +514,7 @@ export function Landing() {
               <div className="landing-rise grid gap-6">
                 <p className="w-fit rounded-full border bg-background/60 px-3 py-1 font-mono text-xs text-muted-foreground">A personal design system on shadcn/ui</p>
                 <h1 id="hero-title" className="type-heading max-w-4xl text-5xl leading-[1.02] tracking-tight text-balance sm:text-6xl lg:text-7xl">
-                  Shape a theme once. Every surface follows.
+                  Shape a theme once. <span className="text-muted-foreground">Every surface follows.</span>
                 </h1>
               </div>
               <div className="landing-rise landing-delay-1 grid gap-6 lg:grid-cols-[minmax(0,38rem)_auto] lg:items-end lg:justify-between">
