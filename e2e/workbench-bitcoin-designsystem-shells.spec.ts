@@ -18,7 +18,7 @@ const box = async (el: Locator) => (await el.boundingBox())!
 const css = (el: Locator, property: string) => el.evaluate((node, name) => getComputedStyle(node).getPropertyValue(name), property)
 
 async function open(page: Page) {
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 }
 

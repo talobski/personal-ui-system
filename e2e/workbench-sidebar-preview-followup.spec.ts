@@ -78,7 +78,7 @@ for (const mode of ["light", "dark"] as const) {
     test(`WSPF-02–08/10 sidebar navigation, header, triggers, contrast record, preview Select and spacing: ${mode}, ${reducedMotion}`, async ({ page }, info) => {
       test.setTimeout(120_000)
       await page.emulateMedia({ reducedMotion })
-      await page.goto("/")
+      await page.goto("/workbench")
       await setColorMode(page, mode)
       await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
       await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "default")
@@ -279,7 +279,7 @@ for (const mode of ["light", "dark"] as const) {
     test(`WSPF-09/10 one preview-document ScrollArea: ownership, wheel, keyboard, thumb, no trap: ${mode}, ${reducedMotion}`, async ({ page }, info) => {
       test.setTimeout(90_000)
       await page.emulateMedia({ reducedMotion })
-      await page.goto("/")
+      await page.goto("/workbench")
       await setColorMode(page, mode)
       const frame = previewFrame(page)
       await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
@@ -368,7 +368,7 @@ for (const mode of ["light", "dark"] as const) {
 }
 
 test("WSPF-10 touch-equivalent preview scrolling stays in the single document ScrollArea", async ({ page, context }) => {
-  await page.goto("/")
+  await page.goto("/workbench")
   const frame = previewFrame(page)
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
   await workspaceMode(page, "Preview")
@@ -390,7 +390,7 @@ test("WSPF-10 touch-equivalent preview scrolling stays in the single document Sc
 })
 
 test("WSPF-11 live editing, preview view state and scroll position survive theme updates", async ({ page }) => {
-  await page.goto("/")
+  await page.goto("/workbench")
   const frame = previewFrame(page)
   await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
   await workspaceMode(page, "Preview")

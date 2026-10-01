@@ -41,6 +41,7 @@ import { FIELD_LABEL_CLASS, ControlSection, LiveColorField, LiveFontField, LiveN
 import type { ApplyManual, EndGesture } from "./LiveControls"
 
 import { ColorPickerController } from "./colorPicker"
+import { replacePath, workbenchPathFor } from "./routes"
 import { CATEGORY_TRIGGER_CLASS } from "./workbenchTabs"
 import { WorkbenchTooltip, WorkbenchTooltipProvider } from "./WorkbenchTooltip"
 
@@ -266,14 +267,19 @@ function ReviewChangesButton({ evaluating, showCommand }: { evaluating: boolean;
   )
 }
 
-export function App() {
+/**
+ * `routeThemeId` is the built-in named by `/workbench/themes/:slug`, or null at plain `/workbench`. On initial load it
+ * takes precedence over the stored selection without writing it: the URL selects, local storage is unchanged.
+ */
+export function App({ routeThemeId = null }: { routeThemeId?: string | null }) {
   const [category, setCategory] = React.useState("colors")
   const saveAsNameId = React.useId()
   const saveAsFormId = React.useId()
   const commandTextId = React.useId()
   const [saved, setSaved] = React.useState<SavedThemes>(() => loadSaved(window.localStorage, builtInIds))
-  // Fresh state selects the built-in Default; a valid persisted selection (built-in or saved) is restored.
-  const [current, setCurrent] = React.useState<Theme>(() => (saved.activeId ? (builtInById(saved.activeId) ?? saved.themes[saved.activeId]!) : defaultTheme))
+  // A built-in named by the URL wins on initial load (PUI-144). Otherwise fresh state selects the built-in Default and a
+  // valid persisted selection (built-in or saved) is restored.
+  const [current, setCurrent] = React.useState<Theme>(() => (routeThemeId !== null ? builtInById(routeThemeId) : undefined) ?? (saved.activeId ? (builtInById(saved.activeId) ?? saved.themes[saved.activeId]!) : defaultTheme))
   // Manual controls may fire faster than React re-renders (slider drags); each edit builds on the latest active theme.
   const currentRef = React.useRef(current)
   currentRef.current = current
@@ -601,8 +607,11 @@ export function App() {
     showSuccess("Theme deleted", `“${name}” was removed. ${defaultTheme.name} is now active.`)
   }
 
-  /** Switching keeps each theme's in-session working state and history: leaving stores it, returning restores it. */
-  const load = (id: string) => {
+  /**
+   * Switching keeps each theme's in-session working state and history: leaving stores it, returning restores it.
+   * `persist: false` is a URL-driven switch (browser back/forward), which never writes the stored selection.
+   */
+  const load = (id: string, persist = true) => {
     endGesture()
     const leaving = currentRef.current
     const next = working.current[id] ?? builtInById(id) ?? saved.themes[id]
@@ -610,9 +619,29 @@ export function App() {
     working.current = { ...without(working.current, id), [leaving.id]: leaving }
     setActive(next)
     // Only the selection is persisted; selecting never saves theme data.
-    setSaved(saveSelection(window.localStorage, saved, id))
+    if (persist) setSaved(saveSelection(window.localStorage, saved, id))
     setNotice("")
   }
+
+  /**
+   * PUI-144: the address bar follows the active theme without adding history entries. A built-in's stable path becomes
+   * current when it becomes active (selection, Delete's Default fallback); a local custom theme has no shareable URL,
+   * so it makes plain `/workbench` current. The initially loaded path is left as it was opened.
+   */
+  const syncedThemeId = React.useRef(current.id)
+  React.useEffect(() => {
+    if (syncedThemeId.current === current.id) return
+    syncedThemeId.current = current.id
+    replacePath(workbenchPathFor(current.id))
+  }, [current.id])
+  // Back/forward onto another built-in's path while the Workbench stays mounted selects it like the initial load: no
+  // stored-selection write, and every theme keeps its in-session working state and history. A staged or evaluating
+  // proposal keeps the active theme, so the address bar returns to it.
+  React.useEffect(() => {
+    if (routeThemeId === null || routeThemeId === currentRef.current.id) return
+    if (locked) replacePath(workbenchPathFor(currentRef.current.id))
+    else load(routeThemeId, false)
+  }, [routeThemeId])
 
   const numeric = (id: NumericControlId, labelPrefix?: string) => <LiveNumberField key={`${current.id}-${id}`} id={id} control={NUMERIC_CONTROLS[id]} labelPrefix={labelPrefix} theme={current} disabled={locked} apply={applyManual} endGesture={endGesture} />
   const manualLockNote = locked ? (
@@ -1057,7 +1086,7 @@ export function App() {
         </ScrollArea>}
         <div className="quiet-preview-body">
           <div role="region" aria-label="Preview viewport" tabIndex={0} className="quiet-viewport outline-none focus-visible:ring-inset focus-visible:ring-[3px] focus-visible:ring-ring/50">
-            <iframe ref={iframeRef} title="Component preview" src="/?preview=1" data-testid="preview-frame" className="block size-full border-0" />
+            <iframe ref={iframeRef} title="Component preview" src="/workbench?preview=1" data-testid="preview-frame" className="block size-full border-0" />
           </div>
         </div>
       </SidebarInset>

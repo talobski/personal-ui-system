@@ -21,7 +21,7 @@ async function previewFill(page: import("@playwright/test").Page) {
 }
 
 test("preview fills the real right panel, with no device selector or fixed width, and follows the browser viewport (WTEP-02)", async ({ page }) => {
-  await page.goto("/")
+  await page.goto("/workbench")
   await workspaceMode(page, "Preview")
   await expect(page.getByTestId("preview-frame")).toBeVisible()
   for (const name of [/Mobile 390/, /Desktop 1024/, /Preview width/]) {
@@ -56,7 +56,7 @@ test("preview fills the real right panel, with no device selector or fixed width
 
 for (const mode of ["light", "dark"] as const) {
   test(`quiet workspace layout, cards, mobile preservation and accessibility — ${mode}`, async ({ page }, info) => {
-    await page.goto("/")
+    await page.goto("/workbench")
     const frame = page.frameLocator('[data-testid="preview-frame"]')
     await expect(frame.getByTestId("preview")).toHaveAttribute("data-ready", "true")
     const mobile = isMobileShell(page)
@@ -138,7 +138,7 @@ for (const mode of ["light", "dark"] as const) {
 
 test("one full-height Sidebar shell: 28rem desktop sidebar, preview fills the inset, trigger and Ctrl+B collapse it (WSSP-03, WSSP-12)", async ({ page }) => {
   test.skip(isMobileShell(page), "The desktop sidebar is replaced by the off-canvas sheet below 768px")
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(page.locator("header")).toHaveCount(0)
   await expect(page.getByRole("separator", { name: "Resize editor" })).toHaveCount(0)
   await expect(page.locator("[data-panel], [data-separator]")).toHaveCount(0)
@@ -197,7 +197,7 @@ test("one full-height Sidebar shell: 28rem desktop sidebar, preview fills the in
 
 test("mobile off-canvas sidebar opens, traps focus, exposes every editor section, and dismisses by Escape, overlay, and touch-sized trigger (WSSP-04)", async ({ page }, info) => {
   test.skip(!isMobileShell(page), "Mobile-only off-canvas behavior")
-  await page.goto("/")
+  await page.goto("/workbench")
   const trigger = page.getByRole("button", { name: "Toggle Sidebar", exact: true })
   const sheet = sidebarSheet(page)
   await expect(sheet).toHaveCount(0)
@@ -258,7 +258,7 @@ test("mobile off-canvas sidebar opens, traps focus, exposes every editor section
 })
 
 test("overlay sidebar scrollbar and one preview-document ScrollArea (WSPF-09 supersedes WCN-04 native preview scrolling)", async ({ page }) => {
-  await page.goto("/")
+  await page.goto("/workbench")
   await workspaceMode(page, "Controls")
   const content = page.getByRole("region", { name: "Theme editor", exact: true })
   const read = (locator: import("@playwright/test").Locator) => locator.evaluate(el => ({ width: getComputedStyle(el).scrollbarWidth, color: getComputedStyle(el).scrollbarColor, overflowY: getComputedStyle(el).overflowY }))
@@ -295,7 +295,7 @@ test("overlay sidebar scrollbar and one preview-document ScrollArea (WSPF-09 sup
 
 for (const mode of ["light", "dark"] as const) {
   test(`full-region grouped theme Select stays anchored after resize, supports keyboard and persists — ${mode}`, async ({ page }, info) => {
-    await page.goto("/")
+    await page.goto("/workbench")
     await setColorMode(page, mode)
     await workspaceMode(page, "Controls")
     const trigger = page.getByRole("combobox", { name: "Active theme" })
@@ -361,7 +361,7 @@ for (const mode of ["light", "dark"] as const) {
   })
 
   test(`theme Select shows primary, accent, secondary, and border swatches in the trigger and every row, with pointer and accent hover — ${mode}`, async ({ page }, info) => {
-    await page.goto("/")
+    await page.goto("/workbench")
     await setColorMode(page, mode)
     await saveTheme(page, "Swatch Check")
     await workspaceMode(page, "Controls")
@@ -408,7 +408,7 @@ for (const mode of ["light", "dark"] as const) {
   })
 
   test(`only the active custom theme exposes the toolbar Delete theme action; confirmed deletion removes it and persists Default — ${mode}`, async ({ page }, info) => {
-    await page.goto("/")
+    await page.goto("/workbench")
     await setColorMode(page, mode)
     const action = page.getByTestId("delete-theme")
     // Built-ins never expose delete.
@@ -468,7 +468,7 @@ for (const mode of ["light", "dark"] as const) {
   })
 
   test(`removed copy and manual authoring stay absent; ordinary labels match — ${mode}`, async ({ page }) => {
-    await page.goto("/")
+    await page.goto("/workbench")
     await setColorMode(page, mode)
     const styles: unknown[] = []
     // Font labels are intentionally screen-reader-only (WTCP-09); compare the visible Typography numeric label.
@@ -508,7 +508,7 @@ test("all 24 local fonts load, render, write canonical stacks, export, persist a
     return route.continue()
   })
   page.on("request", request => { if (request.resourceType() === "font" || /\.woff2?(?:\?|$)/.test(request.url())) requests.push(request.url()) })
-  await page.goto("/")
+  await page.goto("/workbench")
   await saveTheme(page, "Local Fonts")
   await previewStates(page)
   const frame = page.frameLocator('[data-testid="preview-frame"]')

@@ -18,7 +18,7 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
   test(`WCN-05–12/14 overlay input, navigation, controls: ${mode}, ${reducedMotion}`, async ({ page }, info) => {
     test.setTimeout(90_000)
     await page.emulateMedia({ reducedMotion })
-    await page.goto("/")
+    await page.goto("/workbench")
     await setColorMode(page, mode)
     await editorCategory(page, "Colors")
     const editor = page.getByRole("region", { name: "Theme editor", exact: true })
@@ -161,7 +161,7 @@ for (const mode of ["light", "dark"] as const) for (const reducedMotion of ["red
 }
 
 test("WCN-06 touch-equivalent scrolling and mobile sheet focus remain primitive-owned", async ({ page, context }) => {
-  await page.goto("/")
+  await page.goto("/workbench")
   await editorCategory(page, "Colors")
   const editor = page.getByRole("region", { name: "Theme editor", exact: true })
   const b = await geometry(editor)
@@ -177,7 +177,7 @@ test("WCN-06 touch-equivalent scrolling and mobile sheet focus remain primitive-
 })
 
 test("WCN-06/13 bounded proposal scroll keeps toolbar and native nested code usable", async ({ page }) => {
-  await page.goto("/")
+  await page.goto("/workbench")
   await editorCategory(page, "Command")
   await stageCommand(page, [{ op: "setRadius", value: "0.9rem" }, { op: "setSpacingBase", value: "0.3rem" }])
   await workspaceMode(page, "Preview")

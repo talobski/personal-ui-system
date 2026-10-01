@@ -22,7 +22,7 @@ const revision = (page: Page) => page.locator("#workbench-active-theme")
 const revisionNumber = async (page: Page) => Number(await revision(page).getAttribute("data-revision"))
 
 async function openWorkbench(page: Page, mode: Mode = "light") {
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
   await previewStates(page)
   await setColorMode(page, mode)
@@ -102,7 +102,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
 
   test("a stored v1 theme migrates on load, stays selected, and exports as canonical v3 (TSV2-12, WSTP-09, STHG-04)", async ({ page }) => {
     const v1 = JSON.parse(readFileSync(new URL("../packages/core/src/theme/fixtures/legacy/quiet-editorial.v1.json", import.meta.url), "utf8"))
-    await page.goto("/")
+    await page.goto("/workbench")
     await page.evaluate(
       ([key, theme]) => localStorage.setItem(key as string, JSON.stringify({ themes: { "legacy-fork": theme }, activeId: "legacy-fork" })),
       [STORAGE_KEY, { ...v1, id: "legacy-fork", name: "Legacy Fork" }]

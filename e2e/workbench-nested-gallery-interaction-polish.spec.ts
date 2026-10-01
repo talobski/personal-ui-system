@@ -42,7 +42,7 @@ async function axe(page: Page, info: TestInfo, label: string) {
 }
 
 async function open(page: Page) {
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 }
 

@@ -36,7 +36,7 @@ for (const mode of ["light", "dark"] as const) {
     test(`WRCP-02/05–12 rendering, geometry, triggers, scrollbars, tabs, controls, axe: ${mode}, ${reducedMotion}`, async ({ page }, info) => {
       test.setTimeout(90_000)
       await page.emulateMedia({ reducedMotion })
-      await page.goto("/")
+      await page.goto("/workbench")
       await setColorMode(page, mode)
       await expect(preview(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 
@@ -229,7 +229,7 @@ for (const mode of ["light", "dark"] as const) {
 }
 
 test("WRCP-03/04 Shadow color reuses the picker/text interaction; approved Other labels; no stored-value helper", async ({ page }, info) => {
-  await page.goto("/")
+  await page.goto("/workbench")
   await editorCategory(page, "Effects")
   const panel = page.getByRole("tabpanel", { name: "Effects", exact: true })
   const shadow = panel.getByTestId("section-shadow")

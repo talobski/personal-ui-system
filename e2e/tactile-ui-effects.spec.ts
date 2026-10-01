@@ -32,7 +32,7 @@ const listRing = (s: { boxShadow: string }) => /0px 0px 0px 1px inset/.test(s.bo
 const anyListRing = (s: { boxShadow: string }) => /0px 0px 0px 1px/.test(s.boxShadow)
 
 async function open(page: Page) {
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(preview(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 }
 

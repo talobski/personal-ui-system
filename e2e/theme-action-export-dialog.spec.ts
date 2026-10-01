@@ -19,7 +19,7 @@ const exportDialog = (page: Page) => page.getByRole("dialog", { name: "Theme cod
 const exportButton = (page: Page) => page.getByTestId("workbench-toolbar").getByRole("button", { name: "Code", exact: true })
 
 async function open(page: Page) {
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 }
 

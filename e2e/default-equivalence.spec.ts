@@ -32,7 +32,7 @@ const sample = (locator: Locator) =>
 
 async function collect(page: Page) {
   const frame = previewFrame(page)
-  await page.goto("/")
+  await page.goto("/workbench")
   // Fresh state is now the built-in Default; the guardrail stays pinned to the accepted Quiet Editorial theme.
   await selectTheme(page, "quiet-editorial")
   await previewStates(page)

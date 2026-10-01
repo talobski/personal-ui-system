@@ -22,7 +22,7 @@ const close = (actual: number, expected: number, tolerance = 1) => expect(Math.a
 const ORDER = ["plan-usage", "quick-find", "productive-week", "signup-form", "now-playing", "revenue-overview", "team-chat", "recent-activity", "bitcoin-price", "recent-payments", "offsite-calendar", "local-weather"]
 
 async function open(page: Page) {
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 }
 

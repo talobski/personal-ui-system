@@ -14,7 +14,7 @@ const box = async (el: Locator) => (await el.boundingBox())!
 const openTooltip = (page: Page) => page.locator('[data-slot="tooltip-content"][data-state$="open"]')
 
 async function open(page: Page) {
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 }
 

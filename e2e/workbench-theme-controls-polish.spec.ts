@@ -20,7 +20,7 @@ for (const mode of ["light", "dark"] as const) {
     test(`WTCP-04–08/11 geometry, interaction, axe: ${mode}, ${reducedMotion}`, async ({ page }, info) => {
       test.setTimeout(60_000)
       await page.emulateMedia({ reducedMotion })
-      await page.goto("/")
+      await page.goto("/workbench")
       await setColorMode(page, mode)
       const toolbar = page.getByTestId("workbench-toolbar")
       // WRCP-07/08 supersede the 16px vertical padding: the toolbar is a fixed 64px flex row with 16px horizontal inset.
@@ -165,7 +165,7 @@ for (const mode of ["light", "dark"] as const) {
 
 test("WTCP-09 concise default/custom/catalog states retain accessible exact stacks and persistence (Theme v3 roles)", async ({ page }) => {
   const stackOf = (theme: typeof defaultTheme, target: "heading" | "body" | "mono") => (target === "mono" ? theme.typography.mono : theme.typography[target].font).$value
-  await page.goto("/")
+  await page.goto("/workbench")
   await editorCategory(page, "Typography")
   // NGIP-09: both built-ins use their sans Body stack for Heading, so the Default Heading copy is sans-serif.
   for (const [target, copy] of [["body", "Sans-serif font..."], ["heading", "Sans-serif font..."], ["mono", "Monospace font..."]] as const) {

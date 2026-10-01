@@ -8,7 +8,7 @@ import type { Page, TestInfo } from "@playwright/test"
 const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
 
 async function openWorkbench(page: Page) {
-  await page.goto("/")
+  await page.goto("/workbench")
   await previewStates(page)
   await editorCategory(page, "Command")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")

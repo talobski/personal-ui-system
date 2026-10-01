@@ -20,7 +20,7 @@ const box = async (el: Locator) => (await el.boundingBox())!
 const tactile = (el: Locator) => el.evaluate((node) => { const s = getComputedStyle(node); return s.backgroundImage.includes("linear-gradient") && s.boxShadow.includes("inset") })
 
 async function open(page: Page) {
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(preview(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
 }
 

@@ -28,7 +28,7 @@ const proposal = (id: string, revision: number, overrides: Record<string, unknow
  * baseline value below is unchanged from the accepted phase; fresh state itself is Default (theme-v2 spec).
  */
 async function openWorkbench(page: Page, mode: "light" | "dark") {
-  await page.goto("/")
+  await page.goto("/workbench")
   await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "default")
   await selectTheme(page, "quiet-editorial")
   await previewStates(page)

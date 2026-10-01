@@ -82,7 +82,7 @@ for (const mode of ["light", "dark"] as const) {
     test.describe(`${mode}, ${reducedMotion} motion`, () => {
       test.beforeEach(async ({ page }) => {
         await page.emulateMedia({ reducedMotion })
-        await page.goto("/")
+        await page.goto("/workbench")
         await setColorMode(page, mode)
         await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
       })

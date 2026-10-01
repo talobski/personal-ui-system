@@ -10,7 +10,7 @@ test("the real localhost product API middleware (vite dev) fails closed with tra
     if (req.url().includes("api.typesafe.ai")) outboundToTypeSafe.push(req.url())
   })
 
-  await page.goto("/")
+  await page.goto("/workbench")
   await previewStates(page)
   await editorCategory(page, "Command")
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
