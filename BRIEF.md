@@ -3,8 +3,16 @@
 Status: ACTIVE — the accepted product is
 `7e2746e5e43dd6f6d39fb0df94242e4956c3fb19` on `main`. The single Tier 2
 `theme-code-header-shell-selection-v1-001` phase delivered PUI-138 through PUI-141
-and is durably closed; no phase or worker is active. Its frozen packet, contract,
-and receipts are under `docs/evidence/theme-code-header-shell-selection-v1-001/`,
+and is durably closed. The next single Tier 3 phase admits PUI-143 and PUI-144
+for a shadcn-based landing page at `/` and stable built-in Workbench URLs under
+`/workbench`. Its frozen two-ticket packet and authoritative contract are at
+`docs/evidence/landing-workbench-routes-v1-001/linear/` and
+`docs/LANDING_WORKBENCH_ROUTES_CONTRACT.md`; `.loop` records live execution.
+Admission does not change the accepted product pointer. The phase uses Claude
+Opus 5.5 STRONG as its sole producer route and pauses cleanly if that route
+becomes too constrained; it has no automatic producer fallback.
+The prior phase's packet, contract, and receipts remain under
+`docs/evidence/theme-code-header-shell-selection-v1-001/`,
 `docs/THEME_CODE_HEADER_SHELL_SELECTION_CONTRACT.md`, and `.loop`.
 PUI-137 closed successfully as research-only after its mandatory owner gate.
 Its verified Stage 1 proposal is retained at `d5cb9d9`; Stage 2 was not

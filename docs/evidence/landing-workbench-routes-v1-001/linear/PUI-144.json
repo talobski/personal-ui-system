@@ -1,0 +1,79 @@
+{
+  "retrievedAtUtc": "2026-10-01T07:50:24.738Z",
+  "source": "Linear MCP",
+  "issue": {
+    "id": "PUI-144",
+    "uuid": "40d22142-f505-48e9-8cfd-7e58a12d0d75",
+    "title": "Move editor to /workbench and support theme-specific Workbench URLs",
+    "description": "Move the current Personal UI editor from the root route into a dedicated Workbench route and establish URL-addressable theme loading for supported themes.\n\n## Goal\n\nSeparate the public/product entry point from the editor while making the Workbench linkable with a specific theme already applied.\n\n## Routes\n\nPrimary editor:\n\n`/workbench`\n\nTheme-specific Workbench state:\n\n`/workbench/themes/:slug`\n\nExamples:\n\n* `/workbench`\n* `/workbench/themes/amber-dusk`\n\n## 1. Move Workbench off the root route\n\nThe current editor should live at:\n\n`/workbench`\n\nPreserve existing Workbench behavior, layout, local persistence, theme editing, Design Command, history, Save/Save As, Code dialog, UI Effects, previews, and app shells.\n\nThe route migration itself should not alter accepted product behavior.\n\n## 2. Theme-specific Workbench URL\n\nSupport opening the Workbench with a specific supported theme preloaded via:\n\n`/workbench/themes/:slug`\n\nFor the initial implementation, this should support **built-in themes only** unless current architecture already has durable shareable custom-theme storage.\n\nExample:\n\n`/workbench/themes/amber-dusk`\n\nshould open the Workbench with Amber Dusk selected/applied.\n\n## 3. Built-in theme slug mapping\n\nDefine deterministic slugs for built-in themes.\n\nRequirements:\n\n* stable;\n* URL-safe;\n* human-readable;\n* no dependence on mutable display labels at runtime;\n* no collision between built-in themes.\n\nPrefer explicit mapping over ad hoc slug generation if theme names can change.\n\n## 4. Invalid / unknown theme routes\n\nUnknown theme slugs should fail gracefully.\n\nChoose the existing routing pattern appropriate to the app, for example:\n\n* redirect to `/workbench` with the default/current theme;\n* or show the accepted not-found behavior.\n\nDo not leave the Workbench in a broken or partially loaded state.\n\n## 5. Shareability\n\nThe intended user experience is:\n\ntheme page or user action\n→ copy/share Workbench URL\n→ recipient opens the Workbench\n→ referenced built-in theme is already applied\n\nDo not claim custom themes are shareable until they are backed by durable/shareable storage rather than browser-local persistence.\n\n## 6. Persistence precedence\n\nDefine and document precedence when a route-specified built-in theme conflicts with locally persisted Workbench state.\n\nRecommended principle:\n\n* explicit URL theme should win for initial route load;\n* once loaded, normal Workbench editing/history/persistence behavior resumes.\n\nDo not silently mutate or overwrite unrelated saved custom themes.\n\n## 7. Navigation / reload behavior\n\nVerify:\n\n* direct navigation to `/workbench`;\n* direct navigation to `/workbench/themes/:slug`;\n* browser refresh;\n* browser back/forward;\n* opening links in a fresh tab;\n* existing local persistence remains coherent.\n\n## 8. Future compatibility\n\nReserve route architecture cleanly for later pages such as:\n\n* `/themes`\n* `/themes/:slug`\n\nDo not implement those pages in this ticket.\n\n## Boundaries\n\nDo not:\n\n* add public custom-theme sharing yet;\n* add backend storage;\n* change Theme v3;\n* change mutation operations;\n* change Design Command semantics;\n* change registry resources solely for routing;\n* change built-in theme contents;\n* add network behavior unless separately approved.\n\n## Acceptance\n\n* Workbench is available at `/workbench`.\n* Existing editor behavior remains materially unchanged after the move.\n* `/workbench/themes/:slug` loads the corresponding built-in theme deterministically.\n* Invalid slugs are handled safely.\n* URL-specified theme loading has a documented precedence over initial local state.\n* Refresh/back/forward/direct-link behavior is verified.\n* No unsupported claim of shareable local custom themes is introduced.\n* Route design remains compatible with future `/themes` and `/themes/:slug` pages.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-144/move-editor-to-workbench-and-support-theme-specific-workbench-urls",
+    "gitBranchName": "emmantalob/pui-144-move-editor-to-workbench-and-support-theme-specific",
+    "createdAt": "2026-10-01T07:34:36.752Z",
+    "updatedAt": "2026-10-01T07:39:52.984Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Feature",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-10-01T07:34:36.752Z",
+        "endedAt": "2026-10-01T07:39:52.977Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-10-01T07:39:52.977Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentsState": {
+    "issueAttachments": [],
+    "documents": [],
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "retrievedAtUtc": "2026-10-01T07:50:24.738Z",
+  "source": "Linear MCP",
+  "issue": {
+    "id": "PUI-143",
+    "uuid": "6448b2fc-bab3-43cc-80a4-184ede9225f2",
+    "title": "Create Personal UI landing page at root route",
+    "description": "Create a dedicated public-facing landing page for Personal UI at the root route.\n\n## Goal\n\nGive Personal UI a clear product entry point before users enter the Workbench.\n\nThe landing page should explain what Personal UI is, communicate its core value, and route users into the product without duplicating the editor itself.\n\n## Route\n\n`/`\n\nThe root route should become the landing page.\n\n## Intended role\n\nThe landing page is for:\n\n* product explanation;\n* positioning;\n* showing the design-system/workbench concept;\n* highlighting major capabilities;\n* introducing the theme workflow;\n* directing users into the Workbench.\n\nIt is not the editor itself.\n\n## Suggested content areas\n\nKeep the exact content/layout open to design exploration, but the page should be able to communicate:\n\n* what Personal UI is;\n* reusable theme/design-system workflow;\n* Workbench/editor;\n* built-in themes;\n* live component and app-shell previews;\n* Theme code / JSON + Tailwind CSS output;\n* Design Command as a current/future intelligent design workflow;\n* CTA to open the Workbench.\n\nDo not over-promise unreleased future capabilities.\n\n## Primary CTA\n\nPrimary CTA should route to:\n\n`/workbench`\n\nCopy can be refined later, but the action should clearly open the editor.\n\n## Visual direction\n\n* use the existing Personal UI design language;\n* reuse accepted shadcn-based primitives;\n* keep the page polished and product-oriented rather than dashboard-like;\n* avoid creating a separate visual system from the Workbench;\n* preserve light/dark theming if the public shell supports it.\n\n## Owner design direction\n\nKeep the landing-page specification intentionally light.\n\nThe owner wants Claude STRONG to have substantial creative freedom over:\n\n* page structure;\n* section order;\n* layout;\n* visual composition;\n* typography hierarchy;\n* imagery/illustration approach using existing product assets or UI previews;\n* motion and interaction details;\n* supporting copy, within truthful product boundaries.\n\nOnly two visual requirements are fixed:\n\n1. **Build the landing page around shadcn**\n   * use existing accepted shadcn primitives and composition patterns wherever appropriate;\n   * do not create a separate bespoke component system for marketing pages;\n   * custom composition is fine, but the underlying UI language should remain recognizably aligned with the product.\n2. **The result should feel beautiful, modern, and polished**\n   * contemporary product-site quality;\n   * visually confident but not over-designed;\n   * avoid generic SaaS-template appearance;\n   * preserve clarity, responsiveness, accessibility, and strong hierarchy.\n\nDo not over-constrain Claude with a predefined hero formula, mandatory section list, or rigid marketing template.\n\nClaude should first inspect the current product, accepted Workbench UI, built-in themes, App shells, Theme code dialog, and other representative surfaces, then propose and implement the strongest landing-page composition it can justify within the existing Personal UI visual language.\n\nProduct claims must remain accurate. Do not present planned or experimental functionality as already shipped.\n\n## Architecture / boundaries\n\nDo not:\n\n* duplicate Workbench functionality on the landing page;\n* change Theme v3;\n* change persistence/history;\n* change Design Command behavior;\n* change mutation operations;\n* change registry resources solely for the landing page;\n* add unnecessary dependencies;\n* introduce backend/network behavior unless separately approved.\n\n## Routing\n\nCoordinate with the separate Workbench routing ticket so:\n\n* `/` = landing page\n* `/workbench` = editor\n\nAvoid hard-coded navigation that would make future routes such as `/themes` difficult to add.\n\n## Accessibility / responsiveness\n\nPreserve:\n\n* semantic headings;\n* keyboard navigation;\n* accessible CTAs;\n* responsive mobile/desktop layout;\n* no horizontal overflow;\n* readable contrast;\n* reduced-motion behavior where motion is used.\n\n## Acceptance\n\n* Root route renders a dedicated Personal UI landing page.\n* Landing page clearly explains the product and provides a primary path to the Workbench.\n* Workbench is no longer the root page.\n* Existing product/editor behavior remains unchanged.\n* Page uses the accepted Personal UI/shadcn visual system.\n* No Theme v3, persistence, mutation, registry, dependency, or network regression is introduced.",
+    "priority": {
+      "value": 3,
+      "name": "Medium"
+    },
+    "url": "https://linear.app/emman-systems/issue/PUI-143/create-personal-ui-landing-page-at-root-route",
+    "gitBranchName": "emmantalob/pui-143-create-personal-ui-landing-page-at-root-route",
+    "createdAt": "2026-10-01T07:34:33.177Z",
+    "updatedAt": "2026-10-01T07:39:49.968Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": null,
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Todo",
+    "statusType": "unstarted",
+    "labels": [
+      "Feature",
+      "Improvement"
+    ],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "9a330ee0-d02b-4106-9da6-9aab6bc7be45",
+          "name": "Backlog",
+          "type": "backlog"
+        },
+        "startedAt": "2026-10-01T07:34:33.177Z",
+        "endedAt": "2026-10-01T07:39:49.953Z"
+      },
+      {
+        "state": {
+          "id": "0738f79e-eed2-418a-b3f7-896cb5b2fa31",
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "startedAt": "2026-10-01T07:39:49.953Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Emman Talob",
+    "createdById": "a3f4722f-18d0-46bb-8f74-5d522f942bd0",
+    "project": "personal-ui-system",
+    "projectId": "d95332e6-32fc-4435-a976-a6798c6880ee",
+    "team": "Personal UI System",
+    "teamId": "c3b4f7da-b967-4a8d-944e-a202d4d0785a",
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  },
+  "comments": [],
+  "commentsHasNextPage": false,
+  "attachmentsState": {
+    "issueAttachments": [],
+    "documents": [],
+    "relations": {
+      "blocks": [],
+      "blockedBy": [],
+      "relatedTo": [],
+      "duplicateOf": null
+    }
+  }
+}
