@@ -440,7 +440,7 @@ function BuiltInCard({ theme, mode }: { theme: Theme; mode: Mode }) {
         <CardDescription>{BUILT_IN_NOTES[theme.id]}</CardDescription>
       </CardHeader>
       <CardContent className="mt-auto">
-        <p className="truncate rounded-md border bg-muted px-2.5 py-1.5 font-mono text-xs text-muted-foreground">{path}</p>
+        <p className="truncate rounded-md border bg-background px-2.5 py-1.5 font-mono text-xs text-muted-foreground">{path}</p>
       </CardContent>
       <CardFooter>
         <Button asChild variant="outline" size="sm" className="w-full">
@@ -669,7 +669,7 @@ export function Landing() {
                 <h2 id="closing-title" className="type-heading text-4xl tracking-tight text-balance sm:text-5xl">
                   Open the Workbench and make it yours.
                 </h2>
-                <p className="text-base leading-relaxed text-pretty opacity-85">It runs in your browser with no account. Start from Default, or pick up where you left off.</p>
+                <p className="text-base leading-relaxed text-pretty">It runs in your browser with no account. Start from Default, or pick up where you left off.</p>
               </div>
               <Button asChild size="lg" variant="secondary" className="w-fit">
                 <AppLink href={WORKBENCH_PATH} data-testid="landing-closing-cta">

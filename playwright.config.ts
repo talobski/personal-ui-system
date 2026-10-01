@@ -30,6 +30,7 @@ export default defineConfig({
     "ui-effects-showcase-polish.spec.ts",
     "amber-dusk-shell-refinement.spec.ts",
     "theme-code-header-shell-selection.spec.ts",
+    "landing-workbench-routes.spec.ts",
   ],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },
