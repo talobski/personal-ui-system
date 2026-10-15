@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
-import { applyProposal, createProposalSession, discardProposal, resolveUiEffects, stageProposal, UI_EFFECTS_FLAT, validateTheme } from "@personal-ui/core"
+import { applyProposal, createProposalSession, discardProposal, resolveUiEffects, stageProposal, UI_EFFECTS_FLAT } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 
 import { buildUiEffectsOperation, NUMERIC_CONTROLS, UI_EFFECT_HELP, UI_EFFECT_OPTIONS } from "./controls"
@@ -111,10 +111,8 @@ describe("TUE-02 persistence and export", () => {
   it("export, Save As, save and reload keep Effect and Strength only; older themes stay flat", () => {
     const edited = edit(quietEditorial, buildUiEffectsOperation(quietEditorial, { effect: "tactile", strength: 35 }))
     const exported = JSON.parse(exportThemeJson(edited).json)
-    expect(exported.schemaVersion).toBe("3.0")
     expect(exported.uiEffects).toEqual(edited.uiEffects)
     expect(exported.uiEffects).toEqual({ effect: { $type: "string", $value: "tactile" }, strength: { $type: "number", $value: 35 } })
-    expect(validateTheme(exported)).toEqual({ ok: true, theme: edited })
 
     const copy = createCustomTheme(edited, "Tactile Copy", BUILT_IN_IDS)
     if (!copy.ok) throw new Error("save as failed")

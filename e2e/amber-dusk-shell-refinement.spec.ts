@@ -128,13 +128,15 @@ test.describe("ADSR-02/03 Amber Dusk built-in (PUI-123)", () => {
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "amber-copy")
     await workspaceMode(page, "Preview")
     const exported = JSON.parse((await copyThemeCode(page)).text)
-    expect(exported).toMatchObject({ id: "amber-copy", name: "Amber Copy", schemaVersion: "3.0" })
+    for (const key of ["id", "name", "schemaVersion"]) expect(exported).not.toHaveProperty(key)
     expect(exported.radius.base.$value).toBe("1rem")
     expect(exported.colors).toEqual(FIXTURE.colors)
-    expect(exported.sidebar).toEqual(FIXTURE.sidebar)
+    expect(exported.sidebar).toEqual({ useDedicatedTokens: FIXTURE.sidebar.useDedicatedTokens })
     expect(exported.uiEffects).toBeUndefined()
-    // Re-import as a stored custom theme: it loads and renders identically.
-    await page.evaluate(([key, theme]) => localStorage.setItem(key as string, JSON.stringify({ themes: { "amber-import": theme }, activeId: "amber-import", bases: { "amber-import": "amber-dusk" } })), [STORAGE_KEY, { ...exported, id: "amber-import", name: "Amber Import" }])
+    // Theme code JSON is portable (no Theme v3 identity), so restore goes through the saved canonical theme: stored
+    // under a new id it loads and renders identically.
+    const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).themes["amber-copy"], STORAGE_KEY)
+    await page.evaluate(([key, theme]) => localStorage.setItem(key as string, JSON.stringify({ themes: { "amber-import": theme }, activeId: "amber-import", bases: { "amber-import": "amber-dusk" } })), [STORAGE_KEY, { ...saved, id: "amber-import", name: "Amber Import" }])
     await page.reload()
     await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "amber-import")
     await expect.poll(() => rootVar(preview(page), "--primary")).toBe(FIXTURE.colors.light.primary.$value)

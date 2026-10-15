@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { applyProposal, createProposalSession, diffThemeTokens, discardProposal, renderUiEffectsCss, stageProposal, validateTheme } from "@personal-ui/core"
+import { applyProposal, createProposalSession, diffThemeTokens, discardProposal, renderUiEffectsCss, stageProposal } from "@personal-ui/core"
 import type { Theme } from "@personal-ui/core"
 import { buildDesignCommandProposal } from "./designCommand"
 import { record, reset, undo, redo, EMPTY_TRACK, isDirty } from "./history"
@@ -72,11 +72,11 @@ describe("ADSR-03 Amber Dusk through existing Workbench flows", () => {
     expect(diffThemeTokens(copy, edited).map((entry) => entry.path)).toEqual(["colors.dark.primary"])
   })
 
-  it("exports strict Theme v3 JSON that imports back identically", () => {
+  it("exports portable JSON carrying Amber Dusk's design tokens without its identity", () => {
     const { filename, json } = exportThemeJson(amber)
     expect(filename).toBe("amber-dusk.theme.json")
-    expect(validateTheme(JSON.parse(json))).toEqual({ ok: true, theme: amber })
-    expect(JSON.parse(json).schemaVersion).toBe("3.0")
+    expect(JSON.parse(json).colors).toEqual(amber.colors)
+    expect(json).not.toMatch(/amber|Amber|schemaVersion|revision/)
   })
 
   it("Design Command proposals stage, discard and apply against Amber Dusk through the unchanged pipeline", () => {

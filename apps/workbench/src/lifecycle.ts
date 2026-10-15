@@ -1,4 +1,4 @@
-import { applyMutation, MUTATION_SCHEMA_VERSION, renderShadcnTailwindCss, renderUiEffectsCss, themeSchema, validateTheme } from "@personal-ui/core"
+import { applyMutation, MUTATION_SCHEMA_VERSION, renderPortableThemeCss, renderShadcnTailwindCss, renderUiEffectsCss, themeSchema, toPortableTheme, validateTheme } from "@personal-ui/core"
 import type { ColorToken, MutationError, Theme, ThemeOperation } from "@personal-ui/core"
 import defaultFixture from "@personal-ui/core/theme/fixtures/default.json"
 import quietEditorialFixture from "@personal-ui/core/theme/fixtures/valid.json"
@@ -64,18 +64,20 @@ export function createCustomTheme(theme: Theme, name: string, takenIds: readonly
   return { ok: true, theme: checked.data }
 }
 
-/** Portable export: schema-validated theme JSON, deterministic key order from the schema parse. */
+/**
+ * Theme code JSON: core's portable theme (design tokens only, no Personal UI identity, schema or revision), so the
+ * copied text can go into any project. Saved themes keep full canonical Theme v3; this is a one-way export.
+ */
 export function exportThemeJson(theme: Theme): { filename: string; json: string } {
-  const checked = themeSchema.parse(theme)
-  return { filename: `${checked.id}.theme.json`, json: `${JSON.stringify(checked, null, 2)}\n` }
+  return { filename: `${theme.id}.theme.json`, json: `${JSON.stringify(toPortableTheme(theme), null, 2)}\n` }
 }
 
 /**
- * PUI-134: the CSS / Tailwind v4 export is core's full rendered theme, unchanged (`:root`, `.dark`, `@theme inline`
- * and the UI-effects block while Tactile is on). An additional representation only; Theme v3 JSON stays canonical.
+ * Theme code CSS / Tailwind v4: core's portable render (`:root`, `.dark`, `@theme inline` and the UI-effects block while
+ * Tactile is on), without the generator header, theme identity or revision.
  */
 export function exportThemeCss(theme: Theme): { filename: string; css: string } {
-  return { filename: `${theme.id}.theme.css`, css: renderShadcnTailwindCss(theme) }
+  return { filename: `${theme.id}.theme.css`, css: renderPortableThemeCss(theme) }
 }
 
 /**

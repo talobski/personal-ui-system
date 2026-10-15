@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
-import { renderShadcnTailwindCss, THEME_SCHEMA_VERSION, validateTheme } from "@personal-ui/core"
+import { renderPortableThemeCss, toPortableTheme } from "@personal-ui/core"
 
 import { buildUiEffectsOperation } from "./controls"
 import { editTheme, exportThemeCss, exportThemeJson, loadBuiltInThemes } from "./lifecycle"
@@ -14,10 +14,11 @@ const between = (source: string, start: string, end: string) => source.slice(sou
 const builtIns = loadBuiltInThemes()
 
 describe("TAED-01/02, TCHS-01/02 Theme code dialog (PUI-134, PUI-138)", () => {
-  it("CSS export is exactly core's renderShadcnTailwindCss, with light, dark and UI Effects blocks", () => {
+  it("CSS export is exactly core's portable render, with light, dark and UI Effects blocks and no header", () => {
     for (const theme of builtIns) {
       const { filename, css } = exportThemeCss(theme)
-      expect(css).toBe(renderShadcnTailwindCss(theme))
+      expect(css).toBe(renderPortableThemeCss(theme))
+      expect(css.startsWith(":root {")).toBe(true)
       expect(filename).toBe(`${theme.id}.theme.css`)
       expect(css).toContain(":root {")
       expect(css).toContain(".dark {")
@@ -27,16 +28,16 @@ describe("TAED-01/02, TCHS-01/02 Theme code dialog (PUI-134, PUI-138)", () => {
     const tactile = editTheme(builtIns[0]!, buildUiEffectsOperation(builtIns[0]!, { effect: "tactile" }))
     expect(tactile.ok).toBe(true)
     if (!tactile.ok) return
-    expect(exportThemeCss(tactile.theme).css).toBe(renderShadcnTailwindCss(tactile.theme))
+    expect(exportThemeCss(tactile.theme).css).toBe(renderPortableThemeCss(tactile.theme))
     expect(exportThemeCss(tactile.theme).css).toContain("UI effects: tactile")
   })
 
-  it("JSON export is unchanged: canonical Theme v3, .theme.json, and import-compatible", () => {
+  it("JSON export is core's portable theme: design tokens only, no schema, identity or revision", () => {
     for (const theme of builtIns) {
       const { filename, json } = exportThemeJson(theme)
       expect(filename).toBe(`${theme.id}.theme.json`)
-      expect(JSON.parse(json).schemaVersion).toBe(THEME_SCHEMA_VERSION)
-      expect(validateTheme(JSON.parse(json))).toEqual({ ok: true, theme })
+      expect(json).toBe(`${JSON.stringify(toPortableTheme(theme), null, 2)}\n`)
+      for (const key of ["$schema", "schemaVersion", "kind", "id", "name", "revision", "$extensions"]) expect(JSON.parse(json)).not.toHaveProperty(key)
     }
   })
 
@@ -72,16 +73,15 @@ describe("TAED-01/02, TCHS-01/02 Theme code dialog (PUI-134, PUI-138)", () => {
     for (const manifest of ["../package.json", "../../../packages/ui/package.json"]) expect(read(manifest)).not.toMatch(/prism|shiki|highlight|sonner|tooltip/i)
   })
 
-  it("the previewed and copied value is exactly the canonical JSON or the core CSS render, for built-in and custom themes", () => {
+  it("the previewed and copied value is exactly the portable JSON or CSS, and never depends on theme identity", () => {
     const custom = editTheme(builtIns[0]!, buildUiEffectsOperation(builtIns[0]!, { effect: "tactile" }))
     expect(custom.ok).toBe(true)
     if (!custom.ok) return
     for (const theme of [...builtIns, { ...custom.theme, id: "my-theme", name: "My Theme" }]) {
-      // JSON stays import-compatible: importing the copied text and copying again yields the identical text.
-      const imported = validateTheme(JSON.parse(exportThemeJson(theme).json))
-      expect(imported.ok).toBe(true)
-      if (imported.ok) expect(exportThemeJson(imported.theme).json).toBe(exportThemeJson(theme).json)
-      expect(exportThemeCss(theme).css).toBe(renderShadcnTailwindCss(theme))
+      const renamed = { ...theme, id: "client-copy", name: "Client Copy", revision: theme.revision + 41 }
+      expect(exportThemeJson(renamed).json).toBe(exportThemeJson(theme).json)
+      expect(exportThemeCss(renamed).css).toBe(exportThemeCss(theme).css)
+      expect(exportThemeCss(theme).css).toBe(renderPortableThemeCss(theme))
     }
   })
 })

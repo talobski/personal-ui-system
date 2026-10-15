@@ -126,7 +126,8 @@ test.describe("LWR-01 landing page", () => {
     expect(await noHorizontalOverflow(page)).toBe(true)
     await expectNoSeriousViolations(page, "landing-amber-dark", testInfo)
     // Theme code shows the generated output for the theme the page is wearing.
-    await expect(page.getByTestId("landing-code-json")).toContainText('"id": "amber-dusk"')
+    await expect(page.getByTestId("landing-code-json")).toContainText('"$value": "oklch(0.5773 0.1375 39.0427)"')
+    await expect(page.getByTestId("landing-code-json")).not.toContainText('"id"')
     expect(await storedBytes(page)).toBeNull()
     // Each built-in card links to its stable Workbench path.
     for (const [slug, id] of Object.entries(SLUGS)) await expect(page.getByTestId(`landing-open-${id}`)).toHaveAttribute("href", `/workbench/themes/${slug}`)

@@ -82,12 +82,14 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       // No routine feedback for opening Code.
       await expect(page.getByTestId("success-toast")).toHaveCount(0)
 
-      // JSON (default): canonical Theme v3, identical to the stored custom theme, and the same bytes everywhere.
+      // JSON (default): the stored custom theme's design tokens only; its identity, schema and revision stay internal.
       await expect(dialog.getByRole("tab", { name: "JSON", exact: true })).toHaveAttribute("aria-selected", "true")
       const json = await previewText(page)
       const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).themes["export-probe"], STORAGE_KEY)
-      expect(JSON.parse(json)).toEqual(stored)
-      expect(JSON.parse(json)).toMatchObject({ id: "export-probe", schemaVersion: "3.0" })
+      expect(stored).toMatchObject({ id: "export-probe", schemaVersion: "3.0" })
+      expect(JSON.parse(json).colors).toEqual(stored.colors)
+      for (const key of ["$schema", "schemaVersion", "kind", "id", "name", "revision"]) expect(JSON.parse(json)).not.toHaveProperty(key)
+      expect(json).not.toMatch(/export-probe|Export Probe/i)
       expect(await copySelected(page)).toBe(json)
       expect(await previewFilename(page)).toBe("export-probe.theme.json")
 
@@ -98,7 +100,8 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       await expect(dialog.getByTestId("export-preview")).toHaveAttribute("data-format", "css")
       await expect(dialog.getByTestId("export-copy-status")).toHaveText("")
       const css = await previewText(page)
-      expect(css).toContain('renderShadcnTailwindCss for theme "export-probe"')
+      expect(css.startsWith(":root {")).toBe(true)
+      expect(css).not.toMatch(/export-probe|@personal-ui|renderShadcnTailwindCss|revision|Do not edit/)
       expect(css).toContain(`--primary: ${stored.colors.light.primary.$value};`)
       expect(css).toContain(`.dark {\n  --background: ${stored.colors.dark.background.$value};`)
       expect(css).toContain("@theme inline {")
@@ -142,10 +145,11 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       await expect(dialog).toHaveCount(0)
       expect(downloads).toEqual([])
 
-      // Import compatibility: the copied JSON, stored back as a custom theme, loads and renders.
+      // Portable, not a Theme v3 document: the copied JSON stored back as a custom theme is rejected (no schema or
+      // kind), so the Workbench falls back to Default. Saved themes keep their canonical form in storage.
       await page.evaluate(([key, theme]) => localStorage.setItem(key as string, JSON.stringify({ themes: { "export-import": theme }, activeId: "export-import", bases: { "export-import": "default" } })), [STORAGE_KEY, { ...JSON.parse(json), id: "export-import", name: "Export Import" }])
       await open(page)
-      await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "export-import")
+      await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "default")
     })
   }
 
@@ -158,7 +162,7 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
     await exportButton(page).click()
     await exportDialog(page).getByRole("tab", { name: "CSS / Tailwind v4", exact: true }).click()
     const css = await previewText(page)
-    expect(css).toContain('for theme "default"')
+    expect(css.startsWith(":root {")).toBe(true)
     expect(css).toContain(":root {")
     expect(css).toContain(".dark {")
     expect(css).toContain("/* UI effects: tactile")

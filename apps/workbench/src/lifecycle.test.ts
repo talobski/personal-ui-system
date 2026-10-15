@@ -305,7 +305,7 @@ describe("manual controls (TSV2-10, TSV2-11)", () => {
     const reloaded = loadSaved(storage, BUILT_IN_IDS)
     expect(reloaded.themes["my-theme"]).toEqual(copy.theme)
     expect(reloaded.bases).toEqual({ "my-theme": DEFAULT_THEME_ID })
-    expect(validateTheme(JSON.parse(exportThemeJson(copy.theme).json))).toEqual({ ok: true, theme: copy.theme })
+    expect(JSON.parse(exportThemeJson(copy.theme).json).colors).toEqual(copy.theme.colors)
   })
 })
 
@@ -469,14 +469,13 @@ describe("persistence (TSV2-04, TSV2-12)", () => {
 })
 
 describe("export and preview css", () => {
-  it("exports validated, deterministic, portable JSON that re-validates to the same theme", () => {
+  it("exports deterministic portable JSON that keeps the edited design tokens", () => {
     const theme = editColorOrThrow()
     const out = exportThemeJson(theme)
     expect(out.filename).toBe("quiet-editorial.theme.json")
     expect(out.json.endsWith("\n")).toBe(true)
     expect(exportThemeJson(theme)).toEqual(out)
-    const round = validateTheme(JSON.parse(out.json))
-    expect(round).toEqual({ ok: true, theme })
+    expect(JSON.parse(out.json).colors).toEqual(theme.colors)
   })
 
   it("derives preview variables from core's renderer, keeping :root/.dark and dropping @theme", () => {
@@ -721,9 +720,8 @@ describe("WSTP-06/07/09 Sidebar tokens in the Workbench", () => {
     expect(reloaded.themes["sidebar-test"]).toEqual(recolored.theme)
     expect(reloaded.activeId).toBe("sidebar-test")
     const exported = JSON.parse(exportThemeJson(recolored.theme).json)
-    expect(exported.schemaVersion).toBe("3.0")
-    expect(exported.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: true }, dedicatedValuesInitialized: true })
-    expect(validateTheme(exported)).toEqual({ ok: true, theme: recolored.theme })
+    expect(exported.sidebar).toEqual({ useDedicatedTokens: { $type: "boolean", $value: true } })
+    expect(exported.colors).toEqual(recolored.theme.colors)
   })
 
   it("migrates a saved v2.0 custom theme on read without losing values, selection, or base record", () => {
