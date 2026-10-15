@@ -81,7 +81,7 @@ test.describe("ADSR-02/03 Amber Dusk built-in (PUI-123)", () => {
       await setColorMode(page, mode)
       await workspaceMode(page, "Controls")
       await page.getByRole("combobox", { name: "Active theme" }).click()
-      await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk"])
+      await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket"])
       await page.keyboard.press("Escape")
       await selectTheme(page, "amber-dusk")
       const frame = preview(page)

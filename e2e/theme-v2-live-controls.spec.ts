@@ -76,7 +76,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await workspaceMode(page, "Controls")
     // Compact selector (WTEP-09): built-ins are grouped as built-in; no custom group until one is saved.
     await page.getByRole("combobox", { name: "Active theme" }).click()
-    await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk"])
+    await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket"])
     await expect(page.getByRole("group", { name: "Custom", exact: true })).toHaveCount(0)
     await page.keyboard.press("Escape")
 

@@ -37,12 +37,18 @@ it("WSPF-05/06 muted pair debt stays measured; PUI-120 section triggers now use 
   // Measured, not hidden: the pre-approved deferred Default-theme debt is exactly one pairing at about 4.35:1. Amber
   // Dusk's supplied light muted pair (#83827d on #ede9de, about 3.17:1) was corrected by the owner-authorized contrast
   // override (#696863, about 4.60:1), so it no longer appears here.
+  // Pocketmarket keeps its owner-supplied light muted pair (#6e6d68 on #ede9de, about 4.27:1) as recorded source-palette
+  // debt (see pocketmarket.conversion.json contrastDebt); the source values are preserved rather than silently adjusted.
   const below = pairs.filter(pair => pair.ratio < 4.5)
-  expect(below.map(pair => pair.id)).toEqual(["default/light"])
+  expect(below.map(pair => pair.id)).toEqual(["default/light", "pocketmarket/light"])
   expect(below[0]!.ratio).toBeGreaterThan(4.3)
   expect(below[0]!.ratio).toBeLessThan(4.4)
+  expect(below[1]!.ratio).toBeGreaterThan(4.2)
+  expect(below[1]!.ratio).toBeLessThan(4.35)
   expect(pairs.find(pair => pair.id === "amber-dusk/light")!.ratio).toBeGreaterThanOrEqual(4.5)
   // Default-theme tokens are frozen in this phase.
+  expect(below[1]!.ratio).toBeGreaterThan(4.2)
+  expect(below[1]!.ratio).toBeLessThan(4.35)
   expect([defaultTheme.colors.light["muted-foreground"].$value, defaultTheme.colors.light.muted.$value]).toEqual(["oklch(0.555527 0 0)", "oklch(0.970151 0 0)"])
   expect([pickerHex(defaultTheme.colors.light["muted-foreground"].$value), pickerHex(defaultTheme.colors.light.muted.$value)]).toEqual(["#737373", "#f5f5f5"])
   // PUI-120: the section trigger is the accepted Secondary variant; its resting label pair is secondary-foreground on
@@ -195,8 +201,8 @@ describe("editColor", () => {
 })
 
 describe("built-in themes (TSV2-02, TSV2-03, TSV2-04)", () => {
-  it("offers Default first, then Quiet Editorial and Amber Dusk, all canonical v3", () => {
-    expect(BUILT_IN_IDS).toEqual([DEFAULT_THEME_ID, "quiet-editorial", "amber-dusk"])
+  it("offers Default first, then Quiet Editorial, Amber Dusk and Pocketmarket, all canonical v3", () => {
+    expect(BUILT_IN_IDS).toEqual([DEFAULT_THEME_ID, "quiet-editorial", "amber-dusk", "pocketmarket"])
     for (const theme of builtIns) expect(validateTheme(theme)).toEqual({ ok: true, theme })
     expect(defaultTheme.name).toBe("Default")
     expect(canonical.schemaVersion).toBe("3.0")

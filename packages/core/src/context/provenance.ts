@@ -30,6 +30,10 @@ const RAW_PROVENANCE_MANIFEST = {
     sourceId: "packages/core/src/theme/fixtures/amber-dusk.json",
     sha256: "1885fc3d4db271be1f72067b1f2afb5911a0fee696c7922f5b7138ad79096b63",
   },
+  "theme:pocketmarket": {
+    sourceId: "packages/core/src/theme/fixtures/pocketmarket.json",
+    sha256: "38c06d4b501ad5ce2b9e988e831b962d8d95524a1736850f0edc5b7c1977d3b4",
+  },
   "resource:button": {
     sourceId: "packages/core/src/contracts/data/button.ts",
     sha256: "0a4030b97deb63fbf396fb5542a7f1386a1d40fc1e753286e7b640f6ba23bb32",

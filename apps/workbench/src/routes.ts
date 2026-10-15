@@ -23,6 +23,7 @@ export const BUILT_IN_THEME_SLUGS: Readonly<Record<string, string>> = Object.fre
   default: "default",
   "quiet-editorial": "quiet-editorial",
   "amber-dusk": "amber-dusk",
+  pocketmarket: "pocketmarket",
 })
 
 const slugByThemeId: Readonly<Record<string, string>> = Object.fromEntries(Object.entries(BUILT_IN_THEME_SLUGS).map(([slug, id]) => [id, slug]))

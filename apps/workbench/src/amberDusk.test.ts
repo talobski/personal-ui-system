@@ -25,7 +25,7 @@ const NOW = "2026-09-30T00:00:00Z"
 
 describe("ADSR-03 Amber Dusk through existing Workbench flows", () => {
   it("is the third built-in and switching previews its own values without leaking into other built-ins", () => {
-    expect(ids).toEqual(["default", "quiet-editorial", "amber-dusk"])
+    expect(ids.slice(0, 3)).toEqual(["default", "quiet-editorial", "amber-dusk"])
     expect(amber.name).toBe("Amber Dusk")
     const css = previewVariablesCss(amber)
     expect(css).toContain(`--primary: ${amber.colors.light.primary.$value};`)

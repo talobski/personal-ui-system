@@ -19,6 +19,7 @@ describe("context list (ACR-02)", () => {
     expect(result.themes).toEqual([
       { id: "amber-dusk", name: "Amber Dusk", revision: 1 },
       { id: "default", name: "Default", revision: 1 },
+      { id: "pocketmarket", name: "Pocketmarket", revision: 1 },
       { id: "quiet-editorial", name: "Quiet Editorial", revision: 1 },
     ])
 

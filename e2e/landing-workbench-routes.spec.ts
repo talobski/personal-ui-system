@@ -13,7 +13,7 @@ import { colorInput, editorCategory, isMobileShell, saveTheme, selectTheme, work
  */
 
 const STORAGE_KEY = "personal-ui-workbench/v1"
-const SLUGS = { default: "default", "quiet-editorial": "quiet-editorial", "amber-dusk": "amber-dusk" } as const
+const SLUGS = { default: "default", "quiet-editorial": "quiet-editorial", "amber-dusk": "amber-dusk", pocketmarket: "pocketmarket" } as const
 
 const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
 const activeTheme = (page: Page) => page.locator("#workbench-active-theme")
@@ -143,7 +143,7 @@ test.describe("LWR-01 landing page", () => {
     await page.emulateMedia({ reducedMotion: "reduce" })
     await page.goto("/")
     const landing = page.getByTestId("landing")
-    for (const [name, id] of [["Default", "default"], ["Quiet Editorial", "quiet-editorial"], ["Amber Dusk", "amber-dusk"]] as const) {
+    for (const [name, id] of [["Default", "default"], ["Quiet Editorial", "quiet-editorial"], ["Amber Dusk", "amber-dusk"], ["Pocketmarket", "pocketmarket"]] as const) {
       await page.getByTestId("landing-theme-dial").getByRole("radio", { name }).click()
       await expect(landing).toHaveAttribute("data-theme-id", id)
       for (const mode of ["light", "dark"] as const) {

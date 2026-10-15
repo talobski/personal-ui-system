@@ -8,7 +8,7 @@ const builtIns = loadBuiltInThemes()
 
 describe("PUI-144 built-in slug table", () => {
   it("is the explicit stable table, one slug per built-in, never derived from display names", () => {
-    expect(BUILT_IN_THEME_SLUGS).toEqual({ default: "default", "quiet-editorial": "quiet-editorial", "amber-dusk": "amber-dusk" })
+    expect(BUILT_IN_THEME_SLUGS).toEqual({ default: "default", "quiet-editorial": "quiet-editorial", "amber-dusk": "amber-dusk", pocketmarket: "pocketmarket" })
     expect(Object.isFrozen(BUILT_IN_THEME_SLUGS)).toBe(true)
     expect(Object.values(BUILT_IN_THEME_SLUGS).sort()).toEqual(builtIns.map((theme) => theme.id).sort())
     expect(new Set(Object.values(BUILT_IN_THEME_SLUGS)).size).toBe(Object.keys(BUILT_IN_THEME_SLUGS).length)
@@ -21,6 +21,7 @@ describe("PUI-144 built-in slug table", () => {
     expect(builtInThemePath("default")).toBe("/workbench/themes/default")
     expect(builtInThemePath("quiet-editorial")).toBe("/workbench/themes/quiet-editorial")
     expect(builtInThemePath("amber-dusk")).toBe("/workbench/themes/amber-dusk")
+    expect(builtInThemePath("pocketmarket")).toBe("/workbench/themes/pocketmarket")
     for (const id of ["my-theme", "toString", "__proto__", "constructor", ""]) {
       expect(builtInThemePath(id)).toBeNull()
       expect(workbenchPathFor(id)).toBe(WORKBENCH_PATH)
