@@ -5,8 +5,7 @@ import { evaluateDesignCommand } from "@personal-ui/core/jev-design/evaluate"
 /**
  * The localhost product API: workbench browser -> this handler (server-side only) -> TypeSafe API. Only this
  * handler may read `TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY`; it never reads, aliases, or falls back to
- * `TYPESAFE_LOOP_ENGINEERING_API_KEY` or `TYPESAFE_API_KEY`. It never imports `@loop-engineering/jev-core` or
- * touches `.loop`. It is a pure `(Request, env, fetch) -> Response` function so it is testable without a real HTTP
+ * `TYPESAFE_API_KEY`. It is a pure `(Request, env, fetch) -> Response` function so it is testable without a real HTTP
  * server or process.env; `vite.config.ts` adapts it into a dev-server middleware.
  */
 export const PRODUCT_CREDENTIAL_ENV_VAR = "TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY"

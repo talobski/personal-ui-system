@@ -1,13 +1,11 @@
 /**
  * Product-owned TypeSafe wire contract for the Jev Design command MVP.
  *
- * This module intentionally duplicates nothing from `@loop-engineering/jev-core` and must never import it: per
- * `docs/JEV_PRODUCT_ARCHITECTURE.md`, `DESIGN_COMMAND` (`personal-ui-design-command/1`) is a product-owned contract,
- * separate from the Loop Engineering control plane.
+ * Per `docs/JEV_PRODUCT_ARCHITECTURE.md`, `DESIGN_COMMAND` (`personal-ui-design-command/1`) is a product-owned
+ * contract.
  *
  * These types are the *raw* `POST /v1/systemone` wire shapes, audited against the official TypeSafe API/SDK
- * contract (not the Loop adapter's normalized internal representation, which differs from the wire in several
- * fields — see the Lead correction on run `jev-design-command-producer-001`):
+ * contract (not a normalized internal representation, which differs from the wire in several fields):
  *
  * - `questions` in the request is an object keyed by question id, not an array; a question body carries `type`,
  *   `instructions`, and `criteria` (a Choice option-id -> description map, a Score ordered scale array, or a Noul

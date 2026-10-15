@@ -10,7 +10,7 @@ export const RECIPE_CATALOG_VERSION = "design-command-recipes/2"
  * (`mutations/mutation.ts`). Every recipe is a pure `(category, direction, strength) -> ThemeOperation` lookup into
  * a closed preset table: no arithmetic on the current theme value, no arbitrary CSS, path, token name, or font name
  * from Jev. Numeric presets for radius/density/shadow/motion are directly within the existing schema bounds
- * (`theme/schema.ts`). Color and typography presets are producer-chosen product taste, since no jev-core or TypeSafe
+ * (`theme/schema.ts`). Color and typography presets are producer-chosen product taste, since no TypeSafe
  * constraint determines them (flagged as such in `docs/JEV_DESIGN_COMMAND_RESEARCH.md` §12 risk 4).
  */
 

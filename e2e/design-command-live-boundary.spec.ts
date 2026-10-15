@@ -29,9 +29,8 @@ test("the real localhost product API middleware (vite dev) fails closed with tra
   await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-revision", "1")
   expect(outboundToTypeSafe).toEqual([])
 
-  // The rejected outcome and page never contain a credential sentinel — including the Loop/generic sentinels this
+  // The rejected outcome and page never contain a credential sentinel — including the generic sentinel this
   // config deliberately sets to prove the handler doesn't read them either.
   const bodyText = await page.locator("body").innerText()
-  expect(bodyText).not.toContain("loop-sentinel-must-never-be-read")
   expect(bodyText).not.toContain("generic-sentinel-must-never-be-read")
 })

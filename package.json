@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "pnpm -r --if-present typecheck && tsc -p e2e && tsc -p tools/loop/jev",
+    "typecheck": "pnpm -r --if-present typecheck && tsc -p e2e",
     "registry:build": "shadcn build",
     "build:storybook": "storybook build -c packages/ui/.storybook -o storybook-static",
     "build:workbench": "pnpm --filter @personal-ui/workbench build",
@@ -13,9 +13,6 @@
     "test:browser:workbench": "playwright test -c playwright.workbench.config.ts",
     "test:browser:design-command-live": "playwright test -c playwright.designcommand.config.ts",
     "test:browser": "pnpm test:browser:storybook && pnpm test:browser:workbench && pnpm test:browser:design-command-live",
-    "typecheck:jev": "tsc -p tools/loop/jev",
-    "test:jev": "vitest run tools/loop/jev",
-    "jev": "node tools/loop/jev/cli.mjs",
     "context": "node packages/core/src/context/bootstrap.mjs"
   },
   "engines": {
@@ -39,7 +36,6 @@
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
     "vite": "8.3.0",
-    "vitest": "5.0.1",
-    "@loop-engineering/jev-core": "file:vendor/loop-engineering-jev-core-0.1.0-1fb3605d.tgz"
+    "vitest": "5.0.1"
   }
 }

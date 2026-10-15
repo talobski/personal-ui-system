@@ -4,7 +4,7 @@ import type { TypeSafeResponse } from "./wire"
 /**
  * Product-owned confidence/acceptance policy, validated against the real `POST /v1/systemone` raw answer shapes
  * (`type`/`choice`/`probabilities`/`confidence`, `type`/`score`/`legend`/`probabilities`/`confidence`,
- * `type`/`noul`) — not the Loop adapter's normalized internal representation. Every answer's required `type` field
+ * `type`/`noul`) — not a normalized internal representation. Every answer's required `type` field
  * must match the primitive the question was asked as. On top of the documented fixed floor (Choice/Score need
  * `confidence >= 0.5`; Noul rejects exactly `0.5`), this adds one stricter product-owned margin, because
  * `Noul`/`Choice` confidence alone is too permissive for independent category triggers evaluated in parallel

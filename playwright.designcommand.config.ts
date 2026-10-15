@@ -23,10 +23,9 @@ export default defineConfig({
     env: {
       // Explicit, supervised, and empty: never inherits a real key from the outer environment.
       TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY: "",
-      // These must never be read by the handler either; present here only so a violation would be observable if
-      // the boundary ever regressed (it would show up as a used-sentinel value in outbound requests, which the
-      // test also asserts never happen at all).
-      TYPESAFE_LOOP_ENGINEERING_API_KEY: "loop-sentinel-must-never-be-read",
+      // The generic TypeSafe key must never be read by the handler either; present here only so a violation would
+      // be observable if the boundary ever regressed (it would show up as a used-sentinel value in outbound
+      // requests, which the test also asserts never happen at all).
       TYPESAFE_API_KEY: "generic-sentinel-must-never-be-read",
     },
   },
