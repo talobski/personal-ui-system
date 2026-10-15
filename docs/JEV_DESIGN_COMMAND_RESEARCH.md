@@ -2,14 +2,20 @@
 
 > **Superseded architecture note (2026-09-22):** This artifact was produced
 > under the incorrect assumption that the product-level design command had to
-> use the Loop Engineering control-plane runtime. The owner subsequently
-> clarified and approved a strict separation. Its official-source inventory,
-> Jev jaggedness analysis, and bounded-composition principles remain evidence;
-> its `WORKER_FAN_OUT`, eight-question, `.loop`, CLI transport, single-category,
-> and Loop-credential conclusions must not be implemented. The controlling
-> product architecture and verification plan are
-> `docs/JEV_PRODUCT_ARCHITECTURE.md` and
-> `.loop/runs/jev-design-command-mvp-001/task.md`.
+> use the Jev runtime of the project's former agent-orchestration tooling. The
+> owner subsequently clarified and approved a strict separation. Its
+> official-source inventory, Jev jaggedness analysis, and bounded-composition
+> principles remain evidence; its `WORKER_FAN_OUT`, eight-question,
+> orchestration-state, CLI transport, single-category, and orchestration-
+> credential conclusions were not implemented. The controlling product
+> architecture is `docs/JEV_PRODUCT_ARCHITECTURE.md`.
+>
+> **Historical status (2026-10-15):** that orchestration tooling — including
+> the vendored `@loop-engineering/jev-core` package, `tools/loop/jev/`,
+> `docs/JEV_ADAPTER.md`, and `.loop/` state cited below — has since been
+> retired and removed from this repository. References to them in §1–§13 are
+> retained only as the analysis that motivated the product-owned design; none
+> is a current dependency or instruction.
 
 Retrieval date: 2026-09-22. Sources are `docs/JEV_OFFICIAL_SOURCE_PACKET.md` (the
 Lead-audited packet over the official TypeSafe documentation listed below) plus
@@ -525,12 +531,10 @@ These are called out rather than silently decided:
    are a reasonable, auditable starting point that the producer/verifier
    should be free to adjust without treating the number itself as fixed
    product contract.
-9. **JDC-01 through JDC-12's literal wording lives in the canonical
-   `.loop/runs/jev-design-command-mvp-001/task.md`, which this research task
-   is barred from reading.** §13 maps the twelve criteria to evidence using
-   only the summary sentence in BRIEF.md's Phase 5 section (the twelve
-   comma-separated clauses); the producer and verifier must reconcile exact
-   IDs/wording against the real task file, which this research has not seen.
+9. **JDC-01 through JDC-12's literal wording was not available to this
+   research.** §13 maps the twelve criteria to evidence using only the summary
+   sentence in BRIEF.md's Phase 5 section (the twelve comma-separated
+   clauses).
 
 ## 13. Acceptance-evidence plan for JDC-01 through JDC-12
 
@@ -587,6 +591,5 @@ compound decomposition (explicitly excluded by BRIEF Phase 5).
 - Build the fail-closed outcome mapping in §8–§9 as pure functions over
   `Outcome` from `runDecision`, so both the mocked-transport and live paths
   share identical composition logic.
-- Reconcile §13's evidence plan against the real
-  `.loop/runs/jev-design-command-mvp-001/task.md` JDC wording once the
-  producer (who may read canonical `.loop`, per its own role) starts work.
+- Reconcile §13's evidence plan against the JDC acceptance criteria summarized
+  in BRIEF.md Phase 5.

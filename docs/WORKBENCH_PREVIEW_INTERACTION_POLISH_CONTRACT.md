@@ -8,13 +8,9 @@ Accepted control base: `33f8992157aaa67ef857efe912f9adcedd72a66f`.
 
 The six complete admission-time Linear JSON files under `docs/evidence/workbench-preview-interaction-polish/linear/` are the frozen planning packet. Their hash manifest pins exact bytes, retrieval time, descriptions, UUIDs, statuses, priorities, labels, references, comments, and attachment state. This reconciled contract governs execution where planning input conflicts with accepted Git/source. Later Linear edits do not change this contract. The tactile button surface effect is excluded; no files, tests, dependencies, or design rules for that work are in scope. No owner visual-review gate is admitted.
 
-## Authority and run envelope
+## Product boundaries
 
-- One phase, one active worker at a time. Primary producer: `loop_worker_claude_strong`, `claude/claude-opus-5-5`, STRONG, medium, included subscription only. Coordinated UI layout and interaction work merits STRONG. A fresh protected verifier is reserved from the start: `loop_worker_codex_standard`, `codex/gpt-5.6-terra`, STANDARD, medium, included subscription, isolated worktree, logical read-only/no repair, fresh context. Lead owns executable browser evidence.
-- Conditional producer replacement only after a recorded primary-provider unavailability or material blockage, informative recovery change, and preservation of the verifier reservation: `loop_worker_codex_strong`, `codex/gpt-6-sol`, STRONG, medium, included subscription. This is phase-local, not a standing provider preference. If a Codex producer is used, prefer a fresh opposite-family Claude Sonnet 5 STANDARD verifier where admissible; otherwise a distinct fresh protected STANDARD verifier remains mandatory. No MAX route is authorized.
-- Expected agent creations: 2; hard phase ceiling: 3. Starting lifetime usage: 78; approved cumulative absolute ceiling: 81, including the deterministic increase from 79 at admission. Reserve one run for fresh verification. Execution-time ceiling: 420 cumulative minutes, externally enforced. Concurrency: 1. Paid ceiling and actual spend: $0.
-- Fresh pre-dispatch exact provider/model/mode/effort, billing, sandbox, spawn, capability and availability checks are mandatory. Worker network, credentials, permission escalation, separately billed/API capacity, public effects, runtime market data, canonical `.loop` access, Paseo/native subagents, acceptance, and promotion are prohibited. Lead may perform read-only planning checks and owns control state, browser evidence and closeout.
-- The live Paseo `loop_worker_codex_strong` mapping is `gpt-6-sol` / auto / medium. The older `gpt-5.6-sol` sentence in the accepted BRIEF is stale project routing context, not the live canonical profile. No fallback may use the older model. Update that sentence at final BRIEF closeout.
+- No runtime market data or public effects.
 
 ## Product scope
 

@@ -1,17 +1,16 @@
 # Jev official-source packet for the design-command phase
 
 > **Architecture correction (2026-09-22):** The owner clarified that this
-> phase is a product-level Jev integration. `@loop-engineering/jev-core`, its
-> contracts, `.loop` coupling, budgets, and credential are control-plane-only
-> and are not candidate product infrastructure. Questions below about that
-> package are retained as historical research context; the accepted product
-> boundary is `docs/JEV_PRODUCT_ARCHITECTURE.md`.
+> phase is a product-level Jev integration. A shared Jev runtime package that
+> belonged to the project's former agent tooling (since retired and removed
+> from this repository) was not candidate product infrastructure. The question
+> below about that package is retained as historical research context; the
+> accepted product boundary is `docs/JEV_PRODUCT_ARCHITECTURE.md`.
 
-Retrieved by the Lead on 2026-09-22 from the official TypeSafe documentation.
-This packet exists because the admitted worker profiles prohibit external
-network access. Workers must treat the linked TypeSafe pages as the sources,
+Retrieved on 2026-09-22 from the official TypeSafe documentation so that
+research could proceed offline. Treat the linked TypeSafe pages as the sources,
 analyze the constraints below against the repository, and preserve citations in
-their research checkpoint. This packet is not a replacement for the official
+the research checkpoint. This packet is not a replacement for the official
 documentation and contains no credentials.
 
 ## Required official sources
@@ -84,8 +83,9 @@ a concrete contract question.
 
 ## Repository-specific questions the researcher must answer
 
-1. Can `@loop-engineering/jev-core@0.1.0` represent the proposed command packet
-   and audit record without a second Jev client or duplicated policy logic?
+1. (Historical) Can the former shared Jev runtime package represent the
+   proposed command packet and audit record without a second Jev client or
+   duplicated policy logic? Answered no; see `docs/JEV_DESIGN_COMMAND_RESEARCH.md`.
 2. Which existing theme operations and fixed targets can safely back a closed
    semantic recipe catalog without widening `ThemeOperation`?
 3. What exact compact state should Jev receive, and which exact fields must be
@@ -106,15 +106,10 @@ a concrete contract question.
 ## Existing local sources
 
 - `BRIEF.md`, Phase 5.
-- `docs/JEV_ADAPTER.md`.
-- `docs/JEV_RUNTIME_CHECKPOINT.md`.
 - `docs/MUTATION_PROPOSAL_PREVIEW.md`.
 - `packages/core/src/mutations/`.
 - `packages/core/src/theme/`.
 - `apps/workbench/src/`.
-- `tools/loop/jev/` and the installed/vendored shared runtime.
 
-Workers must not read or write canonical `.loop/`, modify the canonical Loop
-Engineering specification, launch agents, enable network, request escalation,
-or make live Jev calls. Live-call admission remains a Lead-controlled later
-step after the research contract is accepted.
+Research makes no live Jev calls. Live calls require separate owner approval
+after the research contract is accepted.

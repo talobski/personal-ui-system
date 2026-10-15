@@ -12,10 +12,6 @@ Phase: `accepted-implementation-review-inset-tabs-v1-001`. One Tier 2 phase admi
 - **AIR-06 — proportional Lead evidence.** Lead owns exact-candidate executable browser checks for Off/Tactile, Strength invariance, Amber Dusk light/dark border color, inward edge and clipping, focus/keyboard/selected state, and affected refactor UI. Run targeted unit tests, touched-package typechecks, and Workbench build where relevant. Expand suites only if selected refactors touch broad shared infrastructure. Decode axe findings where collected.
 - **AIR-07 — independent acceptance.** A fresh protected opposite-family STANDARD verifier audits exact unchanged candidate, findings, frozen packet/contract, source boundaries, evidence integrity and pre/post Git state without repair. Record acceptance before local promotion; verify identity, clean state, focused smoke and durable closeout after promotion. No remote push.
 
-## Execution envelope
-
-Expected agent runs 2; hard phase ceiling 4; lifetime ceiling 97 from 93 used; 360-minute execution ceiling; concurrency 1; $0 paid. Primary producer: `loop_worker_claude_strong`, Claude Opus 5.5, STRONG/medium, included subscription. If Claude usage becomes impractically low, unavailable/exhausted, or materially blocked, one phase-local handoff to `loop_worker_codex_max`, GPT-6 Astra MAX/medium, included subscription, is authorized after clean retirement and preservation of work, packet, contract and lineage; no second MAX dispatch. If Claude produces, verifier preference is fresh `loop_worker_codex_standard`, GPT-5.6 Terra/medium. If MAX produces, verifier preference is fresh `loop_worker_claude_standard`, Sonnet 5/medium, where admissible.
-
 ## Known accepted residuals
 
 Earlier Bitcoin gallery height, narrow Type-scale ellipsis, Default-theme contrast token debt, and intermittent legacy browser cases remain distinct. The prior Amber Dusk phase guard is base-relative and fails on an already changed BRIEF.md; use this phase's own boundary evidence, without relabeling the old guard as passing.

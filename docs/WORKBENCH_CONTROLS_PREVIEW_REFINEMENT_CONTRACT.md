@@ -5,7 +5,7 @@ Phase: `workbench-controls-preview-refinement-v1-001`
 Accepted product base: `d1db3ab3af931aa66b02119dfe37c2b6dcce7736`
 
 Planning context: PUI-11, PUI-16, and PUI-18 through PUI-24. Linear is
-non-authoritative; this contract, `.loop`, and Git govern execution.
+non-authoritative; this contract and Git are authoritative.
 
 ## Outcome
 
@@ -187,21 +187,6 @@ exactly once; no token is added or renamed.
 - Final owner visual review judges edge-to-edge geometry, selector proportions,
   reduced repetition, label consistency, combobox density/search, color order,
   chart polish, shadowless gallery cards, and mobile presentation.
-
-## Execution envelope
-
-- Producer: one-use owner-approved `loop_worker_claude_max`,
-  `claude/claude-opus-5-5`, MAX, medium, auto, fast mode off.
-- A provider substitution requires new explicit owner approval. Any later
-  approved Astra continuation must reuse this phase, branch/worktree, history,
-  candidate, and contract without replay.
-- Verifier: `loop_worker_codex_standard`, `codex/gpt-5.6-terra`, STANDARD,
-  medium, read-only, no repair authority.
-- Lifetime agent-run ceiling: 49. Phase maximum: 3; expected: 2. The third run
-  is reserved for bounded recovery/reverification.
-- Execution time: 360 minutes. Concurrency: 1. Paid spend: $0.
-- Worker network, credentials, external actions, deployment, publishing, and
-  paid/API fallback are prohibited.
 
 ## Explicit non-goals
 

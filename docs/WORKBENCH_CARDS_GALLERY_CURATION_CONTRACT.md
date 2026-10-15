@@ -6,7 +6,7 @@ Risk: Tier 2; LOOP-16 Tier 1 shadow pilot is not in scope.
 Accepted product base: `696e7c4e1af19be88bcac308dda2227acc9323f6`.
 Control base on `main` before preparation: `36553b752afaaba513fe5796582a81f5cadfa874`.
 
-The owner-approved contract governs conflicts with the frozen, verbatim Linear packet under `.loop/runs/workbench-cards-gallery-curation-v1-001/`. Linear is planning context only. Subsequent Linear edits do not mutate this phase. `.loop` plus Git and accepted durable evidence remain execution truth.
+The owner-approved contract governs conflicts with the frozen, verbatim Linear ticket snapshots, which are retained only in Git history at `8a7550e:.loop/runs/workbench-cards-gallery-curation-v1-001/` (a path from the retired agent tooling). Linear is planning context only. Subsequent Linear edits do not mutate this phase.
 
 ## Boundaries
 
@@ -30,7 +30,3 @@ Use one coherent Cards-gallery phase. Preserve the accepted container-responsive
 ## Reconciliation notes
 
 PUI-83's request to preserve Storage and Quick find generally is narrowed only where PUI-84 explicitly requires stable geometry. PUI-81's preservation of ordering/grouping yields to PUI-83's owner-approved curation; PUI-82 intentionally changes only the one surviving pair's equal-height behavior. Several removed compositions remain independently reachable through Storybook and composition tests, so removal from the Cards gallery is not authorization to delete those modules. Existing browser tests asserting 13 cards, 24px gaps, unequal pair heights, or workflows superseded here must be updated rather than silently weakened; historical contracts and receipts remain untouched.
-
-## Routing and envelope
-
-Primary: `loop_worker_claude_strong`, `claude/claude-opus-5-5`, STRONG/medium, included subscription only. One owner-authorized handoff to `loop_worker_codex_strong`, `codex/gpt-6-sol`, STRONG/medium, only on low/impractical Claude capacity, unavailability/exhaustion or material block; stop Claude first, preserve exact work and evidence, no replay or MAX escalation. Fresh opposite-family STANDARD verifier: Codex `gpt-5.6-terra` after Claude production or Claude `claude-sonnet-5` after substantive Codex handoff, subject to deterministic admission. Concurrency 1. Lifetime ceiling 69→71, phase hard ceiling 3 runs, expected 2, third reserved for bounded recovery/reverification, execution ceiling 300 minutes, paid spend $0, worker network/credentials/external actions none.

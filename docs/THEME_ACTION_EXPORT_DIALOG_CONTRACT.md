@@ -12,10 +12,6 @@ Phase `theme-action-export-dialog-v1-001` admits PUI-134, PUI-135, and PUI-136 t
 - **TAED-06 — boundaries.** Theme v3 stays 3.0, mutation union stays 13, public registry stays 23. Preserve import, persistence/history, Save/Save As semantics, built-in/custom rules, Design Command, theme renderer behavior, public APIs, dependencies/lockfile, and network/credential boundary. No worker network, dependency installation, paid capacity, or remote publishing.
 - **TAED-07 — evidence and closeout.** Lead owns exact-candidate browser evidence for export byte identity and import compatibility, CSS light/dark and built-in/custom output, dialog interactions, Delete placement/confirmation, success/error feedback, Reset Undo/Dismiss, responsive/light/dark, and decoded axe findings. Run targeted unit tests, touched-package typechecks, and Workbench build; expand suites only on broader shared runtime/persistence edits. Fresh protected opposite-family STANDARD verifier audits exact unchanged candidate, packet/contract/source/evidence and pre/post Git without repair. Record acceptance before promotion, then identity/clean-state/focused smoke and durable closeout. No remote push.
 
-## Routing and limits
-
-Expected agent runs 2; phase hard ceiling 4; absolute lifetime ceiling 99 from 95 used; 420-minute execution ceiling; concurrency 1; $0 paid. Primary producer `loop_worker_claude_strong`, Claude Opus 5.5 STRONG/medium, included subscription. If Claude becomes impractically low, unavailable/exhausted, or materially blocked, one phase-local clean handoff to `loop_worker_codex_max`, GPT-6 Astra MAX/medium, included subscription, may continue the smallest remaining unit. No second MAX dispatch. If Claude produces, fresh `loop_worker_codex_standard`, GPT-5.6 Terra/medium verifier; if MAX produces, fresh `loop_worker_claude_standard`, Sonnet 5/medium verifier where admissible.
-
 ## Accepted residuals
 
 Earlier Bitcoin gallery height, narrow Type scale ellipsis, Default-theme contrast debt, documented intermittent browser tests, and deferred shared CSS parse duplication remain separate from this phase.

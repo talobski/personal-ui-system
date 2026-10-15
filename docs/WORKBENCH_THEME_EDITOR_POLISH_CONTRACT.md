@@ -5,7 +5,7 @@ Phase: `workbench-theme-editor-polish-v1-001`
 Accepted base: `89b74d821e2e3dad9733c8a39131633e27a852a8`
 
 Planning context: PUI-11 through PUI-17. Linear is non-authoritative; this
-contract, `.loop`, and Git govern execution.
+contract and Git are authoritative.
 
 ## Outcome
 
@@ -169,21 +169,6 @@ interactive divider.
 - A phase-specific frozen-boundary scan.
 - Owner visual review before protected verification.
 - Fresh protected Codex STANDARD verifier, read-only with no repair authority.
-
-## Execution envelope
-
-- Producer: one-use owner-approved `loop_worker_claude_max`,
-  `claude/claude-opus-5-5`, MAX, medium, auto, fast mode off.
-- A provider substitution requires a new explicit owner approval. A later
-  owner-approved Astra continuation must reuse this phase, branch/worktree,
-  candidate history, and contract without replay.
-- Verifier: `loop_worker_codex_standard`, `codex/gpt-5.6-terra`, STANDARD,
-  medium, read-only, no repair authority.
-- Project lifetime ceiling: 46; phase maximum: 3 runs; expected: 2 runs.
-- Third run: bounded recovery/reverification only.
-- Execution time: 300 minutes. Concurrency: 1. Paid spend: $0.
-- Worker network, credentials, external actions, deployment, and publishing are
-  prohibited.
 
 ## Explicit non-goals
 

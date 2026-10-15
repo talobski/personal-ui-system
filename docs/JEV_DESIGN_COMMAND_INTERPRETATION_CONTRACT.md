@@ -10,7 +10,7 @@ At Stage 1 completion, after a fresh independent review, the Lead presents the a
 
 ## Accepted baseline and source constraints
 
-Design Command already exists: Workbench Command UI -> product-local server handler -> TypeSafe transport -> typed Choice/Score/Noul acceptance -> deterministic recipe composition into the closed `ThemeOperation` union -> unchanged `MutationProposalV1` stage/apply/discard, Theme v3 validation, history and persistence. The product Jev path is distinct from the Loop Engineering `@loop-engineering/jev-core` adapter and `.loop` control plane. The current catalog and six directional categories are a baseline to evaluate, not proof that reference-style commands work well. Some older Jev research docs are superseded; inspect source and the owner-approved architecture checkpoint before using their claims.
+Design Command already exists: Workbench Command UI -> product-local server handler -> TypeSafe transport -> typed Choice/Score/Noul acceptance -> deterministic recipe composition into the closed `ThemeOperation` union -> unchanged `MutationProposalV1` stage/apply/discard, Theme v3 validation, history and persistence. The product Jev path is entirely product-owned. The current catalog and six directional categories are a baseline to evaluate, not proof that reference-style commands work well. Some older Jev research docs are superseded; inspect source and the owner-approved architecture checkpoint before using their claims.
 
 Current official TypeSafe/Jev sources must be checked against a retrieval-dated Lead source inventory. Worker network is prohibited. Provider statements about latency, calibration, price, or quality are claims until independently tested. Do not perform live calls.
 
@@ -30,8 +30,6 @@ Commit a research proposal under `docs/evidence/jev-design-command-interpretatio
 10. Fair A/B/C/D alternatives (deterministic-only, Jev-bounded, LLM-structured, hybrid) and a recommendation that may be `do not use Jev`.
 11. Only if a spike is justified: the smallest reversible comparative spike, shared fixtures across approaches (including positive, vague, contradictory, out-of-scope, multi-category and reference commands), measurable success/failure criteria, exact Jev request count and maximum credits, proposed LLM route/call/token/spend cap if used, and any Stage 2 run/time/credential/network authority needed. No unbudgeted service probing.
 
-## Execution envelope and verification
+## Verification
 
-Stage 1 expected 2 agent runs; hard ceiling 3, including a protected fresh review reserve; 420 minutes; concurrency 1; cumulative lifetime ceiling 100 from 97 already used; paid spend 0. Primary producer `loop_worker_claude_strong / claude-opus-5-5 / STRONG / medium`, included subscription. Fresh independent reviewer `loop_worker_codex_standard / gpt-5.6-terra / STANDARD / medium`, included subscription, read-only/no repair. No fallback is admitted. If Claude becomes unavailable, exhausted or materially blocked, stop and report rather than silently route elsewhere.
-
-Stage 1 verification is packet/contract/source/citation/coverage review, research artifact integrity and pre/post Git identity. No product browser suite is required because no executable product behavior change is authorized. The reviewer does not repair the artifact. The Lead records the Stage 1 review and owner-gate presentation. No acceptance, promotion, or closeout of the whole phase occurs before the owner decision.
+Stage 1 verification is packet/contract/source/citation/coverage review and research artifact integrity. No product browser suite is required because no executable product behavior change is authorized. The owner decides whether Stage 2 proceeds.

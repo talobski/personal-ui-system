@@ -9,14 +9,9 @@ Prepared dependency base: `be4eca8e13728d49fbcfef2c773705c59a4599ad`
 
 The nine complete, verbatim admission-time Linear issue snapshots in `docs/evidence/workbench-showcase-components-geometry/linear/` are the worker's reference packet. The snapshots include issue metadata, descriptions, relations, attachment/document state, complete comment state and retrieval time. Their hashes are frozen in `snapshot-hashes.json`. Linear is planning and traceability context only. This reconciled contract governs any discrepancy. Later Linear edits cannot silently change this phase.
 
-## Authority and envelope
+## Product boundaries
 
-- The owner approved one coherent phase, no owner visual-review gate, and automatic closeout only after all technical and protected criteria pass.
-- Claude producer: `loop_worker_claude_strong`, `claude/claude-opus-5-5`, STRONG, medium, included subscription. Fresh opposite-family Codex STANDARD protected verifier, logical read-only and no-repair; Lead owns executable browser evidence.
-- One Claude-to-`loop_worker_codex_max` / `codex/gpt-6-astra` / medium handoff is authorized **only** if Claude usage is impractically low, unavailable/exhausted, or materially blocked and handoff is the smallest bounded recovery. Retire Claude first; preserve all work, packet, criteria and lineage. No second MAX dispatch without new owner approval.
-- Lifetime agent-run ceiling 73 (70 used before admission); phase hard ceiling 3, expected 2, third run for the handoff **or** replacement verification, not both without new authority. Execution ceiling 420 minutes; concurrency 1; paid spend $0.
-- Worker network, API fallback, credentials, geolocation, paid capacity, external actions, permission escalation, Paseo/native subagents, canonical `.loop` access and promotion authority are prohibited. The bounded Lead-only dependency provisioning has already occurred; it does not extend worker network authority.
-- The producer may edit only the isolated phase worktree. It reports a committed clean candidate, changed paths, check results and risks. It does not claim acceptance or promotion.
+- No geolocation or runtime data fetching.
 
 ## Implementation order and product contract
 

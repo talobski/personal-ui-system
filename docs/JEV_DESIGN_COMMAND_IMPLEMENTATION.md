@@ -1,21 +1,21 @@
-# Jev design-command MVP — producer implementation notes
+# Jev design-command MVP — implementation notes
 
-Producer run `jev-design-command-producer-001`, base `c33a010`. This implements
+Implementation run `jev-design-command-producer-001`, base `c33a010`. This implements
 the corrected, owner-approved product-level architecture in
 `docs/JEV_PRODUCT_ARCHITECTURE.md`, not the superseded
-`WORKER_FAN_OUT`/`@loop-engineering/jev-core`/single-category design in
+shared-runtime/`WORKER_FAN_OUT`/single-category design in
 `docs/JEV_DESIGN_COMMAND_RESEARCH.md`. That research's official-source
 citation table, jaggedness analysis, and bounded-composition principles are
 carried forward as evidence; its contract-repurposing, 8-question ceiling,
-`.loop`-writing transport, and single-category-only conclusions are not
+orchestration-coupled transport, and single-category-only conclusions are not
 implemented, per its own supersession note and the corrected architecture.
 
-**This file was substantially rewritten after a Lead audit rejected the
+**This file was substantially rewritten after a review audit rejected the
 first candidate (commit `8fa86ad`).** The corrections below (real wire
 contract, multi-category clarification semantics, required-confidence
 fail-closed, transparent evidence, strict acceptance, bounded transport,
 real middleware browser evidence, pending-state UI locking) are load-bearing
-and not incidental cleanup; see "What the Lead audit found" at the end.
+and not incidental cleanup; see "What the review audit found" at the end.
 
 ## What changed
 
@@ -193,7 +193,7 @@ succeeded against product state; if it fails, the visible outcome becomes a
 `rejected` outcome carrying the real staging error code instead of
 continuing to claim success.
 
-## What the Lead audit found (and this run fixed)
+## What the review audit found (and this run fixed)
 
 1. The wire contract used the Loop adapter's internal shape (array
    questions, `selected`/`level`/integer legend array) instead of the real
@@ -251,8 +251,8 @@ behavior changed.
   raw wire shapes are taken from documented material and this run's own
   careful reading of the correction above, not exercised against the real
   service.
-- The Lead's independent 16-case mutation-boundary escape-hatch probe
-  (`docs/BRIEF.md` Phase 2 result) was not rerun by this producer, since its
+- The independent 16-case mutation-boundary escape-hatch probe
+  (`docs/BRIEF.md` Phase 2 result) was not rerun by this implementation run, since its
   fixture lives outside this worktree's product scope; `recipes.test.ts` and
   `compose.test.ts` add an equivalent closed-set assertion for the new
   design-command output path specifically.

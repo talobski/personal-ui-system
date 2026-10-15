@@ -52,16 +52,6 @@ zero result.
 - **WSPF-12 — Frozen boundaries.** Registry remains exactly 19 resources and mutation operations remain 11. Theme v2 schema/tokens, persistence format, Jev behavior, credentials, network surfaces, dependencies, and lockfile remain unchanged.
 - **WSPF-13 — Evidence and verification.** Lead-owned browser execution, full unit/typecheck/build regressions, phase boundary scan, diff checks, and a fresh exact-candidate protected offline/source/contract/evidence-integrity audit pass. No owner visual gate is required.
 
-## Execution and authority
-
-- Producer: `loop_worker_claude_strong`, `claude/claude-opus-5-5`, STRONG, medium, auto, fast off.
-- Protected verifier: fresh `loop_worker_codex_standard`, `codex/gpt-5.6-terra`, STANDARD, medium, logical read-only/no repair.
-- Browser execution belongs to the Lead; it is not assigned to the verifier.
-- Phase ceiling: 3 agent runs, 2 expected, concurrency 1, 240 minutes, paid spend $0.
-- Lifetime ceiling: 60.
-- No network, credentials, external actions, MAX dispatch, or STRONG-to-MAX fallback.
-- No owner visual-review gate. Automatic acceptance, promotion, post-promotion checks, receipts, and closeout apply after all technical criteria pass.
-
 ## Non-goals
 
 No Default-theme color changes, broad contrast audit, new public resource,

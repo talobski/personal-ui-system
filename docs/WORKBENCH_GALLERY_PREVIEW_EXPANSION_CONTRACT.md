@@ -8,14 +8,9 @@ Accepted control base: `0bb51e993e2d6520f3491be992b8274c0355a159`
 
 The eight complete admission-time Linear issue JSON snapshots in `docs/evidence/workbench-gallery-preview-expansion/linear/` are the verbatim worker reference packet. Each holds the full issue description and metadata, relations, attachments/documents, complete comments response, and retrieval timestamp. The hash manifest and index pin these bytes. Linear is planning context only; this reconciled contract governs conflicts and later Linear edits cannot change execution.
 
-## Authority, routing and envelope
+## Product boundaries
 
-- Owner-approved one coherent phase with no owner visual-review gate. Acceptance/promotion/closeout proceed automatically only after all technical evidence and exact-candidate integrity pass.
-- Primary producer: `loop_worker_claude_strong`, `claude/claude-opus-5-5`, STRONG, medium, included subscription, $0. One fresh opposite-family `loop_worker_codex_standard`, `codex/gpt-5.6-terra`, medium, is reserved for protected logical read-only/no-repair offline/source/contract/evidence verification; Lead owns executable browser evidence.
-- One `loop_worker_codex_max` / `codex/gpt-6-astra` / medium producer handoff is owner-authorized only if Claude usage becomes impractically low, unavailable/exhausted, or materially blocked and the handoff is the smallest bounded recovery. Retire Claude first; keep one active producer, same packet/contract/candidate lineage, no replay, and preserve the verifier reservation. No second MAX dispatch without fresh owner approval.
-- Project lifetime agent-run ceiling 76 (72 used before this phase). Phase hard ceiling 3, expected 2, execution ceiling 360 minutes, concurrency 1, paid spend $0. The third run may cover the bounded handoff or replacement verification, not both without new owner authority.
-- No worker network, paid/API fallback, credentials, external actions, geolocation, audio/auth services, permission escalation, Paseo/native subagents, canonical `.loop` access, promotion, or acceptance authority. Work only in the isolated Paseo producer worktree; use existing offline dependencies and no package installation.
-- Producer must hand off a clean committed candidate plus exact changed files, commands/results, browser definitions, residual risks and checkpoint. Producer self-checks are not Lead browser or protected verifier evidence.
+- No geolocation, audio or auth services, and no new package installation.
 
 ## Product implementation order and authoritative reconciliation
 

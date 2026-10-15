@@ -1,328 +1,40 @@
 # Personal UI System — Project Brief
 
 Status: ACTIVE — the accepted product is
-`8f847c7b1f784ab6f0deb49c6d6b10a71e4a4499` on `main`. The single Tier 3
-`landing-workbench-routes-v1-001` phase delivered PUI-143 and PUI-144 together:
-the public landing page is at `/`, the editor is at `/workbench`, and stable
-built-in theme links use `/workbench/themes/:slug`. The frozen two-ticket packet,
-authoritative contract, and durable receipts are at
-`docs/evidence/landing-workbench-routes-v1-001/linear/`,
-`docs/LANDING_WORKBENCH_ROUTES_CONTRACT.md`, and `.loop`.
-The prior phase's packet, contract, and receipts remain under
-`docs/evidence/theme-code-header-shell-selection-v1-001/`,
-`docs/THEME_CODE_HEADER_SHELL_SELECTION_CONTRACT.md`, and `.loop`.
-PUI-137 closed successfully as research-only after its mandatory owner gate.
-Its verified Stage 1 proposal is retained at `d5cb9d9`; Stage 2 was not
-admitted. PUI-142 remains a Backlog follow-up for a fair deterministic, LLM,
-and Jev comparison. No product behavior changed in the research phase.
+`8f847c7b1f784ab6f0deb49c6d6b10a71e4a4499` on `main`. The public landing page
+is at `/`, the editor is at `/workbench`, and stable built-in theme links use
+`/workbench/themes/:slug` (PUI-143, PUI-144). The frozen ticket snapshots and
+contract for that change are at
+`docs/evidence/landing-workbench-routes-v1-001/linear/` and
+`docs/LANDING_WORKBENCH_ROUTES_CONTRACT.md`.
+PUI-137 closed successfully as research-only; its Stage 1 proposal is retained
+at `d5cb9d9` and Stage 2 was not undertaken. PUI-142 remains a Backlog
+follow-up for a fair deterministic, LLM, and Jev comparison.
 Code now opens a JSON/CSS preview and Copy dialog with no Download action.
 Custom-theme Delete sits before dark mode with the sibling icon treatment;
 icon-only header controls have tooltips, and routine theme-action success feedback
 uses the shared semantic popover toast. App shell frames and Inset surfaces were
 refined, and native selection stays square in the two embedded Inputs.
-The accepted implementation was previously audited and the Tactile TabsList edge draws inward.
-The decorative Tactile TabsList edge now uses the semantic border token at 80%
-opacity, and Design system Colors group headings use `text-sm`.
+The decorative Tactile TabsList edge draws inward and uses the semantic border
+token at 80% opacity, and Design system Colors group headings use `text-sm`.
 Amber Dusk is a built-in Theme v3 preset with three owner-authorized contrast
 adjustments documented against the supplied palette. Secondary Buttons retain
 the Strength-controlled tactile effect; surface Tabs use only a fixed TabsList
 ring. The Workbench helper, Design system labels, App shell previews, Storage
 action, and Chat send circle were refined. Theme v3 remains 3.0, the closed
 mutation union has 13 operations, and the public registry has 23 resources.
-The latest phase used Claude Opus 5.5 production and fresh Codex Terra protected
-verification, with $0 paid spend and no remote push. Canonical execution state
-and exact receipts remain in `.loop`.
-The earlier
-nested-gallery phase's record
-preserves a one-time worker execution-envelope violation: Corepack made an
-unauthorized pnpm download during its producer verification. The owner accepted
-that documented incident for that phase only; it grants no worker-network
-authority to future phases. The earlier
-`workbench-composed-preview-v1-001` candidate remains preserved but
+The `workbench-composed-preview-v1-001` candidate remains preserved but
 owner-abandoned, unaccepted, and excluded from future implementation bases.
-Canonical execution state remains in `.loop/state.json`; older checkpoint
-documents are historical evidence rather than current control state.
 
-Last updated: 2026-10-01
+This brief is the product specification and product history. Per-feature
+contracts (`docs/*_CONTRACT.md`) and frozen ticket snapshots
+(`docs/evidence/*/linear/`) remain the detailed references for each change.
 
-## Phase result: Landing and Workbench routes v1
-
-Accepted PUI-143 and PUI-144 together at product commit
-`8f847c7b1f784ab6f0deb49c6d6b10a71e4a4499`. The root landing page uses
-accepted shadcn primitives and built-in Theme v3 data to show real Personal UI
-compositions in light and dark mode. Its primary call to action opens the
-Workbench. The page describes the current Design Command flow as experimental
-and does not claim future reference-style interpretation is shipped.
-
-The existing editor moved to `/workbench`. Explicit stable links for Default,
-Quiet Editorial, and Amber Dusk select the named built-in on initial load
-without overwriting the stored selection. Subsequent built-in selection updates
-the URL; local custom themes use plain `/workbench`. Unknown built-in slugs
-normalize safely to `/workbench`. The preview iframe now uses
-`/workbench?preview=1`; its isolation and message behavior remain. `/themes`
-and `/themes/:slug` remain reserved. Deployment-host deep-link HTML fallback
-remains a separate infrastructure concern; local Vite production preview served
-direct links during verification.
-
-Lead exact-candidate evidence passed 32 landing/route browser cases, 69
-representative Workbench cases with three established skips, one credential-empty
-Design Command boundary case, 89 focused unit tests, typechecks, and the
-Workbench build. Sixteen decoded axe attachments had no blocking findings.
-Lead's promoted-main smoke passed root, CTA, back/forward, all three built-in
-links, and invalid-slug normalization, plus 89 focused unit tests, typecheck,
-and build. The producer's broad Workbench run was not clean: 495 passed,
-19 skipped, and four WGPE-10 cases failed. Lead reproduced the same four stale
-Inset `muted` assertions on the accepted pre-phase base, whose product already
-uses the `sidebar` surface.
-
-The fresh protected verifier found no product defect but returned a process-only
-FAIL requiring owner disposition. The producer's exact reported command
-`pnpm build:workbench` materialized worktree `node_modules` despite the phase's
-no-install rule; whether any packages came from the network could not be
-established. The owner accepted this as a one-time disclosed incident for this
-phase, and acceptance was recorded before local-main promotion. Package
-manifests, lockfile, registry, Theme 3.0, 13 mutation operations, and 23 public
-resources are unchanged. This exception grants no future dependency, package
-materialization, worker-network, paid, or permission authority. Two agent runs
-were used, lifetime accounting ended at 104/106, paid spend stayed $0, and no
-remote push was performed.
-
-## Phase result: Theme code, header, shell, and selection polish v1
-
-Accepted PUI-138, PUI-139, PUI-140, and PUI-141 together at product commit
-`7e2746e5e43dd6f6d39fb0df94242e4956c3fb19`. The header action is now
-`Code`; its `Theme code` dialog retains canonical Theme v3 JSON and the existing
-CSS renderer, shows the exact supporting copy, and places Copy in an attached
-toolbar over a scrollable read-only code panel. Opening it never downloads a
-file, and preview text is the clipboard source. Icon-only header actions use
-Workbench-private tooltips and independent accessible names; Delete matches
-the shared resting icon treatment and retains its custom-only confirmation.
-
-All three App shell outer frames now use a restrained semantic border without
-an outer shadow. Inset project's connected outer/sidebar surface uses dedicated
-Sidebar tokens; internal elevation and per-shell collapse/Workbench isolation
-remain. The shells have more vertical space and one-step-larger labels.
-PUI-141 was reproduced and traced to Chromium clipping native selection inside
-two borderless embedded Inputs whose invisible `rounded-md` radius followed
-Geometry. Those Inputs now use `rounded-none`; visible row radius, the public
-Input primitive, selection colors, and native selection remain unchanged.
-
-Lead exact-candidate checks passed 21 focused dialog/header browser cases with
-one intentional mobile selection-sweep skip, 10 shell/isolation cases, 126
-focused unit tests, touched-package typechecks, and a Workbench build. Twelve
-decoded browser axe attachments had no findings; additional shell scans found
-only the established moderate landmark/region findings. Fresh protected Codex
-Terra verification passed without repair. Promoted-main smoke passed 20 tests.
-The producer's first four-case structural probe failure after Tooltip wrapping,
-and the Lead's initial Vite PATH launch failure before tests, remain disclosed
-in `.loop`; the corrected exact-candidate checks passed. Theme 3.0, 13 mutation
-operations, 23 registry resources, dependencies, and public component APIs are
-unchanged. No remote push was performed.
-
-## Phase result: Jev Design Command interpretation research
-
-PUI-137 closed as successful research-only work. The Stage 1 proposal at
-`d5cb9d91e6925bb5008da96e5a93607cb8fcbb43` maps the current closed
-Design Command mutation and preview boundaries, product-local Jev integration,
-and the tradeoffs among deterministic, frontier LLM, Jev, and hybrid intent
-interpretation. An initial protected review found missing enforceable Jev
-credit limits and an unspecified LLM route; the proposal was corrected and
-the final exact document passed fresh protected review. The owner declined
-Stage 2 for this phase and assigned the comparison to PUI-142 in Backlog.
-
-The existing bounded Jev architecture is safe, but its literal question
-catalog has not demonstrated strong indirect or reference-style intent
-handling. Jev must show incremental value against an LLM plus deterministic
-Personal UI admissibility, mutation, validation, history, and persistence
-before its future role is decided. This phase made no live Jev or LLM API
-calls, accessed no credentials, authorized no network or paid spend, and made
-no product, Theme v3, mutation-contract, or accepted-behavior change. Stage 1
-used three agent runs; lifetime accounting ended at 100/100. The proposal,
-initial and final reviews, owner acceptance, and closeout receipts are retained
-in `docs/evidence/jev-design-command-interpretation-v1-001/` and `.loop`.
-
-## Phase result: Theme action Export dialog v1
-
-Accepted PUI-134, PUI-135, and PUI-136 together at product commit
-`e16bc37051915954fb39196636245c11070bf309`. Export opens an accessible
-shadcn Dialog without downloading. JSON is the unchanged canonical Theme v3
-export; CSS / Tailwind v4 is generated by the existing renderer. Each selected
-format uses the same bytes for preview, clipboard, and explicit download.
-Custom-theme Delete moved to the right toolbar immediately before dark mode,
-with the same confirmation and built-in protection. Existing custom Save, built-in
-Save As, and custom Delete successes now use transient Base UI toasts. Their shared
-surface uses popover foreground/background and semantic border tokens. Reset
-retains its guarded history Undo, Dismiss, and timing; errors remain explicit.
-
-Lead exact-candidate evidence passed 22 focused browser cases plus four Reset
-cases across narrow/wide and light/dark, with 40 decoded axe attachments and no
-blocking findings. Focused unit tests, touched-package typechecks, and the
-Workbench build passed; fresh protected Codex Terra verification passed. The
-producer's earlier 216-pass/7-fail/9-skip browser run and Lead's 41-pass/1-fail
-parent-candidate run remain disclosed, with repaired cases passing on the final
-candidate. Promoted-main focused smoke passed 10 tests. Theme 3.0, 13 mutation
-operations, 23 registry resources, dependencies, and public APIs remain intact.
-No remote push was performed. Durable receipts are in `.loop/runs/theme-action-export-dialog-v1-001/`.
-
-## Phase result: Accepted implementation review and inset TabsList v1
-
-Accepted PUI-132 and PUI-133 together at product commit
-`5d0536d038d7ebce5429fa1460c0d7af21af51ef`. The committed audit records
-12 findings before source edits. Three stale comments now correctly identify
-the TabsList as the effect target, and focused browser assertions distinguish
-an inset edge from an outer one. Shared CSS render/parse duplication was
-documented and deferred because its small benefit would require changing the
-shared editor and preview path. No broader runtime refactor was selected.
-
-The sole behavior change is the decorative Tactile surface TabsList edge:
-
-`inset-ring-1 inset-ring-border/80` replaces the outer ring equivalent. The
-installed Tailwind 4.3.3 compiler confirmed the generated inset declarations.
-Off remains edge-free; Tabs remain Strength-invariant; Secondary Button
-tactility, selected triggers, line Tabs, and semantic focus-visible rings are
-unchanged. Theme 3.0, 13 mutations, 23 registry resources, persistence,
-Design Command, dependencies, and public APIs remain intact.
-
-Lead's exact-candidate checks passed 242 targeted unit tests, touched-package
-typechecks, the Workbench build, the phase guard, and 14 focused narrow/wide
-browser cases. Eight decoded axe captures had no violations. A fresh protected
-Codex Terra verifier passed without repair. Candidate-core override configs
-were used for worktree checks because symlinked dependencies otherwise resolve
-core from canonical main; the final bundle was verified to contain the inset
-rule. Historical phase guards remain base-inapplicable. Exact findings,
-evidence, and receipts are retained in `.loop` and the phase evidence folder.
-
-## Phase result: Tactile border and Design system type v1
-
-Accepted PUI-129 and PUI-131 together at product commit
-`b2f937a66508bb0a1978dc35c2a4b2bb89c46c83`. The Tactile surface TabsList
-decorative edge changed from `ring-ring/20` to `ring-border/80`. Off still adds
-no decorative ring, Strength still affects Secondary Buttons alone, and tab
-focus-visible continues using the semantic `ring` token. Design system Colors
-group headings are `text-sm` and uppercase; labels, HEX values, swatches,
-grouping, and layout remain unchanged.
-
-Focused Lead checks passed 44 targeted unit tests, touched-package typecheck,
-the Workbench build, the phase guard, and 16 narrow/wide browser cases covering
-Amber Dusk light/dark, strength invariance, keyboard focus, and Colors layout.
-Four decoded axe attachments had no violations. A fresh protected Codex Terra
-verifier passed the unchanged candidate without repair. The older Amber Dusk
-phase guard remains inapplicable to the current base because its historical
-scope check includes a preexisting `BRIEF.md` change; the phase-local guard
-passed. No broad regression suite or remote push was needed for these two
-bounded presentation changes. Exact receipts remain in `.loop`.
-
-## Phase result: Amber Dusk and shell refinement v1
-
-Accepted PUI-123 through PUI-128 at product commit
-`5ea846de50c9206fcb7a9e16d3bdf441d1d48d8a`. Amber Dusk maps the owner
-palette into the existing Theme v3 preset architecture, including light/dark,
-chart and dedicated Sidebar tokens. The original source remains traceable in
-the frozen ticket and conversion report. After a fresh verifier found serious
-text contrast failures, the owner authorized narrow changes to light
-`muted-foreground`, light `primary`, and dark `primary-foreground`. The observed
-text pairs now measure at least 4.5:1, and eight Lead decoded axe captures on
-the corrected candidate show no serious or critical findings.
-
-Tactile surface Tabs now receive only `ring-1 ring-ring/20` on TabsList while
-Secondary Buttons alone respond to Strength. The effect helper is shown only
-for Tactile. Design system color labels and headings, larger App shells and
-Inset styling, full-width Manage storage, and the locally circular Chat send
-button passed the focused narrow/wide light/dark browser matrix. The earlier
-full Workbench run passed 446 tests with 18 established skips; Storybook passed
-118 and the credential-empty Design Command boundary passed. Following the
-three-token correction, the owner directed focused verification: 24 browser
-tests and the contrast unit assertion passed. A duplicate full Workbench rerun
-was stopped and is not counted as a pass. The fresh protected verifier passed
-the corrected exact candidate without repair.
-
-A possible future use of light `primary` as normal text on the light background
-would have 4.37:1 contrast; it is not rendered in the accepted UI. Earlier
-Bitcoin, Type scale, Default contrast, and keyboard-scroll residuals remain
-separate. A producer-created wakeup schedule violated the worker envelope; it
-was canceled before firing, and Lead confirmed there were no active schedules.
-The incident and the initial verifier failure remain in the phase receipts.
-
-## Phase result: UI Effects Showcase Polish v1
-
-Accepted PUI-119, PUI-120, PUI-121, and PUI-122 together at product commit
-`a30f4d3c6a2fad98852fc51ad5e7520d919c7850`. The Theme v3 UI Effects
-editor now offers Off/Tactile and one Strength control. Exact prior toggle
-payloads migrate by the any-active-target rule; absent older themes stay
-flat. Tactile applies automatically to Secondary Buttons and selected surface
-Tabs with a shared semantic light/dark treatment. Default, Outline,
-destructive, ghost and link Buttons, line Tabs, and Inputs remain flat.
-
-Both Workbench tab groups use content-width default surface Tabs. Storage
-gains an inert Manage storage Secondary action; compact section triggers and
-GitHub/Google specimens use Secondary without changing their measured
-geometry or adding workflows. The Design system Colors preview uses a
-clearer hierarchy and contextual Sidebar display labels while token keys,
-CSS variables, editor labels, aliases and import/export keys remain intact.
-
-Lead's final exact-candidate checks passed 422 Workbench browser tests with
-18 established skips, 118 Storybook browser tests, the credential-empty
-Design Command boundary, 907 unit tests, typecheck, all builds and the phase
-guard. Accepted-base comparison showed identical geometry for 19 compact
-triggers and both social Buttons. Decoded candidate axe results had no new
-serious or critical findings; the moderate landmark/region findings matched
-the base, while the old Default-light muted-trigger contrast finding was
-absent on Secondary triggers. Fresh protected Sonnet 5 verification passed
-the unchanged candidate without repair.
-
-The producer's initial 64-failure browser run, Lead's first 8-failure full
-run, and one producer PageDown occurrence remain disclosed in the phase
-receipts. Corrected assertions and the final clean run are separately
-preserved. Earlier Bitcoin, Type scale, Default contrast and WCN residuals
-remain distinct. Acceptance was recorded before local promotion; no owner
-visual gate or remote publishing was admitted.
-
-## Phase result: Workbench Performance v1
-
-Accepted PUI-118 at product commit `e3f7410033966326785cf74f59429eba8d0d68f0`.
-A committed accepted-base profile found about 1,300 preview component renders
-per theme edit. Memo boundaries around prop-independent Cards, App shells and
-States previews, plus the Design system sheet keyed by posted CSS, reduce that
-to about 177 without changing DOM, iframe messages, history or visual output.
-In Lead's paired 4× CPU browser run, color-edit medians fell from 152–161 ms
-to 116–121 ms and preview-tab medians from 68–77 ms to 37–40 ms across three
-fresh sessions per build. Twenty narrow/wide light/dark screenshot pairs were
-byte-identical. Radius-slider total work and other non-targeted hotspots
-remain neutral; no broader architecture change was made.
-
-Lead's exact-candidate Workbench suite passed 414 tests with 18 established
-skips; Storybook passed 118 and the credential-empty Design Command boundary
-passed. The separate four-worker keyboard-scroll stress passed 40/40. The
-producer had observed 5/140 intermittent candidate failures under parallel
-load versus 0/140 on its accepted-base comparison; that uncertainty remains
-explicitly recorded, alongside the prior accepted-phase intermittency. Fresh
-protected Codex Terra verification passed 899 unit tests, typecheck, all
-builds, frozen contract and measurement audit. See `.loop/runs/workbench-performance-v1-001/`
-for exact receipts and residuals.
-
-## Phase result: Tactile UI Effects v1
-
-Accepted PUI-113 at product commit `be63bef26f0f654a2c449533ee83d12f91a80454`.
-The Effects tab adds UI EFFECTS with Tactile, Outline buttons and Tabs toggles,
-and Strength. Semantic-token styling is limited to Outline Buttons and active
-surface Tabs; non-outline variants, inactive/line Tabs, Inputs and unrelated
-components stay flat. Theme v3 old imports, new exports, save/reload, history,
-Undo/Redo/Reset and Design Command staging retain their boundaries.
-
-Lead verification recorded 413 Workbench browser passes, 18 established skips,
-and one intermittent legacy Bitcoin width-sweep failure; the unchanged test
-failed 2/5 repeats on the freshly built prior accepted base. New tactile
-browser checks passed 10/10, Storybook 118/118, and the Design Command boundary
-1/1. Four narrow/wide light/dark captures and decoded axe checks found no new
-blocking issue. The fresh protected Codex Terra verifier independently passed
-899 unit tests, typecheck, Workbench/Storybook/registry builds, the phase guard,
-and the exact-candidate source/contract/evidence audit. The full Workbench
-suite is not recorded as a clean pass. Phase receipts in `.loop` retain the
-comparison logs and accepted residuals.
+Last updated: 2026-10-15
 
 ## Goal
 
-Build a local-first, self-hostable, agent-first personal UI system on top of shadcn/ui. It will give Paseo Leads, Jev/TypeSafe, Codex, Claude Code, verifier agents, and the owner a compact source of truth for producing interfaces that follow the owner's preferences without forcing every project into one visual identity.
+Build a local-first, self-hostable, agent-first personal UI system on top of shadcn/ui. It will give coding agents such as Codex and Claude Code, Jev/TypeSafe, and the owner a compact source of truth for producing interfaces that follow the owner's preferences without forcing every project into one visual identity.
 
 V1 proves a narrow vertical slice: structured theme data and design-system rules can drive both reusable shadcn-based components and a local visual editor, while remaining directly consumable without running that editor.
 
@@ -461,7 +173,7 @@ now separates Radius and Spacing into Geometry while Shadow and Motion remain
 in Effects. Theme v3, the 12-operation mutation union, history/recovery,
 persistence, and staged Design Command semantics remain intact. The phase's
 mobile tab-focus correction keeps keyboard slider input operable after a
-category switch; no worker network or owner visual-review gate was admitted.
+category switch.
 
 The accepted gallery and preview expansion phase delivers PUI-95 through
 PUI-102. The eleven-card gallery refines Chat, the compact payment table,
@@ -472,10 +184,8 @@ and States. Design system is a read-only live reference for semantic colors and
 typography; App shells presents three contained patterns built from the
 accepted shadcn Sidebar. Theme v3, the 23-resource registry, 12 mutation
 operations, history, persistence, and staged Design Command boundaries remain
-unchanged. Lead browser checks and fresh protected verification passed on the
-exact candidate. Existing narrow-column doubled-spacing overflow and
-previously accepted contrast-token debts remain explicitly recorded in the
-phase evidence; no owner visual gate, worker network, or paid capacity was used.
+unchanged. Existing narrow-column doubled-spacing overflow and previously
+accepted contrast-token debts remain explicitly recorded.
 
 ## V1 product contract
 
@@ -500,7 +210,7 @@ The design-system packages MUST be importable and testable without starting the 
 - A broad component catalog.
 - Multi-user, cloud sync, authentication, publishing, hosted deployment, billing, or marketplace work.
 - Pixel-perfect theme comparison, visual branching history, or production-grade migration tooling.
-- Jev deciding or editing hard rules. V1 may define typed decision packets and fixtures, but does not invent missing Loop gate/Jev infrastructure.
+- Jev deciding or editing hard rules. V1 may define typed decision packets and fixtures, but does not invent missing Jev infrastructure.
 
 ## Why this is the smallest useful V1
 
@@ -528,42 +238,6 @@ stories/ or colocated stories
 Preferred baseline: TypeScript, React, Vite, Tailwind CSS v4, shadcn/ui, pnpm workspaces, Vitest, Storybook, Playwright, and axe. The implementation spike must verify current compatibility before this becomes final.
 
 Canonical sources of truth are versioned data/schema files and component source, not workbench storage, generated CSS, Storybook manifests, or model prose.
-
-## Project-specific worker routing
-
-For substantive implementation work in `personal-ui-system`, STRONG is the
-default producer class. The preferred configured STRONG routes are Codex
-`gpt-6-sol` at medium effort and Claude `claude-opus-5-5` at medium effort;
-provider selection still uses current admissibility, capacity evidence, and any
-active owner preference.
-
-STANDARD remains appropriate for clearly mechanical, narrow, or routine work
-when no meaningful benefit from STRONG is expected. Verification also defaults
-to STANDARD unless the verification task itself has a recorded concrete reason
-to use STRONG.
-
-For visual direction, high-taste frontend work, or similarly demanding UI
-tasks, MAX should be preferred when justified. Astra is the preferred MAX route
-for primarily visual/UI work, but every MAX dispatch remains explicitly
-owner-gated for the exact task, profile, model, and effort.
-
-Current Claude class routing is `claude-sonnet-5` / medium for STANDARD,
-`claude-opus-5-5` / medium for STRONG, and `claude-fable-5-1` / medium for
-MAX. MAX remains exact one-use owner-gated, and STRONG must not fall through to
-MAX automatically.
-
-This is a project-level routing preference intended to reduce correction loops;
-it does not modify the global Loop Engineering model-class policy.
-
-Current Loop runtime behavior uses Phase 10 semantics. Owner visual review is
-opt-in at planning/admission rather than an implicit completion gate.
-Independent non-blocking owner questions are batched where safe while
-admissible work continues. After deterministic recovery is exhausted, an
-ambiguous runtime or verification problem may be routed through the
-fresh-context Loop Resolver before owner escalation. When technical acceptance
-and protected verification pass and no admitted owner gate remains, the Lead
-accepts, promotes, runs post-promotion checks, persists receipts, and closes
-the phase automatically.
 
 ## Design boundaries
 
@@ -628,7 +302,7 @@ Observations and repeated corrections may be recorded as rule candidates with pr
 
 ## Acceptance criteria
 
-All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by the owner.
+All criteria are mandatory unless explicitly re-scoped by the owner. Each was verified on the date shown.
 
 ### AC-01 — Independent core
 
@@ -636,7 +310,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** Node/TypeScript test runner and dependency-boundary inspection.
 - **threshold:** Core test suite passes; an automated dependency check finds no import from `apps/workbench` into a core package.
-- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-01.json`
+- **result:** verified 2026-09-21
 
 ### AC-02 — shadcn foundation
 
@@ -644,7 +318,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** shadcn registry loader/schema validator plus source inspection script.
 - **threshold:** Registry validation passes for all pilot items; each declares its shadcn/primitive dependency and contains no bespoke implementation of focus trapping, roving focus, or dialog dismissal.
-- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-02.json`
+- **result:** verified 2026-09-21
 
 ### AC-03 — Structured themes
 
@@ -652,7 +326,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** Schema tests, fixtures, and snapshot/hash comparison.
 - **threshold:** Valid fixture round-trips without semantic loss; invalid fixtures are rejected; identical input produces byte-identical CSS; both color modes and all six categories are present.
-- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-03.json`
+- **result:** verified 2026-09-21
 
 ### AC-04 — Compact agent contracts
 
@@ -660,7 +334,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** Contract validator and lookup test.
 - **threshold:** All required fields validate for three pilots; single-item lookup returns only that item's contract and is at most 8 KiB serialized for each pilot.
-- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-04.json`
+- **result:** verified 2026-09-21
 
 ### AC-05 — Deterministic constraints and safe mutations
 
@@ -668,7 +342,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** Unit/property tests against declared mutation operations and constraint fixtures.
 - **threshold:** Every predeclared invalid fixture is rejected with a stable rule ID and path; valid fixtures apply; unknown operation/path is rejected; no operation accepts raw CSS or filesystem paths.
-- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-05.json`
+- **result:** verified 2026-09-21
 
 ### AC-06 — Local visual workbench
 
@@ -676,7 +350,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** browser
 - **capability:** Real Chromium via Playwright with screenshot and interaction evidence.
 - **threshold:** One automated path completes every listed action at 390×844 and 1440×900; saved state survives reload; validation errors prevent invalid activation; no external network is required after install.
-- **result + evidencePath:** verified 2026-09-20; `.loop/runs/workbench-lifecycle-001/evidence/ac-06.json`
+- **result:** verified 2026-09-20
 
 ### AC-07 — Accessibility and responsive behavior
 
@@ -684,7 +358,7 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** browser
 - **capability:** Playwright, axe, keyboard interaction, viewport inspection.
 - **threshold:** Zero critical/serious axe violations across the declared matrix; documented keyboard flows pass; at ≤640 px the dialog fixture renders the declared drawer behavior and at ≥1024 px the dialog behavior.
-- **result + evidencePath:** verified 2026-09-21; `.loop/runs/accessibility-browser-001/evidence/ac-07.json`
+- **result:** verified 2026-09-21
 
 ### AC-08 — Reusable-rule promotion remains human-controlled
 
@@ -692,15 +366,15 @@ All criteria are mandatory for `DONE(verified)` unless explicitly re-scoped by t
 - **method:** code
 - **capability:** State-machine tests and fixture audit.
 - **threshold:** Direct candidate-to-active mutation without approval receipt is rejected; approved fixture preserves provenance, owner response, and timestamp.
-- **result + evidencePath:** verified 2026-09-21; `.loop/runs/core-policy-audit-001/evidence/ac-08.json`
+- **result:** verified 2026-09-21
 
 ### AC-09 — Documentation and agent handoff
 
 - **assertion:** A fresh coding agent can discover the source-of-truth files, retrieve one contract/theme, apply a valid structured change, and run the relevant verification command from repository instructions.
 - **method:** rubric
-- **capability:** Fresh-context verifier with filesystem and command execution.
+- **capability:** Fresh-context coding agent with filesystem and command execution.
 - **threshold:** 5/5 rubric items pass with cited files and command output: discovery, targeted retrieval, valid mutation, invalid-mutation rejection, verification execution.
-- **result + evidencePath:** verified 2026-09-21; `.loop/runs/fresh-agent-handoff-001/evidence/ac-09.json`
+- **result:** verified 2026-09-21
 
 ## Verification matrix and freshness
 
@@ -713,45 +387,18 @@ V1 verification environments:
 - Color modes: light and dark where applicable.
 - Accessibility: axe plus explicit keyboard paths; automated checks do not claim full accessibility.
 
-## Budgets
-
-These are conservative project ceilings pending a global owner policy:
-
-- Paid spend: 0. No metered API, purchased credit, overage, or new subscription.
-- Agent runs: maximum 8 for V1.
-- Total delegated provider calls/turns: maximum 80 for V1; retries, replacement, and resume do not reset this ceiling.
-- Worker concurrency: maximum 2; start with 1. A second worker requires proven independence and recorded benefit.
-- Spawn depth: 1.
-- Attempts per task: maximum 3; unchanged retries are forbidden.
-- Provider/model policy: included subscription routes only; standard class by default, strong only for difficult synthesis/red-team with a logged reason, max not admitted for V1 without explicit owner approval and gate support.
-- Research task: ≤20 fetched primary-source pages, ≤45 minutes wall clock, checkpoint after each source cluster.
-- Implementation task: ≤12 calls/turns per admitted worker when the provider can enforce it, ≤90 minutes wall clock per run, soft target 40k tokens, checkpoint after each criterion-sized unit.
-- Verification task: ≤10 calls/turns per admitted verifier when enforceable, ≤60 minutes wall clock, soft target 25k tokens, checkpoint after each criterion.
-
-Prompt-only token and turn targets are telemetry, not hard controls. Formal dispatch remains paused if the required external controls cannot be proven.
-
-## Capabilities required before implementation dispatch
+## Verification capabilities
 
 - Local package manager and Node runtime compatible with selected dependencies.
-- Git repository and isolated worktree support for code producers.
-- Accessible Paseo control plane and labelled agent/workspace operations.
-- Eligible provider profile with tested spawn depth/concurrency and `.loop/` write denial.
-- Browser renderer and accessibility tooling for AC-06/07.
 - Deterministic schema/test runner for AC-01–05/08.
-- Fresh-context verifier for AC-09.
+- Browser renderer and accessibility tooling for AC-06/07.
+- A fresh-context coding agent for AC-09.
 
 ## Authority boundaries
 
 The owner retains authority over public publishing, production deployment, destructive production changes, financial liability, and promotion of design-rule candidates. Agents may prepare but not execute those actions.
 
-Within the local repository, the Lead may create and edit project files, install zero-cost dependencies when admitted, run local tests/builds, create reversible worktrees, and operate the local development server. Secrets, credentials, raw sensitive data, and canonical `.loop/` state must not enter worker workspaces or commits.
-
-## Expected bounded outcomes
-
-- `verified`: every mandatory criterion has fresh passing evidence.
-- `negative`: the spike proves a core premise infeasible within the declared stack/budget and preserves reproducible evidence.
-- `inconclusive`: a required provider, browser, or verification capability remains unavailable after admissible attempts.
-- `abandoned`: owner explicitly stops the project.
+Within the local repository, agents may create and edit project files, run local tests/builds, create reversible worktrees, and operate the local development server. New dependencies and any paid capacity require owner approval. Secrets, credentials, and raw sensitive data must not enter commits.
 
 ## Current assumptions and owner choices
 
@@ -765,10 +412,17 @@ Safe defaults applied for scoping:
 
 Owner confirmation received on 2026-09-20 for this narrow V1. Deferred capabilities remain potential later phases, not architectural exclusions.
 
-## Post-V1 phase: shadcn workbench alignment
+## Product history
 
-This bounded cleanup begins only after the completed V1 checkpoint and does not
-change V1 scope, results, evidence, or its 8/8 agent-run record.
+Accepted phases in chronological order. Each entry records the product outcome
+and the verification evidence observed at acceptance. Phase identifiers (for
+example `theme-mutation-coverage-001`) and acceptance-criterion IDs (PH2-01,
+JDC-01, …) are historical labels; the agent tooling that originally ran these
+phases has been retired and is not part of this repository.
+
+### Post-V1: shadcn workbench alignment
+
+This bounded cleanup followed V1 completion and did not change V1 scope or results.
 
 Included work:
 
@@ -787,17 +441,12 @@ Included work:
 
 Acceptance requires fresh passing unit tests, typecheck, registry build,
 workbench build, Storybook build, Playwright browser matrix, light/dark coverage,
-and axe/accessibility checks. The phase budget is one worker run, one concurrent
-worker, at most 12 worker calls/turns, at most two changed attempts within that
-run, 90 minutes wall clock, and paid budget 0. The owner-approved global ceiling
-of 10 provides exactly one cleanup slot after accounting for V1's 8 runs and the
-post-V1 audit run; the phase-local one-run limit remains controlling.
+and axe/accessibility checks.
 
-## Phase 2: theme mutation coverage
+### Phase 2: theme mutation coverage
 
-Owner-approved on 2026-09-21. This phase does not change V1 scope, results, or
-its 8/8 agent-run record, and does not reopen the completed post-V1
-shadcn-alignment phase.
+Owner-approved on 2026-09-21. This phase does not change V1 scope or results,
+and does not reopen the completed post-V1 shadcn-alignment phase.
 
 The theme schema declares six token categories and renders all of them, but the
 mutation boundary admits exactly one operation, `setColor`. This phase closes
@@ -824,8 +473,7 @@ change, new pilot components, rule promotion, publishing, deployment, pixel
 comparison, branching history, and the protected `ResponsiveDialog`, iframe,
 JSON download, and preview-scroller surfaces.
 
-Acceptance is PH2-01 through PH2-06 in
-`.loop/runs/theme-mutation-coverage-001/task.md`: category coverage, closed
+Acceptance is PH2-01 through PH2-06: category coverage, closed
 boundary, deterministic round-trip, workbench editing across both viewports and
 both colour modes, unchanged accessibility, and no regression.
 
@@ -834,17 +482,9 @@ becomes stale for the current artifact. The owner accepted this. The new phase
 evidence re-establishes the affected invariants; the historical V1 record stands
 unchanged.
 
-The phase budget is one worker run, one concurrent worker, at most 12 worker
-calls, at most two changed attempts within that run, 120 minutes wall clock, a
-50k soft token target, spawn depth 1, and paid budget 0. The owner raised the
-project lifetime agent-run ceiling from 10 to 11 to admit exactly this run. If
-the run cannot complete the phase, the project pauses rather than raising the
-ceiling again.
+### Phase 2 result — 2026-09-21
 
-## Phase 2 result — 2026-09-21
-
-`theme-mutation-coverage-001` is `DONE(verified)` at main commit `2d913c0`
-(artifact `e8481f5`, core work `f6f3ed6`), pending owner acceptance.
+Completed at main commit `2d913c0` (artifact `e8481f5`, core work `f6f3ed6`).
 
 All six theme categories now have a typed mutation operation, and the workbench
 can edit them. Each new operation edits one fixed target and carries no token,
@@ -867,9 +507,9 @@ The workbench gained an "Edit theme settings" panel built on the same shadcn
 `Field` / `FieldLabel` / `FieldError` / `NativeSelect` shell, plus
 `apps/workbench/src/settings.ts` and an `editTheme` function in `lifecycle.ts`.
 
-### Lead-run acceptance evidence
+#### Acceptance evidence
 
-Every command was rerun by the Lead against `e8481f5`.
+Every command was run against `e8481f5`.
 
 | Command | Result |
 |---|---|
@@ -880,30 +520,21 @@ Every command was rerun by the Lead against `e8481f5`.
 | `corepack pnpm build:storybook` | passed |
 | `WORKBENCH_PORT=5199 corepack pnpm test:browser` | Storybook 4/4, workbench 8/8 |
 
-The Lead decoded all 40 axe attachment bodies directly: every one is an empty
+All 40 axe attachment bodies were decoded directly: every one is an empty
 array, across 20 distinct checkpoints including the three new settings states.
 
-The Lead also wrote and ran an independent probe of the closed boundary rather
-than trusting the worker's own fixtures. Sixteen escape-hatch attacks — a raw
+An independent probe of the closed boundary also ran. Sixteen escape-hatch attacks — a raw
 `setCss` operation, extra `css` / `path` / `file` / `$ref` fields, a JSON pointer
 patch, a bulk `setMany`, inherited property names including `__proto__`,
 negative lengths, out-of-range density, and injection-shaped strings — were all
 rejected with stable rule IDs and canonical paths, and the theme was left
-untouched on rejection. The probe is retained at
-`.loop/runs/theme-mutation-coverage-001/evidence/lead-probe.test.ts` rather than
-added to the product suite, to keep the delivered artifact inside the worker's
-contracted scope. One probe assertion initially failed on the Lead's own bug —
-an empty operations array is rejected by pre-existing request rules — which was
-corrected; the product code was not at fault.
+untouched on rejection.
 
 `registry.json` is byte-identical to `main` (sha256 `9361b823…`) and the
 three-pilot contract data is unchanged. After the merge, `main` at `2d913c0`
 re-ran 245 tests and typecheck clean.
 
-Budget at completion: phase agent runs 1/1, worker calls 1/12, attempts 1/2,
-lifetime agent runs 11/11, project calls 17/80, paid spend 0.
-
-### Known limitations
+#### Known limitations
 
 - **Live preview is partial.** `previewVariablesCss` sends only the `:root` and
   `.dark` blocks, and Tailwind `@theme inline` values compile into the preview at
@@ -919,10 +550,10 @@ lifetime agent runs 11/11, project calls 17/80, paid spend 0.
   rejected as `mutation.unknown-field` rather than `mutation.unknown-token`.
   Both are stable rule IDs with canonical paths.
 
-## Phase 3: preview feedback completion
+### Phase 3: preview feedback completion
 
-Owner-approved on 2026-09-21. This phase does not change V1 scope or its 8/8
-agent-run record, and does not reopen either completed post-V1 phase.
+Owner-approved on 2026-09-21. This phase does not change V1 scope and does not
+reopen either completed post-V1 phase.
 
 `@theme inline` makes Tailwind substitute values literally at build time, so
 only the tokens whose inline entries carry `var()` indirection can change at
@@ -957,8 +588,7 @@ or catalog changes, new pilots beyond the single observation sample, cross-origi
 or sandbox redesign, hot reload, visual-regression snapshots, rule promotion,
 publishing, and deployment.
 
-Acceptance is PH3-01 through PH3-07 in
-`.loop/runs/preview-feedback-completion-001/task.md`: live updates for all six
+Acceptance is PH3-01 through PH3-07: live updates for all six
 categories, deterministic render with a consistent golden, an unchanged mutation
 boundary, no pilot regression, unchanged accessibility, a scope guard, and
 default visual equivalence.
@@ -969,16 +599,9 @@ re-established by PH3-02, PH3-04, PH3-05, and PH3-07. AC-01, AC-02, AC-04,
 AC-08, PH2-01, PH2-02, and PH2-06 are unaffected. Historical V1 records stand
 unchanged.
 
-The phase budget is one worker run, one concurrent worker, at most 12 worker
-calls, at most two changed attempts, 120 minutes wall clock, a 50k soft token
-target, spawn depth 1, and paid budget 0. The owner raised the project lifetime
-agent-run ceiling from 11 to 12 to admit exactly this run. If the run cannot
-complete the phase, the project pauses rather than raising the ceiling again.
+### Phase 3 result — 2026-09-21
 
-## Phase 3 result — 2026-09-21
-
-`preview-feedback-completion-001` is `DONE(verified)` at main commit `719ef63`
-(artifact `3466767`, baseline capture `5012ddd`), pending owner acceptance.
+Completed at main commit `719ef63` (artifact `3466767`, baseline capture `5012ddd`).
 
 All six theme categories now change computed styles live in the preview iframe
 with no reload. The renderer emits font family, shadow layers, and the radius
@@ -992,7 +615,7 @@ The preview gained one Elevation sample using `shadow-md` and `rounded-md`,
 because no pilot consumed the only mutable shadow token. The iframe and
 `postMessage` plumbing were not touched, so there was no scope escalation.
 
-### Lead-run acceptance evidence
+#### Acceptance evidence
 
 | Command | Result |
 |---|---|
@@ -1003,22 +626,21 @@ because no pilot consumed the only mutable shadow token. The iframe and
 | `corepack pnpm build:storybook` | passed |
 | `WORKBENCH_PORT=5199 corepack pnpm test:browser` | Storybook 4/4, workbench 14/14 |
 
-The Lead decoded all 40 axe attachment bodies — every one empty across 20
-checkpoints — and reran its own phase-2 mutation-boundary probe unchanged, 20/20,
+All 40 axe attachment bodies were decoded — every one empty across 20
+checkpoints — and the phase-2 mutation-boundary probe reran unchanged, 20/20,
 confirming the operation union did not widen.
 
-Two checks the Lead added because the worker could not supply them:
+Two additional checks:
 
 - **Independent PH3-07 derivation.** Rather than trusting the captured fixture,
-  the Lead hand-derived every expected value from the pre-change golden CSS:
+  every expected value was hand-derived from the pre-change golden CSS:
   `shadow-md oklch(0 0 0 / 10%)` resolves to `oklch(0 0 0 / 0.1) 0px 4px 8px
   -2px`, `radius.md 0.5rem` to `8px`, `radius.lg 0.75rem` to `12px`, and the
   input's `shadow-xs` to Tailwind's untouched default. All matched. Git confirms
   the baseline commit touched neither `render.ts` nor the golden, so the fixture
   is a genuine pre-indirection capture.
-- **Negative control.** The worker did not run the new live test against the old
-  renderer, so it produced no failing-before evidence. The Lead compared compiled
-  stylesheets instead: `border-radius:.5rem` became
+- **Negative control.** Compiled stylesheets were compared before and after
+  the change: `border-radius:.5rem` became
   `border-radius:var(--radius-scale-md)`, `font-family:"Inter", system-ui,
   sans-serif` became `font-family:var(--font-family-sans)`, and literal shadow
   layers became `var(--shadow-layers-*)`. The three dead categories are live at
@@ -1027,10 +649,7 @@ Two checks the Lead added because the worker could not supply them:
 `registry.json` is byte-identical and the three-pilot catalog is unchanged.
 After the merge, `main` at `719ef63` re-ran 246 tests and typecheck clean.
 
-Budget at completion: phase agent runs 1/1, worker calls 1/12, attempts 1/2,
-lifetime agent runs 12/12, project calls 19/80, paid spend 0.
-
-### Notes carried forward
+#### Notes carried forward
 
 - The equivalence fixture's `button-default` shadow entry is uninformative
   (shadow is `none`), and the `input-default` entry samples Tailwind's own
@@ -1038,12 +657,8 @@ lifetime agent runs 12/12, project calls 19/80, paid spend 0.
   and the dialog.
 - `font-mono` and the `sm` radius and shadow tokens are not sampled, because no
   preview element consumes them.
-- The worker reported roughly 20 internal tool calls against a budget written as
-  "at most 12 worker calls/turns". The controlled unit is Lead-to-worker turns,
-  of which one was used. Recorded as a definitional gap to fix in future phase
-  budgets, not a breach.
 
-## Phase 4: mutation proposal preview
+### Phase 4: mutation proposal preview
 
 Owner-approved on 2026-09-21. `mutation-proposal-preview-001` adds a narrow,
 non-committing proposal transaction around the existing closed
@@ -1073,72 +688,19 @@ in-memory state once; Save remains separate. Discard leaves active state and
 persistence byte-identical. Candidate preview uses the existing iframe and
 rendered CSS without making the candidate active.
 
-Acceptance is PP-01 through PP-10 in
-`.loop/runs/mutation-proposal-preview-001/task.md`. The phase budget is one
-worker run, concurrency one, at most three Lead-to-worker turns, at most three
-changed attempts, 120 minutes, a 50,000 soft worker-token target, spawn depth
-one, and paid budget zero. The owner raised the lifetime agent-run ceiling from
-12 to 13 for exactly this run, then authorized the third turn/attempt only for
-staged-state control isolation. No additional worker run or attempt is
-authorized.
+Acceptance is PP-01 through PP-10.
 
-The implementation was preserved at main `096efc5` while two evidence gaps
-were remediated in a separate, owner-authorized test-only run. The completion
-gate passed in the isolated worktree before integration. Main `a41caf5` now has
+The implementation landed at main `096efc5`; a follow-up test-only change
+closed two evidence gaps. Main `a41caf5` now has
 computed-style proposal-preview evidence for all six mutation categories and
 explicit keyboard activation evidence for Stage, Discard, second Stage, and
 Apply. No product file changed during remediation. The targeted matrix passed
 28/28 at both viewports in light and dark, with 16 decoded axe attachments and
 zero serious or critical violations.
 
-The owner accepted `mutation-proposal-preview-001` as `DONE(verified)` on
-2026-09-21, including the isolated completion-gate-before-merge process used
-for the final remediation.
+The owner accepted `mutation-proposal-preview-001` on 2026-09-21.
 
-## Migration Phase B: adopt the shared Loop Engineering runtime
-
-Owner-approved on 2026-09-22. This phase replaces the temporary project-local
-Jev implementation with the exact verified private package
-`@loop-engineering/jev-core@0.1.0`. The immutable local tarball has SHA-256
-`fb3db3792fede89b2a977c120dfe3e4566fe6c303dd4fc2b769c2049304af923`,
-verified runtime commit `40eb9cab16ad2ac3974d98e851ff3abf415b2fb8`, and packaged source commit
-`d1226c2c92f5682cc1d932b2401b2b628555c7ac`. Registry publication and network
-dependency resolution are forbidden.
-
-The producer may change only dependency/lock metadata, Jev integration scripts,
-the temporary adapter replacement, migration fixtures/tooling, and directly
-related tests and documentation. A minimal project-specific configuration shim
-may remain, but it must not duplicate decision acceptance, sanitization,
-persistence, locking, budgets, provider-state handling, or policy logic. Product
-behavior and completed product work are out of scope.
-
-The migration must preserve historical agent runs 14, model/provider requests
-23, Jev requests 2, every task and attempt counter, completed history and
-evidence, accepted product commit `a41caf5f90eea760cf245addf1d70f7e34e9c443`,
-later control checkpoint `dedf949702e9b869670cbb3bc344d4e1b220f4dd`,
-historical provider observations, owner pause/acceptance records, paid spend 0,
-and all human-only authority boundaries. These values may evolve only through
-new Phase B execution; they must never reset.
-
-The phase allocation began with 2 normal agent runs and up to 2 conditional
-remediation runs. After the bounded remediation was exhausted, the owner
-approved one final control-metadata verification slot, followed by one bounded
-live-shape sanitization correction after the mandatory dry-run found numeric
-token-counter false positives: hard phase ceiling 6, lifetime ceiling 20,
-8 Lead-to-worker turns, 6 phase attempts, concurrency 1, and paid spend 0. The
-sixth run is reserved for the protected fresh verifier.
-Remediation headroom retains the previously
-approved materially-changed, failure-bound conditions.
-
-The canonical `.loop/state.json` remains worker-inaccessible. Only after the
-exact candidate passes protected fresh verification may the Lead back up and
-atomically migrate it to state schema v2. The verified live transaction is
-authorized to harden mode `0644` to `0600`; success retains `0600`, while any
-failure restores the exact prior bytes, hash, and `0644` mode. The global policy
-declaration cap was separately changed from 14 to 23 without changing any other
-policy field; the personal project remains independently capped at 20.
-
-## Phase 5: Jev-native design command MVP
+### Phase 5: Jev-native design command MVP
 
 Owner-approved on 2026-09-22. This phase adds a focused natural-language
 command input to the workbench. One command is evaluated through one batched
@@ -1149,20 +711,17 @@ Discard, stale handling, persistence boundaries, and revision behavior remain
 unchanged. Nothing applies automatically.
 
 Architecture corrected and owner-approved on 2026-09-22: this is a
-**product-level Jev integration**, separate from the Loop Engineering control
-plane. `DESIGN_COMMAND` is the versioned internal product contract
-`personal-ui-design-command/1`; it is not a Loop routing contract. Product code
-must not import or depend on `@loop-engineering/jev-core`, `.loop` state, Loop
-billing or request budgets, `WORKER_FAN_OUT`, or any other orchestration
-semantics. The existing shared package and `tools/loop/jev/` remain exclusively
-for Loop Engineering control-plane use.
+**product-level Jev integration**. `DESIGN_COMMAND` is the versioned internal
+product contract `personal-ui-design-command/1`. Product code owns its TypeSafe
+wire contract, transport, and confidence policy (`packages/core/src/jev-design/`)
+and does not depend on any agent-orchestration tooling, state, or budget.
 
 The local product transport boundary is workbench browser -> localhost product
 API -> TypeSafe API. Only that server-side product API may read
 `TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY`. It must never read or fall back to
-`TYPESAFE_LOOP_ENGINEERING_API_KEY` or `TYPESAFE_API_KEY`, and no product AI
-credential may enter a Vite client environment variable, browser bundle,
-localStorage, IndexedDB, proposal provenance, logs, analytics, or `.loop`.
+`TYPESAFE_API_KEY`, and no product AI credential may enter a Vite client
+environment variable, browser bundle, localStorage, IndexedDB, proposal
+provenance, logs, or analytics.
 Missing or empty credentials fail before transport. Rejected credentials,
 timeouts, rate limits, malformed or incomplete responses, and answers below
 the product confidence policy fail closed with no retry, no staged proposal,
@@ -1173,14 +732,15 @@ calls.
 
 The phase begins with a mandatory research gate against the current official
 TypeSafe documentation starting at <https://docs.typesafe.ai/introduction>.
-The researcher, producer, and verifier must each read the applicable official
-documentation and the retained research checkpoint. Required coverage includes
+Design, implementation, and review must be grounded in the applicable official
+documentation and the retained research checkpoint
+(`docs/JEV_DESIGN_COMMAND_RESEARCH.md`). Required coverage includes
 state design, Choice/Score/Noul, confidence versus probability, speculative
 fan-out, intent routing, the smart-home demo, the function-calling cookbook,
 the JavaScript SDK/API contract, current model information, current model
 jaggedness, and transport/retry/error behavior. The research artifact must map
 documented limitations to the question graph, composition rules, and negative
-fixtures before product implementation is admitted.
+fixtures before product implementation begins.
 
 Jev owns only bounded semantic judgments: command kind, targeted categories,
 declared directional choices, categorical strength, and whether clarification
@@ -1221,28 +781,13 @@ explanations are also excluded from this phase; the need for them is deferred
 until a concrete later capability cannot be represented by the closed Jev and
 deterministic-code boundary.
 
-Acceptance is JDC-01 through JDC-12 in
-`.loop/runs/jev-design-command-mvp-001/task.md`: documentation-grounded design,
+Acceptance is JDC-01 through JDC-12: documentation-grounded design,
 bounded six-category interpretation, one-call speculative fan-out,
 deterministic composition, fail-closed outcomes, unchanged proposal lifecycle,
 transparent evidence, a closed mutation boundary, jaggedness defenses, full
 browser/accessibility verification, zero-paid operation, and no regression.
 
-Execution is sequential with one worker at a time: research/contract,
-producer, protected fresh verifier, and at most one informative
-correction/reverification slot. The hard phase ceiling is 4 agent runs (3
-expected), 6 Lead-to-worker turns, 4 phase attempts, concurrency 1, spawn depth
-1, at most 16 live Jev requests with no silent retries, and paid spend 0. The
-owner raised the project lifetime ceiling from 20 to 24 solely for this phase.
-Claude is the owner-preferred producer while fresh owner/provider evidence says
-its included capacity is comfortable. If the owner later reports low Claude
-capacity, the Lead checkpoints at the next coherent boundary, preserves the
-worktree/branch/evidence/counters/next action, stops further Claude dispatch,
-and hands off only work that can safely continue on an admissible Codex route.
-Completed work is never replayed; a materially risky provider switch finishes
-or safely pauses the current unit first.
-
-## Phase 6 result: Agent Context Retrieval v1
+### Phase 6 result: Agent Context Retrieval v1
 
 Accepted on 2026-09-22 at main `b826a931`. The product-owned contract
 `personal-ui-context/1` exposes deterministic, read-only `list`, `get`, and
@@ -1250,20 +795,19 @@ Accepted on 2026-09-22 at main `b826a931`. The product-owned contract
 discover the validated theme and three pilot resources, retrieve one targeted
 theme plus one component/pattern contract, and describe the existing closed
 mutation/proposal capabilities without depending on the workbench, Jev, an LLM,
-network access, credentials, MCP, or Loop Engineering state.
+network access, credentials, or MCP.
 
-ACR-01 through ACR-12 passed protected fresh verification. An unfamiliar agent
+ACR-01 through ACR-12 passed verification. An unfamiliar agent
 used only the public retrieval/package surfaces to select the responsive dialog
 pattern, explain its responsive and accessibility obligations, identify an
 unsupported composition, construct one valid existing proposal, and confirm
 that arbitrary CSS/path mutation was rejected. The phase passed 362 unit tests,
 typecheck, registry/workbench/Storybook builds, and 53 browser tests. Stable
 ordering, complete success-envelope byte ceilings, source-hash provenance,
-immutable result graphs, stable fail-closed CLI errors, and control-plane
-isolation were independently verified. The completion receipt is
-`.loop/runs/agent-context-retrieval-v1-001/result.json`.
+immutable result graphs, and stable fail-closed CLI errors were independently
+verified.
 
-## Phase 7: Accessible Form Composition v1
+### Phase 7: Accessible Form Composition v1
 
 Owner-approved on 2026-09-22. This phase adds exactly two public resources while
 preserving the accepted Button, Input, and Responsive Dialog/Drawer pilots:
@@ -1286,12 +830,11 @@ invent/promote a design principle. The existing optional principles behavior of
 `personal-ui-context/1` remains unchanged and may omit principles for these
 resources.
 
-Acceptance is AFC-01 through AFC-12 in
-`.loop/runs/accessible-form-composition-v1-001/task.md`: bounded catalog change,
+Acceptance is AFC-01 through AFC-12: bounded catalog change,
 complete Field and NativeSelect contracts, registry validity, closed
 constraints, responsive/accessibility behavior, frozen retrieval integration,
 existing byte ceilings and provenance rules, fresh-agent form composition,
-browser evidence, and full regression/control-plane isolation.
+browser evidence, and full regression.
 
 Explicitly excluded: any additional component or pattern, custom
 combobox/listbox behavior, async search, multi-select, schema-version change,
@@ -1299,31 +842,19 @@ new design principles, richer Design Command behavior, Jev, a general-purpose
 LLM or provider abstraction, MCP, project extraction, network or credential
 use, Workbench redesign, publishing, deployment, and paid capacity.
 
-Execution uses one worker at a time: one producer followed by protected fresh
-verification, with one third run reserved only for bounded
-recovery/reverification after an informative failure. The hard phase ceiling is
-3 agent runs (2 expected), 6 Lead-to-worker turns, 4 phase attempts,
-concurrency 1, and paid spend 0. The project/global lifetime run ceiling is 30.
-STANDARD is the default model class; STRONG requires a recorded concrete
-expected benefit, and MAX remains owner-gated per dispatch. The owner prefers
-Codex for the producer; verifier routing remains independent and uses fresh
-provider/capacity evidence at dispatch.
-
-## Phase 7 result: Accessible Form Composition v1
+### Phase 7 result: Accessible Form Composition v1
 
 Accepted on 2026-09-23 at main `a8e63328`. The public catalog now contains
 exactly five resources: Button, Field, Input, Native Select, and Responsive
 Dialog/Drawer. AFC-01 through AFC-12 passed after a bounded documentation-and-
 tests-only correction made the existing proposal path independently
-discoverable to unfamiliar agents. The final protected fresh verifier completed
+discoverable to unfamiliar agents. A fresh-context agent completed
 the public rubric 7/7 using only the core package manifest and README, the public
 context CLI, and public core exports. The accepted runtime preserves the
 existing schemas, theme/mutation/proposal semantics, Workbench behavior, and
-product/control-plane boundary. Completion evidence is recorded in
-`.loop/runs/accessible-form-composition-v1-001/result.json` and
-`.loop/runs/afc09-agent-consumption-correction-001/result.json`.
+product boundaries.
 
-## Phase 8 result: Composition Foundation Pack v1
+### Phase 8 result: Composition Foundation Pack v1
 
 Accepted on 2026-09-23 at main `063a03e3`. The phase added exactly five public resources:
 `card`, `tabs`, `switch`, `textarea`, and `single-toggle-group`. It preserves the
@@ -1333,26 +864,21 @@ account profile, notification preferences, workspace settings, and support
 request—exercise the resulting vocabulary without redesigning the Workbench or
 promoting additional resources.
 
-CFP-01 through CFP-12 passed protected fresh verification. The verifier's public
-consumption rubric passed 6/6; 412 unit tests, all type/build checks, exactly ten
+CFP-01 through CFP-12 passed verification. The public consumption rubric
+passed 6/6; 412 unit tests, all type/build checks, exactly ten
 registry items, 38 Storybook tests, 48 Workbench tests, one real Vite-dev Design
-Command boundary test, and 68 decoded accessibility attachments passed. The
-completion receipt is
-`.loop/runs/composition-foundation-pack-v1-001/result.json`.
+Command boundary test, and 68 decoded accessibility attachments passed.
 
-## Abandoned Phase 9: Workbench Composed Preview v1
+### Abandoned Phase 9: Workbench Composed Preview v1
 
 `workbench-composed-preview-v1-001` has a preserved historical candidate at
-`ea72724f871607881cc48e886198c99152785a5a`. Lead evidence is green, including
-412/412 unit tests, Storybook 38/38, Workbench 62/62, and the Design Command
-boundary 1/1. Protected fresh verification has completed 3/6 WCP-11 items; that
-evidence remains distinct from Lead evidence. The owner abandoned the phase;
-the candidate is not accepted, was never moved to main, and must not be reused
-as a future implementation base. The explicit simplified-runtime migration
-receipt is
-`.loop/runs/workbench-composed-preview-v1-001/migration-receipt.json`.
+`ea72724f871607881cc48e886198c99152785a5a`. Its recorded evidence was green,
+including 412/412 unit tests, Storybook 38/38, Workbench 62/62, and the Design
+Command boundary 1/1, with independent verification incomplete (3/6 WCP-11
+items). The owner abandoned the phase; the candidate is not accepted, was never
+moved to main, and must not be reused as a future implementation base.
 
-## Phase 10 result: Quiet Workspace Workbench v1
+### Phase 10 result: Quiet Workspace Workbench v1
 
 Accepted on 2026-09-24 at product commit
 `5320f55968c2eb25476a7c23ad20d377f0c56117`. The phase implements the
@@ -1368,16 +894,15 @@ Workbench and Storybook. The sole public catalog addition is
 theme editing, validation, fork/save/export/persistence, proposal lifecycle,
 Design Command, responsive, and accessibility behavior remains intact.
 
-The owner approved desktop light/dark and mobile Controls/Preview renders. The
-protected fresh verifier passed an independent source, contract, test, and
-offline-build audit at the exact candidate. Lead and post-promotion evidence
+The owner approved desktop light/dark and mobile Controls/Preview renders. An
+independent source, contract, test, and offline-build audit passed. Verification
 passed 420 unit tests, all typechecks and builds, Workbench 55 passed with one
 expected mobile skip for a desktop-only check, Storybook 40/40, Design Command
 1/1, the exact eleven-resource registry, and frozen/bundle/credential/network
 scans. No schema, token, mutation, proposal, Jev, LLM, MCP, credential, network,
 deployment, or publishing boundary changed.
 
-## Phase 11 result: Workbench Theme Editor Polish v1
+### Phase 11 result: Workbench Theme Editor Polish v1
 
 Accepted on 2026-09-25 at product commit
 `d1db3ab3af931aa66b02119dfe37c2b6dcce7736`. PUI-11 through PUI-17 were
@@ -1393,16 +918,12 @@ opens a minimal Save As flow, while saved custom themes update normally. The
 theme selector, divider, and preview toolbar use the accepted compact,
 design-system-native treatment.
 
-Owner visual review passed. Lead evidence passed 597 unit tests, all
+Owner visual review passed. Verification passed 597 unit tests, all
 typechecks/builds, Storybook 58/58, Workbench 73 passed with one expected
 mobile skip, Design Command 1/1, the exact 13-resource registry, and frozen,
-bundle, credential, and network scans. Protected verification passed on the
-exact candidate after two bounded non-product corrections: removing one
-trailing blank line from the phase contract and admitting that contract path
-to the phase verifier. No product/runtime/test behavior changed during those
-recoveries.
+bundle, credential, and network scans.
 
-## Phase result: Workbench Theme Controls Polish v1
+### Workbench Theme Controls Polish v1
 
 Accepted on 2026-09-25 at product commit
 `473372c92ad23478c41cc151a79fb8274fea7d9f`. PUI-31 through PUI-37 were
@@ -1417,17 +938,35 @@ label/slider/input/unit layout; collapsible groups use accessible compact
 semantic styling; sidebar and preview insets align at 16px; and font controls
 show concise category copy while retaining exact canonical custom stacks.
 
-Lead evidence passed 672 unit tests, all typechecks and builds, Storybook
+Verification passed 672 unit tests, all typechecks and builds, Storybook
 88/88, Workbench 100 passed with two intentional cross-viewport skips, Design
 Command 1/1, the exact 18-resource registry, 11 mutation operations, and the
-phase frozen/bundle/credential/network scan. The fresh Claude Sonnet 5
-STANDARD verifier independently passed the exact-candidate offline, source,
-contract, boundary, and evidence-integrity review without repair authority.
-No owner visual gate was admitted. No public resource, Theme v2 schema,
+phase frozen/bundle/credential/network scan. No public resource, Theme v2 schema,
 mutation operation, persistence format, Jev behavior, credential path, or
 network boundary changed.
 
-## Phase result: Workbench Control Navigation Scroll v1
+### Workbench Rendering Controls Polish v1
+
+Accepted on 2026-09-25 at product commit
+`b70c6df8b5286eb0f1141bf92066d8d93b763f4e`. PUI-38 through PUI-43 were
+delivered as one coordinated batch under WRCP-01 through WRCP-16.
+
+Workbench and preview roots now use consistent antialiased rendering. Shadow
+color editing reuses the canonical OKLCH color field, while Other-tab labels
+and shared collapsible triggers use the approved compact semantic treatment.
+Scoped native scrollbars reveal on container interaction without changing
+overflow geometry. The sidebar header and preview toolbar align at exactly
+64px, preview and sidebar tab typography match, and affected Workbench form
+controls remain 14px across desktop and mobile as explicitly required.
+
+Verification passed 674 unit tests, all typechecks and builds, Storybook
+88/88, Workbench 110 passed with two established viewport-specific skips,
+Design Command 1/1, the exact 18-resource registry, 11 mutation operations,
+and zero serious/critical axe findings.
+No public resource, Theme v2 schema, mutation operation, persistence format,
+Jev behavior, credential path, or network boundary changed.
+
+### Workbench Control Navigation Scroll v1
 
 Accepted on 2026-09-26 at product commit
 `90ea824027f71c8e9ef3e376d6c5c6263b56dee9`. PUI-44 through PUI-50 were
@@ -1448,20 +987,14 @@ it; embedded preview-document, browser-document, Select/Combobox listbox, code,
 and dialog scrolling intentionally remain native. The prior custom native
 scrollbar styling was removed without adding a parallel scrolling model.
 
-Lead evidence passed 679 unit tests, all typechecks and builds, Storybook
+Verification passed 679 unit tests, all typechecks and builds, Storybook
 94/94, Workbench 122 passed with two established viewport-specific skips,
 Design Command 1/1, 19 registry resources, 11 mutation operations, and zero
-serious/critical axe findings. The fresh Claude Sonnet 5 STANDARD verifier
-independently passed the unchanged exact-candidate offline, source, contract,
-boundary, and evidence-integrity review without browser or repair authority.
-Three evidence-log whitespace issues were normalized after product evidence
-was green; the final correction changed no product, runtime, or test bytes.
-
-No owner visual gate was admitted. No Theme v2 schema, mutation operation,
+serious/critical axe findings. No Theme v2 schema, mutation operation,
 persistence format, Jev behavior, credential path, network boundary, or paid
 capacity changed.
 
-## Phase result: Workbench Sidebar Preview Follow-up v1
+### Workbench Sidebar Preview Follow-up v1
 
 Accepted on 2026-09-26 at product commit
 `d3ce5ec5822da47db94b509f8848203520154eb6`. PUI-51 through PUI-55 were
@@ -1482,39 +1015,242 @@ Default dark, 4.468:1 in Quiet Editorial light, and 5.634:1 in Quiet Editorial
 dark. No component substitutes another token family, and the tab-hover debt is
 not hidden behind an axe suppression.
 
-Lead evidence passed 684 unit tests, all typechecks and builds, Storybook
+Verification passed 684 unit tests, all typechecks and builds, Storybook
 94/94, Workbench 142 passed with two established viewport-specific skips,
 Design Command 1/1, the exact 19-resource registry, 11 mutation operations,
-and the frozen/bundle/credential/network scan. The fresh Codex Terra STANDARD
-verifier independently passed the unchanged exact-candidate offline, source,
-contract, boundary, and evidence-integrity review without browser or repair
-authority. No owner visual gate was admitted. No schema, persistence, mutation,
+and the frozen/bundle/credential/network scan. No schema, persistence, mutation,
 Jev, credential, network, dependency, or lockfile boundary changed.
 
-## Phase result: Workbench Rendering Controls Polish v1
+### Tactile UI Effects v1
 
-Accepted on 2026-09-25 at product commit
-`b70c6df8b5286eb0f1141bf92066d8d93b763f4e`. PUI-38 through PUI-43 were
-delivered as one coordinated batch under WRCP-01 through WRCP-16.
+Accepted PUI-113 at product commit `be63bef26f0f654a2c449533ee83d12f91a80454`.
+The Effects tab adds UI EFFECTS with Tactile, Outline buttons and Tabs toggles,
+and Strength. Semantic-token styling is limited to Outline Buttons and active
+surface Tabs; non-outline variants, inactive/line Tabs, Inputs and unrelated
+components stay flat. Theme v3 old imports, new exports, save/reload, history,
+Undo/Redo/Reset and Design Command staging retain their boundaries.
 
-Workbench and preview roots now use consistent antialiased rendering. Shadow
-color editing reuses the canonical OKLCH color field, while Other-tab labels
-and shared collapsible triggers use the approved compact semantic treatment.
-Scoped native scrollbars reveal on container interaction without changing
-overflow geometry. The sidebar header and preview toolbar align at exactly
-64px, preview and sidebar tab typography match, and affected Workbench form
-controls remain 14px across desktop and mobile as explicitly required.
+Verification recorded 413 Workbench browser passes, 18 established skips,
+and one intermittent legacy Bitcoin width-sweep failure; the unchanged test
+failed 2/5 repeats on the freshly built prior accepted base. New tactile
+browser checks passed 10/10, Storybook 118/118, and the Design Command boundary
+1/1. Four narrow/wide light/dark captures and decoded axe checks found no new
+blocking issue; 899 unit tests, typecheck, and Workbench/Storybook/registry
+builds passed. The full Workbench suite is not recorded as a clean pass.
 
-Lead evidence passed 674 unit tests, all typechecks and builds, Storybook
-88/88, Workbench 110 passed with two established viewport-specific skips,
-Design Command 1/1, the exact 18-resource registry, 11 mutation operations,
-and zero serious/critical axe findings. The fresh Codex Terra STANDARD
-verifier independently passed the exact-candidate offline, source, contract,
-boundary, and integrity review without browser or repair authority.
+### Workbench Performance v1
 
-The initial verifier found two control-document trailing blank lines. Bounded
-recovery removed exactly those bytes and added a verifier guard that admits
-only those exact EOF cleanups; product, runtime, and test bytes were unchanged.
-No owner visual gate was admitted. No public resource, Theme v2 schema,
-mutation operation, persistence format, Jev behavior, credential path, or
-network boundary changed.
+Accepted PUI-118 at product commit `e3f7410033966326785cf74f59429eba8d0d68f0`.
+A committed accepted-base profile found about 1,300 preview component renders
+per theme edit. Memo boundaries around prop-independent Cards, App shells and
+States previews, plus the Design system sheet keyed by posted CSS, reduce that
+to about 177 without changing DOM, iframe messages, history or visual output.
+In a paired 4× CPU browser run, color-edit medians fell from 152–161 ms
+to 116–121 ms and preview-tab medians from 68–77 ms to 37–40 ms across three
+fresh sessions per build. Twenty narrow/wide light/dark screenshot pairs were
+byte-identical. Radius-slider total work and other non-targeted hotspots
+remain neutral; no broader architecture change was made.
+
+The Workbench suite passed 414 tests with 18 established skips; Storybook
+passed 118 and the credential-empty Design Command boundary passed. A separate
+four-parallel-process keyboard-scroll stress passed 40/40. An earlier
+observation of 5/140 intermittent failures under parallel load versus 0/140 on
+the accepted base remains explicitly recorded, alongside the prior
+accepted-phase intermittency. 899 unit tests, typecheck, and all builds passed.
+Measurements are in `docs/evidence/workbench-performance-v1/` and
+`docs/WORKBENCH_PERFORMANCE_BASELINE.md`.
+
+### UI Effects Showcase Polish v1
+
+Accepted PUI-119, PUI-120, PUI-121, and PUI-122 together at product commit
+`a30f4d3c6a2fad98852fc51ad5e7520d919c7850`. The Theme v3 UI Effects
+editor now offers Off/Tactile and one Strength control. Exact prior toggle
+payloads migrate by the any-active-target rule; absent older themes stay
+flat. Tactile applies automatically to Secondary Buttons and selected surface
+Tabs with a shared semantic light/dark treatment. Default, Outline,
+destructive, ghost and link Buttons, line Tabs, and Inputs remain flat.
+
+Both Workbench tab groups use content-width default surface Tabs. Storage
+gains an inert Manage storage Secondary action; compact section triggers and
+GitHub/Google specimens use Secondary without changing their measured
+geometry or adding workflows. The Design system Colors preview uses a
+clearer hierarchy and contextual Sidebar display labels while token keys,
+CSS variables, editor labels, aliases and import/export keys remain intact.
+
+Final checks passed 422 Workbench browser tests with 18 established skips,
+118 Storybook browser tests, the credential-empty Design Command boundary,
+907 unit tests, typecheck, and all builds. Accepted-base comparison showed identical geometry for 19 compact
+triggers and both social Buttons. Decoded candidate axe results had no new
+serious or critical findings; the moderate landmark/region findings matched
+the base, while the old Default-light muted-trigger contrast finding was
+absent on Secondary triggers. Earlier Bitcoin, Type scale, Default contrast
+and WCN residuals remain distinct.
+
+### Amber Dusk and shell refinement v1
+
+Accepted PUI-123 through PUI-128 at product commit
+`5ea846de50c9206fcb7a9e16d3bdf441d1d48d8a`. Amber Dusk maps the owner
+palette into the existing Theme v3 preset architecture, including light/dark,
+chart and dedicated Sidebar tokens. The original source remains traceable in
+the frozen ticket and conversion report. After review found serious
+text contrast failures, the owner authorized narrow changes to light
+`muted-foreground`, light `primary`, and dark `primary-foreground`. The observed
+text pairs now measure at least 4.5:1, and eight decoded axe captures on
+the corrected candidate show no serious or critical findings.
+
+Tactile surface Tabs now receive only `ring-1 ring-ring/20` on TabsList while
+Secondary Buttons alone respond to Strength. The effect helper is shown only
+for Tactile. Design system color labels and headings, larger App shells and
+Inset styling, full-width Manage storage, and the locally circular Chat send
+button passed the focused narrow/wide light/dark browser matrix. The earlier
+full Workbench run passed 446 tests with 18 established skips; Storybook passed
+118 and the credential-empty Design Command boundary passed. Following the
+three-token correction, the owner directed focused verification: 24 browser
+tests and the contrast unit assertion passed.
+
+A possible future use of light `primary` as normal text on the light background
+would have 4.37:1 contrast; it is not rendered in the accepted UI. Earlier
+Bitcoin, Type scale, Default contrast, and keyboard-scroll residuals remain
+separate.
+
+### Tactile border and Design system type v1
+
+Accepted PUI-129 and PUI-131 together at product commit
+`b2f937a66508bb0a1978dc35c2a4b2bb89c46c83`. The Tactile surface TabsList
+decorative edge changed from `ring-ring/20` to `ring-border/80`. Off still adds
+no decorative ring, Strength still affects Secondary Buttons alone, and tab
+focus-visible continues using the semantic `ring` token. Design system Colors
+group headings are `text-sm` and uppercase; labels, HEX values, swatches,
+grouping, and layout remain unchanged.
+
+Focused checks passed 44 targeted unit tests, touched-package typecheck,
+the Workbench build, and 16 narrow/wide browser cases covering Amber Dusk
+light/dark, strength invariance, keyboard focus, and Colors layout. Four
+decoded axe attachments had no violations.
+
+### Accepted implementation review and inset TabsList v1
+
+Accepted PUI-132 and PUI-133 together at product commit
+`5d0536d038d7ebce5429fa1460c0d7af21af51ef`. The committed audit records
+12 findings before source edits. Three stale comments now correctly identify
+the TabsList as the effect target, and focused browser assertions distinguish
+an inset edge from an outer one. Shared CSS render/parse duplication was
+documented and deferred because its small benefit would require changing the
+shared editor and preview path. No broader runtime refactor was selected.
+
+The sole behavior change is the decorative Tactile surface TabsList edge:
+
+`inset-ring-1 inset-ring-border/80` replaces the outer ring equivalent. The
+installed Tailwind 4.3.3 compiler confirmed the generated inset declarations.
+Off remains edge-free; Tabs remain Strength-invariant; Secondary Button
+tactility, selected triggers, line Tabs, and semantic focus-visible rings are
+unchanged. Theme 3.0, 13 mutations, 23 registry resources, persistence,
+Design Command, dependencies, and public APIs remain intact.
+
+Checks passed 242 targeted unit tests, touched-package typechecks, the
+Workbench build, and 14 focused narrow/wide browser cases. Eight decoded axe
+captures had no violations, and the final bundle was verified to contain the
+inset rule. The audit findings are retained in
+`docs/evidence/accepted-implementation-review-inset-tabs-v1-001/producer/findings.md`.
+
+### Theme action Export dialog v1
+
+Accepted PUI-134, PUI-135, and PUI-136 together at product commit
+`e16bc37051915954fb39196636245c11070bf309`. Export opens an accessible
+shadcn Dialog without downloading. JSON is the unchanged canonical Theme v3
+export; CSS / Tailwind v4 is generated by the existing renderer. Each selected
+format uses the same bytes for preview, clipboard, and explicit download.
+Custom-theme Delete moved to the right toolbar immediately before dark mode,
+with the same confirmation and built-in protection. Existing custom Save, built-in
+Save As, and custom Delete successes now use transient Base UI toasts. Their shared
+surface uses popover foreground/background and semantic border tokens. Reset
+retains its guarded history Undo, Dismiss, and timing; errors remain explicit.
+
+Verification passed 22 focused browser cases plus four Reset cases across
+narrow/wide and light/dark, with 40 decoded axe attachments and no blocking
+findings, along with focused unit tests, touched-package typechecks, and the
+Workbench build. Theme 3.0, 13 mutation operations, 23 registry resources,
+dependencies, and public APIs remain intact.
+
+### Jev Design Command interpretation research
+
+PUI-137 closed as successful research-only work. The Stage 1 proposal at
+`d5cb9d91e6925bb5008da96e5a93607cb8fcbb43` maps the current closed
+Design Command mutation and preview boundaries, product-local Jev integration,
+and the tradeoffs among deterministic, frontier LLM, Jev, and hybrid intent
+interpretation. An initial review found missing enforceable Jev
+credit limits and an unspecified LLM route; the proposal was corrected and
+the final document passed review. The owner declined
+Stage 2 for this phase and assigned the comparison to PUI-142 in Backlog.
+
+The existing bounded Jev architecture is safe, but its literal question
+catalog has not demonstrated strong indirect or reference-style intent
+handling. Jev must show incremental value against an LLM plus deterministic
+Personal UI admissibility, mutation, validation, history, and persistence
+before its future role is decided. This phase made no live Jev or LLM API
+calls, accessed no credentials, authorized no network or paid spend, and made
+no product, Theme v3, mutation-contract, or accepted-behavior change. The
+proposal and official-source check are retained in
+`docs/evidence/jev-design-command-interpretation-v1-001/`.
+
+### Theme code, header, shell, and selection polish v1
+
+Accepted PUI-138, PUI-139, PUI-140, and PUI-141 together at product commit
+`7e2746e5e43dd6f6d39fb0df94242e4956c3fb19`. The header action is now
+`Code`; its `Theme code` dialog retains canonical Theme v3 JSON and the existing
+CSS renderer, shows the exact supporting copy, and places Copy in an attached
+toolbar over a scrollable read-only code panel. Opening it never downloads a
+file, and preview text is the clipboard source. Icon-only header actions use
+Workbench-private tooltips and independent accessible names; Delete matches
+the shared resting icon treatment and retains its custom-only confirmation.
+
+All three App shell outer frames now use a restrained semantic border without
+an outer shadow. Inset project's connected outer/sidebar surface uses dedicated
+Sidebar tokens; internal elevation and per-shell collapse/Workbench isolation
+remain. The shells have more vertical space and one-step-larger labels.
+PUI-141 was reproduced and traced to Chromium clipping native selection inside
+two borderless embedded Inputs whose invisible `rounded-md` radius followed
+Geometry. Those Inputs now use `rounded-none`; visible row radius, the public
+Input primitive, selection colors, and native selection remain unchanged.
+
+Verification passed 21 focused dialog/header browser cases with one
+intentional mobile selection-sweep skip, 10 shell/isolation cases, 126 focused
+unit tests, touched-package typechecks, and a Workbench build. Twelve decoded
+browser axe attachments had no findings; additional shell scans found only the
+established moderate landmark/region findings. The PUI-141 selection diagnosis
+is retained in
+`docs/evidence/theme-code-header-shell-selection-v1-001/producer-selection-diagnosis.md`.
+Theme 3.0, 13 mutation operations, 23 registry resources, dependencies, and
+public component APIs are unchanged.
+
+### Landing and Workbench routes v1
+
+Accepted PUI-143 and PUI-144 together at product commit
+`8f847c7b1f784ab6f0deb49c6d6b10a71e4a4499`. The root landing page uses
+accepted shadcn primitives and built-in Theme v3 data to show real Personal UI
+compositions in light and dark mode. Its primary call to action opens the
+Workbench. The page describes the current Design Command flow as experimental
+and does not claim future reference-style interpretation is shipped.
+
+The existing editor moved to `/workbench`. Explicit stable links for Default,
+Quiet Editorial, and Amber Dusk select the named built-in on initial load
+without overwriting the stored selection. Subsequent built-in selection updates
+the URL; local custom themes use plain `/workbench`. Unknown built-in slugs
+normalize safely to `/workbench`. The preview iframe now uses
+`/workbench?preview=1`; its isolation and message behavior remain. `/themes`
+and `/themes/:slug` remain reserved. Deployment-host deep-link HTML fallback
+remains a separate infrastructure concern; local Vite production preview served
+direct links during verification.
+
+Verification passed 32 landing/route browser cases, 69 representative
+Workbench cases with three established skips, one credential-empty Design
+Command boundary case, 89 focused unit tests, typechecks, and the Workbench
+build. Sixteen decoded axe attachments had no blocking findings. A post-merge
+smoke covered root, CTA, back/forward, all three built-in links, and
+invalid-slug normalization. A broad Workbench run was not clean: 495 passed,
+19 skipped, and four WGPE-10 cases failed. The same four stale Inset `muted`
+assertions fail on the accepted pre-phase base, whose product already uses the
+`sidebar` surface.
+
+Package manifests, lockfile, registry, Theme 3.0, 13 mutation operations, and
+23 public resources are unchanged.

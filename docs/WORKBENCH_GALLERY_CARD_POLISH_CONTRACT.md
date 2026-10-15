@@ -8,15 +8,9 @@ Accepted control base: `40c20450b619e17dabd40395263904fd7663720f`
 
 The five complete admission-time Linear JSON snapshots in `docs/evidence/workbench-gallery-card-polish/linear/` are the verbatim worker reference packet. Each records the complete description and metadata, relations, attachment/document state, complete comments response, and retrieval time. The hash manifest pins these bytes. Linear is planning/status context only; this reconciled contract is authoritative. Later Linear edits do not mutate the executing phase. All five were Todo with no comments, attachments, documents, or issue relations at admission. No owner visual-review gate is required.
 
-## Authority and envelope
+## Scope
 
 - One coherent Cards-gallery polish phase, PUI-103–107 only. Preserve the accepted gallery order and container-responsive independent-stack architecture.
-- Producer: `loop_worker_claude_strong`, Claude Opus 5.5, STRONG, medium, included subscription, paid spend $0. The expected stronger-model benefit is coordinated visual/interaction refinement across multiple compositions, not routine single-class editing.
-- Reserve one fresh opposite-family `loop_worker_codex_standard` / GPT-5.6 Terra / medium protected verifier for exact-candidate offline/source/contract/evidence integrity. It is logical read-only/no repair, with fail-closed pre/post Git/index/tree/status/hash checks and no browser/localhost execution. Lead owns executable browser evidence.
-- One conditional one-use `loop_worker_codex_max` / GPT-6 Astra / medium producer handoff is owner-authorized for this exact phase only if Claude usage is impractically low, Claude is unavailable/exhausted, or Claude is materially blocked and the handoff is the smallest bounded recovery. Retire Claude first, preserve candidate lineage, valid work and the verifier reservation; no replay and no second MAX dispatch without fresh owner approval. Do not switch merely because MAX is available.
-- Lifetime: 74 agent runs already consumed; previous ceiling 76; this phase's hard reservation of 3 raises the absolute project lifetime ceiling to **77**. Phase hard ceiling 3; expected 2; third run only for bounded recovery/handoff or replacement verification while preserving a verifier path. Execution-time ceiling 240 minutes; concurrency 1; paid spend $0.
-- No worker network, credentials, paid/API fallback, external action, permission escalation, Paseo/native subagents, canonical `.loop` access, acceptance or promotion authority. Worker must operate only in its isolated worktree. Lead records admission, browser evidence, acceptance, promotion and closeout.
-- Phase 2 (PUI-108–110) remains planning-only: no ticket packet, workspace, run reservation or dispatch until Phase 1 is verified, accepted, promoted, post-promotion checked and durably closed.
 
 ## Product implementation
 

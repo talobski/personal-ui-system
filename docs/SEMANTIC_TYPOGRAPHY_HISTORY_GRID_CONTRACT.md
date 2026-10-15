@@ -6,11 +6,11 @@ Accepted product base: `47d0aebef617f9d936d21f53089c96bd040e70d6`
 
 Tickets: PUI-3, PUI-63, PUI-64.
 
-The immutable admission-time Linear reference is
-`.loop/runs/semantic-typography-history-grid-v1-001/linear-ticket-snapshots.md`.
-The complete snapshot and this contract must both be in the producer packet.
-This reconciled contract is authoritative if they conflict. Later Linear edits
-do not change the admitted phase.
+The frozen Linear ticket snapshots for this phase are retained only in Git
+history, at
+`8a7550e:.loop/runs/semantic-typography-history-grid-v1-001/linear-ticket-snapshots.md`
+(a path from the retired agent tooling). This reconciled contract is
+authoritative if they conflict. Later Linear edits do not change the phase.
 
 ## Scope and order
 
@@ -235,31 +235,3 @@ The eight shared composition implementations and content remain shared.
 - PUI-3: STHG-08–12, 15–17
 - PUI-64: STHG-13–17
 - Admission/closure: STHG-01–02, 18
-
-## Routing and authority
-
-- Primary producer: `loop_worker_claude_strong`,
-  `claude/claude-opus-5-5`, STRONG, medium, auto, included subscription only.
-- Codex MAX fallback is not pre-authorized. If Claude becomes unavailable,
-  exhausted, materially blocked, or a stronger recovery is justified, pause
-  and request exact one-use owner approval for `loop_worker_codex_max`,
-  `codex/gpt-6-astra`, MAX, medium. Preserve this phase/candidate/history.
-- Primary-path protected verifier: fresh `loop_worker_codex_standard`,
-  `codex/gpt-5.6-terra`, STANDARD, medium, logical read-only/no repair with
-  fail-closed pre/post integrity. If an owner-approved Codex MAX producer is
-  used, prefer fresh Claude STANDARD to preserve cross-provider verification.
-- Browser execution belongs to the Lead. Protected verification has no
-  localhost/browser responsibility.
-- Lifetime ceiling: 64. Phase ceiling: 3 runs; 2 expected. Concurrency 1.
-  Execution time 360 minutes. Paid spend $0.
-- Workers have no network, credentials, paid fallback, external actions,
-  canonical `.loop` mutation, agent-launch, acceptance, or promotion authority.
-- No owner visual-review gate. Phase 10 automatic closeout applies.
-
-## Remediation order
-
-1. Resume the same Claude producer for bounded correction where possible.
-2. Lead may perform only mechanical/unambiguous correction.
-3. A fresh non-MAX producer may use the reserved third run when genuinely
-   necessary while preserving the verifier reservation where possible.
-4. Any Codex MAX dispatch requires new exact owner approval.

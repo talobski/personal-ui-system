@@ -1,7 +1,0 @@
-$ pnpm typecheck  -> refused: ERR_PNPM_UNSAFE_TASK_RUN_STATE_PATH (worktree node_modules is a symlink); equivalent commands run directly:
-$ (cd packages/core && tsc --noEmit)
-$ (cd packages/ui && tsc --noEmit)
-$ (cd apps/workbench && tsc --noEmit)
-$ tsc -p e2e
-$ tsc -p tools/loop/jev
-typecheck: all passed

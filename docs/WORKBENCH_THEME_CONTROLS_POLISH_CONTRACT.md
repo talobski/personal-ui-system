@@ -197,18 +197,3 @@ The exact owner corrections are controlling:
   repair performed, no owner gate remaining, then accepted-state-before-main,
   promotion, post-promotion checks, receipts, and phase closeout complete.
 - result + evidencePath: pending.
-
-## Envelope and routes
-
-- Lifetime agent-run ceiling: 54; current usage before dispatch: 51.
-- Phase hard ceiling: 3 runs; expected: 2.
-- Execution time: 240 minutes total.
-- Concurrency: 1.
-- Paid spend: 0.
-- Producer: exactly one owner-authorized `loop_worker_codex_max` dispatch,
-  `codex/gpt-6-astra`, MAX, medium, auto, fast mode off.
-- Verifier: fresh cross-provider STANDARD route, preferably
-  `claude/claude-sonnet-5`, medium, logical read-only/no-repair.
-- Remediation: same Astra agent first, deterministic Lead correction second,
-  then at most one new normal STRONG producer dispatch if genuinely required.
-  Another MAX dispatch requires new owner approval.

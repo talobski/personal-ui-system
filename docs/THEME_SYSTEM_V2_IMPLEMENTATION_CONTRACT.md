@@ -195,20 +195,9 @@ discarded. Generated proposals never become direct manual edits.
   390x844 and 1440x900, light/dark, pointer and keyboard, reduced motion,
   containment, and decoded critical/serious axe results.
 
-## Verification and handoff
+## Verification
 
-The producer must keep `docs/THEME_SYSTEM_V2_CHECKPOINT.md` current after each
-bounded unit with: exact HEAD, completed criteria, remaining criteria, changed
-files, commands/results, unresolved defects, dependency provenance, and the
-next safe action. Commit coherent checkpoints so another explicitly approved
-producer can continue without replay.
-
-Lead owns executable browser matrices and computed-style evidence. Owner owns
-subjective visual acceptance of grouping, density, units, drag feedback, and
-active-versus-staged clarity. The protected Codex STANDARD verifier is
-read-only/no-repair and independently audits the exact candidate using only
-capabilities proven ready; Lead, owner, and verifier evidence remain separately
-attributed.
+Executable browser matrices and computed-style evidence cover the criteria above. The owner owns subjective visual acceptance of grouping, density, units, drag feedback, and active-versus-staged clarity.
 
 ## Frozen boundaries
 
@@ -216,6 +205,5 @@ attributed.
 - No font-size, weight, line-height, sidebar-token, raw-CSS, arbitrary-token,
   new chart-control, or color-control UI expansion.
 - No Design Command/Jev/LLM/MCP protocol expansion.
-- No credentials, paid/API fallback, deployment, publishing, external action,
-  worker network, or canonical `.loop` access.
+- No credentials, paid/API fallback, deployment, publishing, or external action.
 - Do not inspect or reuse the abandoned WCP candidate.

@@ -117,7 +117,7 @@ and the SHA-256 of that source file's exact committed bytes. `context.provenance
 the live file and fails if it no longer matches — the only place in this surface that touches the filesystem.
 Sourced principles are hashed the same way, over the exact quoted string rather than the whole of `BRIEF.md`, so they
 stay valid as unrelated parts of that file change; the same test asserts the quoted text still appears verbatim in the
-live file. No timestamp, Git/worktree path, environment value, provider/model identifier, billing figure, `.loop`
+live file. No timestamp, Git/worktree path, environment value, provider/model identifier, billing figure, agent-tooling
 state, or secret appears anywhere in a result.
 
 ## CLI

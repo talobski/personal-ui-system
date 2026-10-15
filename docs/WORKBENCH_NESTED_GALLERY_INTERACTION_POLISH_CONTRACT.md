@@ -6,11 +6,11 @@ Accepted product base: `a33c3d025fe408593264b96f76f4f6054d83b758`
 
 Tickets: PUI-65, PUI-66, PUI-67, PUI-68, PUI-69, PUI-70.
 
-The immutable admission-time Linear reference is
-`.loop/runs/workbench-nested-gallery-interaction-polish-v1-001/linear-ticket-snapshots.md`.
-Its six complete issue/comment payloads, metadata, retrieval timestamp, and
-hashes must accompany this contract in the producer packet. This reconciled
-contract is authoritative if either source conflicts. Later Linear edits do
+The frozen Linear ticket snapshots (six complete issue/comment payloads) are
+retained only in Git history, at
+`8a7550e:.loop/runs/workbench-nested-gallery-interaction-polish-v1-001/linear-ticket-snapshots.md`
+(a path from the retired agent tooling). This reconciled contract is
+authoritative if either source conflicts. Later Linear edits do
 not mutate this phase.
 
 ## Scope and order
@@ -190,18 +190,3 @@ wrong; document the measured reason and keep the delay within 100–150 ms.
   boundary/evidence integrity with no repair or browser responsibility. After
   all technical criteria pass and no owner gate remains, Loop automatically
   accepts, promotes, checks, receipts, and closes the phase.
-
-## Routing and envelope
-
-- Producer: one owner-authorized dispatch of `loop_worker_codex_max`,
-  `codex/gpt-6-astra`, MAX, medium, included subscription only, fast mode off.
-- Verifier: fresh `loop_worker_claude_standard`,
-  `claude/claude-sonnet-5`, STANDARD, medium, logical read-only/no repair.
-- Lifetime agent-run ceiling: 66 (63 used before this phase).
-- Phase hard ceiling: 3; expected: 2; third reserved for bounded recovery or
-  replacement verification. No second MAX dispatch without fresh approval.
-- Execution-time ceiling: 300 minutes; concurrency: 1; paid spend: $0.
-- Worker network, credentials, external actions, paid/API fallback, and owner
-  visual-review gate: none.
-- Lead owns executable browser evidence; protected verification owns fresh
-  exact-candidate offline/source/contract/boundary/evidence integrity.

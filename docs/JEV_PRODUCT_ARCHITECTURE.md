@@ -1,7 +1,8 @@
 # Product-level Jev architecture checkpoint
 
 Date: 2026-09-22
-Status: owner-approved architecture; implementation not yet dispatched
+Status: owner-approved architecture; implemented in `packages/core/src/jev-design/` and
+`apps/workbench/src/server/designCommandHandler.ts`
 
 ## Recommendation
 
@@ -19,11 +20,10 @@ composes every independently accepted category recipe, up to the proposal's
 existing eight-operation limit. This bounded multi-category composition does
 not require free-form command decomposition or a general LLM.
 
-## Product and control-plane separation
+## Product ownership
 
 `DESIGN_COMMAND` is the internal product contract
-`personal-ui-design-command/1`. It is not a Loop Engineering contract and is
-not represented by `WORKER_FAN_OUT` or any other Loop route.
+`personal-ui-design-command/1`.
 
 Product code owns:
 
@@ -36,12 +36,10 @@ Product code owns:
 - proposal provenance, validation, UI state, and side effects; and
 - a bounded product-local TypeSafe transport.
 
-The product path must not import or depend on `@loop-engineering/jev-core`,
-`.loop`, Loop routing contracts, Loop billing policy, Loop request budgets, or
-Loop credentials. The existing package and `tools/loop/jev/` remain exclusively
-for private orchestration.
+The product path depends on no agent-orchestration package, state, routing
+contract, billing policy, request budget, or credential.
 
-No shared runtime change or generic transport extraction is required. Generic
+No generic transport extraction is required. Generic
 wire validation, bounded fetch, and redaction could be extracted only after
 multiple products demonstrate real reuse; doing so now would be premature.
 
@@ -53,16 +51,15 @@ Workbench browser -> localhost product API -> TypeSafe API
 
 The browser sends only the command and compact product state. The product API
 uses only `TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY`, injected server-side. It never
-falls back to, aliases, or inspects `TYPESAFE_LOOP_ENGINEERING_API_KEY` or
-`TYPESAFE_API_KEY`.
+falls back to, aliases, or inspects `TYPESAFE_API_KEY`.
 
 The product credential must never enter a Vite client variable, browser bundle,
 localStorage, IndexedDB, proposal provenance, product state, logs, analytics,
-errors, source maps, or `.loop`. A local gitignored environment file or local
+errors, or source maps. A local gitignored environment file or local
 secret manager may provide the development variable to the product server; the
 value is never checked into the repository.
 
-Before an admitted live request, the product server checks only that the product
+Before a live request, the product server checks only that the product
 credential is present and non-empty. Absence or emptiness makes zero fetches.
 Credential presence is not evidence of billing eligibility, so a live request
 also requires separate fresh owner evidence that the product key has included
@@ -109,26 +106,25 @@ closed intermediate commands; deterministic gates must validate them, Jev may
 resolve genuinely probabilistic typed judgments, and only product code may
 construct or apply operations. Each public user would supply a separate
 supported LLM credential/configuration in addition to their Jev token. All
-product AI credentials remain separate from Loop Engineering credentials.
+product AI credentials remain separate from any developer-tooling credentials.
 
 ## Acceptance and verification consequences
 
-The controlling JDC-01 through JDC-12 wording and detailed verification plan
-are in `.loop/runs/jev-design-command-mvp-001/task.md`. The load-bearing checks
-are:
+The JDC-01 through JDC-12 acceptance criteria are summarized in `BRIEF.md`
+(Phase 5). The load-bearing checks are:
 
 1. Mixed-primitive, multi-category contract fixtures and deterministic recipes.
 2. Injected-fetch transport tests proving zero calls without the product key,
-   exactly one call when admitted, fixed destination, and no retries.
-3. Test sentinels proving Loop and generic key variables are ignored and no
+   exactly one call per evaluated command, fixed destination, and no retries.
+3. Test sentinels proving the generic `TYPESAFE_API_KEY` variable is ignored and no
    credential reaches client assets, storage, records, errors, or logs.
-4. Dependency and bundle checks proving product code excludes
-   `@loop-engineering/jev-core`, `.loop`, and Loop contracts.
+4. Bundle checks proving no credential or server-only module reaches the
+   browser build.
 5. Failure fixtures proving every unsafe outcome leaves product state unchanged.
 6. Existing proposal lifecycle, browser, accessibility, build, and regression
    evidence.
 7. Supervised live evidence only after separate credential-presence and
-   product-capacity admission; no live call is needed to establish this
+   product-capacity confirmation; no live call is needed to establish this
    architecture.
 
 No credential value or presence was inspected and no live Jev request was made

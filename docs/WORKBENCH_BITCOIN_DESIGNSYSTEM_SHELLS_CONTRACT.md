@@ -8,14 +8,9 @@ Accepted control base: `d8867047ea9f6a837ae729deca1deb5d60496eff`
 
 The three complete admission-time Linear JSON snapshots in `docs/evidence/workbench-bitcoin-designsystem-shells/linear/` are the verbatim worker reference packet. They record full descriptions and metadata, comments, attachments/documents/relations and retrieval time. `snapshot-hashes.json` pins the packet and this contract. Linear remains planning/status context; this reconciled contract governs conflicts, and later Linear edits cannot silently mutate execution. All three were Todo with no comments, attachments, documents or relations at admission. No owner visual-review gate is admitted.
 
-## Authority and envelope
+## Product boundaries
 
-- This is Phase 2 of the owner's two-phase sequence. Phase 1 `workbench-gallery-card-polish-v1-001` is technically verified, accepted, promoted, post-promotion checked and durably closed. This phase has a separate packet, contract, base, candidate, workers and receipts; no evidence is inherited as exact-candidate Phase 2 verification.
-- Primary producer: `loop_worker_claude_strong`, Claude Opus 5.5, STRONG, medium, included subscription only. The benefit is coordinated visual layout polish across a new chart composition and two live preview surfaces. No paid/API fallback. One isolated Paseo worktree, concurrency 1.
-- Reserve a fresh opposite-family `loop_worker_codex_standard` / GPT-5.6 Terra / medium protected verifier, if admissible, for exact-candidate offline/source/contract/evidence integrity. Logical read-only/no repair, fail-closed pre/post Git/index/tree/status/hash checks; no browser/localhost. Lead owns browser execution.
-- One conditional one-use owner-authorized `loop_worker_codex_max` / GPT-6 Astra / medium producer handoff is available **only** if Claude usage becomes impractically low, Claude is unavailable/exhausted, or Claude is materially blocked and the handoff is the smallest bounded recovery. Retire Claude before any handoff; preserve candidate lineage, packet, contract, valid work and verifier reservation; do not replay finished work. No second MAX dispatch without fresh owner approval.
-- Lifetime: 76 runs consumed before this phase, absolute ceiling raised by the owner from 77 to **79**. Phase hard ceiling 3, expected 2; a third run is only for bounded recovery or replacement verification. Execution-time ceiling 300 minutes; concurrency 1; paid spend $0.
-- No worker network, credentials, external effects, paid capacity, API fallback, permission escalation, Paseo/native subagents, canonical `.loop` access, acceptance or promotion authority. Lead alone records admission, browser evidence, acceptance, promotion and closeout. No runtime API, crypto SDK or market-data refresh.
+- No runtime API, crypto SDK or market-data refresh.
 
 ## Product implementation
 

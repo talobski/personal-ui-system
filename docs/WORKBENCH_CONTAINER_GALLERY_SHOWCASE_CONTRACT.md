@@ -49,7 +49,3 @@ Inspect the accepted shadcn Switch first. Prefer a Workbench-local composition/c
 - **CGS-15 — Closeout (code):** only after all criteria pass and no owner gate remains, Lead accepts the exact clean candidate, promotes without rewriting history, runs post-promotion checks, persists receipts and closes the phase.
 
 The two previously accepted theme-token contrast debts remain separately attributed, never silently treated as universally zero axe findings: Default-light compact ControlSection muted pair approximately 4.349:1, and inactive-tab hover muted opacity in the built-ins. No new serious/critical finding is admitted.
-
-## Envelope and routing
-
-Producer: `loop_worker_claude_strong`, `claude/claude-opus-5-5`, STRONG, medium, included subscription only. Its creative showcase/design and responsive restructuring justify STRONG. No silent provider/model switch. Fresh verifier: `loop_worker_codex_standard`, `codex/gpt-5.6-terra`, STANDARD, medium, logical read-only/no repair. Lead owns browser execution. Lifetime agent-run ceiling 66→69; phase hard ceiling 3, expected 2, third reserved only for bounded recovery/reverification; cumulative execution time 360 minutes; concurrency 1; paid spend $0. No worker network, credentials, external actions, API fallback, or new public publishing/deployment authority. If Claude becomes unavailable or materially blocked, preserve the candidate and request owner authorization before a replacement producer.

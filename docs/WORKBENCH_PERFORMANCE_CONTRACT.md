@@ -4,12 +4,6 @@ Phase: `workbench-performance-v1-001`. Ticket: PUI-118 only. Classification: Tie
 
 `docs/evidence/workbench-performance-v1/linear/PUI-118.json` is the complete admission-time Linear snapshot; `snapshot-hashes.json` pins its bytes. Linear is planning input; this contract governs conflicts with later edits. This phase contains no other ticket snapshot or implementation. The preceding tactile-effects phase is fully closed and supplies the accepted baseline.
 
-## Authority and envelope
-
-- Owner-approved primary producer: `loop_worker_claude_strong`, Claude Opus 5.5, auto, medium, included subscription only. Expected two agent creations, hard phase ceiling four, 420-minute execution ceiling, concurrency one, $0 paid spend. Actual lifetime usage at admission is 82; the approved phase hard ceiling mechanically requires an absolute lifetime ceiling of 86, within the owner-approved worst case of 88.
-- A single phase-local Claude-to-`loop_worker_codex_max` / GPT-6 Astra / medium handoff is authorized only if Claude capacity becomes impractically low, unavailable/exhausted, or materially blocked. Retire Claude cleanly and preserve the baseline, packet, contract, lineage and completed work; dispatch only the smallest remaining bounded task. No second MAX dispatch without new owner authority. No Phase 1 MAX authority is carried forward.
-- Fresh opposite-family Codex STANDARD / GPT-5.6 Terra / medium verifier if Claude produces. If a conditional Codex MAX producer creates the candidate, prefer fresh Claude STANDARD / Sonnet 5 / medium verifier. Verify live canonical/runtime mapping at each dispatch. Sonnet 5.5 is excluded. No worker network, credentials, paid/API fallback, external effects, permission escalation, worker subagents, or canonical `.loop` access. Lead owns browser evidence, acceptance, promotion and closeout.
-
 ## Product and evidence contract
 
 1. **Measure before changing.** Profile the newly accepted Workbench at the exact accepted base before any product/source edit. Record a reproducible baseline with code SHA, browser/tool versions, viewport/mode, actions, sample count, raw measurements, observed variability, and a clear bottleneck hypothesis. Temporary local instrumentation belongs in ignored work files. Commit a baseline/checkpoint document before product source changes so ordering is auditable. Inspect render/update frequency, theme propagation, iframe messages, hidden preview work, conversion/serialization, listeners and high-frequency editing as evidence warrants; do not assume the cause.

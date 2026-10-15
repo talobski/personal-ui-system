@@ -18,8 +18,6 @@ Phase `tactile-border-designsystem-type-v1-001` admits **PUI-129 and PUI-131 tog
 - **TBDS-06:** Fresh protected opposite-family STANDARD verifier audits the unchanged exact candidate and Lead evidence, logically read-only with pre/post Git integrity and no repair. Producer self-checks are not acceptance.
 - **TBDS-07:** Lead records acceptance before local fast-forward promotion, then verifies promoted identity, clean state and focused smoke before durable closeout. No remote push or automatic owner visual gate.
 
-## Execution envelope
+## Likely edit surface
 
-Expected two agent runs; hard phase ceiling three; execution-time ceiling 180 minutes; absolute lifetime ceiling 94 after deterministic adjustment from 92; concurrency one; paid spend zero. Primary producer: `loop_worker_claude_strong`, Claude Opus 5.5, STRONG, medium, included subscription. If Claude produces, prefer fresh `loop_worker_codex_standard`, GPT-5.6 Terra, STANDARD, medium verifier. One phase-local Claude → `loop_worker_codex_max`, GPT-6 Astra, MAX, medium handoff is authorized only for the owner's defined low-capacity, unavailable/exhausted or materially blocked conditions, after clean Claude retirement with packet/contract/worktree/lineage preserved and only the smallest remaining unit delegated. No second MAX dispatch. If MAX produces, prefer fresh `loop_worker_claude_standard`, Sonnet 5, STANDARD, medium verifier. All routes use included subscription only; no worker network, credentials, paid/API fallback, dependency install or external effects.
-
-Likely edit surface: `packages/core/src/theme/render.ts`, `apps/workbench/src/DesignSystemPreview.tsx`, direct unit/browser assertions and a phase-local guard. This guidance grants no unrelated scope.
+`packages/core/src/theme/render.ts`, `apps/workbench/src/DesignSystemPreview.tsx`, and direct unit/browser assertions. This guidance grants no unrelated scope.

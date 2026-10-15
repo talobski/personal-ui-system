@@ -8,11 +8,9 @@ Accepted control base: `ebf05360527af1769eac97acafc29f9da08c5817`
 
 `docs/evidence/tactile-ui-effects-v1/linear/PUI-113.json` freezes the complete admission-time issue and comment/attachment/reference state. `snapshot-hashes.json` pins its bytes. Linear is planning context; this contract governs execution and later ticket edits cannot silently change it. No PUI-118 work, packet, profiling, or implementation is admitted here.
 
-## Authority and envelope
+## Product boundaries
 
-- Owner-approved Claude STRONG primary: `loop_worker_claude_strong`, Claude Opus 5.5, auto, medium, included subscription only. Fresh opposite-family Codex STANDARD/Terra verifier if Claude produces. Concurrency 1. Expected two agent creations, hard phase ceiling four, 480-minute execution ceiling, cumulative lifetime ceiling 84, paid spend $0.
-- One phase-local Claude-to-`loop_worker_codex_max` / GPT-6 Astra / medium handoff is authorized only if Claude usage becomes impractically low, unavailable/exhausted, or materially blocked. Retire Claude cleanly, preserve checkpoint, packet, contract and lineage, and dispatch only the smallest remaining bounded task. If Codex MAX produces the candidate, prefer a fresh Claude Sonnet 5 STANDARD verifier. No second MAX dispatch without new authority. MAX authority does not carry into PUI-118.
-- Worker network, paid/API fallback, credentials, permission escalation, public/external effects, runtime data fetching, Paseo/native subagents, canonical `.loop` access, acceptance, and promotion are prohibited. Lead controls browser evidence and closeout. Owner visual review is opt-in, not a gate.
+- No runtime data fetching or public/external effects.
 
 ## Product contract
 

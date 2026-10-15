@@ -8,11 +8,11 @@ Prepared control base: `25cebd535b6ed133a9dd3a24033b28f142523833`
 
 Tickets: PUI-56, PUI-57, PUI-58, PUI-59, PUI-60, PUI-61, PUI-62.
 
-The immutable admission-time Linear reference is
-`.loop/runs/workbench-sidebar-theme-polish-v1-001/linear-ticket-snapshots.md`.
-The complete snapshot and this contract must both be placed in the producer
-packet. This reconciled contract is authoritative if they conflict. Later
-Linear edits do not change the admitted phase.
+The frozen Linear ticket snapshots for this phase are retained only in Git
+history, at
+`8a7550e:.loop/runs/workbench-sidebar-theme-polish-v1-001/linear-ticket-snapshots.md`
+(a path from the retired agent tooling). This reconciled contract is
+authoritative if they conflict. Later Linear edits do not change the phase.
 
 ## Scope
 
@@ -187,19 +187,3 @@ or assign pointer cursors to labels, decorative icons, static text, or sliders.
 - PUI-61: WSTP-13, 15–16
 - PUI-62: WSTP-03–09, 14–16
 - Admission/closure: WSTP-01–02, 17
-
-## Execution and authority
-
-- Producer: `loop_worker_claude_strong`, `claude/claude-opus-5-5`, STRONG, medium, auto, included subscription only.
-- Protected verifier: fresh `loop_worker_codex_standard`, `codex/gpt-5.6-terra`, STANDARD, medium, logical read-only/no repair with fail-closed pre/post integrity if native enforcement is unavailable.
-- Browser execution belongs to the Lead; the verifier has no localhost/browser criterion.
-- Lifetime ceiling: 62. Phase ceiling: 3 runs; 2 expected. Concurrency 1. Execution time 360 minutes. Paid spend $0.
-- No network, credentials, external actions, paid/API fallback, MAX, or STRONG-to-MAX fallback.
-- No owner visual-review gate. Automatic closeout applies after technical completion.
-
-## Remediation order
-
-1. Resume the same Claude producer where possible.
-2. Lead may make only mechanical and unambiguous corrections.
-3. Use the reserved third run under normal non-MAX routing only if genuinely necessary.
-4. Any provider/model escalation or MAX dispatch requires new owner authority.
