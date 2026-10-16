@@ -85,11 +85,11 @@ export const UI_EFFECT_OPTIONS: readonly { value: UiEffect; label: string }[] = 
 
 /**
  * PUI-125: each effect's optional helper note under the Effect select, naming the components it touches. Off has none,
- * so no helper row renders. The Tactile note is shorthand for its targets; only Secondary Buttons respond to Strength.
+ * so no helper row renders. The Tactile note is shorthand for its targets; Strength scales their depth.
  */
 export const UI_EFFECT_HELP: Readonly<Record<UiEffect, string | null>> = Object.freeze({
   off: null,
-  tactile: "Applied to secondary buttons and tabs.",
+  tactile: "Applied to buttons, fields, tabs and selection controls.",
 })
 
 /** A semantic role's weight: the admitted 100..900 numeric weights, one step per CSS weight. */

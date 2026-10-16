@@ -58,7 +58,7 @@ function WorkspaceSwitcher({ shell, workspace, onChange, density }: { shell: str
     <SidebarMenu>
       <SidebarMenuItem>
         <Select items={items} value={workspace.id} onValueChange={id => { if (id) onChange(id) }}>
-          <SelectTrigger aria-label={`${shell} workspace`} className={`w-full cursor-pointer gap-2 border-0 bg-transparent px-2 text-sidebar-foreground shadow-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[popup-open]:bg-sidebar-accent data-[popup-open]:text-sidebar-accent-foreground dark:bg-transparent dark:hover:bg-sidebar-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:[&>span:last-child]:hidden ${density === "compact" ? "h-10!" : "h-12!"}`}>
+          <SelectTrigger aria-label={`${shell} workspace`} data-tactile="flat" className={`w-full cursor-pointer gap-2 border-0 bg-transparent px-2 text-sidebar-foreground shadow-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[popup-open]:bg-sidebar-accent data-[popup-open]:text-sidebar-accent-foreground dark:bg-transparent dark:hover:bg-sidebar-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:[&>span:last-child]:hidden ${density === "compact" ? "h-10!" : "h-12!"}`}>
             <SelectValue className="min-w-0 gap-2">
               <Logo workspace={workspace} density={density} />
               <span className="grid min-w-0 text-left leading-tight group-data-[collapsible=icon]:hidden">

@@ -669,7 +669,7 @@ export function App({ routeThemeId = null }: { routeThemeId?: string | null }) {
           <SidebarMenu>
             <SidebarMenuItem>
               <Select items={themeSelectItems} value={current.id} disabled={locked} onValueChange={(id) => { if (id && id !== current.id) load(id) }}>
-                <SelectTrigger id="theme-select" aria-label="Active theme" className="quiet-control quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent">
+                <SelectTrigger id="theme-select" aria-label="Active theme" data-tactile="flat" className="quiet-control quiet-theme-trigger h-12 w-full cursor-pointer border-0 bg-transparent px-2 font-medium shadow-none hover:bg-accent hover:text-accent-foreground data-[popup-open]:bg-accent dark:bg-transparent dark:hover:bg-accent">
                   <SelectValue>
                     <ThemeSwatches theme={current} mode={mode} />
                     <span className="truncate font-medium">{current.name}</span>

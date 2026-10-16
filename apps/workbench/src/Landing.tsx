@@ -300,7 +300,7 @@ const EDITOR_TABS = [
     value: "effects",
     label: "Effects",
     title: "Depth and feel, kept restrained",
-    body: "Shadow colour, opacity, blur, spread and offset; motion duration; and the optional Tactile UI effect for secondary buttons and surface tabs, with one Strength control.",
+    body: "Shadow colour, opacity, blur, spread and offset; motion duration; and the optional Tactile UI effect, which adds restrained depth to interactive controls, with one Strength control.",
     items: ["Shadow", "UI Effects", "Motion"],
   },
   {

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test"
 import type { FrameLocator, Locator, Page, TestInfo } from "@playwright/test"
 
 import { seriousOutsideKnownDebt } from "./known-contrast-debt"
-import { editorCategory, previewStates, saveTheme, setColorMode, workspaceMode } from "./workbench-navigation"
+import { editorCategory, previewStates, previewView, saveTheme, setColorMode, workspaceMode } from "./workbench-navigation"
 
 /**
  * tactile-ui-effects-v1-001 producer definitions (PUI-113), retargeted by ui-effects-showcase-polish-v1-001
@@ -14,6 +14,9 @@ import { editorCategory, previewStates, saveTheme, setColorMode, workspaceMode }
  * `ring-1 ring-ring/20` while Tactile, their triggers keep default shadcn styling, and the helper is Tactile-only.
  * tactile-border-designsystem-type-v1-001 (PUI-129) recolours that decorative ring to `ring-1 ring-border/80`.
  * accepted-implementation-review-inset-tabs-v1-001 (PUI-133) draws it inward: `inset-ring-1 inset-ring-border/80`.
+ * The unified interaction-depth system extends Tactile to every interactive control through Raised, Filled, Recessed,
+ * Pressed and Flat roles; the TabsList edge and outer elevation reach their theme value at the default strength, and
+ * strength 0 renders exactly like Off.
  */
 
 const preview = (page: Page) => page.frameLocator('[data-testid="preview-frame"]')
@@ -114,77 +117,110 @@ test("TUE-04 / IESP-04 the UI EFFECTS section sits between Shadow and Motion wit
   await expect(c.effect).toHaveText(/Tactile/)
   await expect(c.strength).toBeEnabled()
   await expect(page.getByTestId("control-uiEffectsStrength")).not.toHaveAttribute("data-disabled", "true")
-  await expect(c.effect).toHaveAccessibleDescription("Applied to secondary buttons and tabs.")
-  await expect(page.getByTestId("ui-effect-help")).toHaveText("Applied to secondary buttons and tabs.")
+  await expect(c.effect).toHaveAccessibleDescription("Applied to buttons, fields, tabs and selection controls.")
+  await expect(page.getByTestId("ui-effect-help")).toHaveText("Applied to buttons, fields, tabs and selection controls.")
   await expect(page.getByTestId("ui-effect-help-icon")).toHaveAttribute("aria-hidden", "true")
 })
 
-test("TUE-05/06 / IESP-05 / ADSR-04 Tactile reaches Secondary Buttons and surface TabsLists only; Off is flat", async ({ page }) => {
-  await open(page)
-  const flat = await snapshot(page)
-  for (const s of [...Object.values(flat.variants), flat.activeTab, flat.inactiveTab, flat.categoryTab, flat.inactiveCategoryTab]) expect(tactile(s)).toBe(false)
-  for (const s of [flat.surfaceList, flat.categoryList]) expect(anyListRing(s)).toBe(false)
-
-  await setEffect(page, "Tactile")
-  const on = await snapshot(page)
-  expect(tactile(on.variants.secondary!)).toBe(true)
-  // PUI-124: every trigger, active or not, keeps exactly its default shadcn styling; the list gets the fixed ring.
-  expect(on.activeTab).toEqual(flat.activeTab)
-  expect(on.categoryTab).toEqual(flat.categoryTab)
-  for (const [list, before] of [[on.surfaceList, flat.surfaceList], [on.categoryList, flat.categoryList]] as const) {
-    expect(listRing(list)).toBe(true)
-    expect(list.backgroundImage).toBe("none")
-    for (const key of ["backgroundColor", "borderRadius", "height"] as const) expect(list[key]).toBe(before[key])
+/** The States view's controls, one locator per role/state, read for depth, colour and geometry. */
+function statesControls(frame: FrameLocator) {
+  const root = frame.locator('[data-testid="preview"]')
+  const tabs = surfaceTabs(frame)
+  const line = frame.getByRole("tablist", { name: "Line tabs sample" })
+  const range = frame.getByRole("radiogroup", { name: "Calendar range" })
+  const choices = root.locator('section[aria-labelledby="pv-choices"]')
+  const inputs = root.locator('section[aria-labelledby="pv-inputs"]')
+  return {
+    raised: { secondary: variant(frame, "secondary"), outline: variant(frame, "outline"), toggleOff: range.getByRole("radio", { name: "Day" }) },
+    filled: { primary: variant(frame, "default"), checkboxOn: choices.getByRole("checkbox", { name: "Mentions" }), radioOn: choices.getByRole("radio", { name: "Email" }), switchOn: choices.getByRole("switch", { name: "Sync" }) },
+    recessed: {
+      input: frame.getByRole("textbox", { name: "Default", exact: true }), invalid: inputs.locator('[aria-invalid="true"]'), textarea: frame.getByRole("textbox", { name: "Notes" }),
+      select: inputs.locator('[data-slot="select-trigger"]'), group: inputs.locator('[data-slot="input-group"]'), checkboxOff: choices.getByRole("checkbox", { name: "Weekly digest" }),
+      radioOff: choices.getByRole("radio", { name: "SMS" }), switchOff: choices.getByRole("switch", { name: "Autosave" }), surfaceList: tabs,
+    },
+    pressed: { toggleOn: range.getByRole("radio", { name: "Week" }) },
+    flat: {
+      ghost: variant(frame, "ghost"), destructive: variant(frame, "destructive"), link: variant(frame, "link"), disabledButton: root.getByRole("button", { name: "Disabled", exact: true }),
+      disabledInput: frame.getByRole("textbox", { name: "Disabled", exact: true }), groupControl: inputs.locator('[data-slot="input-group-control"]'), toggleDisabled: range.getByRole("radio", { name: "Year" }),
+      checkboxDisabled: choices.getByRole("checkbox", { name: "Product news" }), radioDisabled: choices.getByRole("radio", { name: "Post" }), switchDisabled: choices.getByRole("switch", { name: "Beta" }),
+      activeTab: tabs.getByRole("tab", { selected: true }), inactiveTab: tabs.getByRole("tab", { name: "Activity" }), lineList: line, lineActive: line.getByRole("tab", { selected: true }), elevation: frame.getByTestId("elevation-sample"),
+    },
   }
-  // Geometry, typography and surface colour are untouched; only the shadow slot and wash change.
-  for (const key of ["backgroundColor", "borderRadius", "height", "fontSize", "fontWeight"] as const) {
-    expect(on.variants.secondary![key]).toBe(flat.variants.secondary![key])
-  }
-  // Outline and every other variant, and inactive triggers, stay exactly flat.
-  for (const name of ["default", "outline", "ghost", "destructive", "link"]) expect(on.variants[name], name).toEqual(flat.variants[name])
-  expect(on.inactiveTab).toEqual(flat.inactiveTab)
-  expect(on.inactiveCategoryTab).toEqual(flat.inactiveCategoryTab)
-
-  // Secondary composed through an asChild trigger (the Workbench's collapsible section triggers) keeps the effect;
-  // outline ToggleGroup items and Outline asChild triggers stay flat.
-  await editorCategory(page, "Effects")
-  expect(tactile(await style(page.getByTestId("section-ui-effects").locator('[data-slot="collapsible-trigger"]')))).toBe(true)
-  expect(tactile(await style(page.getByRole("tablist", { name: "Editor categories" }).getByRole("tab", { selected: true })))).toBe(false)
-  expect(listRing(await style(page.getByRole("tablist", { name: "Editor categories" })))).toBe(true)
-  expect(tactile(await style(page.getByRole("tablist", { name: "Editor categories" }).getByRole("tab", { name: "Colors", exact: true })))).toBe(false)
-  await previewStates(page)
-  expect(tactile(await style(preview(page).getByRole("button", { name: "Open dialog", exact: true })))).toBe(false)
-  const cards = preview(page).getByRole("tablist", { name: "Preview views" }).getByRole("tab", { name: "Cards", exact: true })
-  await cards.click()
-  const toggleItems = preview(page).locator('[data-slot="toggle-group-item"]')
-  expect(await toggleItems.count()).toBeGreaterThan(0)
-  for (const item of await toggleItems.all()) expect(tactile(await style(item))).toBe(false)
-  for (const name of ["Manage storage", "GitHub", "Google"]) expect(tactile(await style(preview(page).getByRole("button", { name, exact: true }))), name).toBe(true)
-
-  // Keyboard selection keeps selected semantics and the ordinary focus-visible ring; no trigger takes the recipe.
+}
+const read = (el: Locator) => el.evaluate((node) => {
+  const s = getComputedStyle(node)
+  const r = node.getBoundingClientRect()
+  return { boxShadow: s.boxShadow, backgroundImage: s.backgroundImage, backgroundColor: s.backgroundColor, borderColor: s.borderTopColor, color: s.color, font: `${s.fontSize} ${s.fontWeight}`, radius: s.borderRadius, box: [r.x, r.y, r.width, r.height].map(Math.round).join(",") }
+})
+async function readAll(page: Page) {
   const frame = preview(page)
   await previewStates(page)
-  const activity = surfaceTabs(frame).getByRole("tab", { name: "Activity" })
-  await surfaceTabs(frame).getByRole("tab", { name: "Overview" }).focus()
-  await page.keyboard.press("ArrowRight")
-  await expect(activity).toHaveAttribute("aria-selected", "true")
-  await expect(activity).toBeFocused()
-  // The trigger transitions its box-shadow, so the settled focus ring is polled.
-  await expect.poll(async () => (await style(activity)).boxShadow).toMatch(/0px 0px 0px 3px/)
-  expect(tactile(await style(activity))).toBe(false)
-  expect(tactile(await style(surfaceTabs(frame).getByRole("tab", { name: "Overview" })))).toBe(false)
-  expect(listRing(await style(surfaceTabs(frame)))).toBe(true)
+  await page.mouse.move(0, 0)
+  await expect.poll(() => frame.locator("html").evaluate(() => document.getAnimations().length)).toBe(0)
+  const groups = statesControls(frame)
+  const out: Record<string, Record<string, Awaited<ReturnType<typeof read>>>> = {}
+  for (const [role, controls] of Object.entries(groups)) {
+    out[role] = {}
+    for (const [name, locator] of Object.entries(controls)) out[role]![name] = await read(locator)
+  }
+  return out
+}
+/** Raised and Filled draw a 1px inner top highlight and 1px inner lower shade; Recessed and Pressed a soft 2px inset. */
+const edged = (shadow: string) => /0px 1px 0px 0px inset/.test(shadow) && /0px -1px 0px 0px inset/.test(shadow)
+const inset = (shadow: string) => /0px 1px 2px 0px inset/.test(shadow)
+/** Any visible outer (non-inset) layer other than a focus ring. */
+const outerElevation = (shadow: string) => shadow.split(/,(?![^(]*\))/).some((layer) => !layer.includes("inset") && !/\/ 0\)|rgba\(0, 0, 0, 0\)/.test(layer))
 
-  // Off returns every target to its flat style.
+test("Tactile gives every interactive control its semantic depth, keeps static, line and disabled controls flat, never moves geometry, and Off restores", async ({ page }) => {
+  await open(page)
+  const flat = await readAll(page)
+  for (const role of Object.values(flat)) for (const s of Object.values(role)) expect(s.backgroundImage).toBe("none")
+
+  await setEffect(page, "Tactile")
+  const on = await readAll(page)
+  // Visual only: geometry, radius, fill, foreground and type never change.
+  for (const [role, controls] of Object.entries(on)) {
+    for (const [name, s] of Object.entries(controls)) {
+      for (const key of ["box", "radius", "backgroundColor", "color", "font"] as const) expect(s[key], `${role}.${name}.${key}`).toBe(flat[role]![name]![key])
+    }
+  }
+  for (const [name, s] of Object.entries(on.raised!)) expect(edged(s.boxShadow), `raised ${name}`).toBe(true)
+  for (const [name, s] of Object.entries(on.filled!)) expect(edged(s.boxShadow), `filled ${name}`).toBe(true)
+  for (const [name, s] of Object.entries(on.recessed!)) expect(inset(s.boxShadow), `recessed ${name}`).toBe(true)
+  expect(inset(on.pressed!.toggleOn!.boxShadow)).toBe(true)
+  expect(outerElevation(on.pressed!.toggleOn!.boxShadow)).toBe(false)
+  // Only Secondary carries the wash; Primary gains the theme's xs elevation.
+  expect(tactile(on.raised!.secondary!)).toBe(true)
+  for (const [name, s] of [...Object.entries(on.raised!), ...Object.entries(on.filled!)]) if (name !== "secondary") expect(s.backgroundImage, name).toBe("none")
+  expect(outerElevation(on.filled!.primary!.boxShadow)).toBe(true)
+  // Flat: ghost, destructive and link Buttons, disabled controls, the grouped field, every tab trigger, the line tabs and
+  // the static Elevation surface are exactly Off.
+  for (const [name, s] of Object.entries(on.flat!)) expect(s, `flat ${name}`).toEqual(flat.flat![name])
+
+  // Secondary composed through an asChild trigger (the Workbench's collapsible section triggers) keeps its recipe, the
+  // borderless theme menu trigger is opted out, and the gallery's Secondary Buttons follow.
+  await editorCategory(page, "Effects")
+  expect(tactile(await style(page.getByTestId("section-ui-effects").locator('[data-slot="collapsible-trigger"]')))).toBe(true)
+  expect(listRing(await style(page.getByRole("tablist", { name: "Editor categories" })))).toBe(true)
+  expect((await style(page.getByRole("combobox", { name: "Active theme" }))).boxShadow).not.toMatch(/inset/)
+  await previewView(page, "Cards")
+  for (const name of ["Manage storage", "GitHub", "Google"]) expect(tactile(await style(preview(page).getByRole("button", { name, exact: true }))), name).toBe(true)
+  // Hand-built field groups recess once, on the row.
+  const quickFind = preview(page).getByRole("searchbox", { name: "Search commands" })
+  expect(inset((await style(quickFind)).boxShadow)).toBe(false)
+  expect(inset(await quickFind.evaluate((el) => getComputedStyle(el.parentElement!).boxShadow))).toBe(true)
+
+  // Strength 0 and Off both return every control, including the surface tab edge, to exactly its flat style.
+  const strength = (await uiEffects(page)).strength
+  await strength.fill("0")
+  await strength.blur()
+  expect(await readAll(page)).toEqual(flat)
+  expect(listRing(await style(surfaceTabs(preview(page))))).toBe(false)
   await setEffect(page, "Off")
-  const off = await snapshot(page)
-  expect(off.variants).toEqual(flat.variants)
-  for (const s of [off.activeTab, off.categoryTab]) expect(tactile(s)).toBe(false)
-  expect(off.surfaceList).toEqual(flat.surfaceList)
-  expect(off.categoryList).toEqual(flat.categoryList)
+  expect(await readAll(page)).toEqual(flat)
 })
 
-test("TUE-05 / IESP-05 focus-visible rings, keyboard activation, and the pressed state hold on a tactile Secondary Button", async ({ page }) => {
+test("TUE-05 / IESP-05 focus rings, keyboard activation, pressed, open and hover states, and focus/invalid precedence hold", async ({ page }) => {
   await open(page)
   await setEffect(page, "Tactile")
   const frame = preview(page)
@@ -208,6 +244,54 @@ test("TUE-05 / IESP-05 focus-visible rings, keyboard activation, and the pressed
   await page.mouse.up()
   expect(pressed.boxShadow).not.toBe(rest)
   expect(pressed.boxShadow).toMatch(/0px 1px 2px 0px inset/)
+
+  // Primary: pressing reverses its depth and removes its outer elevation, without any press translation.
+  const primary = variant(frame, "default")
+  const primaryRest = await read(primary)
+  const p = await primary.boundingBox()
+  await page.mouse.move(p!.x + p!.width / 2, p!.y + p!.height / 2)
+  await page.mouse.down()
+  await expect.poll(async () => (await read(primary)).boxShadow).toMatch(/0px 1px 2px 0px inset/)
+  const primaryPressed = await read(primary)
+  await page.mouse.up()
+  expect(outerElevation(primaryRest.boxShadow)).toBe(true)
+  expect(outerElevation(primaryPressed.boxShadow)).toBe(false)
+  expect(primaryPressed.box).toBe(primaryRest.box)
+  expect(await primary.evaluate((el) => getComputedStyle(el).transform)).toBe("none")
+
+  // Outline: hover strengthens the border; an open dialog trigger reads as pressed.
+  const outline = variant(frame, "outline")
+  await page.mouse.move(0, 0)
+  await expect.poll(async () => (await read(outline)).boxShadow).toMatch(/0px 1px 0px 0px inset/)
+  const outlineRest = await read(outline)
+  await outline.hover()
+  await expect.poll(async () => (await read(outline)).borderColor).not.toBe(outlineRest.borderColor)
+  // A modal dialog hides the page from role queries, so the trigger is held by its markup.
+  const openDialog = frame.locator('[data-testid="preview"] section[aria-labelledby="pv-dialog"] [data-variant="outline"]')
+  await openDialog.click()
+  await expect(openDialog).toHaveAttribute("data-state", "open")
+  await expect.poll(async () => (await read(openDialog)).boxShadow).toMatch(/0px 1px 2px 0px inset/)
+  await page.keyboard.press("Escape")
+  await expect(openDialog).toHaveAttribute("data-state", "closed")
+
+  // Fields: focus and invalid borders outrank hover, and the focus ring composes with the recess.
+  const field = frame.getByRole("textbox", { name: "Default", exact: true })
+  const fieldRest = await read(field)
+  await field.hover()
+  await expect.poll(async () => (await read(field)).borderColor).not.toBe(fieldRest.borderColor)
+  await field.focus()
+  await page.keyboard.press("Shift+Tab")
+  await page.keyboard.press("Tab")
+  await expect(field).toBeFocused()
+  const ring = await field.evaluate((el) => { const probe = document.createElement("span"); probe.style.color = "var(--ring)"; el.parentElement!.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c })
+  await expect.poll(async () => (await read(field)).borderColor).toBe(ring)
+  await expect.poll(async () => (await read(field)).boxShadow).toMatch(/0px 0px 0px 3px/)
+  expect((await read(field)).boxShadow).toMatch(/0px 1px 2px 0px inset/)
+  const invalid = frame.locator('[data-testid="preview"] [aria-invalid="true"]')
+  const invalidRest = await read(invalid)
+  await invalid.hover()
+  await page.waitForTimeout(250)
+  expect((await read(invalid)).borderColor).toBe(invalidRest.borderColor)
 })
 
 test("TUE-07 strength is bounded and scales; dark mode swaps the semantic light source; decoded axe", async ({ page }, info) => {
@@ -216,12 +300,13 @@ test("TUE-07 strength is bounded and scales; dark mode swaps the semantic light 
   const frame = preview(page)
   const highlight = async () => {
     await previewStates(page)
-    return variant(frame, "secondary").evaluate((node) => getComputedStyle(node).getPropertyValue("--ui-tactile-lower").trim())
+    return variant(frame, "secondary").evaluate((node) => getComputedStyle(node).getPropertyValue("--ui-tactile-shade").trim())
   }
   const c = await uiEffects(page)
+  // Strength 0 emits nothing, exactly like Off.
   await c.strength.fill("0")
   await c.strength.blur()
-  expect(await highlight()).toMatch(/ 0%, transparent\)$/)
+  expect(await highlight()).toBe("")
   await editorCategory(page, "Effects")
   await c.strength.fill("100")
   await c.strength.blur()
@@ -261,11 +346,14 @@ test("TUE-04/02 history, dirty state, chrome Secondary triggers and save/reload 
   await previewStates(page)
   expect(tactile(await style(variant(preview(page), "secondary")))).toBe(true)
 
-  // The active theme's effect reaches Workbench chrome Secondary controls but not Outline ones (Save As Cancel).
+  // The active theme's effect reaches Workbench chrome controls: Outline ones (Save As Cancel) are raised, without the
+  // Secondary wash.
   await saveTheme(page)
   const dialog = page.getByRole("dialog", { name: "Save as a custom theme" })
   await expect(dialog).toBeVisible()
-  expect(tactile(await style(dialog.getByRole("button", { name: "Cancel", exact: true })))).toBe(false)
+  const cancel = await style(dialog.getByRole("button", { name: "Cancel", exact: true }))
+  expect(tactile(cancel)).toBe(false)
+  expect(edged(cancel.boxShadow)).toBe(true)
   await dialog.getByLabel("Theme name").fill("Tactile Check")
   await dialog.getByRole("button", { name: "Save theme", exact: true }).click()
   await expect(page.locator("#workbench-active-theme")).toHaveAttribute("data-theme-id", "tactile-check")

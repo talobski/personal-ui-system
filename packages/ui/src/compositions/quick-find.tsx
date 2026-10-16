@@ -18,7 +18,8 @@ const COMMANDS = [
  * PUI-103: no visible title or subtitle, so the search field is the first visible content; the heading remains for
  * assistive technology. PUI-141: the embedded Input is `rounded-none` (as shadcn's InputGroupInput) because the row
  * owns the visible radius; the browser clips an input's text to its own rounded box, so an invisible radius on this
- * padless field would round the ends of the native selection highlight as the theme radius grows.
+ * padless field would round the ends of the native selection highlight as the theme radius grows. It also takes
+ * InputGroupInput's `input-group-control` slot, so the row, not the embedded field, owns any field depth.
  */
 export function QuickFind({ stable = false }: { stable?: boolean }) {
   const id = useId()
@@ -34,7 +35,7 @@ export function QuickFind({ stable = false }: { stable?: boolean }) {
         <label htmlFor={id} className="sr-only">Search commands</label>
         <div className="flex h-9 items-center gap-2 rounded-md border border-input px-3 shadow-xs transition-[color,box-shadow] has-[input:focus-visible]:border-ring has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50 dark:bg-input/30">
           <Search aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
-          <Input id={id} type="search" value={query} placeholder="Search or type a command" autoComplete="off" onChange={e => { setQuery(e.target.value); setOpened(null) }}
+          <Input id={id} data-slot="input-group-control" type="search" value={query} placeholder="Search or type a command" autoComplete="off" onChange={e => { setQuery(e.target.value); setOpened(null) }}
             className="h-auto min-w-0 rounded-none border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent" />
           <kbd aria-hidden="true" className="rounded border bg-muted px-1.5 font-mono text-[0.6875rem] text-foreground">⌘K</kbd>
         </div>

@@ -223,8 +223,8 @@ const sidebarState = z
 
 /**
  * Optional component-targeted UI effects (PUI-113, simplified by PUI-119). A closed Theme v3 extension: `effect` is
- * `off` (flat) or `tactile`, targeting Secondary Buttons and surface TabsLists. `strength` scales only the Secondary
- * Button recipe from 0 to 100; the TabsList edge stays fixed. The canonical object is strict, so it cannot carry
+ * `off` (flat) or `tactile`, the interaction-depth system for interactive controls. `strength` scales its depth from 0
+ * to 100, and strength 0 renders exactly like Off. The canonical object is strict, so it cannot carry
  * CSS, selectors, paths, or targets. Absence is the documented default (`UI_EFFECTS_FLAT`, Off at the default strength):
  * older v3 themes and migrated v1/v2 themes have no field and render exactly as before.
  */

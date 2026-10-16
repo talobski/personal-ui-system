@@ -1,11 +1,11 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
-import { applyProposal, createProposalSession, discardProposal, resolveUiEffects, stageProposal, UI_EFFECTS_FLAT } from "@personal-ui/core"
+import { applyProposal, createProposalSession, discardProposal, renderUiEffectsCss, resolveUiEffects, stageProposal, UI_EFFECTS_FLAT } from "@personal-ui/core"
 import type { Theme, ThemeOperation } from "@personal-ui/core"
 
 import { buildUiEffectsOperation, NUMERIC_CONTROLS, UI_EFFECT_HELP, UI_EFFECT_OPTIONS } from "./controls"
 import { EMPTY_TRACK, isDirty, record, redo, reset, sameDesign, undo } from "./history"
-import { createCustomTheme, editTheme, exportThemeJson, loadBuiltInThemes, previewVariablesCss } from "./lifecycle"
+import { createCustomTheme, editTheme, exportThemeCss, exportThemeJson, loadBuiltInThemes, previewVariablesCss } from "./lifecycle"
 import { emptySaved, loadSaved, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
 
@@ -32,7 +32,7 @@ describe("TUE-04 / IESP-04 controls", () => {
   it("offer Off and Tactile (Off first and default), an effect-driven helper and one bounded Strength; no target toggles", () => {
     expect(UI_EFFECT_OPTIONS).toEqual([{ value: "off", label: "Off" }, { value: "tactile", label: "Tactile" }])
     // PUI-125 / ADSR-05: Off has no note; Tactile has exactly this copy. The mapping covers exactly the offered effects.
-    expect(UI_EFFECT_HELP).toEqual({ off: null, tactile: "Applied to secondary buttons and tabs." })
+    expect(UI_EFFECT_HELP).toEqual({ off: null, tactile: "Applied to buttons, fields, tabs and selection controls." })
     expect(Object.keys(UI_EFFECT_HELP)).toEqual(UI_EFFECT_OPTIONS.map((option) => option.value))
     expect(resolveUiEffects(defaultTheme).effect).toBe("off")
     const strength = NUMERIC_CONTROLS.uiEffectsStrength
@@ -163,10 +163,9 @@ describe("TUE-05/06/08 surface wiring", () => {
     const css = previewVariablesCss(on)
     const flat = previewVariablesCss({ ...defaultTheme, revision: on.revision })
     expect(css.startsWith(`${flat}\n\n/* UI effects: tactile, strength 50. */\n@layer components {`)).toBe(true)
-    expect(css).toContain('[data-variant="secondary"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])')
-    expect(css).toContain(':where([data-slot="tabs-list"]:not([data-variant="line"])) {')
-    expect(css).not.toContain("tabs-trigger")
-    expect(css).not.toContain('data-variant="outline"')
+    // The runtime block is core's, byte for byte, so the preview and the exported Theme Code CSS match.
+    expect(css.endsWith(renderUiEffectsCss(on).trimEnd())).toBe(true)
+    expect(exportThemeCss(on).css.endsWith(renderUiEffectsCss(on))).toBe(true)
     const off = edit(on, buildUiEffectsOperation(on, { effect: "off" }))
     expect(previewVariablesCss(off)).toBe(previewVariablesCss({ ...defaultTheme, revision: off.revision }))
   })
@@ -204,9 +203,15 @@ describe("TUE-05/06/08 surface wiring", () => {
       '<TabsList className="w-max flex-nowrap justify-start" aria-label="Preview views">',
       // The States view's ordinary surface/pill sample: unmarked, so its list is the Tabs target.
       '<TabsList aria-label="Surface tabs sample">',
+      // Its line sample, which Tactile never reaches.
+      '<TabsList variant="line" aria-label="Line tabs sample">',
     ])
-    // No local surface/tactile override: the shared fixed ring alone styles the list.
-    for (const source of [app, previewFrame]) expect(source).not.toMatch(/data-variant="line"|bg-transparent p-0|tactile|ui-tactile/)
+    // No local surface/tactile override: the shared fixed ring alone styles the list. The only opt-out is the borderless
+    // theme menu trigger, which is marked flat.
+    for (const source of [app, previewFrame]) expect(source).not.toMatch(/data-variant="line"|bg-transparent p-0|ui-tactile/)
+    expect(app.match(/data-tactile="[a-z]+"/g)).toEqual(['data-tactile="flat"'])
+    expect(app).toContain('<SelectTrigger id="theme-select" aria-label="Active theme" data-tactile="flat"')
+    expect(previewFrame).not.toContain("data-tactile")
     const surfaceUsages = ["../../../packages/ui/src/compositions/workspace-settings.tsx", "../../../packages/ui/src/components/tabs.stories.tsx"]
     for (const path of surfaceUsages) expect(readFileSync(new URL(path, import.meta.url), "utf8")).not.toContain('data-variant="line"')
   })
@@ -223,10 +228,15 @@ describe("TUE-05/06/08 surface wiring", () => {
     for (const source of [planUsage, signup, section]) expect(source).not.toMatch(/tactile|inset-shadow/i)
   })
 
-  it("does not change the public Button or Tabs components", () => {
-    const button = readFileSync(new URL("../../../packages/ui/src/components/button.tsx", import.meta.url), "utf8")
-    const tabs = readFileSync(new URL("../../../packages/ui/src/components/tabs.tsx", import.meta.url), "utf8")
-    expect(button).not.toMatch(/tactile|uiEffects/i)
-    expect(tabs).not.toMatch(/tactile|uiEffects|variant/i)
+  it("components carry no tactile styling; Tabs gains only shadcn's line variant, Toggle only its variant and size hooks", () => {
+    const source = (name: string) => readFileSync(new URL(`../../../packages/ui/src/components/${name}.tsx`, import.meta.url), "utf8")
+    for (const name of ["button", "tabs", "toggle", "toggle-group", "input", "textarea", "select", "switch", "checkbox", "radio-group", "input-group"]) expect(source(name), name).not.toMatch(/tactile|uiEffects|inset-shadow/i)
+    const tabs = source("tabs")
+    // The default list stays unmarked, so existing surface lists render exactly as before.
+    expect(tabs).toContain('data-variant={variant === "line" ? "line" : undefined}')
+    expect(tabs).toContain('"group/tabs-list inline-flex h-9 w-fit items-center justify-center rounded-lg bg-muted p-[3px] text-muted-foreground"')
+    expect(tabs.match(/group-data-\[variant=line\]\/tabs-list:[^\s"]+/g)!.length).toBeGreaterThan(5)
+    expect(source("toggle")).toContain('data-variant={variant ?? "default"}')
+    expect(source("input-group")).toContain('data-slot="input-group-control"')
   })
 })

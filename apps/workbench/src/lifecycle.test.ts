@@ -97,7 +97,8 @@ describe("WSPF-02/03/04/07/08/09 Workbench sidebar and preview source contract",
     expect(Array.from(preview.matchAll(/<TabsTrigger value="([a-z-]+)" className=\{CATEGORY_TRIGGER_CLASS\}>([^<]+)<\/TabsTrigger>/g), match => [match[1], match[2]])).toEqual([["cards", "Cards"], ["design-system", "Design system"], ["app-shells", "App shells"], ["states", "States"]])
     expect(preview.match(/className=\{CATEGORY_TRIGGER_CLASS\}/g)).toHaveLength(4)
     expect(Array.from(preview.matchAll(/<TabsContent value="([a-z-]+)" forceMount className="[^"]*data-\[state=inactive\]:hidden"/g), match => match[1])).toEqual(["cards", "design-system", "app-shells", "states"])
-    expect(preview).not.toMatch(/<Select|justify-center/)
+    // The views switch through Tabs, not a Select; the States view's own Select sample is outside the frame component.
+    expect(preview.slice(0, preview.indexOf("const StatesView"))).not.toMatch(/<Select|justify-center/)
     expect(preview).toContain('className="grid gap-4 p-4"')
     expect(preview).toContain('<TabsContent value="states" forceMount className="grid gap-6 data-[state=inactive]:hidden">')
   })

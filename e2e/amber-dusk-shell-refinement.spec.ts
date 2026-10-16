@@ -148,10 +148,10 @@ test.describe("ADSR-02/03 Amber Dusk built-in (PUI-123)", () => {
   })
 })
 
-test.describe("ADSR-04 Off/Tactile targets and the fixed TabsList ring (PUI-124)", () => {
+test.describe("ADSR-04 Off/Tactile targets and the TabsList edge (PUI-124), with Strength-scaled tab depth", () => {
   for (const theme of ["default", "amber-dusk"] as const) {
     for (const mode of ["light", "dark"] as const) {
-      test(`Tabs are invariant to Strength while Secondary responds (${theme}, ${mode})`, async ({ page }, info) => {
+      test(`strength 0 is Off; the TabsList edge holds from the default while the track recess and Secondary respond (${theme}, ${mode})`, async ({ page }, info) => {
         test.setTimeout(120_000)
         await open(page)
         if (theme !== "default") await selectTheme(page, theme)
@@ -174,21 +174,23 @@ test.describe("ADSR-04 Off/Tactile targets and the fixed TabsList ring (PUI-124)
           await setStrength(page, strength)
           readings[strength] = await read()
         }
-        // One fixed ring on the list at every strength, including 0; triggers keep exactly their Off styling.
-        for (const strength of [0, 50, 100]) {
-          expect(readings[strength]!.list, `list ${strength}`).toEqual(readings[0]!.list)
-          expect(readings[strength]!.active, `active ${strength}`).toEqual(off.active)
-        }
-        // PUI-133: the fixed edge is one inward 1px layer; no outer 1px ring remains.
-        expect(readings[0]!.list.boxShadow).toMatch(/0px 0px 0px 1px inset/)
-        expect(readings[0]!.list.boxShadow).not.toMatch(/0px 0px 0px 1px(?! inset)/)
-        for (const key of ["backgroundColor", "width", "height", "backgroundImage"] as const) expect(readings[50]!.list[key]).toBe(off.list[key])
-        // PUI-129: the ring colour is the semantic border token at 80%.
+        // Strength 0 is exactly Off: no edge, no recess, no raised trigger, no Secondary depth.
+        expect(readings[0]).toEqual(off)
+        // PUI-129/PUI-133: from the default strength up, one inward 1px edge in the semantic border at 80%.
         const ringColor = await list.evaluate((node) => { const probe = document.createElement("span"); probe.style.color = "color-mix(in oklab, var(--border) 80%, transparent)"; node.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c })
-        expect(readings[50]!.list.boxShadow).toContain(ringColor)
+        for (const strength of [50, 100]) {
+          expect(readings[strength]!.list.boxShadow, `list ${strength}`).toContain(`${ringColor} 0px 0px 0px 1px inset`)
+          expect(readings[strength]!.list.boxShadow).not.toMatch(/0px 0px 0px 1px(?! inset)/)
+          for (const key of ["backgroundColor", "width", "height", "backgroundImage"] as const) expect(readings[strength]!.list[key]).toBe(off.list[key])
+          // The active tab keeps exactly its shadcn styling; above 0 the track recesses.
+          expect(readings[strength]!.active).toEqual(off.active)
+          expect(readings[strength]!.list.boxShadow).toMatch(/0px 1px 2px 0px inset/)
+        }
+        expect(readings[100]!.list.boxShadow).not.toBe(readings[50]!.list.boxShadow)
         // Secondary responds to Strength.
         expect(readings[100]!.secondary.boxShadow).not.toBe(readings[0]!.secondary.boxShadow)
         expect(readings[100]!.secondary.backgroundImage).not.toBe(readings[0]!.secondary.backgroundImage)
+        // Only Secondary carries the wash.
         expect(await tactile(active)).toBe(false)
         // Keyboard, selection and focus semantics hold.
         await list.getByRole("tab", { name: "Overview" }).focus()
@@ -214,7 +216,7 @@ test.describe("ADSR-05 helper, Colors hierarchy, App shells, Storage and Chat (P
     const offHeight = (await box(field)).height
     await setEffect(page, "Tactile")
     const help = page.getByTestId("ui-effect-help")
-    await expect(help).toHaveText("Applied to secondary buttons and tabs.")
+    await expect(help).toHaveText("Applied to buttons, fields, tabs and selection controls.")
     const icon = page.getByTestId("ui-effect-help-icon")
     await expect(icon).toHaveAttribute("aria-hidden", "true")
     const [i, t] = [await box(icon), await box(help.locator("span"))]

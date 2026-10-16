@@ -74,7 +74,7 @@ export function TeamChat() {
         <form className="w-full min-w-0" onSubmit={event => event.preventDefault()}>
           <Label htmlFor={inputId} className="sr-only">Message {CONTACT}</Label>
           <div data-slot="chat-composer" className="flex h-9 min-w-0 items-center gap-2 rounded-md border border-input pr-0.5 pl-3 shadow-xs transition-[color,box-shadow] has-[input:focus-visible]:border-ring has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50 dark:bg-input/30">
-            <Input id={inputId} name="message" autoComplete="off" placeholder="Type your message..."
+            <Input id={inputId} data-slot="input-group-control" name="message" autoComplete="off" placeholder="Type your message..."
               className="h-auto min-w-0 flex-1 rounded-none border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent" />
             <Button type="submit" size="icon-sm" aria-label="Send message" className="size-7 shrink-0 cursor-pointer rounded-full"><SendHorizontal /></Button>
           </div>

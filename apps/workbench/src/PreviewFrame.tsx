@@ -6,7 +6,14 @@ import { CATEGORY_TRIGGER_CLASS } from "./workbenchTabs"
 import * as React from "react"
 
 import { Button } from "@personal-ui/ui/components/button"
+import { Checkbox } from "@personal-ui/ui/components/checkbox"
 import { Input } from "@personal-ui/ui/components/input"
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@personal-ui/ui/components/input-group"
+import { RadioGroup, RadioGroupItem } from "@personal-ui/ui/components/radio-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@personal-ui/ui/components/select"
+import { Switch } from "@personal-ui/ui/components/switch"
+import { Textarea } from "@personal-ui/ui/components/textarea"
+import { ToggleGroup, ToggleGroupItem } from "@personal-ui/ui/components/toggle-group"
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -22,6 +29,11 @@ import { ScrollArea } from "@personal-ui/ui/components/scroll-area"
 import type { PreviewReady, PreviewState } from "./messages"
 
 const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "link"] as const
+const PLANS = [
+  { value: "personal", label: "Personal" },
+  { value: "team", label: "Team" },
+  { value: "enterprise", label: "Enterprise" },
+]
 
 // PUI-118: posted theme state reaches these views only through the CSS variables, so a state message or a view switch
 // must not reconcile their prop-independent trees again (the baseline measured ~1,300 preview renders per edit).
@@ -111,8 +123,20 @@ const StatesView = React.memo(function StatesView() {
         </div>
       </section>
 
-      {/* PUI-113: one ordinary surface/pill Tabs sample; like the category tabs above, its list takes Tactile's fixed edge (PUI-124). */}
-      <section aria-labelledby="pv-tabs" className="grid gap-2">
+      <section aria-labelledby="pv-toggle-group" className="grid gap-2">
+        <h2 id="pv-toggle-group" className="type-heading text-sm">
+          Toggle group
+        </h2>
+        <ToggleGroup type="single" variant="outline" defaultValue="week" aria-label="Calendar range">
+          <ToggleGroupItem value="day">Day</ToggleGroupItem>
+          <ToggleGroupItem value="week">Week</ToggleGroupItem>
+          <ToggleGroupItem value="month">Month</ToggleGroupItem>
+          <ToggleGroupItem value="year" disabled>Year</ToggleGroupItem>
+        </ToggleGroup>
+      </section>
+
+      {/* PUI-113: one ordinary surface/pill Tabs sample; like the category tabs above, its list takes Tactile's fixed edge (PUI-124). The line list stays flat. */}
+      <section aria-labelledby="pv-tabs" className="grid gap-3">
         <h2 id="pv-tabs" className="type-heading text-sm">
           Tabs
         </h2>
@@ -125,6 +149,16 @@ const StatesView = React.memo(function StatesView() {
           <TabsContent value="overview" className="text-sm text-muted-foreground">Overview panel.</TabsContent>
           <TabsContent value="activity" className="text-sm text-muted-foreground">Activity panel.</TabsContent>
           <TabsContent value="settings" className="text-sm text-muted-foreground">Settings panel.</TabsContent>
+        </Tabs>
+        <Tabs defaultValue="details" className="w-fit" data-testid="line-tabs-sample">
+          <TabsList variant="line" aria-label="Line tabs sample">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="comments">Comments</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
+          <TabsContent value="details" className="text-sm text-muted-foreground">Details panel.</TabsContent>
+          <TabsContent value="comments" className="text-sm text-muted-foreground">Comments panel.</TabsContent>
+          <TabsContent value="history" className="text-sm text-muted-foreground">History panel.</TabsContent>
         </Tabs>
       </section>
 
@@ -148,6 +182,52 @@ const StatesView = React.memo(function StatesView() {
           Disabled
           <Input defaultValue="Read only value" disabled />
         </label>
+        <label className="grid gap-1 text-sm">
+          Notes
+          <Textarea placeholder="Add a note" />
+        </label>
+        <div className="grid gap-1 text-sm">
+          <span id="pv-plan-label">Plan</span>
+          <Select defaultValue="team" items={PLANS}>
+            <SelectTrigger aria-labelledby="pv-plan-label" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PLANS.map((plan) => <SelectItem key={plan.value} value={plan.value}>{plan.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-1 text-sm">
+          <label htmlFor="pv-site">Website</label>
+          <InputGroup>
+            <InputGroupAddon><InputGroupText>https://</InputGroupText></InputGroupAddon>
+            <InputGroupInput id="pv-site" placeholder="example" />
+            <InputGroupAddon align="inline-end"><InputGroupText>.com</InputGroupText></InputGroupAddon>
+          </InputGroup>
+        </div>
+      </section>
+
+      <section aria-labelledby="pv-choices" className="grid gap-3">
+        <h2 id="pv-choices" className="type-heading text-sm">
+          Checkbox, radio and switch
+        </h2>
+        <div className="flex flex-wrap gap-x-12 gap-y-4">
+          <div className="grid content-start gap-2 text-sm">
+            <label className="flex items-center gap-2"><Checkbox />Weekly digest</label>
+            <label className="flex items-center gap-2"><Checkbox defaultChecked />Mentions</label>
+            <label className="flex items-center gap-2 text-muted-foreground"><Checkbox disabled />Product news</label>
+          </div>
+          <RadioGroup defaultValue="email" aria-label="Contact method" className="content-start text-sm">
+            <label className="flex items-center gap-2"><RadioGroupItem value="email" />Email</label>
+            <label className="flex items-center gap-2"><RadioGroupItem value="sms" />SMS</label>
+            <label className="flex items-center gap-2 text-muted-foreground"><RadioGroupItem value="post" disabled />Post</label>
+          </RadioGroup>
+          <div className="grid content-start gap-2 text-sm">
+            <label className="flex items-center gap-2"><Switch />Autosave</label>
+            <label className="flex items-center gap-2"><Switch defaultChecked />Sync</label>
+            <label className="flex items-center gap-2 text-muted-foreground"><Switch disabled />Beta</label>
+          </div>
+        </div>
       </section>
 
       <section aria-labelledby="pv-elevation" className="grid gap-2">
