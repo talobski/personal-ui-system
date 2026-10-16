@@ -158,7 +158,9 @@ describe("TUE-02 persistence and export", () => {
 
 describe("TUE-05/06/08 surface wiring", () => {
   it("flat themes render the exact pre-PUI-113 runtime CSS; Tactile appends only the effects block", () => {
-    for (const theme of builtIns) expect(previewVariablesCss(theme)).not.toMatch(/ui-tactile|@layer|data-slot/)
+    // Pocketmarket ships with Tactile at 50, as its promoted design; every other built-in is flat.
+    for (const theme of builtIns) expect(previewVariablesCss(theme).includes("@layer components"), theme.id).toBe(theme.id === "pocketmarket")
+    for (const theme of builtIns.filter((theme) => theme.id !== "pocketmarket")) expect(previewVariablesCss(theme)).not.toMatch(/ui-tactile|@layer|data-slot/)
     const on = edit(defaultTheme, buildUiEffectsOperation(defaultTheme, { effect: "tactile" }))
     const css = previewVariablesCss(on)
     const flat = previewVariablesCss({ ...defaultTheme, revision: on.revision })

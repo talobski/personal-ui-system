@@ -26,8 +26,8 @@ export const KNOWN_DEFAULT_MUTED_DEBT = {
  * exactly these resolved Pocketmarket colours and ratio window are separated; any other pair stays blocking.
  */
 export const KNOWN_POCKETMARKET_DEBT = [
-  // White label on the light primary (#c96442), e.g. the landing card badge: about 3.89:1.
-  { rule: "color-contrast", fgColor: "#ffffff", bgColor: "#c96442", minRatio: 3.85, maxRatio: 3.95 },
+  // White label on the light primary (#e56b66), e.g. the landing card badge: about 3.17:1.
+  { rule: "color-contrast", fgColor: "#ffffff", bgColor: "#e56b66", minRatio: 3.12, maxRatio: 3.22 },
 ] as const
 
 const serious = (violation: Violation) => violation.impact === "serious" || violation.impact === "critical"

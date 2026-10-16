@@ -37,7 +37,7 @@ it("WSPF-05/06 muted pair debt stays measured; PUI-120 section triggers now use 
   // Measured, not hidden: the pre-approved deferred Default-theme debt is exactly one pairing at about 4.35:1. Amber
   // Dusk's supplied light muted pair (#83827d on #ede9de, about 3.17:1) was corrected by the owner-authorized contrast
   // override (#696863, about 4.60:1), so it no longer appears here.
-  // Pocketmarket keeps its owner-supplied light muted pair (#6e6d68 on #ede9de, about 4.27:1) as recorded source-palette
+  // Pocketmarket keeps its owner-supplied light muted pair (#6e6d68 on #eceae4, about 4.31:1) as recorded source-palette
   // debt (see pocketmarket.conversion.json contrastDebt); the source values are preserved rather than silently adjusted.
   const below = pairs.filter(pair => pair.ratio < 4.5)
   expect(below.map(pair => pair.id)).toEqual(["default/light", "pocketmarket/light"])

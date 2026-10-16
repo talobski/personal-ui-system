@@ -13,7 +13,7 @@
       },
       "foreground": {
         "$type": "color",
-        "$value": "oklch(0.3438 0.0269 95.7226)"
+        "$value": "oklch(0.1908 0.002 106.5859)"
       },
       "card": {
         "$type": "color",
@@ -33,7 +33,7 @@
       },
       "primary": {
         "$type": "color",
-        "$value": "oklch(0.6171 0.1375 39.0427)"
+        "$value": "oklch(0.673253 0.152964 24.390598)"
       },
       "primary-foreground": {
         "$type": "color",
@@ -41,7 +41,7 @@
       },
       "secondary": {
         "$type": "color",
-        "$value": "oklch(0.9245 0.0138 92.9892)"
+        "$value": "oklch(0.915438 0.009645 93.575552)"
       },
       "secondary-foreground": {
         "$type": "color",
@@ -49,7 +49,7 @@
       },
       "muted": {
         "$type": "color",
-        "$value": "oklch(0.9341 0.0153 90.239)"
+        "$value": "oklch(0.936929 0.008302 91.485738)"
       },
       "muted-foreground": {
         "$type": "color",
@@ -57,15 +57,15 @@
       },
       "accent": {
         "$type": "color",
-        "$value": "oklch(0.9245 0.0138 92.9892)"
+        "$value": "oklch(0.915438 0.009645 93.575552)"
       },
       "accent-foreground": {
         "$type": "color",
-        "$value": "oklch(0.2671 0.0196 98.939)"
+        "$value": "oklch(0.1908 0.002 106.5859)"
       },
       "destructive": {
         "$type": "color",
-        "$value": "oklch(0.1908 0.002 106.5859)"
+        "$value": "oklch(0.449604 0.118256 25.011082)"
       },
       "destructive-foreground": {
         "$type": "color",
@@ -73,35 +73,35 @@
       },
       "border": {
         "$type": "color",
-        "$value": "oklch(0.8847 0.0069 97.3627)"
+        "$value": "oklch(0.914092 0.016201 99.009796)"
       },
       "input": {
         "$type": "color",
-        "$value": "oklch(0.7621 0.0156 98.3528)"
+        "$value": "oklch(0.84993 0.01515 98.319134)"
       },
       "ring": {
         "$type": "color",
-        "$value": "oklch(0.6171 0.1375 39.0427)"
+        "$value": "oklch(0.719147 0.105938 22.181626)"
       },
       "chart-1": {
         "$type": "color",
-        "$value": "oklch(0.5583 0.1276 42.9956)"
+        "$value": "oklch(0.673253 0.152964 24.390598)"
       },
       "chart-2": {
         "$type": "color",
-        "$value": "oklch(0.6898 0.1581 290.4107)"
+        "$value": "oklch(0.73006 0.129272 23.024648)"
       },
       "chart-3": {
         "$type": "color",
-        "$value": "oklch(0.8816 0.0276 93.128)"
+        "$value": "oklch(0.812281 0.106014 21.762654)"
       },
       "chart-4": {
         "$type": "color",
-        "$value": "oklch(0.8822 0.0403 298.1792)"
+        "$value": "oklch(0.857419 0.06763 34.42869)"
       },
       "chart-5": {
         "$type": "color",
-        "$value": "oklch(0.5608 0.1348 42.0584)"
+        "$value": "oklch(0.899475 0.053175 34.021118)"
       },
       "sidebar": {
         "$type": "color",
@@ -109,11 +109,11 @@
       },
       "sidebar-foreground": {
         "$type": "color",
-        "$value": "oklch(0.359 0.0051 106.6524)"
+        "$value": "oklch(0.1908 0.002 106.5859)"
       },
       "sidebar-primary": {
         "$type": "color",
-        "$value": "oklch(0.6171 0.1375 39.0427)"
+        "$value": "oklch(0.673253 0.152964 24.390598)"
       },
       "sidebar-primary-foreground": {
         "$type": "color",
@@ -125,15 +125,15 @@
       },
       "sidebar-accent-foreground": {
         "$type": "color",
-        "$value": "oklch(0.325 0 0)"
+        "$value": "oklch(0.1908 0.002 106.5859)"
       },
       "sidebar-border": {
         "$type": "color",
-        "$value": "oklch(0.9401 0 0)"
+        "$value": "oklch(0.914092 0.016201 99.009796)"
       },
       "sidebar-ring": {
         "$type": "color",
-        "$value": "oklch(0.7731 0 0)"
+        "$value": "oklch(0.84993 0.01515 98.319134)"
       }
     },
     "dark": {
@@ -151,7 +151,7 @@
       },
       "card-foreground": {
         "$type": "color",
-        "$value": "oklch(0.9818 0.0054 95.0986)"
+        "$value": "oklch(0.9576 0.0027 106.4494)"
       },
       "popover": {
         "$type": "color",
@@ -163,7 +163,7 @@
       },
       "primary": {
         "$type": "color",
-        "$value": "oklch(0.6724 0.1308 38.7559)"
+        "$value": "oklch(0.7 0.145 24.390598)"
       },
       "primary-foreground": {
         "$type": "color",
@@ -171,15 +171,15 @@
       },
       "secondary": {
         "$type": "color",
-        "$value": "oklch(0.9818 0.0054 95.0986)"
+        "$value": "oklch(0.355 0.0096 93.575552)"
       },
       "secondary-foreground": {
         "$type": "color",
-        "$value": "oklch(0.3085 0.0035 106.6039)"
+        "$value": "oklch(0.86 0.0177 98.6048)"
       },
       "muted": {
         "$type": "color",
-        "$value": "oklch(0.2213 0.0038 106.707)"
+        "$value": "oklch(0.322 0.0083 91.485738)"
       },
       "muted-foreground": {
         "$type": "color",
@@ -187,11 +187,11 @@
       },
       "accent": {
         "$type": "color",
-        "$value": "oklch(0.213 0.0078 95.4245)"
+        "$value": "oklch(0.355 0.0096 93.575552)"
       },
       "accent-foreground": {
         "$type": "color",
-        "$value": "oklch(0.9663 0.008 98.8792)"
+        "$value": "oklch(0.9576 0.0027 106.4494)"
       },
       "destructive": {
         "$type": "color",
@@ -211,59 +211,59 @@
       },
       "ring": {
         "$type": "color",
-        "$value": "oklch(0.6724 0.1308 38.7559)"
+        "$value": "oklch(0.64 0.1 22.181626)"
       },
       "chart-1": {
         "$type": "color",
-        "$value": "oklch(0.5583 0.1276 42.9956)"
+        "$value": "oklch(0.7 0.145 24.390598)"
       },
       "chart-2": {
         "$type": "color",
-        "$value": "oklch(0.6898 0.1581 290.4107)"
+        "$value": "oklch(0.63 0.125 23.024648)"
       },
       "chart-3": {
         "$type": "color",
-        "$value": "oklch(0.213 0.0078 95.4245)"
+        "$value": "oklch(0.56 0.105 21.762654)"
       },
       "chart-4": {
         "$type": "color",
-        "$value": "oklch(0.3074 0.0516 289.323)"
+        "$value": "oklch(0.5 0.075 34.42869)"
       },
       "chart-5": {
         "$type": "color",
-        "$value": "oklch(0.5608 0.1348 42.0584)"
+        "$value": "oklch(0.44 0.055 34.021118)"
       },
       "sidebar": {
         "$type": "color",
-        "$value": "oklch(0.2357 0.0024 67.7077)"
+        "$value": "oklch(0.2357 0.0024 98.8792)"
       },
       "sidebar-foreground": {
         "$type": "color",
-        "$value": "oklch(0.8074 0.0142 93.0137)"
+        "$value": "oklch(0.9576 0.0027 106.4494)"
       },
       "sidebar-primary": {
         "$type": "color",
-        "$value": "oklch(0.325 0 0)"
+        "$value": "oklch(0.7 0.145 24.390598)"
       },
       "sidebar-primary-foreground": {
         "$type": "color",
-        "$value": "oklch(0.9881 0 0)"
+        "$value": "oklch(0.1908 0.002 106.5859)"
       },
       "sidebar-accent": {
         "$type": "color",
-        "$value": "oklch(0.168 0.002 106.6177)"
+        "$value": "oklch(0.31 0.0138 92.9892)"
       },
       "sidebar-accent-foreground": {
         "$type": "color",
-        "$value": "oklch(0.8074 0.0142 93.0137)"
+        "$value": "oklch(0.9576 0.0027 106.4494)"
       },
       "sidebar-border": {
         "$type": "color",
-        "$value": "oklch(0.9401 0 0)"
+        "$value": "oklch(0.3618 0.0101 106.8928)"
       },
       "sidebar-ring": {
         "$type": "color",
-        "$value": "oklch(0.7731 0 0)"
+        "$value": "oklch(0.4336 0.0113 100.2195)"
       }
     }
   },
@@ -272,8 +272,8 @@
       "font": {
         "$type": "fontFamily",
         "$value": [
-          "Outfit Variable",
-          "Outfit",
+          "Inter Variable",
+          "Inter",
           "ui-sans-serif",
           "system-ui",
           "sans-serif"
@@ -292,8 +292,8 @@
       "font": {
         "$type": "fontFamily",
         "$value": [
-          "Outfit Variable",
-          "Outfit",
+          "Inter Variable",
+          "Inter",
           "ui-sans-serif",
           "system-ui",
           "sans-serif"
@@ -518,6 +518,16 @@
       "$value": true
     },
     "dedicatedValuesInitialized": true
+  },
+  "uiEffects": {
+    "effect": {
+      "$type": "string",
+      "$value": "tactile"
+    },
+    "strength": {
+      "$type": "number",
+      "$value": 50
+    }
   },
   "$extensions": {
     "personal-ui-system": {

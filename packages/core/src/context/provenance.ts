@@ -32,7 +32,7 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "theme:pocketmarket": {
     sourceId: "packages/core/src/theme/fixtures/pocketmarket.json",
-    sha256: "38c06d4b501ad5ce2b9e988e831b962d8d95524a1736850f0edc5b7c1977d3b4",
+    sha256: "edd2e62ee9e794fd72e133e32413517da683dd34f8df6c721a8b12ca50f1d7cd",
   },
   "resource:button": {
     sourceId: "packages/core/src/contracts/data/button.ts",

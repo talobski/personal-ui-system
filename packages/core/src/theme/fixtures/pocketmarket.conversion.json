@@ -7,10 +7,11 @@
     "schemaVersion": "3.0"
   },
   "source": {
-    "description": "Owner-supplied Pocketmarket token stylesheet (shadcn/Tailwind v4 :root, .dark and @theme inline sections), pasted in the authoring session on 2026-10-16. The stylesheet is source data only; it is not committed or rendered as a second theme layer."
+    "description": "Light mode, typography, geometry, shadow, motion, Sidebar source and UI effects: the owner's saved Pocketmarket Custom theme, exported as portable Theme JSON and promoted on 2026-10-17. It replaces the original Pocketmarket stylesheet (2026-10-16). Dark mode: the original stylesheet's dark set, refined on 2026-10-17 to follow the promoted light design language (see darkRefinement). Neither source is committed or rendered as a second theme layer.",
+    "notPromoted": "From the saved custom theme, only design values are used. Its id, name, revision and $extensions display name stay local to that saved copy; the built-in keeps id pocketmarket, name Pocketmarket and revision 1. sidebar.dedicatedValuesInitialized is internal bookkeeping and is set by the built-in itself, because its dedicated Sidebar values are in use."
   },
   "precisionPolicy": {
-    "color": "Canonical OKLCH through packages/core/src/theme/color.ts normalizeColor. Every source value is already OKLCH at 4 decimals, so normalization only removes trailing zeros; no value is converted through another space."
+    "color": "Canonical OKLCH through packages/core/src/theme/color.ts normalizeColor. Every source value is already OKLCH, so normalization changes no value; no value is converted through another space."
   },
   "values": {
     "colors.light.background": {
@@ -18,108 +19,108 @@
       "normalized": "oklch(0.9818 0.0054 95.0986)"
     },
     "colors.light.foreground": {
-      "source": "oklch(0.3438 0.0269 95.7226)",
-      "normalized": "oklch(0.3438 0.0269 95.7226)"
+      "source": "oklch(0.1908 0.002 106.5859)",
+      "normalized": "oklch(0.1908 0.002 106.5859)"
     },
     "colors.light.card": {
       "source": "oklch(0.9665 0.0067 97.3521)",
       "normalized": "oklch(0.9665 0.0067 97.3521)"
     },
     "colors.light.card-foreground": {
-      "source": "oklch(0.1908 0.0020 106.5859)",
+      "source": "oklch(0.1908 0.002 106.5859)",
       "normalized": "oklch(0.1908 0.002 106.5859)"
     },
     "colors.light.popover": {
-      "source": "oklch(1.0000 0 0)",
+      "source": "oklch(1 0 0)",
       "normalized": "oklch(1 0 0)"
     },
     "colors.light.popover-foreground": {
-      "source": "oklch(0.2671 0.0196 98.9390)",
+      "source": "oklch(0.2671 0.0196 98.939)",
       "normalized": "oklch(0.2671 0.0196 98.939)"
     },
     "colors.light.primary": {
-      "source": "oklch(0.6171 0.1375 39.0427)",
-      "normalized": "oklch(0.6171 0.1375 39.0427)"
+      "source": "oklch(0.673253 0.152964 24.390598)",
+      "normalized": "oklch(0.673253 0.152964 24.390598)"
     },
     "colors.light.primary-foreground": {
-      "source": "oklch(1.0000 0 0)",
+      "source": "oklch(1 0 0)",
       "normalized": "oklch(1 0 0)"
     },
     "colors.light.secondary": {
-      "source": "oklch(0.9245 0.0138 92.9892)",
-      "normalized": "oklch(0.9245 0.0138 92.9892)"
+      "source": "oklch(0.915438 0.009645 93.575552)",
+      "normalized": "oklch(0.915438 0.009645 93.575552)"
     },
     "colors.light.secondary-foreground": {
       "source": "oklch(0.4334 0.0177 98.6048)",
       "normalized": "oklch(0.4334 0.0177 98.6048)"
     },
     "colors.light.muted": {
-      "source": "oklch(0.9341 0.0153 90.2390)",
-      "normalized": "oklch(0.9341 0.0153 90.239)"
+      "source": "oklch(0.936929 0.008302 91.485738)",
+      "normalized": "oklch(0.936929 0.008302 91.485738)"
     },
     "colors.light.muted-foreground": {
       "source": "oklch(0.5341 0.0078 97.4503)",
       "normalized": "oklch(0.5341 0.0078 97.4503)"
     },
     "colors.light.accent": {
-      "source": "oklch(0.9245 0.0138 92.9892)",
-      "normalized": "oklch(0.9245 0.0138 92.9892)"
+      "source": "oklch(0.915438 0.009645 93.575552)",
+      "normalized": "oklch(0.915438 0.009645 93.575552)"
     },
     "colors.light.accent-foreground": {
-      "source": "oklch(0.2671 0.0196 98.9390)",
-      "normalized": "oklch(0.2671 0.0196 98.939)"
-    },
-    "colors.light.destructive": {
-      "source": "oklch(0.1908 0.0020 106.5859)",
+      "source": "oklch(0.1908 0.002 106.5859)",
       "normalized": "oklch(0.1908 0.002 106.5859)"
     },
+    "colors.light.destructive": {
+      "source": "oklch(0.449604 0.118256 25.011082)",
+      "normalized": "oklch(0.449604 0.118256 25.011082)"
+    },
     "colors.light.destructive-foreground": {
-      "source": "oklch(1.0000 0 0)",
+      "source": "oklch(1 0 0)",
       "normalized": "oklch(1 0 0)"
     },
     "colors.light.border": {
-      "source": "oklch(0.8847 0.0069 97.3627)",
-      "normalized": "oklch(0.8847 0.0069 97.3627)"
+      "source": "oklch(0.914092 0.016201 99.009796)",
+      "normalized": "oklch(0.914092 0.016201 99.009796)"
     },
     "colors.light.input": {
-      "source": "oklch(0.7621 0.0156 98.3528)",
-      "normalized": "oklch(0.7621 0.0156 98.3528)"
+      "source": "oklch(0.84993 0.01515 98.319134)",
+      "normalized": "oklch(0.84993 0.01515 98.319134)"
     },
     "colors.light.ring": {
-      "source": "oklch(0.6171 0.1375 39.0427)",
-      "normalized": "oklch(0.6171 0.1375 39.0427)"
+      "source": "oklch(0.719147 0.105938 22.181626)",
+      "normalized": "oklch(0.719147 0.105938 22.181626)"
     },
     "colors.light.chart-1": {
-      "source": "oklch(0.5583 0.1276 42.9956)",
-      "normalized": "oklch(0.5583 0.1276 42.9956)"
+      "source": "oklch(0.673253 0.152964 24.390598)",
+      "normalized": "oklch(0.673253 0.152964 24.390598)"
     },
     "colors.light.chart-2": {
-      "source": "oklch(0.6898 0.1581 290.4107)",
-      "normalized": "oklch(0.6898 0.1581 290.4107)"
+      "source": "oklch(0.73006 0.129272 23.024648)",
+      "normalized": "oklch(0.73006 0.129272 23.024648)"
     },
     "colors.light.chart-3": {
-      "source": "oklch(0.8816 0.0276 93.1280)",
-      "normalized": "oklch(0.8816 0.0276 93.128)"
+      "source": "oklch(0.812281 0.106014 21.762654)",
+      "normalized": "oklch(0.812281 0.106014 21.762654)"
     },
     "colors.light.chart-4": {
-      "source": "oklch(0.8822 0.0403 298.1792)",
-      "normalized": "oklch(0.8822 0.0403 298.1792)"
+      "source": "oklch(0.857419 0.06763 34.42869)",
+      "normalized": "oklch(0.857419 0.06763 34.42869)"
     },
     "colors.light.chart-5": {
-      "source": "oklch(0.5608 0.1348 42.0584)",
-      "normalized": "oklch(0.5608 0.1348 42.0584)"
+      "source": "oklch(0.899475 0.053175 34.021118)",
+      "normalized": "oklch(0.899475 0.053175 34.021118)"
     },
     "colors.light.sidebar": {
-      "source": "oklch(0.9663 0.0080 98.8792)",
+      "source": "oklch(0.9663 0.008 98.8792)",
       "normalized": "oklch(0.9663 0.008 98.8792)"
     },
     "colors.light.sidebar-foreground": {
-      "source": "oklch(0.3590 0.0051 106.6524)",
-      "normalized": "oklch(0.359 0.0051 106.6524)"
+      "source": "oklch(0.1908 0.002 106.5859)",
+      "normalized": "oklch(0.1908 0.002 106.5859)"
     },
     "colors.light.sidebar-primary": {
-      "source": "oklch(0.6171 0.1375 39.0427)",
-      "normalized": "oklch(0.6171 0.1375 39.0427)"
+      "source": "oklch(0.673253 0.152964 24.390598)",
+      "normalized": "oklch(0.673253 0.152964 24.390598)"
     },
     "colors.light.sidebar-primary-foreground": {
       "source": "oklch(0.9881 0 0)",
@@ -130,16 +131,16 @@
       "normalized": "oklch(0.9245 0.0138 92.9892)"
     },
     "colors.light.sidebar-accent-foreground": {
-      "source": "oklch(0.3250 0 0)",
-      "normalized": "oklch(0.325 0 0)"
+      "source": "oklch(0.1908 0.002 106.5859)",
+      "normalized": "oklch(0.1908 0.002 106.5859)"
     },
     "colors.light.sidebar-border": {
-      "source": "oklch(0.9401 0 0)",
-      "normalized": "oklch(0.9401 0 0)"
+      "source": "oklch(0.914092 0.016201 99.009796)",
+      "normalized": "oklch(0.914092 0.016201 99.009796)"
     },
     "colors.light.sidebar-ring": {
-      "source": "oklch(0.7731 0 0)",
-      "normalized": "oklch(0.7731 0 0)"
+      "source": "oklch(0.84993 0.01515 98.319134)",
+      "normalized": "oklch(0.84993 0.01515 98.319134)"
     },
     "colors.dark.background": {
       "source": "oklch(0.2679 0.0036 106.6427)",
@@ -154,55 +155,55 @@
       "normalized": "oklch(0.2928 0.0018 106.5092)"
     },
     "colors.dark.card-foreground": {
-      "source": "oklch(0.9818 0.0054 95.0986)",
-      "normalized": "oklch(0.9818 0.0054 95.0986)"
+      "source": "oklch(0.9576 0.0027 106.4494)",
+      "normalized": "oklch(0.9576 0.0027 106.4494)"
     },
     "colors.dark.popover": {
       "source": "oklch(0.3085 0.0035 106.6039)",
       "normalized": "oklch(0.3085 0.0035 106.6039)"
     },
     "colors.dark.popover-foreground": {
-      "source": "oklch(0.9211 0.0040 106.4781)",
+      "source": "oklch(0.9211 0.004 106.4781)",
       "normalized": "oklch(0.9211 0.004 106.4781)"
     },
     "colors.dark.primary": {
-      "source": "oklch(0.6724 0.1308 38.7559)",
-      "normalized": "oklch(0.6724 0.1308 38.7559)"
+      "source": "oklch(0.7 0.145 24.390598)",
+      "normalized": "oklch(0.7 0.145 24.390598)"
     },
     "colors.dark.primary-foreground": {
-      "source": "oklch(0.1908 0.0020 106.5859)",
+      "source": "oklch(0.1908 0.002 106.5859)",
       "normalized": "oklch(0.1908 0.002 106.5859)"
     },
     "colors.dark.secondary": {
-      "source": "oklch(0.9818 0.0054 95.0986)",
-      "normalized": "oklch(0.9818 0.0054 95.0986)"
+      "source": "oklch(0.355 0.0096 93.575552)",
+      "normalized": "oklch(0.355 0.0096 93.575552)"
     },
     "colors.dark.secondary-foreground": {
-      "source": "oklch(0.3085 0.0035 106.6039)",
-      "normalized": "oklch(0.3085 0.0035 106.6039)"
+      "source": "oklch(0.86 0.0177 98.6048)",
+      "normalized": "oklch(0.86 0.0177 98.6048)"
     },
     "colors.dark.muted": {
-      "source": "oklch(0.2213 0.0038 106.7070)",
-      "normalized": "oklch(0.2213 0.0038 106.707)"
+      "source": "oklch(0.322 0.0083 91.485738)",
+      "normalized": "oklch(0.322 0.0083 91.485738)"
     },
     "colors.dark.muted-foreground": {
       "source": "oklch(0.7713 0.0169 99.0657)",
       "normalized": "oklch(0.7713 0.0169 99.0657)"
     },
     "colors.dark.accent": {
-      "source": "oklch(0.2130 0.0078 95.4245)",
-      "normalized": "oklch(0.213 0.0078 95.4245)"
+      "source": "oklch(0.355 0.0096 93.575552)",
+      "normalized": "oklch(0.355 0.0096 93.575552)"
     },
     "colors.dark.accent-foreground": {
-      "source": "oklch(0.9663 0.0080 98.8792)",
-      "normalized": "oklch(0.9663 0.008 98.8792)"
+      "source": "oklch(0.9576 0.0027 106.4494)",
+      "normalized": "oklch(0.9576 0.0027 106.4494)"
     },
     "colors.dark.destructive": {
       "source": "oklch(0.6368 0.2078 25.3313)",
       "normalized": "oklch(0.6368 0.2078 25.3313)"
     },
     "colors.dark.destructive-foreground": {
-      "source": "oklch(1.0000 0 0)",
+      "source": "oklch(1 0 0)",
       "normalized": "oklch(1 0 0)"
     },
     "colors.dark.border": {
@@ -214,70 +215,70 @@
       "normalized": "oklch(0.4336 0.0113 100.2195)"
     },
     "colors.dark.ring": {
-      "source": "oklch(0.6724 0.1308 38.7559)",
-      "normalized": "oklch(0.6724 0.1308 38.7559)"
+      "source": "oklch(0.64 0.1 22.181626)",
+      "normalized": "oklch(0.64 0.1 22.181626)"
     },
     "colors.dark.chart-1": {
-      "source": "oklch(0.5583 0.1276 42.9956)",
-      "normalized": "oklch(0.5583 0.1276 42.9956)"
+      "source": "oklch(0.7 0.145 24.390598)",
+      "normalized": "oklch(0.7 0.145 24.390598)"
     },
     "colors.dark.chart-2": {
-      "source": "oklch(0.6898 0.1581 290.4107)",
-      "normalized": "oklch(0.6898 0.1581 290.4107)"
+      "source": "oklch(0.63 0.125 23.024648)",
+      "normalized": "oklch(0.63 0.125 23.024648)"
     },
     "colors.dark.chart-3": {
-      "source": "oklch(0.2130 0.0078 95.4245)",
-      "normalized": "oklch(0.213 0.0078 95.4245)"
+      "source": "oklch(0.56 0.105 21.762654)",
+      "normalized": "oklch(0.56 0.105 21.762654)"
     },
     "colors.dark.chart-4": {
-      "source": "oklch(0.3074 0.0516 289.3230)",
-      "normalized": "oklch(0.3074 0.0516 289.323)"
+      "source": "oklch(0.5 0.075 34.42869)",
+      "normalized": "oklch(0.5 0.075 34.42869)"
     },
     "colors.dark.chart-5": {
-      "source": "oklch(0.5608 0.1348 42.0584)",
-      "normalized": "oklch(0.5608 0.1348 42.0584)"
+      "source": "oklch(0.44 0.055 34.021118)",
+      "normalized": "oklch(0.44 0.055 34.021118)"
     },
     "colors.dark.sidebar": {
-      "source": "oklch(0.2357 0.0024 67.7077)",
-      "normalized": "oklch(0.2357 0.0024 67.7077)"
+      "source": "oklch(0.2357 0.0024 98.8792)",
+      "normalized": "oklch(0.2357 0.0024 98.8792)"
     },
     "colors.dark.sidebar-foreground": {
-      "source": "oklch(0.8074 0.0142 93.0137)",
-      "normalized": "oklch(0.8074 0.0142 93.0137)"
+      "source": "oklch(0.9576 0.0027 106.4494)",
+      "normalized": "oklch(0.9576 0.0027 106.4494)"
     },
     "colors.dark.sidebar-primary": {
-      "source": "oklch(0.3250 0 0)",
-      "normalized": "oklch(0.325 0 0)"
+      "source": "oklch(0.7 0.145 24.390598)",
+      "normalized": "oklch(0.7 0.145 24.390598)"
     },
     "colors.dark.sidebar-primary-foreground": {
-      "source": "oklch(0.9881 0 0)",
-      "normalized": "oklch(0.9881 0 0)"
+      "source": "oklch(0.1908 0.002 106.5859)",
+      "normalized": "oklch(0.1908 0.002 106.5859)"
     },
     "colors.dark.sidebar-accent": {
-      "source": "oklch(0.1680 0.0020 106.6177)",
-      "normalized": "oklch(0.168 0.002 106.6177)"
+      "source": "oklch(0.31 0.0138 92.9892)",
+      "normalized": "oklch(0.31 0.0138 92.9892)"
     },
     "colors.dark.sidebar-accent-foreground": {
-      "source": "oklch(0.8074 0.0142 93.0137)",
-      "normalized": "oklch(0.8074 0.0142 93.0137)"
+      "source": "oklch(0.9576 0.0027 106.4494)",
+      "normalized": "oklch(0.9576 0.0027 106.4494)"
     },
     "colors.dark.sidebar-border": {
-      "source": "oklch(0.9401 0 0)",
-      "normalized": "oklch(0.9401 0 0)"
+      "source": "oklch(0.3618 0.0101 106.8928)",
+      "normalized": "oklch(0.3618 0.0101 106.8928)"
     },
     "colors.dark.sidebar-ring": {
-      "source": "oklch(0.7731 0 0)",
-      "normalized": "oklch(0.7731 0 0)"
+      "source": "oklch(0.4336 0.0113 100.2195)",
+      "normalized": "oklch(0.4336 0.0113 100.2195)"
     }
   },
   "typography": {
-    "heading.font": "source --font-sans Outfit, written as the self-hosted catalog Outfit stack (Outfit Variable, Outfit, ui-sans-serif, system-ui, sans-serif)",
-    "body.font": "source --font-sans Outfit (same catalog stack)",
-    "mono": "source --font-mono Geist Mono, written as the self-hosted catalog Geist Mono stack",
-    "heading.tracking": "source --tracking-normal 0em",
-    "body.tracking": "source --tracking-normal 0em",
-    "heading.weight": "600 (source declares no weight; built-in Default role weight)",
-    "body.weight": "400 (source declares no weight; built-in Default role weight)"
+    "heading.font": "Inter, as the self-hosted catalog Inter stack (Inter Variable, Inter, ui-sans-serif, system-ui, sans-serif), from the promoted theme",
+    "body.font": "Inter (same catalog stack)",
+    "mono": "Geist Mono, as the self-hosted catalog Geist Mono stack",
+    "heading.tracking": "0em",
+    "body.tracking": "0em",
+    "heading.weight": "600",
+    "body.weight": "400"
   },
   "geometry": {
     "radius.base": {
@@ -305,9 +306,128 @@
   "sidebar": {
     "useDedicatedTokens": true,
     "dedicatedValuesInitialized": true,
-    "note": "The eight supplied Sidebar colours per mode are stored as the dedicated set and render while useDedicatedTokens is on."
+    "note": "Both modes store a dedicated Sidebar set, rendered while useDedicatedTokens is on. Each mode follows the same pattern: sidebar-primary is primary, sidebar-border is border, sidebar-ring is input, and the Sidebar text is the foreground."
   },
-  "uiEffects": "absent (Off at the default strength)",
+  "uiEffects": "tactile at strength 50, from the promoted theme",
+  "darkRefinement": {
+    "method": "Pattern parity with the promoted light mode, not numeric parity. The warm neutral surfaces, foregrounds, border, input, muted-foreground and destructive are kept. Every remaining token is re-derived from its light role, and each text pair clears 4.5:1 apart from the recorded destructive debt.",
+    "rationale": {
+      "primary": "The stale orange (hue 38.8) becomes the light coral-pink hue (24.39). It is a little lighter (L 0.70) for dark surfaces, and keeps the dark foreground the dark set already used (6.46:1).",
+      "ring": "Light uses a softer, less chromatic primary; dark uses the same hue at L 0.64 and C 0.10, which reads 4.32:1 on the background.",
+      "secondary/accent": "The inverted near-white secondary becomes a warm neutral fill one step above the card, as light's secondary sits one step below its card. Accent equals secondary in both modes, and its foreground is the foreground, as in light.",
+      "muted": "A warm neutral between the card and secondary, matching light's ordering of background, card, muted and secondary.",
+      "card-foreground": "The foreground, as in light.",
+      "charts": "The stale orange and violet series become light's single-hue coral ramp, fading toward the background instead of toward white.",
+      "sidebar": "The dedicated set follows light's relationships: the primary is primary, the border is border, the ring is input, and the text is the foreground. This replaces a grey sidebar-primary, a near-white sidebar-border and a darker-than-sidebar accent. The sidebar surface hue matches the other neutrals."
+    },
+    "changes": [
+      {
+        "token": "card-foreground",
+        "before": "oklch(0.9818 0.0054 95.0986)",
+        "after": "oklch(0.9576 0.0027 106.4494)"
+      },
+      {
+        "token": "primary",
+        "before": "oklch(0.6724 0.1308 38.7559)",
+        "after": "oklch(0.7 0.145 24.390598)"
+      },
+      {
+        "token": "secondary",
+        "before": "oklch(0.9818 0.0054 95.0986)",
+        "after": "oklch(0.355 0.0096 93.575552)"
+      },
+      {
+        "token": "secondary-foreground",
+        "before": "oklch(0.3085 0.0035 106.6039)",
+        "after": "oklch(0.86 0.0177 98.6048)"
+      },
+      {
+        "token": "muted",
+        "before": "oklch(0.2213 0.0038 106.707)",
+        "after": "oklch(0.322 0.0083 91.485738)"
+      },
+      {
+        "token": "accent",
+        "before": "oklch(0.213 0.0078 95.4245)",
+        "after": "oklch(0.355 0.0096 93.575552)"
+      },
+      {
+        "token": "accent-foreground",
+        "before": "oklch(0.9663 0.008 98.8792)",
+        "after": "oklch(0.9576 0.0027 106.4494)"
+      },
+      {
+        "token": "ring",
+        "before": "oklch(0.6724 0.1308 38.7559)",
+        "after": "oklch(0.64 0.1 22.181626)"
+      },
+      {
+        "token": "chart-1",
+        "before": "oklch(0.5583 0.1276 42.9956)",
+        "after": "oklch(0.7 0.145 24.390598)"
+      },
+      {
+        "token": "chart-2",
+        "before": "oklch(0.6898 0.1581 290.4107)",
+        "after": "oklch(0.63 0.125 23.024648)"
+      },
+      {
+        "token": "chart-3",
+        "before": "oklch(0.213 0.0078 95.4245)",
+        "after": "oklch(0.56 0.105 21.762654)"
+      },
+      {
+        "token": "chart-4",
+        "before": "oklch(0.3074 0.0516 289.323)",
+        "after": "oklch(0.5 0.075 34.42869)"
+      },
+      {
+        "token": "chart-5",
+        "before": "oklch(0.5608 0.1348 42.0584)",
+        "after": "oklch(0.44 0.055 34.021118)"
+      },
+      {
+        "token": "sidebar",
+        "before": "oklch(0.2357 0.0024 67.7077)",
+        "after": "oklch(0.2357 0.0024 98.8792)"
+      },
+      {
+        "token": "sidebar-foreground",
+        "before": "oklch(0.8074 0.0142 93.0137)",
+        "after": "oklch(0.9576 0.0027 106.4494)"
+      },
+      {
+        "token": "sidebar-primary",
+        "before": "oklch(0.325 0 0)",
+        "after": "oklch(0.7 0.145 24.390598)"
+      },
+      {
+        "token": "sidebar-primary-foreground",
+        "before": "oklch(0.9881 0 0)",
+        "after": "oklch(0.1908 0.002 106.5859)"
+      },
+      {
+        "token": "sidebar-accent",
+        "before": "oklch(0.168 0.002 106.6177)",
+        "after": "oklch(0.31 0.0138 92.9892)"
+      },
+      {
+        "token": "sidebar-accent-foreground",
+        "before": "oklch(0.8074 0.0142 93.0137)",
+        "after": "oklch(0.9576 0.0027 106.4494)"
+      },
+      {
+        "token": "sidebar-border",
+        "before": "oklch(0.9401 0 0)",
+        "after": "oklch(0.3618 0.0101 106.8928)"
+      },
+      {
+        "token": "sidebar-ring",
+        "before": "oklch(0.7731 0 0)",
+        "after": "oklch(0.4336 0.0113 100.2195)"
+      }
+    ]
+  },
   "declaredDefaults": {
     "motion.durationFast": "150ms",
     "motion.durationBase": "200ms",
@@ -328,31 +448,31 @@
     }
   ],
   "contrastDebt": {
-    "method": "WCAG 2.x relative luminance of the rendered sRGB HEX (the Workbench picker conversion). Source values are preserved; these pairs are below 4.5:1 and are recorded, not adjusted.",
+    "method": "WCAG 2.x relative luminance of the rendered sRGB HEX (the Workbench picker conversion). Owner-supplied light values are preserved; these pairs are below 4.5:1 and are recorded, not adjusted.",
     "pairs": [
       {
         "mode": "light",
         "pair": "muted-foreground on muted",
-        "hex": "#6e6d68 on #ede9de",
-        "ratio": 4.27
+        "hex": "#6e6d68 on #eceae4",
+        "ratio": 4.31
       },
       {
         "mode": "light",
         "pair": "primary-foreground on primary",
-        "hex": "#ffffff on #c96442",
-        "ratio": 3.9
+        "hex": "#ffffff on #e56b66",
+        "ratio": 3.17
       },
       {
         "mode": "light",
         "pair": "primary on background",
-        "hex": "#c96442 on #faf9f5",
-        "ratio": 3.7
+        "hex": "#e56b66 on #faf9f5",
+        "ratio": 3.01
       },
       {
         "mode": "light",
         "pair": "sidebar-primary-foreground on sidebar-primary",
-        "hex": "#fbfbfb on #c96442",
-        "ratio": 3.77
+        "hex": "#fbfbfb on #e56b66",
+        "ratio": 3.06
       },
       {
         "mode": "dark",
