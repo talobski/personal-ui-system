@@ -79,7 +79,7 @@ export async function saveTheme(page: Page, name?: string) {
  * toolbar Code action), copies the selected format (JSON unless `format` is chosen) with the code toolbar's Copy, then
  * closes it with Escape. Returns the exact clipboard text and the format's canonical file name (`data-filename`).
  */
-export async function copyThemeCode(page: Page, { open, format }: { open?: () => Promise<unknown>; format?: "JSON" | "CSS / Tailwind v4" } = {}) {
+export async function copyThemeCode(page: Page, { open, format }: { open?: () => Promise<unknown>; format?: "JSON" | "CSS / Tailwind v4" | "Agent Prompt" } = {}) {
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"])
   await (open ? open() : page.getByTestId("workbench-toolbar").getByRole("button", { name: "Code", exact: true }).click())
   const dialog = page.getByRole("dialog", { name: "Theme code", exact: true })

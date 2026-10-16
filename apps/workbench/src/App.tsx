@@ -23,6 +23,7 @@ import {
   createCustomTheme,
   DEFAULT_THEME_ID,
   editTheme,
+  exportThemeAgentPrompt,
   exportThemeCss,
   exportThemeJson,
   loadBuiltInThemes,
@@ -64,10 +65,14 @@ const focusCategoryTrigger = (event: React.MouseEvent<HTMLButtonElement>) => {
 }
 
 /** PUI-134/PUI-138: one generated code value for the selected format; its `content` is previewed and copied unchanged. */
-type ExportFormat = "json" | "css"
+type ExportFormat = "json" | "css" | "prompt"
 type ExportFile = { filename: string; content: string }
 
 function exportFile(theme: Theme, format: ExportFormat): ExportFile {
+  if (format === "prompt") {
+    const { filename, prompt } = exportThemeAgentPrompt(theme)
+    return { filename, content: prompt }
+  }
   if (format === "css") {
     const { filename, css } = exportThemeCss(theme)
     return { filename, content: css }
@@ -149,6 +154,7 @@ function ToolbarSeparator() {
 const EXPORT_FORMATS: readonly { value: ExportFormat; label: string }[] = [
   { value: "json", label: "JSON" },
   { value: "css", label: "CSS / Tailwind v4" },
+  { value: "prompt", label: "Agent Prompt" },
 ]
 
 /**
@@ -199,7 +205,7 @@ function ThemeCodeDialog({ theme, disabled, onOpen }: { theme: Theme; disabled: 
       <DialogContent data-testid="export-dialog" className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle><span className="type-heading">Theme code</span></DialogTitle>
-          <DialogDescription>Copy your theme as JSON or Tailwind CSS.</DialogDescription>
+          <DialogDescription>Copy your theme as JSON, Tailwind CSS or a prompt for a coding agent.</DialogDescription>
         </DialogHeader>
         <Tabs value={format} onValueChange={(value) => setFormat(value as ExportFormat)} className="min-h-0 min-w-0 flex-1 gap-3">
           <TabsList aria-label="Code format" className="w-max max-w-full">

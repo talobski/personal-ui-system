@@ -19,7 +19,7 @@ import { RecentActivity } from "@personal-ui/ui/compositions/recent-activity"
 import { FONT_CATALOG, findFontOption } from "@personal-ui/ui/lib/fonts"
 
 import { COLOR_GROUPS, readFontStack, TYPE_ROLE_GROUPS } from "./controls"
-import { DEFAULT_THEME_ID, exportThemeCss, exportThemeJson, loadBuiltInThemes, previewVariablesCss } from "./lifecycle"
+import { DEFAULT_THEME_ID, exportThemeAgentPrompt, exportThemeCss, exportThemeJson, loadBuiltInThemes, previewVariablesCss } from "./lifecycle"
 import type { Mode } from "./lifecycle"
 import { builtInThemePath, LANDING_PATH, linkClick, WORKBENCH_PATH } from "./routes"
 
@@ -352,9 +352,11 @@ function ThemeCode({ theme }: { theme: Theme }) {
   const files = React.useMemo(() => {
     const json = exportThemeJson(theme)
     const css = exportThemeCss(theme)
+    const prompt = exportThemeAgentPrompt(theme)
     return [
       { value: "json", label: "JSON", filename: json.filename, content: json.json },
       { value: "css", label: "CSS / Tailwind v4", filename: css.filename, content: css.css },
+      { value: "prompt", label: "Agent Prompt", filename: prompt.filename, content: prompt.prompt },
     ]
   }, [theme])
   return (

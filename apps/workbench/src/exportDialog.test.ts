@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { renderPortableThemeCss, toPortableTheme } from "@personal-ui/core"
 
 import { buildUiEffectsOperation } from "./controls"
-import { editTheme, exportThemeCss, exportThemeJson, loadBuiltInThemes } from "./lifecycle"
+import { editTheme, exportThemeAgentPrompt, exportThemeCss, exportThemeJson, formatAgentPrompt, loadBuiltInThemes } from "./lifecycle"
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8")
 /** Source without comments, so explanatory prose is not mistaken for an implementation. */
@@ -50,7 +50,7 @@ describe("TAED-01/02, TCHS-01/02 Theme code dialog (PUI-134, PUI-138)", () => {
     expect(dialog).toContain('<Code2 aria-hidden="true" className="size-3.5" />')
     expect(dialog).toContain('<span className="max-sm:sr-only">Code</span>')
     expect(dialog).toContain('<span className="type-heading">Theme code</span>')
-    expect(dialog).toContain("<DialogDescription>Copy your theme as JSON or Tailwind CSS.</DialogDescription>")
+    expect(dialog).toContain("<DialogDescription>Copy your theme as JSON, Tailwind CSS or a prompt for a coding agent.</DialogDescription>")
     expect(dialog).toContain('<TabsList aria-label="Code format"')
     expect(dialog).toContain("const file = React.useMemo(() => (open ? exportFile(theme, format) : null), [open, theme, format])")
     expect(dialog).toContain("<code>{file.content}</code>")
@@ -68,6 +68,7 @@ describe("TAED-01/02, TCHS-01/02 Theme code dialog (PUI-134, PUI-138)", () => {
     const exporter = between(source, "function exportFile(", "function Notice(")
     expect(exporter).toContain("exportThemeCss(theme)")
     expect(exporter).toContain("exportThemeJson(theme)")
+    expect(exporter).toContain("exportThemeAgentPrompt(theme)")
     expect(exporter).not.toMatch(/renderShadcnTailwindCss|JSON\.stringify/)
     // No syntax-highlighting, tooltip or toast dependency.
     for (const manifest of ["../package.json", "../../../packages/ui/package.json"]) expect(read(manifest)).not.toMatch(/prism|shiki|highlight|sonner|tooltip/i)
@@ -83,6 +84,66 @@ describe("TAED-01/02, TCHS-01/02 Theme code dialog (PUI-134, PUI-138)", () => {
       expect(exportThemeCss(renamed).css).toBe(exportThemeCss(theme).css)
       expect(exportThemeCss(theme).css).toBe(renderPortableThemeCss(theme))
     }
+  })
+})
+
+describe("Agent Prompt export", () => {
+  /** The CSS between the prompt's one css fence. */
+  const embedded = (prompt: string) => prompt.slice(prompt.indexOf("```css\n") + 7, prompt.lastIndexOf("```\n\nWhen finished"))
+  const tactile = (() => {
+    const result = editTheme(builtIns[0]!, buildUiEffectsOperation(builtIns[0]!, { effect: "tactile", strength: 50 }))
+    if (!result.ok) throw new Error("edit failed")
+    return result.theme
+  })()
+
+  it("is the third format in the Workbench dialog and on the landing page, both built by the one generator", () => {
+    const source = app()
+    expect(between(source, "const EXPORT_FORMATS", "\n]")).toMatch(/"json"[\s\S]*"css"[\s\S]*\{ value: "prompt", label: "Agent Prompt" \}/)
+    const landing = code("./Landing.tsx")
+    expect(between(landing, "function ThemeCode(", "return (")).toMatch(/exportThemeAgentPrompt\(theme\)[\s\S]*\{ value: "prompt", label: "Agent Prompt", filename: prompt\.filename, content: prompt\.prompt \}/)
+    // One template: only lifecycle.ts holds it.
+    for (const file of ["./App.tsx", "./Landing.tsx"]) expect(read(file)).not.toContain("Apply the following design theme")
+  })
+
+  it("embeds exactly the Tailwind v4 portable CSS, light and dark, with Tactile only when the theme has it", () => {
+    for (const theme of [...builtIns, tactile]) {
+      const { css } = exportThemeCss(theme)
+      const { prompt } = exportThemeAgentPrompt(theme)
+      expect(prompt).toBe(formatAgentPrompt(css))
+      expect(embedded(prompt)).toBe(css)
+      expect(prompt.match(/```/g)).toHaveLength(2)
+      expect(embedded(prompt)).toContain(":root {")
+      expect(embedded(prompt)).toContain(".dark {")
+      // Tactile reaches the prompt only through its CSS; the prose never mentions it.
+      expect(prompt.includes("UI effects: tactile")).toBe(css.includes("UI effects: tactile"))
+      expect(prompt.replace(css, "")).not.toMatch(/tactile|ui-tactile|@layer components \{/i)
+    }
+    expect(embedded(exportThemeAgentPrompt(tactile).prompt)).toContain("--ui-tactile-raised")
+    expect(embedded(exportThemeAgentPrompt(builtIns[0]!).prompt)).not.toContain("ui-tactile")
+  })
+
+  it("carries no product, theme identity, revision, schema or provenance, and identical designs give identical prompts", () => {
+    for (const theme of [...builtIns, tactile]) {
+      const renamed = { ...theme, id: "client-copy", name: "Client Copy", revision: theme.revision + 41 }
+      const { prompt } = exportThemeAgentPrompt(renamed)
+      expect(prompt).toBe(exportThemeAgentPrompt(theme).prompt)
+      // "default" is also Tailwind's own `--default-transition-duration`, so only the other ids are checked as words.
+      if (theme.id !== "default") expect(prompt).not.toContain(theme.id)
+      for (const leak of ["Personal UI", "@personal-ui", "personal-ui", "Pocketmarket", "pocketmarket", "Secuna", theme.name, "client-copy", "Client Copy", "revision", "$schema", "schemaVersion", "renderShadcnTailwindCss", "shadcn", "Do not edit"]) {
+        expect(prompt, leak).not.toContain(leak)
+      }
+    }
+    // A design change reaches the payload.
+    const recolored = editTheme(builtIns[0]!, { op: "setColor", mode: "light", token: "primary", value: "oklch(0.5 0.1 200)" })
+    if (!recolored.ok) throw new Error(JSON.stringify(recolored))
+    expect(exportThemeAgentPrompt(recolored.theme).prompt).not.toBe(exportThemeAgentPrompt(builtIns[0]!).prompt)
+    expect(exportThemeAgentPrompt(recolored.theme).prompt).toContain("--primary: oklch(0.5 0.1 200);")
+  })
+
+  it("Copy writes the one generated value the dialog shows, for the prompt as for every format", () => {
+    const dialog = between(app(), "function ThemeCodeDialog(", "function ReviewChangesButton(")
+    expect(dialog).toContain("<code>{file.content}</code>")
+    expect(dialog).toContain("navigator.clipboard.writeText(file.content)")
   })
 })
 

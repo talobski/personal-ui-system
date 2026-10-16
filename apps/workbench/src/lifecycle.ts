@@ -82,6 +82,56 @@ export function exportThemeCss(theme: Theme): { filename: string; css: string } 
 }
 
 /**
+ * Theme code Agent Prompt: a neutral implementation brief for a coding agent, wrapped around `css` unchanged. It names
+ * no product, theme, source or framework requirement, so the copied text carries only the task and the design.
+ */
+export function formatAgentPrompt(css: string): string {
+  return `Apply the following design theme to this project.
+
+First inspect the project's existing theme, token, component and styling architecture. Adapt the theme
+to that architecture rather than replacing it.
+
+Requirements:
+- Preserve existing component behavior and application logic.
+- Reuse the project's existing theme or token system where practical. If it already has semantic
+  tokens, map the supplied values into them instead of scattering raw values.
+- Apply both light and dark modes. Light values are under :root and dark values under .dark; use the
+  project's existing dark-mode mechanism.
+- Preserve accessibility and the existing focus, invalid, disabled, selected, checked, open, hover and
+  pressed states.
+- Preserve existing layouts and responsive behavior. Do not redesign unrelated components.
+- Do not introduce unrelated branding, product names or content.
+- Avoid adding dependencies unless required.
+- The CSS uses Tailwind v4 syntax (@theme inline, @utility, @layer). If the project styles differently,
+  translate it rather than adopting Tailwind.
+- If a supplied token or state does not map cleanly, use the closest semantic equivalent and report it.
+- If the CSS references state or data attributes that the project's components do not expose, make the
+  smallest markup change necessary and report it.
+- Keep changes focused and reversible.
+- Run the project's usual validation after implementing.
+- Do not commit unless asked.
+
+Theme CSS:
+
+\`\`\`css
+${css}\`\`\`
+
+When finished, report:
+- files changed
+- how the theme was mapped into the project's existing architecture
+- any values or states that could not be mapped directly
+- how light and dark modes were implemented
+- any component markup changes
+- validation results
+`
+}
+
+/** Theme code Agent Prompt: `formatAgentPrompt` around exactly the Tailwind v4 export's portable CSS. */
+export function exportThemeAgentPrompt(theme: Theme): { filename: string; prompt: string } {
+  return { filename: `${theme.id}.agent-prompt.md`, prompt: formatAgentPrompt(exportThemeCss(theme).css) }
+}
+
+/**
  * Runtime theme CSS: the `:root` and `.dark` variable blocks of core's rendered theme (drops the compiled `@theme
  * inline`), plus the targeted UI-effects block when one is enabled (empty for flat themes, so their output is unchanged).
  * Chrome renders it for the active theme only; the preview renders it for the active theme or a staged candidate.

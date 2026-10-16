@@ -73,7 +73,7 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       await expect(dialog).toBeVisible()
       await page.waitForTimeout(300)
       expect(downloads).toEqual([])
-      await expect(dialog.getByText("Copy your theme as JSON or Tailwind CSS.", { exact: true })).toBeVisible()
+      await expect(dialog.getByText("Copy your theme as JSON, Tailwind CSS or a prompt for a coding agent.", { exact: true })).toBeVisible()
       // PUI-138: no Download action anywhere in the dialog; Copy sits in the code toolbar above the viewport.
       await expect(dialog.getByRole("button", { name: /download/i })).toHaveCount(0)
       const toolbarCopy = dialog.getByTestId("export-code-toolbar").getByRole("button", { name: "Copy", exact: true })
@@ -129,6 +129,18 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       expect(d.y + d.height).toBeLessThanOrEqual(viewport.height)
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
       await axe(page, info, `export-dialog-css-${mode}`)
+
+      // Agent Prompt, the third format: a neutral brief around exactly the CSS above; Copy writes what is shown.
+      await dialog.getByRole("tab", { name: "CSS / Tailwind v4", exact: true }).focus()
+      await page.keyboard.press("ArrowRight")
+      await expect(dialog.getByRole("tab", { name: "Agent Prompt", exact: true })).toHaveAttribute("aria-selected", "true")
+      await expect(dialog.getByTestId("export-preview")).toHaveAttribute("data-format", "prompt")
+      const prompt = await previewText(page)
+      expect(prompt.startsWith("Apply the following design theme to this project.")).toBe(true)
+      expect(prompt).toContain(`\`\`\`css\n${css}\`\`\``)
+      expect(prompt).not.toMatch(/export-probe|Export Probe|Personal UI|personal-ui|revision|schemaVersion/i)
+      expect(await copySelected(page)).toBe(prompt)
+      await axe(page, info, `export-dialog-prompt-${mode}`)
 
       // Focus trap: Tab cycles inside the dialog; Escape closes it and returns focus to Code.
       for (let i = 0; i < 8; i++) {

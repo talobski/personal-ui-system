@@ -128,6 +128,13 @@ test.describe("LWR-01 landing page", () => {
     // Theme code shows the generated output for the theme the page is wearing.
     await expect(page.getByTestId("landing-code-json")).toContainText('"$value": "oklch(0.5773 0.1375 39.0427)"')
     await expect(page.getByTestId("landing-code-json")).not.toContainText('"id"')
+    // The Agent Prompt tab wraps exactly the CSS tab's code.
+    await page.getByRole("tab", { name: "Agent Prompt", exact: true }).click()
+    const landingPrompt = await page.getByTestId("landing-code-prompt").evaluate((el) => el.textContent!)
+    await page.getByRole("tab", { name: "CSS / Tailwind v4", exact: true }).click()
+    const landingCss = await page.getByTestId("landing-code-css").evaluate((el) => el.textContent!)
+    expect(landingPrompt).toContain(`\`\`\`css\n${landingCss}\`\`\``)
+    expect(landingPrompt).not.toMatch(/Amber Dusk|amber-dusk|Personal UI|personal-ui/)
     expect(await storedBytes(page)).toBeNull()
     // Each built-in card links to its stable Workbench path.
     for (const [slug, id] of Object.entries(SLUGS)) await expect(page.getByTestId(`landing-open-${id}`)).toHaveAttribute("href", `/workbench/themes/${slug}`)
