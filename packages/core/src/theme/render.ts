@@ -1,5 +1,6 @@
 import { BASE_COLOR_TOKENS, COLOR_TOKENS, FONT_FAMILY_TARGETS, MOTION_DURATION_TOKENS, RADIUS_SCALE_TOKENS, resolveTones, resolveUiEffects, SHADOW_TOKENS, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, themeSchema, TONE_TOKENS, TYPE_ROLES, UI_EFFECT_STRENGTH_RANGE, UI_EFFECTS_FLAT } from "./schema"
 import type { ShadowLayer, ShadowToken, Theme } from "./schema"
+import { parseCanonicalOklch } from "./color"
 
 /** CSS generic families and system-font keywords, emitted unquoted; every other family name is quoted. */
 const KEYWORD_FAMILIES = new Set([
@@ -93,6 +94,14 @@ const TACTILE_PALETTE = {
   dark: { light: "--foreground", shade: "--background", washTop: 7, washBottom: 20, highlight: 14, lower: 45, edge: 35, recess: 50, press: 60, fillHighlight: 24, fillShade: 50 },
 } as const
 
+/**
+ * The Primary face wash, as the OKLCH lightness each end moves the fill by at full strength, so it reads the same on
+ * light, medium and dark fills. Light catches the top and the bottom falls into shade; the end that moves the fill away
+ * from its label (in that mode's actual colours) takes the main amount and the other end a subtle one, so the label's
+ * own contrast is kept wherever practical.
+ */
+const FILL_WASH = { main: 0.045, subtle: 0.015 } as const
+
 /** `token` (a custom property name, or with `literal` a colour value) at `percent` alpha. */
 const mix = (token: string, percent: number, literal = false) => `color-mix(in oklab, ${literal ? token : `var(${token})`} ${Number(percent.toFixed(2))}%, transparent)`
 /** How far, at full strength, a hovered border or Primary fill moves toward `--foreground`. */
@@ -113,6 +122,31 @@ const paletteVars = (mode: keyof typeof TACTILE_PALETTE, k: number) => {
     `--ui-tactile-wash-bottom: ${mix(p.shade, p.washBottom * k)};`,
   ]
 }
+
+/**
+ * The Primary face's two translucent overlays in `mode`: the lighter of that mode's page tokens lifts the top and the
+ * darker sinks the bottom. Each alpha is the share of the gap between the fill and that token that moves the fill by
+ * its `FILL_WASH` amount, measured on the mode's actual colours, so a near-black or near-white fill moves as visibly as
+ * a mid-tone one; a fill with no room left toward a token is capped at that token.
+ */
+const fillWashVars = (theme: Theme, mode: keyof typeof TACTILE_PALETTE, k: number) => {
+  const lightness = (token: "primary" | "primary-foreground" | "background" | "foreground") => parseCanonicalOklch(theme.colors[mode][token].$value)?.l ?? 0
+  const fill = lightness("primary")
+  const lighterLabel = lightness("primary-foreground") >= fill
+  const [light, dark] = lightness("background") >= lightness("foreground") ? (["--background", "--foreground"] as const) : (["--foreground", "--background"] as const)
+  // Whole percents at full strength, so Strength scales them exactly.
+  const share = (amount: number, room: number) => (room > 0 ? Math.min(100, Math.round((amount / room) * 100)) : 0)
+  const lift = share(lighterLabel ? FILL_WASH.subtle : FILL_WASH.main, lightness(light === "--background" ? "background" : "foreground") - fill)
+  const sink = share(lighterLabel ? FILL_WASH.main : FILL_WASH.subtle, fill - lightness(dark === "--background" ? "background" : "foreground"))
+  return [`--ui-tactile-fill-lift: ${mix(light, lift * k)};`, `--ui-tactile-fill-sink: ${mix(dark, sink * k)};`]
+}
+
+/**
+ * The Primary face: translucent overlays that lift the top and sink the bottom, fading out at the middle where the
+ * label sits, so they compose over whatever fill is beneath them, a hovered or translucent one included.
+ */
+const FILL_FACE = "linear-gradient(to bottom, var(--ui-tactile-fill-lift), transparent 50%, var(--ui-tactile-fill-sink))"
+const FILL_FACE_PRESSED = "linear-gradient(to bottom, var(--ui-tactile-fill-sink), transparent 50%, var(--ui-tactile-fill-lift))"
 
 /**
  * How much of a theme-token contribution (the surface TabsList edge, the outer elevation) Tactile applies at strength
@@ -199,8 +233,14 @@ const CONTROL_RULES = [
   // Tabs triggers are not targets: the active one already rises on its own `shadow-sm` past a transparent 1px border, so
   // an inner lower shade would stack a dark, light, dark band along its bottom edge.
   ...rule(at(["outlineButton", "outlineToggle"]), ["--tw-inset-shadow: var(--ui-tactile-raised);", `box-shadow: ${TW_SHADOW_COMPOSITION};`]),
-  // Filled: the semantic fill is kept; light catches its top edge and its lower edge darkens.
-  ...rule(at(["primaryButton"]), ["--tw-inset-shadow: var(--ui-tactile-filled);", "--tw-shadow: var(--ui-tactile-elevation);", `box-shadow: ${TW_SHADOW_COMPOSITION};`]),
+  // Filled: the semantic fill is kept; light catches its top edge, its lower edge darkens, and the face lifts toward
+  // the top and sinks toward the bottom around the unchanged fill.
+  ...rule(at(["primaryButton"]), [
+    `background-image: ${FILL_FACE};`,
+    "--tw-inset-shadow: var(--ui-tactile-filled);",
+    "--tw-shadow: var(--ui-tactile-elevation);",
+    `box-shadow: ${TW_SHADOW_COMPOSITION};`,
+  ]),
   // Recessed: fields, field groups, the surface tabs track and unchecked selection controls.
   ...rule(at(["field", "fieldGroup", "tabsList", "checkbox", "radio", "switch"]), ["--tw-inset-shadow: var(--ui-tactile-recessed);", `box-shadow: ${TW_SHADOW_COMPOSITION};`]),
   ...rule(at(["tabsList"]), TABS_LIST_EDGE),
@@ -212,11 +252,13 @@ const CONTROL_RULES = [
   ...rule(at(["primaryButton"], ":hover"), ["--primary: var(--ui-tactile-hover-primary);"]),
   // Checked selection controls fill.
   ...rule(at(["checkbox", "radio", "switch"], CHECKED), ["--tw-inset-shadow: var(--ui-tactile-filled);"]),
-  // Pressed: depth reverses to an inset and the outer elevation is removed. Secondary keeps its edge and flips its wash.
+  // Pressed: depth reverses to an inset and the outer elevation is removed. Primary flips its face wash; Secondary keeps
+  // its edge and flips its wash.
   ...rule(
     [[["primaryButton", "outlineButton", "outlineToggle", "checkbox", "radio"], ":active"], [["primaryButton", "outlineButton"], '[aria-pressed="true"]'], [["outlineButton"], OPEN], [["outlineToggle"], SELECTED]],
     ["--tw-inset-shadow: var(--ui-tactile-pressed);", "--ui-tactile-elevation: 0 0 #0000;", "--shadow-layers-xs: 0 0 #0000;"],
   ),
+  ...rule(at(["primaryButton"], ':is(:active, [aria-pressed="true"])'), [`background-image: ${FILL_FACE_PRESSED};`]),
   ...rule(at(["secondaryButton"], ':is(:active, [aria-pressed="true"])'), [
     "background-image: linear-gradient(to bottom, var(--ui-tactile-wash-bottom), var(--ui-tactile-wash-top));",
     "--tw-inset-shadow: var(--ui-tactile-pressed), 0 0 0 1px var(--ui-tactile-edge);",
@@ -243,10 +285,10 @@ const CONTROL_RULES = [
 /**
  * The optional UI-effects block (PUI-113), or `""` while the effect is Off, so a flat theme's CSS is unchanged. Tactile
  * is one interaction-depth system with five semantic roles: Raised (Secondary and Outline Buttons, outline Toggles),
- * Filled (Primary Buttons, checked selection controls), Recessed (fields, field groups, the surface
- * tabs track, unchecked selection controls), Pressed (active, open and selected states) and Flat (disabled, or
- * `data-tactile="flat"`). Static surfaces, overlays, Tabs triggers, line Tabs and the remaining Button variants are never
- * targets.
+ * Filled (Primary Buttons, whose face lifts and sinks around the fill, and checked selection controls), Recessed
+ * (fields, field groups, the surface tabs track, unchecked selection controls), Pressed (active, open and selected
+ * states) and Flat (disabled, or `data-tactile="flat"`). Static surfaces, overlays, Tabs triggers, line Tabs and the
+ * remaining Button variants are never targets.
  *
  * Strength scales the palette's alphas and hover mix linearly and never a semantic colour; the theme-token contributions
  * (the TabsList edge and the outer elevation) fade in up to the default strength and then hold at the theme's value.
@@ -264,10 +306,10 @@ export function renderUiEffectsCss(input: Theme): string {
     `/* UI effects: ${effects.effect}, strength ${effects.strength}. */`,
     "@layer components {",
     "  :root {",
-    ...indent(paletteVars("light", k)),
+    ...indent([...paletteVars("light", k), ...fillWashVars(theme, "light", k)]),
     "  }",
     "  .dark {",
-    ...indent(paletteVars("dark", k)),
+    ...indent([...paletteVars("dark", k), ...fillWashVars(theme, "dark", k)]),
     "  }",
     "  :root, .dark {",
     ...indent(roleVars(theme, k)),

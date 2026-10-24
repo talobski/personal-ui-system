@@ -239,7 +239,10 @@ describe("ADSR-02 Amber Dusk canonical fixture", () => {
     expect(renderUiEffectsCss(theme)).toBe("")
     const tactile = edit(theme, { op: "setUiEffects", value: { effect: "tactile", strength: 50 } })
     const reference = edit(valid(defaultFixture), { op: "setUiEffects", value: { effect: "tactile", strength: 50 } })
-    expect(renderUiEffectsCss(tactile)).toBe(renderUiEffectsCss(reference))
+    // The same generic recipe; only the Primary face overlays are sized from each palette's own fill.
+    const withoutFace = (text: string) => text.replace(/^ {4}--ui-tactile-fill-(?:lift|sink): .*\n/gm, "")
+    expect(withoutFace(renderUiEffectsCss(tactile))).toBe(withoutFace(renderUiEffectsCss(reference)))
+    expect(renderUiEffectsCss(tactile)).toMatch(/--ui-tactile-fill-lift: color-mix/)
   })
 
   it("owner contrast overrides: exactly three tokens change, and the observed normal-text pairs clear 4.5:1", () => {

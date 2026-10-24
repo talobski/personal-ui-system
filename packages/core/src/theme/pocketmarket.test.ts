@@ -242,10 +242,12 @@ describe("promoted Pocketmarket design", () => {
     expect(css).not.toMatch(/pocketmarket|personal-ui/i)
     const effects = renderUiEffectsCss(theme)
     expect(css.endsWith(`\n${effects}`)).toBe(true)
-    // At the default strength the tactile block is the same text for every palette.
+    // At the default strength the tactile block is the same text for every palette, apart from the Primary face
+    // overlays, which are sized from each mode's own fill.
     const other = validateTheme({ ...structuredClone(pocketmarketFixture), colors: { ...pocketmarketFixture.colors, light: { ...pocketmarketFixture.colors.light, primary: { $type: "color", $value: "oklch(0.5 0.1 250)" } } } })
     if (!other.ok) throw new Error("invalid")
-    expect(renderUiEffectsCss(other.theme)).toBe(effects)
+    const withoutFace = (text: string) => text.replace(/^ {4}--ui-tactile-fill-(?:lift|sink): .*\n/gm, "")
+    expect(withoutFace(renderUiEffectsCss(other.theme))).toBe(withoutFace(effects))
     expect(effects.replaceAll("0 0 #0000", "")).not.toMatch(/oklch\(|#[0-9a-f]{3,8}\b/i)
   })
 })

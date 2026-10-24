@@ -6,6 +6,7 @@ import {
   applyProposal,
   describeOperations,
   diffThemeTokens,
+  parseCanonicalOklch,
   MUTATION_SCHEMA_VERSION,
   renderPortableThemeCss,
   renderShadcnTailwindCss,
@@ -26,6 +27,7 @@ import amberDuskFixture from "./fixtures/amber-dusk.json"
 import defaultFixture from "./fixtures/default.json"
 import pocketmarketFixture from "./fixtures/pocketmarket.json"
 import quietFixture from "./fixtures/valid.json"
+import secunaFixture from "./fixtures/secuna.json"
 import v1Fixture from "./fixtures/legacy/quiet-editorial.v1.json"
 import v20Fixture from "./fixtures/legacy/default.v2.0.json"
 import v21Fixture from "./fixtures/legacy/default.v2.1.json"
@@ -247,7 +249,7 @@ describe("Tactile interaction depth: targeted rendering", () => {
   const rest = (text: string, selector: string, property: string) => rules(text).find((r) => r.selector === `:where(${selector})`)?.decls.get(property)
   const T = TACTILE_TARGETS
   const roleVar = (text: string, name: string) => rules(text).find((r) => r.selector === ":root, .dark")!.decls.get(name)
-  const fixtures = [defaultFixture, quietFixture, amberDuskFixture, pocketmarketFixture].map(valid)
+  const fixtures = [defaultFixture, quietFixture, amberDuskFixture, pocketmarketFixture, secunaFixture].map(valid)
 
   it("keeps the accepted selectors and reads only stable shadcn slot, variant and state hooks", () => {
     expect(TACTILE_SECONDARY_BUTTON_SELECTOR).toBe('[data-variant="secondary"][data-size]:is([data-slot="button"], [data-slot$="-trigger"], [data-slot$="-close"])')
@@ -312,6 +314,8 @@ describe("Tactile interaction depth: targeted rendering", () => {
     expect(rest(out, T.secondaryButton, "background-image")).toBe("linear-gradient(to bottom, var(--ui-tactile-wash-top), var(--ui-tactile-wash-bottom))")
     for (const raised of [T.outlineButton, T.outlineToggle]) expect(rules(out).find((r) => r.selector.includes(raised) && r.decls.get("--tw-inset-shadow") === "var(--ui-tactile-raised)"), raised).toBeDefined()
     expect(rest(out, T.primaryButton, "--tw-inset-shadow")).toBe("var(--ui-tactile-filled)")
+    // Primary's face: translucent overlays lift the top and sink the bottom, fading out at the middle where the label sits.
+    expect(rest(out, T.primaryButton, "background-image")).toBe("linear-gradient(to bottom, var(--ui-tactile-fill-lift), transparent 50%, var(--ui-tactile-fill-sink))")
     // Primary and Secondary have no shadow utility, so Tactile gives them its elevation, from the theme's xs shadow.
     for (const filled of [T.primaryButton, T.secondaryButton]) expect(rest(out, filled, "--tw-shadow")).toBe("var(--ui-tactile-elevation)")
     const recessed = rules(out).find((r) => r.decls.get("--tw-inset-shadow") === "var(--ui-tactile-recessed)")!
@@ -349,6 +353,11 @@ describe("Tactile interaction depth: targeted rendering", () => {
     expect(all[pressed]!.decls.get("--ui-tactile-elevation")).toBe("0 0 #0000")
     const secondaryPressed = index((r) => r.selector.includes(T.secondaryButton) && r.selector.includes(":active"))
     expect(all[secondaryPressed]!.decls.get("background-image")).toBe("linear-gradient(to bottom, var(--ui-tactile-wash-bottom), var(--ui-tactile-wash-top))")
+    // Primary flips its face when pressed, as Secondary does, after its resting rule and before Flat.
+    const primaryPressed = index((r) => r.selector.includes(T.primaryButton) && r.selector.includes(":active") && r.decls.has("background-image"))
+    expect(Object.fromEntries(all[primaryPressed]!.decls)).toEqual({ "background-image": "linear-gradient(to bottom, var(--ui-tactile-fill-sink), transparent 50%, var(--ui-tactile-fill-lift))" })
+    expect(all[primaryPressed]!.selector).toContain('[aria-pressed="true"]')
+    expect(primaryPressed).toBeGreaterThan(pressed)
     // Secondary's open Collapsible state is not pressed: only Outline Buttons read open as inset.
     expect(all.filter((r) => r.selector.includes('[data-state="open"]')).every((r) => !r.selector.includes(T.secondaryButton))).toBe(true)
     const hover = index((r) => r.selector.includes(":hover"))
@@ -402,6 +411,34 @@ describe("Tactile interaction depth: targeted rendering", () => {
     expect(out).toMatch(/^\/\* UI effects: tactile, strength 100\. \*\/\n@layer components \{/)
   })
 
+  it("sizes the Primary face from each mode's own fill and label: the end moving the fill away from its label is the main one", () => {
+    const L = (value: string) => parseCanonicalOklch(value)!.l
+    const alpha = (decl: string | undefined) => Number(/ ([\d.]+)%, transparent\)$/.exec(decl!)![1])
+    const token = (decl: string | undefined) => /var\((--[a-z]+)\)/.exec(decl!)![1]
+    for (const theme of fixtures) {
+      const out = css({ effect: "tactile", strength: 100 }, theme)
+      for (const [mode, selector] of [["light", ":root"], ["dark", ".dark"]] as const) {
+        const decls = rules(out).find((r) => r.selector === selector)!.decls
+        const c = theme.colors[mode]
+        const [fill, label, bg, fg] = [L(c.primary.$value), L(c["primary-foreground"].$value), L(c.background.$value), L(c.foreground.$value)]
+        // The lift mixes the lighter page token and the sink the darker one, whichever mode this is.
+        const [lighter, darker] = bg >= fg ? [bg, fg] : [fg, bg]
+        expect(token(decls.get("--ui-tactile-fill-lift")), `${theme.id} ${mode}`).toBe(bg >= fg ? "--background" : "--foreground")
+        expect(token(decls.get("--ui-tactile-fill-sink")), `${theme.id} ${mode}`).toBe(bg >= fg ? "--foreground" : "--background")
+        // Each alpha moves the fill by its share of the gap to that token: 0.045 for the main end, 0.015 for the other.
+        const [liftAmount, sinkAmount] = label >= fill ? [0.015, 0.045] : [0.045, 0.015]
+        expect(alpha(decls.get("--ui-tactile-fill-lift")), `${theme.id} ${mode} lift`).toBe(Math.min(100, Math.round((liftAmount / (lighter - fill)) * 100)))
+        expect(alpha(decls.get("--ui-tactile-fill-sink")), `${theme.id} ${mode} sink`).toBe(Math.min(100, Math.round((sinkAmount / (fill - darker)) * 100)))
+      }
+    }
+    // A light-mode fill with a dark label swaps which end is the main one.
+    const swapped = valid({ ...structuredClone(defaultFixture), colors: { ...defaultFixture.colors, light: { ...defaultFixture.colors.light, primary: { $type: "color", $value: "oklch(0.85 0.1 90)" }, "primary-foreground": { $type: "color", $value: "oklch(0.2 0 0)" } } } })
+    const decls = rules(css({ effect: "tactile", strength: 100 }, swapped)).find((r) => r.selector === ":root")!.decls
+    const [bg, fg] = [L(swapped.colors.light.background.$value), L(swapped.colors.light.foreground.$value)]
+    expect(alpha(decls.get("--ui-tactile-fill-lift"))).toBe(Math.round((0.045 / (bg - 0.85)) * 100))
+    expect(alpha(decls.get("--ui-tactile-fill-sink"))).toBe(Math.round((0.015 / (0.85 - fg)) * 100))
+  })
+
   it("derives light and dark depth from each palette's own background and foreground", () => {
     for (const theme of fixtures) {
       const out = css({ effect: "tactile", strength: 60 }, theme)
@@ -412,8 +449,10 @@ describe("Tactile interaction depth: targeted rendering", () => {
       expect(dark.get("--ui-tactile-highlight")).toMatch(/^color-mix\(in oklab, var\(--foreground\) [\d.]+%, transparent\)$/)
       expect(light.get("--ui-tactile-shade")).toContain("var(--foreground)")
       expect(dark.get("--ui-tactile-shade")).toContain("var(--background)")
-      // From the default strength up the CSS is the same for every palette: depth colours come from the theme at runtime.
-      expect(out).toBe(css({ effect: "tactile", strength: 60 }))
+      // From the default strength up the CSS is the same for every palette apart from the Primary face overlays, which are
+      // sized from each mode's own fill; every other depth colour comes from the theme at runtime.
+      const withoutFace = (text: string) => text.replace(/^ {4}--ui-tactile-fill-(?:lift|sink): .*\n/gm, "")
+      expect(withoutFace(out)).toBe(withoutFace(css({ effect: "tactile", strength: 60 })))
       const tokens = new Set([...out.matchAll(/var\(--([a-z-]+)[,)]/g)].map((m) => m[1]).filter((name) => !name!.startsWith("ui-tactile-") && !name!.startsWith("tw-")))
       expect(tokens).toEqual(new Set(["background", "foreground", "border", "input", "primary", "shadow-layers-xs", "motion-duration-fast"]))
     }

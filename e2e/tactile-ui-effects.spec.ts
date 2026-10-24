@@ -189,9 +189,10 @@ test("Tactile gives every interactive control its semantic depth, keeps static, 
   for (const [name, s] of Object.entries(on.recessed!)) expect(inset(s.boxShadow), `recessed ${name}`).toBe(true)
   expect(inset(on.pressed!.toggleOn!.boxShadow)).toBe(true)
   expect(outerElevation(on.pressed!.toggleOn!.boxShadow)).toBe(false)
-  // Only Secondary carries the wash; Primary gains the theme's xs elevation.
+  // Secondary carries its wash and Primary its one-sided face wash; Primary also gains the theme's xs elevation.
   expect(tactile(on.raised!.secondary!)).toBe(true)
-  for (const [name, s] of [...Object.entries(on.raised!), ...Object.entries(on.filled!)]) if (name !== "secondary") expect(s.backgroundImage, name).toBe("none")
+  expect(tactile(on.filled!.primary!)).toBe(true)
+  for (const [name, s] of [...Object.entries(on.raised!), ...Object.entries(on.filled!)]) if (name !== "secondary" && name !== "primary") expect(s.backgroundImage, name).toBe("none")
   expect(outerElevation(on.filled!.primary!.boxShadow)).toBe(true)
   // Flat: ghost, destructive and link Buttons, disabled controls, the grouped field, every tab trigger, the line tabs and
   // the static Elevation surface are exactly Off.
@@ -258,6 +259,10 @@ test("TUE-05 / IESP-05 focus rings, keyboard activation, pressed, open and hover
   expect(outerElevation(primaryPressed.boxShadow)).toBe(false)
   expect(primaryPressed.box).toBe(primaryRest.box)
   expect(await primary.evaluate((el) => getComputedStyle(el).transform)).toBe("none")
+  // Its face flips when pressed, as Secondary's wash does.
+  const stops = (image: string) => { const parts = [""]; let depth = 0; for (const c of image.slice("linear-gradient(".length, -1)) { depth += c === "(" ? 1 : c === ")" ? -1 : 0; if (c === "," && depth === 0) parts.push(""); else parts[parts.length - 1] += c } return parts.map((part) => part.trim()) }
+  expect(primaryRest.backgroundImage).toMatch(/^linear-gradient\(/)
+  expect(stops(primaryPressed.backgroundImage)).toEqual(stops(primaryRest.backgroundImage).reverse())
 
   // Outline: hover strengthens the border; an open dialog trigger reads as pressed.
   const outline = variant(frame, "outline")

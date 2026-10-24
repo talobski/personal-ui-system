@@ -222,6 +222,19 @@ foregrounds (every tone pair at least 6.1:1). Its muted text pairs (3.61 to
 built-in id, such as an earlier `secuna`, is kept under the next free id
 (`secuna-2`) with its values, base and selection.
 
+Tactile Primary Buttons gain a restrained face gradient in the shared Filled
+role: translucent overlays of the lighter page token lift the top and of the
+darker one sink the bottom, fading out at the middle where the label sits. Each
+overlay's alpha is computed from that mode's actual fill so the face moves by a
+fixed OKLCH lightness on light, medium and dark fills alike (0.0225 for the main
+end and 0.0075 for the other at strength 50); the main end is the one that moves
+the fill away from its label, so label contrast changes by at most about 1.5% at
+the label's edge. It follows Strength, flips when pressed like the Secondary
+wash, and is removed with every other layer when disabled or flat; edge
+highlights, elevation, focus rings and Secondary are unchanged. The Tactile
+block is therefore the same for every palette apart from these two overlay
+alphas per mode.
+
 ## V1 product contract
 
 V1 contains:

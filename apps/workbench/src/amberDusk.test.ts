@@ -96,7 +96,9 @@ describe("ADSR-03 Amber Dusk through existing Workbench flows", () => {
   it("UI Effects Tactile uses the generic recipe on Amber Dusk", () => {
     const tactile = ok(editTheme(amber, { op: "setUiEffects", value: { effect: "tactile", strength: 50 } }))
     const reference = ok(editTheme(byId("default"), { op: "setUiEffects", value: { effect: "tactile", strength: 50 } }))
-    expect(renderUiEffectsCss(tactile)).toBe(renderUiEffectsCss(reference))
+    // The same generic recipe; only the Primary face overlays are sized from each palette's own fill.
+    const withoutFace = (text: string) => text.replace(/^ {4}--ui-tactile-fill-(?:lift|sink): .*\n/gm, "")
+    expect(withoutFace(renderUiEffectsCss(tactile))).toBe(withoutFace(renderUiEffectsCss(reference)))
     expect(renderUiEffectsCss(amber)).toBe("")
   })
 })
