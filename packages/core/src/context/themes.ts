@@ -4,13 +4,14 @@ import defaultFixture from "../theme/fixtures/default.json" with { type: "json" 
 import quietEditorialFixture from "../theme/fixtures/valid.json" with { type: "json" }
 import amberDuskFixture from "../theme/fixtures/amber-dusk.json" with { type: "json" }
 import pocketmarketFixture from "../theme/fixtures/pocketmarket.json" with { type: "json" }
+import secunaFixture from "../theme/fixtures/secuna.json" with { type: "json" }
 import { compareCodeUnits } from "./ordering"
 
 export type ThemeSummary = { id: string; name: string; revision: number }
 
 /**
  * The catalog of built-in themes the retrieval surface will validate and serve: the built-in Default (the Workbench's
- * fresh-state theme), Quiet Editorial, Amber Dusk, and Pocketmarket, all committed canonical Theme v3 fixtures. Adding a
+ * fresh-state theme), Quiet Editorial, Amber Dusk, Pocketmarket, and Secuna, all committed canonical Theme v3 fixtures. Adding a
  * theme here does not change `registry.json` or any component/contract catalog.
  */
 const loaders = {
@@ -18,6 +19,7 @@ const loaders = {
   "quiet-editorial": () => quietEditorialFixture,
   "amber-dusk": () => amberDuskFixture,
   pocketmarket: () => pocketmarketFixture,
+  secuna: () => secunaFixture,
 } as const satisfies Record<string, () => unknown>
 
 export type ThemeId = keyof typeof loaders

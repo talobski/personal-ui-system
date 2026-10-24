@@ -98,8 +98,10 @@ describe("v1 -> v3 migration (TSV2-01, TSV2-03, STHG-04)", () => {
 
 /** The exact owner-approved v2.x -> v3 typography mapping, on a v2.1 input with three distinct stacks. */
 describe("v2.1 -> v3 semantic typography migration (STHG-03, STHG-04)", () => {
+  // v2.1 cannot carry the v3-only `tones`, so the input is Default without them.
+  const { tones: _defaultTones, ...defaultWithoutTones } = structuredClone(defaultFixture)
   const v21 = {
-    ...structuredClone(defaultFixture),
+    ...defaultWithoutTones,
     $schema: "https://personal-ui.local/schema/theme-2.json",
     schemaVersion: "2.1",
     id: "saved-custom",
@@ -176,11 +178,14 @@ describe("committed built-ins are canonical v3; legacy inputs preserve their ser
   })
 
   for (const [legacy, fixture] of [[v1Fixture, quietEditorialFixture], [legacyDefaultV2_1, defaultFixture], [legacyDefaultV2_0, defaultFixture]]) {
-    it(`NGIP-10 ${legacy.id} ${legacy.schemaVersion} migration differs only in the intentional built-in Heading override`, () => {
+    it(`NGIP-10 ${legacy.id} ${legacy.schemaVersion} migration differs only in the intentional built-in Heading override and tones`, () => {
       const migrated = migrate(legacy)
       expect(migrated.typography.heading.font.$value).toEqual([...V1_MIGRATION_DEFAULTS.serif])
+      // Migration adds no tones (a legacy theme renders the shared defaults); the built-in stores Secuna's palette.
+      expect(migrated.tones).toBeUndefined()
       const corrected = structuredClone(migrated)
       corrected.typography.heading.font = structuredClone(corrected.typography.body.font)
+      corrected.tones = structuredClone((fixture as { tones: typeof corrected.tones }).tones)
       expect(corrected).toEqual(fixture)
     })
   }

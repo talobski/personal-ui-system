@@ -30,7 +30,7 @@ This brief is the product specification and product history. Per-feature
 contracts (`docs/*_CONTRACT.md`) and frozen ticket snapshots
 (`docs/evidence/*/linear/`) remain the detailed references for each change.
 
-Last updated: 2026-10-15
+Last updated: 2026-10-24
 
 ## Goal
 
@@ -186,6 +186,41 @@ accepted shadcn Sidebar. Theme v3, the 23-resource registry, 12 mutation
 operations, history, persistence, and staged Design Command boundaries remain
 unchanged. Existing narrow-column doubled-spacing overflow and previously
 accepted contrast-token debts remain explicitly recorded.
+
+The identity tones change adds an optional, closed Theme v3 `tones` field with
+six background/foreground pairs with ordinal, colour-agnostic names (`tone-1` /
+`tone-1-foreground` through `tone-6`, labelled "Tone 1" and so on) for identity
+or category, primarily initials avatars, never status, severity or branding.
+Absence resolves to shared defaults from the owner-approved Figma palette
+(`fixtures/tones.conversion.json`); a present field is a complete Light/Dark
+override. Schema version stays 3.0 and no stored theme migrates; a stored set
+using the earlier colour-word names (`tone-blue` through `tone-violet`) is
+renamed on load with every value kept. The CSS always emits the resolved
+`--tone-*` pairs and `--color-tone-*` utilities, the portable JSON always
+carries resolved tones, and `setColor` edits them (the first edit stores the
+full set), so the mutation union stays at 13 operations. The Colors tab and
+Design system view show Tones after Charts. Every built-in stores an exact copy
+of Secuna's finalized Light and Dark tones (`fixtures/secuna.conversion.json`
+`tones`), except Pocketmarket's own Tone 1 pair
+(`fixtures/pocketmarket.conversion.json` `tones`), so the shared defaults now
+apply only to themes that store none, such as custom copies saved before the
+rollout. ADSR-02 still holds `default.json` and `valid.json` byte-identical to
+the accepted base once their added `tones` field is removed. Avatar behavior and
+its contract are unchanged. In the shared defaults, light Tone 2 (4.21:1) and
+light Tone 5 (4.48:1) are recorded contrast debt, not adjusted. There is no
+Figma synchronization.
+
+Secuna is a built-in after Pocketmarket, promoted on 2026-10-24 from the owner's
+CSS export: a deep-blue primary on white and cool slate neutrals, Space Grotesk
+headings over Inter, a 0.9rem radius, Sidebar aliases and no UI effects. Every
+Light value and every non-tone Dark value is kept verbatim; the export's stale
+Dark tones (the shared defaults in the old order) are re-derived from the
+owner's Light tones, keeping each hue at L 0.28 backgrounds and L 0.84
+foregrounds (every tone pair at least 6.1:1). Its muted text pairs (3.61 to
+4.17:1) and Dark destructive pair (2.77:1) are recorded source-palette debt
+(`fixtures/secuna.conversion.json`). A custom theme saved under a newly reserved
+built-in id, such as an earlier `secuna`, is kept under the next free id
+(`secuna-2`) with its values, base and selection.
 
 ## V1 product contract
 

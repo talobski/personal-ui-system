@@ -1,14 +1,15 @@
 import * as React from "react"
 
-import { parseCanonicalOklch } from "@personal-ui/core"
+import { isToneToken, parseCanonicalOklch } from "@personal-ui/core"
 
-import { COLOR_GROUPS, pickerHex } from "./controls"
+import { EDITOR_COLOR_GROUPS, pickerHex } from "./controls"
 
 /**
- * PUI-109: the Workbench sidebar's own colour groups, in its exact order (Primary ... Sidebar), reused rather than
- * copied so the reference sheet can never drift from the editor. Every semantic token, Sidebar included, appears once.
+ * PUI-109: the Workbench sidebar's own colour groups, in its exact order (Primary ... Charts, Tones, Sidebar), reused
+ * rather than copied so the reference sheet can never drift from the editor. Every semantic token and tone, Sidebar
+ * included, appears once.
  */
-export const DESIGN_SYSTEM_COLOR_GROUPS = COLOR_GROUPS
+export const DESIGN_SYSTEM_COLOR_GROUPS = EDITOR_COLOR_GROUPS
 
 /** The type-scale specimen sizes, largest first: Tailwind's text-5xl down to text-xs. */
 export const TYPE_SCALE = ["text-5xl", "text-4xl", "text-3xl", "text-2xl", "text-xl", "text-lg", "text-base", "text-sm", "text-xs"] as const
@@ -33,9 +34,11 @@ export const SIDEBAR_SWATCH_LABELS: Readonly<Record<string, string>> = Object.fr
 /**
  * PUI-114 display-only label for a swatch in its group: the background side of a semantic pair reads `Background` and
  * its `-foreground` partner `Foreground` (Base's own `background` / `foreground` pair included); an unpaired token keeps
- * its key. Token keys, editor labels and aliases are untouched: this is the reference sheet's wording only.
+ * its key. Tones carry their number, since six pairs share one group: `tone-1` -> `Tone 1 Background`, `tone-1-foreground`
+ * -> `Tone 1 Foreground`. Token keys, editor labels and aliases are untouched: this is the reference sheet's wording only.
  */
 export function swatchLabel(token: string, tokens: readonly string[]): string {
+  if (isToneToken(token)) return `Tone ${token.split("-")[1]} ${token.endsWith("-foreground") ? "Foreground" : "Background"}`
   const sidebar = SIDEBAR_SWATCH_LABELS[token]
   if (sidebar !== undefined) return sidebar
   const base = token === "foreground" ? "background" : token.endsWith("-foreground") ? token.slice(0, -"-foreground".length) : null
@@ -121,9 +124,9 @@ function Sheet({ name, title, children }: { name: string; title: string; childre
  * group heading, then the title-case supporting label, then the muted HEX. Colors and Type scale are flat padded sections, side
  * by side once the view's own container is wide enough and stacked below that. Colors mirrors the Workbench sidebar's
  * groups under their plain titles; the Sidebar group shows the effective values (base aliases while dedicated tokens
- * are off, dedicated values once on) with no alias annotations. Type scale is one descending list of the same sample
- * at each Tailwind size in the live Body role, one line each and truncated rather than overflowing, with no summary
- * line. `source` changes whenever the parent posts new CSS or mode; a class observer on the root catches the
+ * are off, dedicated values once on) with no alias annotations. Tones follows Charts as six background / foreground
+ * pairs in the same swatch layout. Type scale is one descending list of the same sample at each Tailwind size in the
+ * live Body role, one line each and truncated rather than overflowing, with no summary line. `source` changes whenever the parent posts new CSS or mode; a class observer on the root catches the
  * light/dark switch, which the frame applies after this view's effects. Memoized on `source` (PUI-118): a preview view
  * switch or a value-identical repost does not re-render the sheet.
  */

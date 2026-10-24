@@ -76,7 +76,7 @@ test.describe("TSV2-04 fresh state, built-in selection, persistence", () => {
     await workspaceMode(page, "Controls")
     // Compact selector (WTEP-09): built-ins are grouped as built-in; no custom group until one is saved.
     await page.getByRole("combobox", { name: "Active theme" }).click()
-    await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket"])
+    await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket", "Secuna"])
     await expect(page.getByRole("group", { name: "Custom", exact: true })).toHaveCount(0)
     await page.keyboard.press("Escape")
 
@@ -351,19 +351,19 @@ for (const mode of MODES) {
       await openWorkbench(page, mode)
       await editorCategory(page, "Colors")
       // Approved groups, using the existing section/header pattern, each listing its tokens once.
-      const groups = { base: ["background", "foreground"], card: ["card", "card-foreground"], popover: ["popover", "popover-foreground"], primary: ["primary", "primary-foreground"], secondary: ["secondary", "secondary-foreground"], muted: ["muted", "muted-foreground"], accent: ["accent", "accent-foreground"], destructive: ["destructive", "destructive-foreground"], border: ["border", "input", "ring"], charts: ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"], sidebar: ["sidebar", "sidebar-foreground", "sidebar-primary", "sidebar-primary-foreground", "sidebar-accent", "sidebar-accent-foreground", "sidebar-border", "sidebar-ring"] }
-      await expect(page.getByRole("tabpanel", { name: "Colors", exact: true }).getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"])
-      for (const title of ["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"]) {
+      const groups = { base: ["background", "foreground"], card: ["card", "card-foreground"], popover: ["popover", "popover-foreground"], primary: ["primary", "primary-foreground"], secondary: ["secondary", "secondary-foreground"], muted: ["muted", "muted-foreground"], accent: ["accent", "accent-foreground"], destructive: ["destructive", "destructive-foreground"], border: ["border", "input", "ring"], charts: ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"], tones: ["tone-1", "tone-1-foreground", "tone-2", "tone-2-foreground", "tone-3", "tone-3-foreground", "tone-4", "tone-4-foreground", "tone-5", "tone-5-foreground", "tone-6", "tone-6-foreground"], sidebar: ["sidebar", "sidebar-foreground", "sidebar-primary", "sidebar-primary-foreground", "sidebar-accent", "sidebar-accent-foreground", "sidebar-border", "sidebar-ring"] }
+      await expect(page.getByRole("tabpanel", { name: "Colors", exact: true }).getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Tones", "Sidebar"])
+      for (const title of ["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Tones", "Sidebar"]) {
         await expect(page.getByRole("heading", { level: 3, name: title, exact: true })).toBeVisible()
         await expect(page.getByRole("button", { name: title, exact: true })).toHaveAttribute("aria-expanded", "true")
       }
-      await expect(page.locator('.quiet-editor [data-testid^="control-color-"]')).toHaveCount(32)
+      await expect(page.locator('.quiet-editor [data-testid^="control-color-"]')).toHaveCount(44)
       for (const [group, tokens] of Object.entries(groups)) {
         const rows = await page.getByTestId(`section-colors-${group}`).locator('[data-testid^="control-color-"]').evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")!.slice("control-color-".length)))
         expect(rows).toEqual(tokens)
         for (const token of tokens) {
           await expect(colorInput(page, token)).toHaveCount(1)
-          // Sidebar rows show the short visible label and carry a screen-reader-only "Sidebar" prefix.
+          // Sidebar rows show the short visible label and carry a screen-reader-only "Sidebar" prefix; Tones rows show "Tone N".
           const visible = token === "sidebar" ? "background" : token.replace(/^sidebar-/, "")
           const label = `${visible.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase())} picker`
           await expect(page.getByLabel(token.startsWith("sidebar") ? `Sidebar ${label}` : label, { exact: true })).toHaveCount(1)

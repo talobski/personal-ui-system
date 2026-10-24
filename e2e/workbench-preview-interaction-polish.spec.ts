@@ -406,7 +406,7 @@ test.describe("WPIP-05 Design system labels, HEX and swatches (PUI-114)", () => 
       const panel = frame.getByRole("tabpanel", { name: "Design system", exact: true })
       const swatch = (name: string) => panel.locator(`[data-token="${name}"]`)
       const value = (name: string) => swatch(name).getByTestId("token-value")
-      await expect(panel.locator("[data-token]")).toHaveCount(32)
+      await expect(panel.locator("[data-token]")).toHaveCount(44)
       // Labels: display only; unpaired tokens keep their key, shown in title case (PUI-126).
       for (const [token, label] of [["primary", "Background"], ["primary-foreground", "Foreground"], ["background", "Background"], ["foreground", "Foreground"], ["destructive", "Background"], ["destructive-foreground", "Foreground"], ["sidebar", "Background"], ["sidebar-accent-foreground", "Foreground"], ["border", "Border"], ["chart-3", "Chart-3"], ["sidebar-ring", "Sidebar Ring"]] as const) {
         await expect(swatch(token).getByTestId("token-label")).toHaveText(new RegExp(`${label}$`))
@@ -422,7 +422,7 @@ test.describe("WPIP-05 Design system labels, HEX and swatches (PUI-114)", () => 
       }
       // Swatches: wider than tall, contained in their own column, still bordered and rounded.
       const shapes = await panel.locator('[data-testid="swatch"]').evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(), li = node.parentElement!.getBoundingClientRect(); return { ratio: r.width / r.height, inside: r.left >= li.left - 0.5 && r.right <= li.right + 0.5, radius: parseFloat(getComputedStyle(node).borderTopLeftRadius), border: getComputedStyle(node).borderTopWidth } }))
-      expect(shapes).toHaveLength(32)
+      expect(shapes).toHaveLength(44)
       for (const shape of shapes) {
         expect(shape.ratio).toBeGreaterThan(1.5)
         expect(shape.inside).toBe(true)

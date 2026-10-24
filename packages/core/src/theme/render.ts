@@ -1,4 +1,4 @@
-import { BASE_COLOR_TOKENS, COLOR_TOKENS, FONT_FAMILY_TARGETS, MOTION_DURATION_TOKENS, RADIUS_SCALE_TOKENS, resolveUiEffects, SHADOW_TOKENS, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, themeSchema, TYPE_ROLES, UI_EFFECT_STRENGTH_RANGE, UI_EFFECTS_FLAT } from "./schema"
+import { BASE_COLOR_TOKENS, COLOR_TOKENS, FONT_FAMILY_TARGETS, MOTION_DURATION_TOKENS, RADIUS_SCALE_TOKENS, resolveTones, resolveUiEffects, SHADOW_TOKENS, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, themeSchema, TONE_TOKENS, TYPE_ROLES, UI_EFFECT_STRENGTH_RANGE, UI_EFFECTS_FLAT } from "./schema"
 import type { ShadowLayer, ShadowToken, Theme } from "./schema"
 
 /** CSS generic families and system-font keywords, emitted unquoted; every other family name is quoted. */
@@ -297,6 +297,10 @@ export function renderUiEffectsCss(input: Theme): string {
  * the base theme in either mode and stored dedicated values are preserved but unapplied. With it on, the stored
  * dedicated values are emitted directly.
  *
+ * Tones: the resolved `--tone-*` pairs (the stored `tones`, else the shared `TONE_DEFAULTS`) are always emitted after
+ * the Sidebar colours in both blocks, with `--color-tone-*` inline entries, so `bg-tone-1` /
+ * `text-tone-1-foreground` utilities exist in every theme.
+ *
  * UI effects: the targeted `@layer components` block from `renderUiEffectsCss` is appended only while Tactile is on.
  */
 export function renderShadcnTailwindCss(input: Theme): string {
@@ -317,15 +321,17 @@ function renderThemeCss(theme: Theme): string {
   const light = theme.colors.light
   const dark = theme.colors.dark
   const dedicated = theme.sidebar.useDedicatedTokens.$value
+  const tones = resolveTones(theme)
   const effects = renderUiEffectsCss(theme)
   const fontStack = (name: (typeof FONT_FAMILY_TARGETS)[number]) => (name === "mono" ? theme.typography.mono : theme.typography[name].font).$value
-  const colorDecls = (set: typeof light) => [
+  const colorDecls = (set: typeof light, toneSet: (typeof tones)["light"]) => [
     ...BASE_COLOR_TOKENS.map((name) => decl(`--${name}`, set[name].$value)),
     ...SIDEBAR_COLOR_TOKENS.map((name) => decl(`--${name}`, dedicated ? set[name].$value : `var(--${SIDEBAR_TOKEN_ALIASES[name]})`)),
+    ...TONE_TOKENS.map((name) => decl(`--${name}`, toneSet[name].$value)),
   ]
 
   const root = [
-    ...colorDecls(light),
+    ...colorDecls(light, tones.light),
     ...FONT_FAMILY_TARGETS.map((name) => decl(`--font-${name}`, cssFamily(fontStack(name)))),
     ...TYPE_ROLES.map((role) => decl(`--font-weight-${role}`, String(theme.typography[role].weight.$value))),
     ...TYPE_ROLES.map((role) => decl(`--tracking-${role}`, theme.typography[role].tracking.$value)),
@@ -338,7 +344,7 @@ function renderThemeCss(theme: Theme): string {
   ]
 
   const inline = [
-    ...COLOR_TOKENS.map((name) => decl(`--color-${name}`, `var(--${name})`)),
+    ...[...COLOR_TOKENS, ...TONE_TOKENS].map((name) => decl(`--color-${name}`, `var(--${name})`)),
     ...RADIUS_SCALE_TOKENS.map((name) => decl(`--radius-${name}`, `var(--radius-scale-${name})`)),
     ...SHADOW_TOKENS.map((name) => decl(shadowThemeVar(name), `var(--shadow-layers-${name})`)),
     decl("--spacing", "calc(var(--space-base) * var(--density))"),
@@ -353,7 +359,7 @@ function renderThemeCss(theme: Theme): string {
     "}",
     "",
     ".dark {",
-    ...colorDecls(dark),
+    ...colorDecls(dark, tones.dark),
     "}",
     "",
     "@theme inline {",

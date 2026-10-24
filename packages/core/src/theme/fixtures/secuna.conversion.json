@@ -1,0 +1,574 @@
+{
+  "kind": "personal-ui-theme-conversion-report",
+  "version": 1,
+  "theme": {
+    "id": "secuna",
+    "name": "Secuna",
+    "schemaVersion": "3.0"
+  },
+  "source": {
+    "description": "The owner's Secuna CSS export (portable Tailwind v4 theme CSS, supplied on 2026-10-24) is the source for appearance: every Light value and every non-tone Dark value is kept verbatim. Only the Light tones were edited by the owner; the six Dark tone pairs in the export were the stale shared defaults (in the old Blue, Orange, Purple, Pink, Teal, Violet order) and are re-derived from their Light counterparts (see tones). The source is not committed or rendered as a second theme layer.",
+    "notPromoted": "The CSS is appearance data only. Identity and bookkeeping it does not encode come from the built-in conventions: id secuna, name Secuna, revision 1 and the $extensions display name. The existing saved custom Secuna theme is not read, deleted or overwritten; a saved theme stored under the id secuna is kept under the next free id (secuna-2) by the Workbench loader."
+  },
+  "precisionPolicy": {
+    "color": "Canonical OKLCH through packages/core/src/theme/color.ts normalizeColor. Every source value is already canonical OKLCH, so normalization changes no value."
+  },
+  "values": {
+    "colors.light.background": {
+      "source": "oklch(1 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.foreground": {
+      "source": "oklch(0.144788 0 0)",
+      "normalized": "oklch(0.144788 0 0)"
+    },
+    "colors.light.card": {
+      "source": "oklch(1 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.card-foreground": {
+      "source": "oklch(0.144788 0 0)",
+      "normalized": "oklch(0.144788 0 0)"
+    },
+    "colors.light.popover": {
+      "source": "oklch(1 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.popover-foreground": {
+      "source": "oklch(0.144788 0 0)",
+      "normalized": "oklch(0.144788 0 0)"
+    },
+    "colors.light.primary": {
+      "source": "oklch(0.384591 0.084795 237.639959)",
+      "normalized": "oklch(0.384591 0.084795 237.639959)"
+    },
+    "colors.light.primary-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.light.secondary": {
+      "source": "oklch(0.955677 0.005063 228.81956)",
+      "normalized": "oklch(0.955677 0.005063 228.81956)"
+    },
+    "colors.light.secondary-foreground": {
+      "source": "oklch(0.204627 0 0)",
+      "normalized": "oklch(0.204627 0 0)"
+    },
+    "colors.light.muted": {
+      "source": "oklch(0.955677 0.005063 228.81956)",
+      "normalized": "oklch(0.955677 0.005063 228.81956)"
+    },
+    "colors.light.muted-foreground": {
+      "source": "oklch(0.589841 0.007551 233.726491)",
+      "normalized": "oklch(0.589841 0.007551 233.726491)"
+    },
+    "colors.light.accent": {
+      "source": "oklch(0.955677 0.005063 228.81956)",
+      "normalized": "oklch(0.955677 0.005063 228.81956)"
+    },
+    "colors.light.accent-foreground": {
+      "source": "oklch(0.204627 0 0)",
+      "normalized": "oklch(0.204627 0 0)"
+    },
+    "colors.light.destructive": {
+      "source": "oklch(0.583043 0.238666 28.47648)",
+      "normalized": "oklch(0.583043 0.238666 28.47648)"
+    },
+    "colors.light.destructive-foreground": {
+      "source": "oklch(1 0 0)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.border": {
+      "source": "oklch(0.91685 0.003523 219.535144)",
+      "normalized": "oklch(0.91685 0.003523 219.535144)"
+    },
+    "colors.light.input": {
+      "source": "oklch(0.91685 0.003523 219.535144)",
+      "normalized": "oklch(0.91685 0.003523 219.535144)"
+    },
+    "colors.light.ring": {
+      "source": "oklch(0.840962 0.021609 227.577555)",
+      "normalized": "oklch(0.840962 0.021609 227.577555)"
+    },
+    "colors.light.chart-1": {
+      "source": "oklch(0.76819 0.105043 230.427158)",
+      "normalized": "oklch(0.76819 0.105043 230.427158)"
+    },
+    "colors.light.chart-2": {
+      "source": "oklch(0.680171 0.11316 232.087899)",
+      "normalized": "oklch(0.680171 0.11316 232.087899)"
+    },
+    "colors.light.chart-3": {
+      "source": "oklch(0.595904 0.114913 234.529634)",
+      "normalized": "oklch(0.595904 0.114913 234.529634)"
+    },
+    "colors.light.chart-4": {
+      "source": "oklch(0.512267 0.101138 234.85164)",
+      "normalized": "oklch(0.512267 0.101138 234.85164)"
+    },
+    "colors.light.chart-5": {
+      "source": "oklch(0.422429 0.087625 236.386895)",
+      "normalized": "oklch(0.422429 0.087625 236.386895)"
+    },
+    "colors.light.sidebar": {
+      "source": "var(--background)",
+      "normalized": "oklch(1 0 0)"
+    },
+    "colors.light.sidebar-foreground": {
+      "source": "var(--foreground)",
+      "normalized": "oklch(0.144788 0 0)"
+    },
+    "colors.light.sidebar-primary": {
+      "source": "var(--primary)",
+      "normalized": "oklch(0.384591 0.084795 237.639959)"
+    },
+    "colors.light.sidebar-primary-foreground": {
+      "source": "var(--primary-foreground)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.light.sidebar-accent": {
+      "source": "var(--accent)",
+      "normalized": "oklch(0.955677 0.005063 228.81956)"
+    },
+    "colors.light.sidebar-accent-foreground": {
+      "source": "var(--accent-foreground)",
+      "normalized": "oklch(0.204627 0 0)"
+    },
+    "colors.light.sidebar-border": {
+      "source": "var(--border)",
+      "normalized": "oklch(0.91685 0.003523 219.535144)"
+    },
+    "colors.light.sidebar-ring": {
+      "source": "var(--ring)",
+      "normalized": "oklch(0.840962 0.021609 227.577555)"
+    },
+    "colors.dark.background": {
+      "source": "oklch(0.17227 0.010216 220.179599)",
+      "normalized": "oklch(0.17227 0.010216 220.179599)"
+    },
+    "colors.dark.foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.card": {
+      "source": "oklch(0.194068 0.014448 230.039647)",
+      "normalized": "oklch(0.194068 0.014448 230.039647)"
+    },
+    "colors.dark.card-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.popover": {
+      "source": "oklch(0.25236 0.021351 234.32041)",
+      "normalized": "oklch(0.25236 0.021351 234.32041)"
+    },
+    "colors.dark.popover-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.primary": {
+      "source": "oklch(0.921906 0 0)",
+      "normalized": "oklch(0.921906 0 0)"
+    },
+    "colors.dark.primary-foreground": {
+      "source": "oklch(0.17227 0.010216 220.179599)",
+      "normalized": "oklch(0.17227 0.010216 220.179599)"
+    },
+    "colors.dark.secondary": {
+      "source": "oklch(0.306038 0.029634 233.357117)",
+      "normalized": "oklch(0.306038 0.029634 233.357117)"
+    },
+    "colors.dark.secondary-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.muted": {
+      "source": "oklch(0.228542 0.016247 232.709263)",
+      "normalized": "oklch(0.228542 0.016247 232.709263)"
+    },
+    "colors.dark.muted-foreground": {
+      "source": "oklch(0.562268 0.042451 231.737285)",
+      "normalized": "oklch(0.562268 0.042451 231.737285)"
+    },
+    "colors.dark.accent": {
+      "source": "oklch(0.306038 0.029634 233.357117)",
+      "normalized": "oklch(0.306038 0.029634 233.357117)"
+    },
+    "colors.dark.accent-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.destructive": {
+      "source": "oklch(0.702184 0.189226 22.227873)",
+      "normalized": "oklch(0.702184 0.189226 22.227873)"
+    },
+    "colors.dark.destructive-foreground": {
+      "source": "oklch(0.985104 0 0)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.border": {
+      "source": "oklch(0.25236 0.021351 234.32041)",
+      "normalized": "oklch(0.25236 0.021351 234.32041)"
+    },
+    "colors.dark.input": {
+      "source": "oklch(0.306038 0.029634 233.357117)",
+      "normalized": "oklch(0.306038 0.029634 233.357117)"
+    },
+    "colors.dark.ring": {
+      "source": "oklch(0.391341 0.050073 233.162645)",
+      "normalized": "oklch(0.391341 0.050073 233.162645)"
+    },
+    "colors.dark.chart-1": {
+      "source": "oklch(0.655402 0.116384 235.895985)",
+      "normalized": "oklch(0.655402 0.116384 235.895985)"
+    },
+    "colors.dark.chart-2": {
+      "source": "oklch(0.577337 0.11829 238.36944)",
+      "normalized": "oklch(0.577337 0.11829 238.36944)"
+    },
+    "colors.dark.chart-3": {
+      "source": "oklch(0.425669 0.094942 240.342809)",
+      "normalized": "oklch(0.425669 0.094942 240.342809)"
+    },
+    "colors.dark.chart-4": {
+      "source": "oklch(0.361759 0.082015 240.276901)",
+      "normalized": "oklch(0.361759 0.082015 240.276901)"
+    },
+    "colors.dark.chart-5": {
+      "source": "oklch(0.286751 0.064961 239.339402)",
+      "normalized": "oklch(0.286751 0.064961 239.339402)"
+    },
+    "colors.dark.sidebar": {
+      "source": "var(--background)",
+      "normalized": "oklch(0.17227 0.010216 220.179599)"
+    },
+    "colors.dark.sidebar-foreground": {
+      "source": "var(--foreground)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.sidebar-primary": {
+      "source": "var(--primary)",
+      "normalized": "oklch(0.921906 0 0)"
+    },
+    "colors.dark.sidebar-primary-foreground": {
+      "source": "var(--primary-foreground)",
+      "normalized": "oklch(0.17227 0.010216 220.179599)"
+    },
+    "colors.dark.sidebar-accent": {
+      "source": "var(--accent)",
+      "normalized": "oklch(0.306038 0.029634 233.357117)"
+    },
+    "colors.dark.sidebar-accent-foreground": {
+      "source": "var(--accent-foreground)",
+      "normalized": "oklch(0.985104 0 0)"
+    },
+    "colors.dark.sidebar-border": {
+      "source": "var(--border)",
+      "normalized": "oklch(0.25236 0.021351 234.32041)"
+    },
+    "colors.dark.sidebar-ring": {
+      "source": "var(--ring)",
+      "normalized": "oklch(0.391341 0.050073 233.162645)"
+    },
+    "tones.light.tone-1": {
+      "source": "oklch(0.932654 0.026597 246.350513)",
+      "normalized": "oklch(0.932654 0.026597 246.350513)"
+    },
+    "tones.light.tone-1-foreground": {
+      "source": "oklch(0.434752 0.06068 247.78674)",
+      "normalized": "oklch(0.434752 0.06068 247.78674)"
+    },
+    "tones.light.tone-2": {
+      "source": "oklch(0.920863 0.034545 350.016329)",
+      "normalized": "oklch(0.920863 0.034545 350.016329)"
+    },
+    "tones.light.tone-2-foreground": {
+      "source": "oklch(0.450031 0.100009 355.025246)",
+      "normalized": "oklch(0.450031 0.100009 355.025246)"
+    },
+    "tones.light.tone-3": {
+      "source": "oklch(0.919284 0.04008 114.874629)",
+      "normalized": "oklch(0.919284 0.04008 114.874629)"
+    },
+    "tones.light.tone-3-foreground": {
+      "source": "oklch(0.429919 0.069868 118.409497)",
+      "normalized": "oklch(0.429919 0.069868 118.409497)"
+    },
+    "tones.light.tone-4": {
+      "source": "oklch(0.920502 0.034643 300.295208)",
+      "normalized": "oklch(0.920502 0.034643 300.295208)"
+    },
+    "tones.light.tone-4-foreground": {
+      "source": "oklch(0.439526 0.099892 299.691131)",
+      "normalized": "oklch(0.439526 0.099892 299.691131)"
+    },
+    "tones.light.tone-5": {
+      "source": "oklch(0.920509 0.039358 71.017279)",
+      "normalized": "oklch(0.920509 0.039358 71.017279)"
+    },
+    "tones.light.tone-5-foreground": {
+      "source": "oklch(0.43974 0.080099 70.873576)",
+      "normalized": "oklch(0.43974 0.080099 70.873576)"
+    },
+    "tones.light.tone-6": {
+      "source": "oklch(0.919386 0.034445 196.567802)",
+      "normalized": "oklch(0.919386 0.034445 196.567802)"
+    },
+    "tones.light.tone-6-foreground": {
+      "source": "oklch(0.429716 0.070065 200.290858)",
+      "normalized": "oklch(0.429716 0.070065 200.290858)"
+    },
+    "tones.dark.tone-1": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.28 0.026597 246.350513)"
+    },
+    "tones.dark.tone-1-foreground": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.84 0.06068 247.78674)"
+    },
+    "tones.dark.tone-2": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.28 0.034545 350.016329)"
+    },
+    "tones.dark.tone-2-foreground": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.84 0.08 355.025246)"
+    },
+    "tones.dark.tone-3": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.28 0.04008 114.874629)"
+    },
+    "tones.dark.tone-3-foreground": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.84 0.069868 118.409497)"
+    },
+    "tones.dark.tone-4": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.28 0.034643 300.295208)"
+    },
+    "tones.dark.tone-4-foreground": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.84 0.08 299.691131)"
+    },
+    "tones.dark.tone-5": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.28 0.039358 71.017279)"
+    },
+    "tones.dark.tone-5-foreground": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.84 0.08 70.873576)"
+    },
+    "tones.dark.tone-6": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.28 0.034445 196.567802)"
+    },
+    "tones.dark.tone-6-foreground": {
+      "source": "derived (see tones.darkAdaptation)",
+      "normalized": "oklch(0.84 0.070065 200.290858)"
+    }
+  },
+  "typography": {
+    "heading.font": "Space Grotesk, as the self-hosted catalog stack (Space Grotesk Variable, Space Grotesk, ui-sans-serif, system-ui, sans-serif)",
+    "body.font": "Inter, as the self-hosted catalog stack (Inter Variable, Inter, ui-sans-serif, system-ui, sans-serif)",
+    "mono": "the system monospace stack, as in Default",
+    "heading.tracking": "0em",
+    "body.tracking": "0em",
+    "heading.weight": "600",
+    "body.weight": "400"
+  },
+  "geometry": {
+    "radius.base": {
+      "source": "0.9rem",
+      "normalized": "0.9rem"
+    },
+    "radius.scale": "sm/md/lg/xl 0.65rem/0.775rem/0.9rem/1.15rem, equal to deriveRadiusScale(0.9rem)",
+    "space.base": {
+      "source": "0.25rem",
+      "normalized": "0.25rem"
+    },
+    "space.density": "1"
+  },
+  "shadow": {
+    "profile": {
+      "color": "oklch(0 0 0)",
+      "opacity": 0.1,
+      "blur": "3px",
+      "spread": "0px",
+      "offsetX": "0px",
+      "offsetY": "1px"
+    },
+    "reconciliation": "All eight source tiers equal deriveShadowTiers(profile) exactly, so they are stored as the eight canonical typed shadow tiers."
+  },
+  "sidebar": {
+    "useDedicatedTokens": false,
+    "dedicatedValuesInitialized": false,
+    "note": "The export renders every Sidebar colour as its base alias (var(--background) and so on), so dedicated Sidebar tokens are off; the stored Sidebar values are the synchronized aliases."
+  },
+  "uiEffects": "off: the export carries no UI-effects block, so uiEffects is absent",
+  "tones": {
+    "light": "The owner-edited Light tones, kept verbatim. Tone 1 is blue (hue 246), 2 pink (350), 3 olive (115), 4 violet (300), 5 amber (71) and 6 teal (197).",
+    "darkAdaptation": "Each Dark pair keeps its Light background and foreground hues exactly, so tone N is the same identity in both modes. Backgrounds keep the Light background chroma at L 0.28, between the dark popover and border (0.252) and the secondary surface (0.306), so tiles read as subdued fills on Secuna's cool, near-black surfaces. Foregrounds sit at L 0.84 with the Light foreground chroma capped at 0.08, so text stays soft rather than neon.",
+    "sharedWithBuiltIns": "On 2026-10-24 every other built-in (Default, Quiet Editorial, Amber Dusk and Pocketmarket) stores an exact copy of these twelve Light and twelve Dark tones, except Pocketmarket's own Tone 1 pair (pocketmarket.conversion.json tones). The shared tone defaults (tones.conversion.json) are unchanged, so a saved custom theme without its own tone edits still renders them.",
+    "staleDark": {
+      "tone-1": "oklch(0.320862 0.049065 248.554392)",
+      "tone-1-foreground": "oklch(0.819769 0.090567 249.952038)",
+      "tone-2": "oklch(0.320198 0.04913 56.089672)",
+      "tone-2-foreground": "oklch(0.819821 0.089667 55.006628)",
+      "tone-3": "oklch(0.318188 0.050165 317.87645)",
+      "tone-3-foreground": "oklch(0.819902 0.089787 318.258574)",
+      "tone-4": "oklch(0.320342 0.051431 342.552036)",
+      "tone-4-foreground": "oklch(0.739886 0.079665 343.070017)",
+      "tone-5": "oklch(0.318937 0.0499 201.104966)",
+      "tone-5-foreground": "oklch(0.820021 0.089715 200.032658)",
+      "tone-6": "oklch(0.319589 0.049439 284.86901)",
+      "tone-6-foreground": "oklch(0.81897 0.090969 284.911132)"
+    },
+    "contrast": {
+      "method": "WCAG 2.x relative luminance in sRGB, foreground on its own background. Every value is inside sRGB.",
+      "pairs": [
+        {
+          "mode": "light",
+          "pair": "tone-1-foreground on tone-1",
+          "hex": "#355471 on #dbebfa",
+          "ratio": 6.5,
+          "meets4_5": true
+        },
+        {
+          "mode": "dark",
+          "pair": "tone-1-foreground on tone-1",
+          "hex": "#accff1 on #1e2a35",
+          "ratio": 8.96,
+          "meets4_5": true
+        },
+        {
+          "mode": "light",
+          "pair": "tone-2-foreground on tone-2",
+          "hex": "#7f3b58 on #f8dce8",
+          "ratio": 6.14,
+          "meets4_5": true
+        },
+        {
+          "mode": "dark",
+          "pair": "tone-2-foreground on tone-2",
+          "hex": "#f6b5cd on #36222b",
+          "ratio": 8.76,
+          "meets4_5": true
+        },
+        {
+          "mode": "light",
+          "pair": "tone-3-foreground on tone-3",
+          "hex": "#4c5526 on #e3e8ca",
+          "ratio": 6.32,
+          "meets4_5": true
+        },
+        {
+          "mode": "dark",
+          "pair": "tone-3-foreground on tone-3",
+          "hex": "#c6d19e on #282b13",
+          "ratio": 9,
+          "meets4_5": true
+        },
+        {
+          "mode": "light",
+          "pair": "tone-4-foreground on tone-4",
+          "hex": "#5b4481 on #e8e0f9",
+          "ratio": 6.36,
+          "meets4_5": true
+        },
+        {
+          "mode": "dark",
+          "pair": "tone-4-foreground on tone-4",
+          "hex": "#d2bff8 on #2b2538",
+          "ratio": 8.82,
+          "meets4_5": true
+        },
+        {
+          "mode": "light",
+          "pair": "tone-5-foreground on tone-5",
+          "hex": "#6e4a19 on #f6e1c9",
+          "ratio": 6.22,
+          "meets4_5": true
+        },
+        {
+          "mode": "dark",
+          "pair": "tone-5-foreground on tone-5",
+          "hex": "#ecc291 on #352512",
+          "ratio": 8.89,
+          "meets4_5": true
+        },
+        {
+          "mode": "light",
+          "pair": "tone-6-foreground on tone-6",
+          "hex": "#0a5b5f on #cbecec",
+          "ratio": 6.26,
+          "meets4_5": true
+        },
+        {
+          "mode": "dark",
+          "pair": "tone-6-foreground on tone-6",
+          "hex": "#93d9dd on #112e2f",
+          "ratio": 9.05,
+          "meets4_5": true
+        }
+      ]
+    }
+  },
+  "declaredDefaults": {
+    "motion.durationFast": "150ms",
+    "motion.durationBase": "200ms",
+    "motion.reducedMotion": "reduce"
+  },
+  "unsupported": [
+    {
+      "field": "--spacing",
+      "reason": "derived by the renderer from space.base and density"
+    }
+  ],
+  "contrastDebt": {
+    "method": "WCAG 2.x relative luminance of the rendered sRGB HEX (the Workbench picker conversion). The owner's values are preserved; these text pairs are below 4.5:1 and are recorded, not adjusted.",
+    "pairs": [
+      {
+        "mode": "light",
+        "pair": "muted-foreground on muted",
+        "hex": "#797e81 on #edf1f3",
+        "ratio": 3.61
+      },
+      {
+        "mode": "light",
+        "pair": "muted-foreground on background",
+        "hex": "#797e81 on #ffffff",
+        "ratio": 4.11
+      },
+      {
+        "mode": "light",
+        "pair": "muted-foreground on card",
+        "hex": "#797e81 on #ffffff",
+        "ratio": 4.11
+      },
+      {
+        "mode": "dark",
+        "pair": "muted-foreground on muted",
+        "hex": "#5c7a8a on #151e23",
+        "ratio": 3.71
+      },
+      {
+        "mode": "dark",
+        "pair": "muted-foreground on background",
+        "hex": "#5c7a8a on #0b1113",
+        "ratio": 4.17
+      },
+      {
+        "mode": "dark",
+        "pair": "muted-foreground on card",
+        "hex": "#5c7a8a on #0e161a",
+        "ratio": 4.01
+      },
+      {
+        "mode": "dark",
+        "pair": "destructive-foreground on destructive",
+        "hex": "#fafafa on #ff6467",
+        "ratio": 2.77
+      }
+    ]
+  }
+}

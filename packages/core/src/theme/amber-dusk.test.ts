@@ -22,6 +22,7 @@ import type { Theme, ThemeOperation } from "../index"
 import report from "./fixtures/amber-dusk.conversion.json"
 import amberDuskFixture from "./fixtures/amber-dusk.json"
 import defaultFixture from "./fixtures/default.json"
+import secunaFixture from "./fixtures/secuna.json"
 
 /**
  * ADSR-02 (PUI-123). Every source value below is transcribed independently from the owner-supplied stylesheet in the
@@ -319,9 +320,30 @@ describe("ADSR-02 existing built-in fixtures are byte-identical to the accepted 
       return false
     }
   })()
-  it.skipIf(!committed).each(["default.json", "valid.json", "default.css", "quiet-editorial.css", "default.conversion.json"])("%s", (name) => {
+  it.skipIf(!committed).each(["default.conversion.json"])("%s", (name) => {
     const path = `packages/core/src/theme/fixtures/${name}`
     const base = execFileSync("git", ["show", `${BASE}:${path}`])
     expect(readFileSync(new URL(`./fixtures/${name}`, import.meta.url)).equals(base)).toBe(true)
+  })
+
+  // The owner-approved tone rollout adds only a `tones` field, copied exactly from Secuna; with that field removed, each
+  // fixture is still byte-identical to the accepted base.
+  it.skipIf(!committed).each(["default.json", "valid.json"])("%s (apart from the added tones)", (name) => {
+    const path = `packages/core/src/theme/fixtures/${name}`
+    const base = execFileSync("git", ["show", `${BASE}:${path}`], { encoding: "utf8" })
+    const { tones, ...rest } = JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), "utf8"))
+    expect(tones).toEqual(secunaFixture.tones)
+    expect(`${JSON.stringify(rest, null, 2)}\n`).toBe(base)
+  })
+
+  // The approved identity tones add only `--tone-*` declarations and their `--color-tone-*` inline entries to the
+  // generated CSS; with exactly those lines removed, each golden is still byte-identical to the accepted base.
+  it.skipIf(!committed).each(["default.css", "quiet-editorial.css"])("%s (apart from the added tone lines)", (name) => {
+    const path = `packages/core/src/theme/fixtures/${name}`
+    const base = execFileSync("git", ["show", `${BASE}:${path}`], { encoding: "utf8" })
+    const current = readFileSync(new URL(`./fixtures/${name}`, import.meta.url), "utf8")
+    const toneLines = /^ {2}--(?:color-)?tone-[1-6](?:-foreground)?: [^;\n]+;\n/gm
+    expect(current.match(toneLines)).toHaveLength(36)
+    expect(current.replace(toneLines, "")).toBe(base)
   })
 })

@@ -38,6 +38,7 @@ const BUILT_IN_NOTES: Readonly<Record<string, string>> = {
   "quiet-editorial": "Ink-blue primary on cool, paper-white neutrals, set entirely in Inter.",
   "amber-dusk": "Terracotta primary over warm stone neutrals, with lavender chart accents.",
   pocketmarket: "Coral-pink primary on warm paper neutrals, set in Inter with generous 1rem corners.",
+  secuna: "Deep blue primary on crisp white and cool slate neutrals, with Space Grotesk headings over Inter.",
 }
 
 const fontName = (stack: readonly string[]) => findFontOption("any", stack)?.label ?? (stack[0]?.startsWith("ui-") ? "System" : (stack[0] ?? "System"))

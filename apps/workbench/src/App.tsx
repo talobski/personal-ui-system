@@ -34,7 +34,7 @@ import type { DesignCommandOutcome } from "@personal-ui/core"
 import type { PreviewState } from "./messages"
 import { deleteTheme, loadSaved, saveSelection, saveTheme } from "./persistence"
 import type { SavedThemes } from "./persistence"
-import { buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, NUMERIC_CONTROLS, readFontStack, readShadowColor, TYPE_ROLE_GROUPS } from "./controls"
+import { buildShadowColorOperation, colorTokenLabel, EDITOR_COLOR_GROUPS, NUMERIC_CONTROLS, readEditorColor, readFontStack, readShadowColor, TYPE_ROLE_GROUPS } from "./controls"
 import type { NumericControlId } from "./controls"
 import { EMPTY_TRACK, isDirty, record, redo, reset, sameDesign, undo } from "./history"
 import type { HistoryStep, HistoryTrack } from "./history"
@@ -728,7 +728,7 @@ export function App({ routeThemeId = null }: { routeThemeId?: string | null }) {
             <ScrollArea type="auto" className="quiet-scroll-area min-h-0 flex-1" data-testid="editor-scroll" viewportProps={{ role: "region", "aria-label": "Theme editor", tabIndex: 0 }}>
                 <TabsContent className="data-[state=inactive]:hidden" value="colors" forceMount><div className="grid gap-6 px-4 pb-4">
           {manualLockNote}
-          {COLOR_GROUPS.map((group) => (
+          {EDITOR_COLOR_GROUPS.map((group) => (
             <ControlSection key={group.id} id={`colors-${group.id}`} title={group.title}>
               {group.id === "sidebar" && <SidebarTokensSwitch enabled={current.sidebar.useDedicatedTokens.$value} disabled={locked} apply={applyManual} />}
               {group.tokens.map((token) => (
@@ -737,7 +737,7 @@ export function App({ routeThemeId = null }: { routeThemeId?: string | null }) {
                   id={`color-${token}`}
                   label={colorTokenLabel(token)}
                   labelPrefix={isSidebarColorToken(token) ? "Sidebar" : undefined}
-                  value={current.colors[mode][token].$value}
+                  value={readEditorColor(current, mode, token)}
                   build={(raw) => ({ op: "setColor", mode, token, value: raw })}
                   disabled={locked}
                   apply={applyManual}

@@ -1,5 +1,5 @@
-import { FONT_WEIGHT_RANGE, isSidebarColorToken, MANUAL_CONTROL_BOUNDS, parseCanonicalOklch, parseLength, readShadowProfile, resolveUiEffects, SIDEBAR_COLOR_TOKENS, UI_EFFECT_STRENGTH_RANGE } from "@personal-ui/core"
-import type { ColorToken, FontFamilyTarget, ShadowProfile, Theme, ThemeOperation, TypeRole, UiEffect, UiEffectsValue } from "@personal-ui/core"
+import { FONT_WEIGHT_RANGE, isSidebarColorToken, isToneToken, MANUAL_CONTROL_BOUNDS, parseCanonicalOklch, parseLength, readShadowProfile, resolveTones, resolveUiEffects, SIDEBAR_COLOR_TOKENS, TONE_TOKENS, UI_EFFECT_STRENGTH_RANGE } from "@personal-ui/core"
+import type { ColorToken, FontFamilyTarget, ShadowProfile, Theme, ThemeOperation, ToneToken, TypeRole, UiEffect, UiEffectsValue } from "@personal-ui/core"
 
 /**
  * Manual-control models. Every control reads its value from the canonical active theme and turns a new value into one
@@ -215,11 +215,25 @@ export const COLOR_GROUPS: readonly { id: string; title: string; tokens: readonl
   { id: "sidebar", title: "Sidebar", tokens: SIDEBAR_COLOR_TOKENS },
 ]
 
+/** Any colour the Colors tab edits: a canonical colour token or an identity tone. */
+export type EditorColorToken = ColorToken | ToneToken
+
+/** The six identity tone pairs, edited like colours but stored in the optional `tones` field. */
+export const TONE_GROUP: { id: string; title: string; tokens: readonly ToneToken[] } = { id: "tones", title: "Tones", tokens: TONE_TOKENS }
+
+/** The Colors tab's sections: the canonical colour groups with Tones directly after Charts. */
+export const EDITOR_COLOR_GROUPS: readonly { id: string; title: string; tokens: readonly EditorColorToken[] }[] = COLOR_GROUPS.flatMap((group) => (group.id === "charts" ? [group, TONE_GROUP] : [group]))
+
+/** A Colors-tab value: the stored colour, or the theme's resolved tone (its override, else the shared default). */
+export const readEditorColor = (theme: Theme, mode: "light" | "dark", token: EditorColorToken) =>
+  isToneToken(token) ? resolveTones(theme)[mode][token].$value : theme.colors[mode][token].$value
+
 /**
  * A token's readable sentence-case field label: `card-foreground` -> `Card foreground`, `chart-1` -> `Chart 1`. Inside
  * the Sidebar group the prefix is implied: `sidebar` -> `Background`, `sidebar-primary-foreground` -> `Primary foreground`.
+ * Tones keep their prefix: `tone-1` -> `Tone 1`, `tone-1-foreground` -> `Tone 1 foreground`.
  */
-export const colorTokenLabel = (token: ColorToken) => {
+export const colorTokenLabel = (token: EditorColorToken) => {
   const name = isSidebarColorToken(token) ? (token === "sidebar" ? "background" : token.slice("sidebar-".length)) : token
   const words = name.replace(/-/g, " ")
   return words.charAt(0).toUpperCase() + words.slice(1)

@@ -267,6 +267,108 @@
       }
     }
   },
+  "tones": {
+    "light": {
+      "tone-1": {
+        "$type": "color",
+        "$value": "oklch(0.932654 0.026597 246.350513)"
+      },
+      "tone-1-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.434752 0.06068 247.78674)"
+      },
+      "tone-2": {
+        "$type": "color",
+        "$value": "oklch(0.920863 0.034545 350.016329)"
+      },
+      "tone-2-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.450031 0.100009 355.025246)"
+      },
+      "tone-3": {
+        "$type": "color",
+        "$value": "oklch(0.919284 0.04008 114.874629)"
+      },
+      "tone-3-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.429919 0.069868 118.409497)"
+      },
+      "tone-4": {
+        "$type": "color",
+        "$value": "oklch(0.920502 0.034643 300.295208)"
+      },
+      "tone-4-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.439526 0.099892 299.691131)"
+      },
+      "tone-5": {
+        "$type": "color",
+        "$value": "oklch(0.920509 0.039358 71.017279)"
+      },
+      "tone-5-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.43974 0.080099 70.873576)"
+      },
+      "tone-6": {
+        "$type": "color",
+        "$value": "oklch(0.919386 0.034445 196.567802)"
+      },
+      "tone-6-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.429716 0.070065 200.290858)"
+      }
+    },
+    "dark": {
+      "tone-1": {
+        "$type": "color",
+        "$value": "oklch(0.28 0.026597 246.350513)"
+      },
+      "tone-1-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.84 0.06068 247.78674)"
+      },
+      "tone-2": {
+        "$type": "color",
+        "$value": "oklch(0.28 0.034545 350.016329)"
+      },
+      "tone-2-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.84 0.08 355.025246)"
+      },
+      "tone-3": {
+        "$type": "color",
+        "$value": "oklch(0.28 0.04008 114.874629)"
+      },
+      "tone-3-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.84 0.069868 118.409497)"
+      },
+      "tone-4": {
+        "$type": "color",
+        "$value": "oklch(0.28 0.034643 300.295208)"
+      },
+      "tone-4-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.84 0.08 299.691131)"
+      },
+      "tone-5": {
+        "$type": "color",
+        "$value": "oklch(0.28 0.039358 71.017279)"
+      },
+      "tone-5-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.84 0.08 70.873576)"
+      },
+      "tone-6": {
+        "$type": "color",
+        "$value": "oklch(0.28 0.034445 196.567802)"
+      },
+      "tone-6-foreground": {
+        "$type": "color",
+        "$value": "oklch(0.84 0.070065 200.290858)"
+      }
+    }
+  },
   "typography": {
     "heading": {
       "font": {

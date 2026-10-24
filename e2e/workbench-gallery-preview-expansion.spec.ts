@@ -60,8 +60,8 @@ const overflowing = (frame: FrameLocator, scope = "[data-composition], [data-des
 
 /** Contrast-safe edit values per mode: dedicated Sidebar surfaces keep their foreground pairs legible. */
 const EDITS = {
-  light: { primary: "oklch(0.45 0.1 260)", sidebar: "oklch(0.99 0.005 250)", accent: "oklch(0.9 0.02 150)" },
-  dark: { primary: "oklch(0.8 0.05 260)", sidebar: "oklch(0.25 0.02 250)", accent: "oklch(0.36 0.03 150)" },
+  light: { primary: "oklch(0.45 0.1 260)", sidebar: "oklch(0.99 0.005 250)", accent: "oklch(0.9 0.02 150)", tone: "oklch(0.97 0.015 250)" },
+  dark: { primary: "oklch(0.8 0.05 260)", sidebar: "oklch(0.25 0.02 250)", accent: "oklch(0.36 0.03 150)", tone: "oklch(0.28 0.04 250)" },
 } as const
 
 async function sidebarSwitch(page: Page) {
@@ -417,9 +417,9 @@ test.describe("WGPE-09 Design system view (PUI-101; superseded layout per PUI-10
       // PUI-109 (workbench-bitcoin-designsystem-shells-v1-001): Type scale replaces Typography, and Colors mirrors the
       // Workbench sidebar's groups.
       await expect(panel.getByRole("heading", { level: 2 })).toHaveText(["Colors", "Type scale"])
-      await expect(panel.getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"])
+      await expect(panel.getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Tones", "Sidebar"])
       const swatch = (name: string) => panel.locator(`[data-token="${name}"]`)
-      await expect(panel.locator("[data-token]")).toHaveCount(32)
+      await expect(panel.locator("[data-token]")).toHaveCount(44)
       // Values are what the iframe CSS resolves to right now (shown as HEX since PUI-114, the resolved value kept as
       // data), and the swatch paints the same token.
       for (const name of ["background", "primary", "border", "chart-2"]) {
@@ -452,6 +452,21 @@ test.describe("WGPE-09 Design system view (PUI-101; superseded layout per PUI-10
       await expect(panel.getByTestId("sidebar-alias")).toHaveCount(0)
       await expect(swatch("sidebar").getByTestId("token-value")).toHaveAttribute("data-resolved", EDITS[mode].sidebar)
       await expect(swatch("sidebar").getByTestId("token-value")).toHaveText(/^#[0-9A-F]{6}$/)
+      // Tones: background / foreground swatch pairs after Charts, each showing its live --tone-* value; an edit shows at once.
+      for (const name of ["tone-1", "tone-1-foreground", "tone-5", "tone-5-foreground"]) {
+        await expect(swatch(name).getByTestId("token-value")).toHaveAttribute("data-resolved", await property(frame, `--${name}`))
+        await expect(swatch(name).getByTestId("token-value")).toHaveText(/^#[0-9A-F]{6}$/)
+      }
+      await expect(swatch("tone-1").getByTestId("token-label")).toHaveText("Tone 1 Background")
+      await expect(swatch("tone-1-foreground").getByTestId("token-label")).toHaveText("Tone 1 Foreground")
+      const [left, right] = [await swatch("tone-1").boundingBox(), await swatch("tone-1-foreground").boundingBox()]
+      expect(Math.abs(left!.y - right!.y)).toBeLessThanOrEqual(0.5)
+      expect(left!.x).toBeLessThan(right!.x)
+      await editorCategory(page, "Colors")
+      await colorInput(page, "tone-1").fill(EDITS[mode].tone)
+      await colorInput(page, "tone-1").press("Enter")
+      await workspaceMode(page, "Preview")
+      await expect(swatch("tone-1").getByTestId("token-value")).toHaveAttribute("data-resolved", EDITS[mode].tone)
       // Type scale: every specimen uses the live Body role (family, weight, tracking), the class labels are muted, and a
       // Body font edit updates the specimens immediately. PUI-114 removes the Body summary line beneath the heading.
       // Letter spacing is em-based, so it is compared as the rendered Body tracking property rather than in pixels.

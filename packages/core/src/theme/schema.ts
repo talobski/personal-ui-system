@@ -68,6 +68,68 @@ export type ColorToken = (typeof COLOR_TOKENS)[number]
 export const isSidebarColorToken = (token: string): token is SidebarColorToken => (SIDEBAR_COLOR_TOKENS as readonly string[]).includes(token)
 
 /**
+ * Optional identity tones (a closed Theme v3 extension). Six background/foreground pairs that express identity or
+ * category, primarily initials-based avatar fallbacks, never status, severity, or branding. `tone-<name>` is the soft
+ * background and `tone-<name>-foreground` the text or icon colour placed on it. Names are ordinal (`1` to `6`), not
+ * colour words, so a theme can recolour a tone without its name contradicting its value. They are not part of
+ * `COLOR_TOKENS`: they live in the optional `tones` field, whose absence is the shared `TONE_DEFAULTS`.
+ */
+export const TONE_NAMES = ["1", "2", "3", "4", "5", "6"] as const
+export type ToneName = (typeof TONE_NAMES)[number]
+export const TONE_TOKENS = [
+  "tone-1",
+  "tone-1-foreground",
+  "tone-2",
+  "tone-2-foreground",
+  "tone-3",
+  "tone-3-foreground",
+  "tone-4",
+  "tone-4-foreground",
+  "tone-5",
+  "tone-5-foreground",
+  "tone-6",
+  "tone-6-foreground",
+] as const
+export type ToneToken = (typeof TONE_TOKENS)[number]
+
+export const isToneToken = (token: unknown): token is ToneToken => (TONE_TOKENS as readonly unknown[]).includes(token)
+
+/**
+ * The shared tone values every theme renders while it stores no `tones`: the owner-approved Figma sRGB HEX palette,
+ * normalized to canonical OKLCH (source, normalization, and measured contrast in `fixtures/tones.conversion.json`).
+ */
+export const TONE_DEFAULTS: Readonly<Record<"light" | "dark", Readonly<Record<ToneToken, string>>>> = Object.freeze({
+  light: Object.freeze({
+    "tone-1": "oklch(0.954575 0.023017 246.036983)",
+    "tone-1-foreground": "oklch(0.519638 0.109374 250.062766)",
+    "tone-2": "oklch(0.954447 0.024541 53.693888)",
+    "tone-2-foreground": "oklch(0.560618 0.119963 55.385707)",
+    "tone-3": "oklch(0.954118 0.024725 317.720731)",
+    "tone-3-foreground": "oklch(0.520469 0.110152 317.831829)",
+    "tone-4": "oklch(0.95529 0.025058 341.826242)",
+    "tone-4-foreground": "oklch(0.450479 0.095224 343.246042)",
+    "tone-5": "oklch(0.955967 0.025153 199.784145)",
+    "tone-5-foreground": "oklch(0.530537 0.090253 201.788765)",
+    "tone-6": "oklch(0.954111 0.022738 285.960919)",
+    "tone-6-foreground": "oklch(0.519222 0.110057 285.091506)",
+  }),
+  dark: Object.freeze({
+    "tone-1": "oklch(0.320862 0.049065 248.554392)",
+    "tone-1-foreground": "oklch(0.819769 0.090567 249.952038)",
+    "tone-2": "oklch(0.320198 0.04913 56.089672)",
+    "tone-2-foreground": "oklch(0.819821 0.089667 55.006628)",
+    "tone-3": "oklch(0.318188 0.050165 317.87645)",
+    "tone-3-foreground": "oklch(0.819902 0.089787 318.258574)",
+    "tone-4": "oklch(0.320342 0.051431 342.552036)",
+    "tone-4-foreground": "oklch(0.739886 0.079665 343.070017)",
+    "tone-5": "oklch(0.318937 0.0499 201.104966)",
+    "tone-5-foreground": "oklch(0.820021 0.089715 200.032658)",
+    "tone-6": "oklch(0.319589 0.049439 284.86901)",
+    "tone-6-foreground": "oklch(0.81897 0.090969 284.911132)",
+  }),
+})
+
+/**
  * Theme v3 typography. `heading` and `body` are the two composed semantic roles (`type-heading` / `type-body`), each a
  * font stack, weight, and tracking. `mono` is a preserved font-family primitive for code and preformatted content, not
  * a third role. Font size and line height stay component-owned.
@@ -287,6 +349,59 @@ export function resolveUiEffects(theme: { uiEffects?: z.output<typeof uiEffectsC
   return { effect: state.effect.$value, strength: state.strength.$value }
 }
 
+/**
+ * The optional tones field: when present it is a complete override of all twelve tones in both modes, so a partial set
+ * or an unknown key is rejected rather than merged with the defaults.
+ */
+const toneSetsCanonical = z.strictObject({ light: colorSetOf(TONE_TOKENS), dark: colorSetOf(TONE_TOKENS) })
+export type ToneSets = z.output<typeof toneSetsCanonical>
+
+/**
+ * The earlier colour-word tone names, in ordinal order: `tone-blue` was `tone-1`, `tone-orange` `tone-2`, and so on.
+ * Admitted only as stored input and renamed by `renameLegacyToneSets`; the mutation API takes the ordinal names only.
+ */
+export const LEGACY_TONE_NAMES = ["blue", "orange", "purple", "pink", "teal", "violet"] as const
+export const LEGACY_TONE_TOKEN_RENAMES: Readonly<Record<string, ToneToken>> = Object.freeze(
+  Object.fromEntries(
+    LEGACY_TONE_NAMES.flatMap((legacy, i) => [
+      [`tone-${legacy}`, `tone-${TONE_NAMES[i]}`],
+      [`tone-${legacy}-foreground`, `tone-${TONE_NAMES[i]}-foreground`],
+    ])
+  ) as Record<string, ToneToken>
+)
+
+const isPlainRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value)
+const hasExactlyLegacyToneKeys = (set: unknown) => {
+  if (!isPlainRecord(set)) return false
+  const keys = Object.keys(set)
+  return keys.length === TONE_TOKENS.length && keys.every((key) => Object.hasOwn(LEGACY_TONE_TOKEN_RENAMES, key))
+}
+
+/**
+ * Theme ingress normalization: a stored tones value whose two modes each hold exactly the twelve colour-word names is
+ * renamed to the ordinal names with every value kept; the strict canonical schema then validates the values as usual.
+ * Anything else, including a mix of old and new names, passes through unchanged and is accepted or rejected as is.
+ */
+export function renameLegacyToneSets(input: unknown): unknown {
+  if (!isPlainRecord(input) || Object.keys(input).length !== 2 || !hasExactlyLegacyToneKeys(input.light) || !hasExactlyLegacyToneKeys(input.dark)) return input
+  const rename = (set: Record<string, unknown>) => Object.fromEntries(Object.entries(set).map(([key, value]) => [LEGACY_TONE_TOKEN_RENAMES[key], value]))
+  return { light: rename(input.light as Record<string, unknown>), dark: rename(input.dark as Record<string, unknown>) }
+}
+
+const toneSets = z.preprocess(renameLegacyToneSets, toneSetsCanonical)
+
+/** The canonical tones token object for the shared defaults. */
+export const defaultToneSets = (): ToneSets => {
+  const set = (mode: "light" | "dark") =>
+    Object.fromEntries(TONE_TOKENS.map((name) => [name, { $type: "color" as const, $value: TONE_DEFAULTS[mode][name] }])) as ToneSets["light"]
+  return { light: set("light"), dark: set("dark") }
+}
+
+/** A theme's effective tones; an absent field resolves to the shared defaults. */
+export function resolveTones(theme: { tones?: ToneSets }): ToneSets {
+  return theme.tones ? structuredClone(theme.tones) : defaultToneSets()
+}
+
 type ColorSets = { light: Record<ColorToken, { $type: "color"; $value: string }>; dark: Record<ColorToken, { $type: "color"; $value: string }> }
 
 /**
@@ -311,6 +426,7 @@ export const themeSchema = z
     schemaVersion: z.literal(THEME_SCHEMA_VERSION),
     ...identityFields,
     colors: z.strictObject({ light: colorSet, dark: colorSet }),
+    tones: toneSets.optional(),
     typography: typographyV3,
     ...valueFields,
     sidebar: sidebarState,

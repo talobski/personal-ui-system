@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { renderPortableThemeCss, renderShadcnTailwindCss, toPortableTheme, uiEffectsTokens, validateTheme } from "../index"
+import { renderPortableThemeCss, renderShadcnTailwindCss, resolveTones, toPortableTheme, uiEffectsTokens, validateTheme } from "../index"
 import type { Theme } from "../index"
 import amberDusk from "./fixtures/amber-dusk.json"
 import defaultFixture from "./fixtures/default.json"
@@ -16,7 +16,7 @@ const tactile = valid({ ...structuredClone(builtIns[0]!), uiEffects: uiEffectsTo
 const rebrand = (theme: Theme, id: string, name: string, revision: number): Theme =>
   valid({ ...structuredClone(theme), id, name, revision, $extensions: { "personal-ui-system": { displayName: name } } })
 const json = (theme: Theme) => JSON.stringify(toPortableTheme(theme), null, 2)
-const DESIGN_KEYS = ["colors", "typography", "radius", "space", "shadow", "motion", "sidebar"]
+const DESIGN_KEYS = ["colors", "tones", "typography", "radius", "space", "shadow", "motion", "sidebar"]
 
 describe("portable theme export", () => {
   it("CSS carries no generator, Personal UI, theme identity, revision or 'Do not edit' header", () => {
@@ -45,11 +45,12 @@ describe("portable theme export", () => {
     }
   })
 
-  it("JSON keeps every design token: colours, typography, radius, space, shadows, motion, Sidebar source and UI effects", () => {
+  it("JSON keeps every design token: colours, resolved tones, typography, radius, space, shadows, motion, Sidebar source and UI effects", () => {
     for (const theme of [...builtIns, tactile]) {
       const portable = toPortableTheme(theme)
       expect(Object.keys(portable)).toEqual(theme.uiEffects ? [...DESIGN_KEYS, "uiEffects"] : DESIGN_KEYS)
       expect(portable.colors).toEqual(theme.colors)
+      expect(portable.tones).toEqual(resolveTones(theme))
       expect(portable.typography).toEqual(theme.typography)
       expect(portable.radius).toEqual(theme.radius)
       expect(portable.space).toEqual(theme.space)

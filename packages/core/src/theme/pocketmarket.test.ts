@@ -12,12 +12,14 @@ import {
   renderUiEffectsCss,
   resolveUiEffects,
   SIDEBAR_COLOR_TOKENS,
+  TONE_TOKENS,
   toPortableTheme,
   validateTheme,
 } from "../index"
 import type { Theme } from "../index"
 import report from "./fixtures/pocketmarket.conversion.json"
 import pocketmarketFixture from "./fixtures/pocketmarket.json"
+import secunaFixture from "./fixtures/secuna.json"
 
 /**
  * Every value below is transcribed from its source, not read from the fixture: LIGHT from the owner's saved Pocketmarket
@@ -92,6 +94,14 @@ const DARK: Record<string, string> = {
   "sidebar-border": "oklch(0.3618 0.0101 106.8928)",
   "sidebar-ring": "oklch(0.4336 0.0113 100.2195)",
 }
+/**
+ * Pocketmarket's own Tone 1 pair: the Light values as the owner supplied them (2026-10-24), and the Dark pair derived
+ * from them (pocketmarket.conversion.json `tones.tone1Dark`). Every other tone is Secuna's.
+ */
+const TONE_1 = {
+  light: { "tone-1": "oklch(0.920394 0.0293 264.421309)", "tone-1-foreground": "oklch(0.43922 0.08072 267.919727)" },
+  dark: { "tone-1": "oklch(0.28 0.0293 264.421309)", "tone-1-foreground": "oklch(0.84 0.078 267.919727)" },
+}
 /** Inter and Geist Mono as the self-hosted font catalog writes them (packages/ui/src/lib/fonts.ts). */
 const SANS = ["Inter Variable", "Inter", "ui-sans-serif", "system-ui", "sans-serif"]
 const MONO = ["Geist Mono Variable", "Geist Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"]
@@ -131,6 +141,35 @@ describe("Pocketmarket canonical fixture", () => {
     }
   })
 
+  it("stores its own Tone 1 pair and an exact copy of Secuna's tones 2 to 6, rendered and exported in place of the shared defaults", () => {
+    const secuna = validateTheme(secunaFixture)
+    if (!secuna.ok) throw new Error("secuna")
+    const expected = structuredClone(secuna.theme.tones!)
+    for (const mode of ["light", "dark"] as const) {
+      for (const token of ["tone-1", "tone-1-foreground"] as const) expected[mode][token] = { $type: "color", $value: TONE_1[mode][token] }
+    }
+    expect(theme.tones).toEqual(expected)
+    const css = renderShadcnTailwindCss(theme)
+    for (const [selector, mode] of [[":root {", "light"], [".dark {", "dark"]] as const) {
+      for (const token of TONE_TOKENS) expect(declared(css, selector, token), `${mode}.${token}`).toBe(expected[mode][token].$value)
+    }
+    expect(toPortableTheme(theme).tones).toEqual(theme.tones)
+    expect(report.tones.source).toMatch(/exact copy of the built-in Secuna tones/)
+    expect(report.tones.tone1).toEqual(TONE_1)
+  })
+
+  it("derives the Dark Tone 1 pair from the Light pair with Secuna's treatment, kept inside sRGB", () => {
+    const nums = (value: string) => value.match(/[\d.]+/g)!.map(Number) as [number, number, number]
+    const [lightBg, lightFg] = [nums(TONE_1.light["tone-1"]), nums(TONE_1.light["tone-1-foreground"])]
+    const [darkBg, darkFg] = [nums(TONE_1.dark["tone-1"]), nums(TONE_1.dark["tone-1-foreground"])]
+    expect([darkBg[2], darkFg[2]]).toEqual([lightBg[2], lightFg[2]])
+    expect(darkBg.slice(0, 2)).toEqual([0.28, lightBg[1]])
+    // Secuna's foreground is L 0.84 with chroma capped at 0.08; 0.078 is the largest in-sRGB chroma at this hue.
+    expect(darkFg.slice(0, 2)).toEqual([0.84, 0.078])
+    expect(darkFg[1]).toBeLessThanOrEqual(Math.min(lightFg[1], 0.08))
+    for (const pair of report.tones.contrast.pairs) expect(pair.meets4_5 && pair.ratio >= 4.5, pair.mode).toBe(true)
+  })
+
   it("uses the catalog Inter and Geist Mono stacks, a 1rem radius scale, the source shadow profile and Tactile at 50", () => {
     expect(theme.typography.heading.font.$value).toEqual(SANS)
     expect(theme.typography.body.font.$value).toEqual(SANS)
@@ -153,7 +192,7 @@ describe("promoted Pocketmarket design", () => {
     expect([theme.id, theme.name, theme.revision]).toEqual(["pocketmarket", "Pocketmarket", 1])
     const text = JSON.stringify(pocketmarketFixture)
     expect(text).not.toMatch(/custom/i)
-    expect(Object.keys(pocketmarketFixture)).toEqual(["$schema", "schemaVersion", "kind", "id", "name", "revision", "colors", "typography", "radius", "space", "shadow", "motion", "sidebar", "uiEffects", "$extensions"])
+    expect(Object.keys(pocketmarketFixture)).toEqual(["$schema", "schemaVersion", "kind", "id", "name", "revision", "colors", "tones", "typography", "radius", "space", "shadow", "motion", "sidebar", "uiEffects", "$extensions"])
   })
 
   it("dark mode follows the light coral-pink family: no orange or violet remains in any chromatic role", () => {
@@ -197,7 +236,7 @@ describe("promoted Pocketmarket design", () => {
 
   it("exports only portable design data, and Tactile derives from the palette with no Pocketmarket special case", () => {
     const portable = toPortableTheme(theme)
-    expect(Object.keys(portable)).toEqual(["colors", "typography", "radius", "space", "shadow", "motion", "sidebar", "uiEffects"])
+    expect(Object.keys(portable)).toEqual(["colors", "tones", "typography", "radius", "space", "shadow", "motion", "sidebar", "uiEffects"])
     expect(JSON.stringify(portable)).not.toMatch(/pocketmarket|personal-ui|revision/i)
     const css = renderPortableThemeCss(theme)
     expect(css).not.toMatch(/pocketmarket|personal-ui/i)

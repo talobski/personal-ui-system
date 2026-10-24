@@ -172,7 +172,7 @@ test.describe("WBDS-05/06 Design system reference sheet (PUI-109)", () => {
       const [c, s] = [await box(colors), await box(scale)]
       if (isMobileShell(page)) { close(c.x, s.x); expect(s.y).toBeGreaterThanOrEqual(c.y + c.height - 1) } else { close(c.y, s.y); expect(s.x).toBeGreaterThanOrEqual(c.x + c.width - 1) }
       // Colors: sidebar order, related pairs side by side on one row, larger swatches, Body-role values.
-      await expect(colors.getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"])
+      await expect(colors.getByRole("heading", { level: 3 })).toHaveText(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Tones", "Sidebar"])
       for (const [background, foreground] of [["primary", "primary-foreground"], ["background", "foreground"], ["card", "card-foreground"], ["destructive", "destructive-foreground"], ["sidebar", "sidebar-foreground"], ["sidebar-accent", "sidebar-accent-foreground"]]) {
         const [a, b] = [await box(panel.locator(`[data-token="${background}"]`)), await box(panel.locator(`[data-token="${foreground}"]`))]
         close(a.y, b.y)

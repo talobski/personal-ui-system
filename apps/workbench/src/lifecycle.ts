@@ -4,6 +4,7 @@ import defaultFixture from "@personal-ui/core/theme/fixtures/default.json"
 import quietEditorialFixture from "@personal-ui/core/theme/fixtures/valid.json"
 import amberDuskFixture from "@personal-ui/core/theme/fixtures/amber-dusk.json"
 import pocketmarketFixture from "@personal-ui/core/theme/fixtures/pocketmarket.json"
+import secunaFixture from "@personal-ui/core/theme/fixtures/secuna.json"
 
 export type Mode = "light" | "dark"
 
@@ -13,7 +14,7 @@ export type Outcome<T> = ({ ok: true } & T) | { ok: false; issues: WorkbenchIssu
 
 /** Built-in themes in display order. Default is the fresh-state theme; all are committed canonical Theme v3 fixtures. */
 export const DEFAULT_THEME_ID = "default"
-const BUILT_IN_FIXTURES = [defaultFixture, quietEditorialFixture, amberDuskFixture, pocketmarketFixture] as const
+const BUILT_IN_FIXTURES = [defaultFixture, quietEditorialFixture, amberDuskFixture, pocketmarketFixture, secunaFixture] as const
 
 /** The committed built-in fixtures, validated through core; never edited in place. */
 export function loadBuiltInThemes(): Theme[] {

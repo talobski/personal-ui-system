@@ -1,8 +1,8 @@
 import { normalizeColor, parseLength } from "../theme/color"
 import { admitRemLength, admitShadowProfile, deriveRadiusScale, deriveShadowTiers, MANUAL_CONTROL_BOUNDS, SHADOW_PROFILE_FIELDS } from "../theme/derive"
 import type { ShadowProfile } from "../theme/derive"
-import { COLOR_TOKENS, densitySchema, durationSchema, fontStackSchema, fontWeightSchema, isFontFamilyTarget, isSidebarColorToken, isTypeRole, SHADOW_TOKENS, syncUninitializedSidebarColors, themeSchema, LEGACY_UI_EFFECTS_FIELDS, normalizeLegacyUiEffects, trackingSchema, UI_EFFECTS_FIELDS, uiEffectSchema, uiEffectStrengthSchema, uiEffectsTokens } from "../theme/schema"
-import type { ColorToken, FontFamilyTarget, LegacyUiEffectsValue, Theme, TypeRole, UiEffectsValue } from "../theme/schema"
+import { COLOR_TOKENS, densitySchema, isToneToken, resolveTones, durationSchema, fontStackSchema, fontWeightSchema, isFontFamilyTarget, isSidebarColorToken, isTypeRole, SHADOW_TOKENS, syncUninitializedSidebarColors, themeSchema, LEGACY_UI_EFFECTS_FIELDS, normalizeLegacyUiEffects, trackingSchema, UI_EFFECTS_FIELDS, uiEffectSchema, uiEffectStrengthSchema, uiEffectsTokens } from "../theme/schema"
+import type { ColorToken, FontFamilyTarget, ToneToken, LegacyUiEffectsValue, Theme, TypeRole, UiEffectsValue } from "../theme/schema"
 import { renderShadcnTailwindCss } from "../theme/render"
 
 export const MUTATION_SCHEMA_VERSION = "1.0"
@@ -17,9 +17,11 @@ type Mode = (typeof MODES)[number]
  * target (documented per operation), so it carries no token or path field to select anything else.
  *
  * `setColor` accepts HEX, RGB(A), HSL(A), or OKLCH input; the stored value is canonical OKLCH. Its token list includes
- * the eight dedicated Sidebar colours; the first edit of one of them initializes the dedicated set (see below).
+ * the eight dedicated Sidebar colours; the first edit of one of them initializes the dedicated set (see below). It also
+ * accepts the twelve tone tokens: the first tone edit on a theme without `tones` stores the resolved shared defaults
+ * for both modes, then sets the one value, so nothing else visibly changes.
  */
-export type SetColorOperation = { op: "setColor"; mode: Mode; token: ColorToken; value: string }
+export type SetColorOperation = { op: "setColor"; mode: Mode; token: ColorToken | ToneToken; value: string }
 /** Sets `radius.md` alone (rendered `--radius-md`); the rest of the scale is kept. Non-negative dimension. */
 export type SetRadiusOperation = { op: "setRadius"; value: string }
 /** Sets `space.density`, the spacing multiplier. Number within the schema range. */
@@ -206,7 +208,7 @@ export function validateMutation(input: unknown, base: Pick<Theme, "id" | "revis
       for (const key of Object.keys(operation)) if (!keys.has(key)) fail("mutation.unknown-field", `${at}.${key}`)
       if (operation.op === "setColor") {
         if (!MODES.includes(operation.mode as Mode)) fail("mutation.invalid-mode", `${at}.mode`)
-        if (!COLOR_TOKENS.includes(operation.token as ColorToken)) fail("mutation.unknown-token", `${at}.token`)
+        if (!COLOR_TOKENS.includes(operation.token as ColorToken) && !isToneToken(operation.token)) fail("mutation.unknown-token", `${at}.token`)
       }
       if (operation.op === "setFontFamily" && !isFontFamilyTarget(operation.target)) fail("mutation.invalid-target", `${at}.target`)
       if ((operation.op === "setFontWeight" || operation.op === "setTracking") && !isTypeRole(operation.target)) fail("mutation.invalid-target", `${at}.target`)
@@ -254,10 +256,17 @@ export function applyMutation(theme: Theme, input: unknown): MutationResult {
   const missing: MutationError[] = []
   validation.request.operations.forEach((operation, index) => {
     switch (operation.op) {
-      case "setColor":
+      case "setColor": {
+        const value = (normalizeColor(operation.value) as { ok: true; value: string }).value
+        if (isToneToken(operation.token)) {
+          next.tones = resolveTones(next)
+          next.tones[operation.mode][operation.token].$value = value
+          break
+        }
         if (isSidebarColorToken(operation.token)) initializeSidebarColors(next)
-        next.colors[operation.mode][operation.token].$value = (normalizeColor(operation.value) as { ok: true; value: string }).value
+        next.colors[operation.mode][operation.token].$value = value
         break
+      }
       case "setSidebarTokensEnabled":
         if (operation.value) initializeSidebarColors(next)
         next.sidebar.useDedicatedTokens.$value = operation.value

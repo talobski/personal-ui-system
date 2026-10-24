@@ -1,6 +1,7 @@
 import { validateTheme } from "@personal-ui/core"
 import type { Theme } from "@personal-ui/core"
 
+import { customThemeId } from "./lifecycle"
 import type { WorkbenchIssue } from "./lifecycle"
 
 export const STORAGE_KEY = "personal-ui-workbench/v1"
@@ -19,9 +20,12 @@ export const emptySaved = (): SavedThemes => ({ themes: {}, activeId: null, base
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value)
 
 /**
- * Reads saved themes; anything unparsable or schema-invalid is dropped rather than trusted. A saved theme whose id is
- * reserved by a built-in is ignored (the built-in wins). A selection that names no known theme is dropped, so the
- * caller falls back to the built-in Default.
+ * Reads saved themes; anything unparsable or schema-invalid is dropped rather than trusted. The built-in always keeps
+ * its id. A saved custom theme (one with a recorded base built-in, which every Save writes) whose id a later built-in
+ * now reserves is kept under the next free id from its name (`secuna` -> `secuna-2`), with its values, base record and
+ * selection; the new key is written on the next save or selection. Any other entry under a built-in id, such as a
+ * stale copy of that built-in, is ignored and its selection resolves to the built-in. A selection that names no known
+ * theme is dropped, so the caller falls back to the built-in Default.
  */
 export function loadSaved(storage: StorageLike, builtInIds: readonly string[]): SavedThemes {
   let raw: unknown
@@ -33,19 +37,38 @@ export function loadSaved(storage: StorageLike, builtInIds: readonly string[]): 
   if (!isRecord(raw)) return emptySaved()
   const { themes, activeId, bases } = raw
   const saved = emptySaved()
+  /** Stored id -> the id it is kept under; differs only for a theme re-keyed off a built-in id. */
+  const keptAs: Record<string, string> = {}
+  const hasRecordedBase = (id: string) => {
+    const base = isRecord(bases) ? bases[id] : undefined
+    return typeof base === "string" && base !== id && builtInIds.includes(base)
+  }
   if (isRecord(themes)) {
+    const taken = [...builtInIds, ...Object.keys(themes)]
     for (const [id, candidate] of Object.entries(themes)) {
-      if (builtInIds.includes(id)) continue
       const result = validateTheme(candidate)
-      if (result.ok && result.theme.id === id) saved.themes[id] = result.theme
+      if (!result.ok || result.theme.id !== id) continue
+      if (!builtInIds.includes(id)) {
+        saved.themes[id] = result.theme
+        keptAs[id] = id
+        continue
+      }
+      if (!hasRecordedBase(id)) continue
+      const freeId = customThemeId(result.theme.name, taken)
+      const rekeyed = freeId === null ? null : validateTheme({ ...result.theme, id: freeId })
+      if (!rekeyed?.ok) continue
+      taken.push(rekeyed.theme.id)
+      saved.themes[rekeyed.theme.id] = rekeyed.theme
+      keptAs[id] = rekeyed.theme.id
     }
   }
   if (isRecord(bases)) {
     for (const [id, base] of Object.entries(bases)) {
-      if (Object.hasOwn(saved.themes, id) && typeof base === "string" && builtInIds.includes(base)) saved.bases[id] = base
+      if (Object.hasOwn(keptAs, id) && typeof base === "string" && builtInIds.includes(base)) saved.bases[keptAs[id]!] = base
     }
   }
-  if (typeof activeId === "string" && (Object.hasOwn(saved.themes, activeId) || builtInIds.includes(activeId))) saved.activeId = activeId
+  if (typeof activeId === "string" && Object.hasOwn(keptAs, activeId)) saved.activeId = keptAs[activeId]!
+  else if (typeof activeId === "string" && builtInIds.includes(activeId)) saved.activeId = activeId
   return saved
 }
 

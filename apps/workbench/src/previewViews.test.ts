@@ -3,10 +3,10 @@ import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
-import { BASE_COLOR_TOKENS, normalizeColor, SIDEBAR_COLOR_TOKENS } from "@personal-ui/core"
+import { BASE_COLOR_TOKENS, normalizeColor, SIDEBAR_COLOR_TOKENS, TONE_NAMES, TONE_TOKENS } from "@personal-ui/core"
 import { AppShells } from "@personal-ui/ui/compositions/app-shells"
 
-import { COLOR_GROUPS } from "./controls"
+import { EDITOR_COLOR_GROUPS } from "./controls"
 import { DESIGN_SYSTEM_COLOR_GROUPS, DesignSystemPreview, displayHex, swatchLabel, titleCaseLabel, TYPE_SCALE, TYPE_SCALE_SAMPLE } from "./DesignSystemPreview"
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8")
@@ -17,12 +17,12 @@ const rawColour = /#[0-9a-fA-F]{3,8}\b|\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|
 describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-114)", () => {
   const html = () => renderToStaticMarkup(createElement(DesignSystemPreview, { source: "" }))
 
-  it("mirrors the Workbench sidebar's colour groups exactly, every semantic token once, with effective Sidebar values", () => {
-    // PUI-109: the single order source is the sidebar editor's own COLOR_GROUPS, not a Design-system-only grouping.
-    expect(DESIGN_SYSTEM_COLOR_GROUPS).toBe(COLOR_GROUPS)
-    expect(DESIGN_SYSTEM_COLOR_GROUPS.map(group => group.title)).toEqual(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Sidebar"])
+  it("mirrors the Workbench sidebar's colour groups exactly, every semantic token and tone once, with effective Sidebar values", () => {
+    // PUI-109: the single order source is the sidebar editor's own groups (Tones after Charts), not a Design-system-only grouping.
+    expect(DESIGN_SYSTEM_COLOR_GROUPS).toBe(EDITOR_COLOR_GROUPS)
+    expect(DESIGN_SYSTEM_COLOR_GROUPS.map(group => group.title)).toEqual(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Tones", "Sidebar"])
     const grouped = DESIGN_SYSTEM_COLOR_GROUPS.flatMap(group => [...group.tokens])
-    expect([...grouped].sort()).toEqual([...BASE_COLOR_TOKENS, ...SIDEBAR_COLOR_TOKENS].sort())
+    expect([...grouped].sort()).toEqual([...BASE_COLOR_TOKENS, ...SIDEBAR_COLOR_TOKENS, ...TONE_TOKENS].sort())
     expect(new Set(grouped).size).toBe(grouped.length)
     const markup = html()
     const tokens = Array.from(markup.matchAll(/data-token="([a-z0-9-]+)"/g), match => match[1])
@@ -38,8 +38,8 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
     // Local display labels: each pair reads Background / Foreground, unpaired tokens keep their key; PUI-122 names the
     // Sidebar pairs by role and its border/ring as Sidebar Border / Sidebar Ring. PUI-126: shown in title case.
     const shown = Array.from(markup.matchAll(/data-token="([a-z0-9-]+)"[\s\S]*?data-testid="token-label">([^<]+)</g), match => [match[1], match[2]])
-    expect(shown).toHaveLength(32)
-    const expected: Record<string, string> = { border: "Border", input: "Input", ring: "Ring", "sidebar-primary": "Primary Background", "sidebar-primary-foreground": "Primary Foreground", "sidebar-accent": "Accent Background", "sidebar-accent-foreground": "Accent Foreground", "sidebar-border": "Sidebar Border", "sidebar-ring": "Sidebar Ring", "chart-1": "Chart-1", "chart-2": "Chart-2", "chart-3": "Chart-3", "chart-4": "Chart-4", "chart-5": "Chart-5" }
+    expect(shown).toHaveLength(44)
+    const expected: Record<string, string> = { border: "Border", input: "Input", ring: "Ring", "sidebar-primary": "Primary Background", "sidebar-primary-foreground": "Primary Foreground", "sidebar-accent": "Accent Background", "sidebar-accent-foreground": "Accent Foreground", "sidebar-border": "Sidebar Border", "sidebar-ring": "Sidebar Ring", "chart-1": "Chart-1", "chart-2": "Chart-2", "chart-3": "Chart-3", "chart-4": "Chart-4", "chart-5": "Chart-5", ...Object.fromEntries(TONE_NAMES.flatMap(name => [[`tone-${name}`, `Tone ${name} Background`], [`tone-${name}-foreground`, `Tone ${name} Foreground`]])) }
     for (const [token, label] of shown) expect(label, token).toBe(expected[token!] ?? (token === "foreground" || token!.endsWith("-foreground") ? "Foreground" : "Background"))
   })
 
@@ -53,18 +53,30 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
     }
     // PUI-114: wider-than-tall rectangular swatches (2.5rem tall) replace the square tiles, keeping the rounded border;
     // the specimen stacks swatch, label and value inside its own column. PUI-122: modestly narrower, four fifths of it.
-    expect(markup.match(/<span aria-hidden="true" class="h-10 w-4\/5 rounded-md border" data-testid="swatch"/g)).toHaveLength(32)
+    expect(markup.match(/<span aria-hidden="true" class="h-10 w-4\/5 rounded-md border" data-testid="swatch"/g)).toHaveLength(44)
     expect(markup).not.toMatch(/size-1[02] rounded-md border/)
-    expect(markup.match(/<li class="grid min-w-0 content-start gap-1.5" data-token=/g)).toHaveLength(32)
+    expect(markup.match(/<li class="grid min-w-0 content-start gap-1.5" data-token=/g)).toHaveLength(44)
     // Values: Body role (no Mono) and still muted, compact and truncated.
-    expect(markup.match(/<span class="truncate text-xs text-muted-foreground tabular-nums" data-testid="token-value"/g)).toHaveLength(32)
+    expect(markup.match(/<span class="truncate text-xs text-muted-foreground tabular-nums" data-testid="token-value"/g)).toHaveLength(44)
     // PUI-126 labels: the HEX size (unchanged), title case with no uppercase transform, normal weight, base foreground.
-    expect(markup.match(/<span class="truncate text-xs font-normal text-foreground" data-testid="token-label">/g)).toHaveLength(32)
+    expect(markup.match(/<span class="truncate text-xs font-normal text-foreground" data-testid="token-label">/g)).toHaveLength(44)
     expect(markup).not.toMatch(/data-testid="token-label"[^>]*uppercase|uppercase[^"]*" data-testid="token-label"/)
     // Groups sit slightly further apart (gap-7) than a group's heading and pairs (gap-3, gap-y-3).
     expect(markup).toContain('<div class="grid min-w-0 gap-7" data-testid="color-groups">')
     expect(markup.match(/<section aria-labelledby="[^"]+" class="grid gap-3">/g)).toHaveLength(DESIGN_SYSTEM_COLOR_GROUPS.length)
     expect(code("./DesignSystemPreview.tsx")).not.toMatch(/font-mono|--font-mono/)
+  })
+
+  it("shows Tones after Charts as six background / foreground swatch pairs, with no combined tile or value", () => {
+    const markup = html()
+    expect(markup.indexOf(">Tones</h3>")).toBeGreaterThan(markup.indexOf(">Charts</h3>"))
+    expect(markup.indexOf(">Tones</h3>")).toBeLessThan(markup.indexOf(">Sidebar</h3>"))
+    const tones = markup.slice(markup.indexOf(">Tones</h3>"), markup.indexOf(">Sidebar</h3>"))
+    // Background left, foreground right: the same two-column pairing and swatch markup as every other group.
+    expect(Array.from(tones.matchAll(/data-token="([a-z0-9-]+)"/g), match => match[1])).toEqual([...TONE_TOKENS])
+    for (const token of TONE_TOKENS) expect(tones).toContain(`<li class="grid min-w-0 content-start gap-1.5" data-token="${token}"><span aria-hidden="true" class="h-10 w-4/5 rounded-md border" data-testid="swatch" style="background:var(--${token})"></span>`)
+    expect(Array.from(tones.matchAll(/data-testid="token-label">([^<]+)</g), match => match[1])).toEqual(TONE_NAMES.flatMap(name => [`Tone ${name} Background`, `Tone ${name} Foreground`]))
+    expect(tones).not.toMatch(/data-tone|tone-tile|tone-label|tone-value| \/ /)
   })
 
   it("renames Typography to Type scale: one descending text-5xl to text-xs list of the live Body sample", () => {
@@ -117,7 +129,7 @@ describe("WGPE-09/WBDS-05/06/WPIP-05 Design system view (PUI-101, PUI-109, PUI-1
     expect(displayHex("var(--background)")).toBe("—")
     // The unrendered default has no resolved values: every specimen shows the placeholder, never OKLCH text.
     const markup = html()
-    expect(markup.match(/data-testid="token-value" data-resolved="">—</g)).toHaveLength(32)
+    expect(markup.match(/data-testid="token-value" data-resolved="">—</g)).toHaveLength(44)
     expect(markup).not.toMatch(/oklch\(/)
   })
 

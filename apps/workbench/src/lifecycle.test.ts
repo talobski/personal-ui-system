@@ -1,18 +1,19 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
-import { applyProposal, COLOR_TOKENS, createProposalSession, diffThemeTokens, discardProposal, normalizeColor, renderShadcnTailwindCss, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, stageProposal, validateTheme } from "@personal-ui/core"
+import { applyProposal, COLOR_TOKENS, createProposalSession, defaultToneSets, diffThemeTokens, discardProposal, LEGACY_TONE_TOKEN_RENAMES, normalizeColor, renderShadcnTailwindCss, SIDEBAR_COLOR_TOKENS, SIDEBAR_TOKEN_ALIASES, stageProposal, TONE_DEFAULTS, TONE_TOKENS, validateTheme } from "@personal-ui/core"
 
 import {
   createCustomTheme,
   customThemeId,
   editColor,
   editTheme,
+  exportThemeCss,
   exportThemeJson,
   DEFAULT_THEME_ID,
   loadBuiltInThemes,
   previewVariablesCss,
 } from "./lifecycle"
-import { buildFontOperation, fontControlCopy, buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, NUMERIC_CONTROLS, pickedColorInput, pickerHex, parseNumericDraft, readFontStack, readShadowColor, TYPE_ROLE_GROUPS } from "./controls"
+import { buildFontOperation, fontControlCopy, buildShadowColorOperation, COLOR_GROUPS, colorTokenLabel, EDITOR_COLOR_GROUPS, NUMERIC_CONTROLS, readEditorColor, pickedColorInput, pickerHex, parseNumericDraft, readFontStack, readShadowColor, TYPE_ROLE_GROUPS } from "./controls"
 import type { NumericControlId } from "./controls"
 import { deleteTheme, emptySaved, loadSaved, saveSelection, saveTheme, STORAGE_KEY } from "./persistence"
 import type { StorageLike } from "./persistence"
@@ -39,8 +40,11 @@ it("WSPF-05/06 muted pair debt stays measured; PUI-120 section triggers now use 
   // override (#696863, about 4.60:1), so it no longer appears here.
   // Pocketmarket keeps its owner-supplied light muted pair (#6e6d68 on #eceae4, about 4.31:1) as recorded source-palette
   // debt (see pocketmarket.conversion.json contrastDebt); the source values are preserved rather than silently adjusted.
+  // Secuna keeps its owner-exported muted pairs (#797e81 on #edf1f3, about 3.61:1; #5c7a8a on #151e23, about 3.71:1) as
+  // recorded source-palette debt (secuna.conversion.json contrastDebt), likewise preserved.
   const below = pairs.filter(pair => pair.ratio < 4.5)
-  expect(below.map(pair => pair.id)).toEqual(["default/light", "pocketmarket/light"])
+  expect(below.map(pair => pair.id)).toEqual(["default/light", "pocketmarket/light", "secuna/light", "secuna/dark"])
+  for (const [id, ratio] of [["secuna/light", 3.61], ["secuna/dark", 3.71]] as const) expect(below.find(pair => pair.id === id)!.ratio).toBeCloseTo(ratio, 2)
   expect(below[0]!.ratio).toBeGreaterThan(4.3)
   expect(below[0]!.ratio).toBeLessThan(4.4)
   expect(below[1]!.ratio).toBeGreaterThan(4.2)
@@ -166,6 +170,9 @@ describe("WTCP-03/09 baseline compatibility and concise font states", () => {
     if (quiet.ok) {
       expect(quiet.theme.typography.heading.font.$value).toContain("serif")
       quiet.theme.typography.heading.font = structuredClone(quiet.theme.typography.body.font)
+      // Migration adds no tones; the built-in stores Secuna's palette.
+      expect(quiet.theme.tones).toBeUndefined()
+      quiet.theme.tones = structuredClone(canonical.tones)
       expect(quiet.theme).toEqual(canonical)
     }
   })
@@ -202,8 +209,8 @@ describe("editColor", () => {
 })
 
 describe("built-in themes (TSV2-02, TSV2-03, TSV2-04)", () => {
-  it("offers Default first, then Quiet Editorial, Amber Dusk and Pocketmarket, all canonical v3", () => {
-    expect(BUILT_IN_IDS).toEqual([DEFAULT_THEME_ID, "quiet-editorial", "amber-dusk", "pocketmarket"])
+  it("offers Default first, then Quiet Editorial, Amber Dusk, Pocketmarket and Secuna, all canonical v3", () => {
+    expect(BUILT_IN_IDS).toEqual([DEFAULT_THEME_ID, "quiet-editorial", "amber-dusk", "pocketmarket", "secuna"])
     for (const theme of builtIns) expect(validateTheme(theme)).toEqual({ ok: true, theme })
     expect(defaultTheme.name).toBe("Default")
     expect(canonical.schemaVersion).toBe("3.0")
@@ -439,6 +446,34 @@ describe("persistence (TSV2-04, TSV2-12)", () => {
     const loaded = loadSaved(storage, BUILT_IN_IDS)
     expect(loaded.themes).toEqual({})
     expect(loaded.activeId).toBe("default")
+  })
+
+  it("keeps a saved custom theme whose id a later built-in reserves under the next free id, with its values, base and selection", () => {
+    const custom = createCustomTheme(builtIns.find((theme) => theme.id === "pocketmarket")!, "Secuna", BUILT_IN_IDS.filter((id) => id !== "secuna"))
+    if (!custom.ok) throw new Error("custom")
+    expect(custom.theme.id).toBe("secuna")
+    const edited = editTheme(custom.theme, { op: "setColor", mode: "light", token: "tone-1", value: "oklch(0.932654 0.026597 246.350513)" })
+    if (!edited.ok) throw new Error("edit")
+    const other = { ...structuredClone(edited.theme), id: "keep-me", name: "Keep Me" }
+    const stored = { themes: { secuna: edited.theme, "keep-me": other }, activeId: "secuna", bases: { secuna: "pocketmarket", "keep-me": "default" } }
+    const storage = memoryStorage({ [STORAGE_KEY]: JSON.stringify(stored) })
+    const loaded = loadSaved(storage, BUILT_IN_IDS)
+    expect(Object.keys(loaded.themes)).toEqual(["secuna-2", "keep-me"])
+    expect(loaded.themes["secuna-2"]).toEqual({ ...edited.theme, id: "secuna-2" })
+    expect(loaded.themes["keep-me"]).toEqual(other)
+    expect(loaded.bases).toEqual({ "secuna-2": "pocketmarket", "keep-me": "default" })
+    expect(loaded.activeId).toBe("secuna-2")
+    // Reading writes nothing; the next selection persists the custom theme under its new key, never dropping it.
+    expect(JSON.parse(storage.data[STORAGE_KEY]!)).toEqual(stored)
+    saveSelection(storage, loaded, "secuna")
+    const written = JSON.parse(storage.data[STORAGE_KEY]!)
+    expect(Object.keys(written.themes)).toEqual(["secuna-2", "keep-me"])
+    expect(written.activeId).toBe("secuna")
+    expect(loadSaved(storage, BUILT_IN_IDS).themes["secuna-2"]).toEqual(loaded.themes["secuna-2"])
+    // A free id already in use is skipped.
+    const crowded = loadSaved(memoryStorage({ [STORAGE_KEY]: JSON.stringify({ ...stored, themes: { ...stored.themes, "secuna-2": { ...other, id: "secuna-2" } } }) }), BUILT_IN_IDS)
+    expect(Object.keys(crowded.themes).sort()).toEqual(["keep-me", "secuna-2", "secuna-3"])
+    expect(crowded.themes["secuna-3"]!.name).toBe("Secuna")
   })
 
   it("reserves every built-in id and does not write on rejection", () => {
@@ -736,6 +771,7 @@ describe("WSTP-06/07/09 Sidebar tokens in the Workbench", () => {
     Object.assign(v20, { id: "legacy-v20", name: "Legacy V20", revision: 4, schemaVersion: "2.0", $schema: "https://personal-ui.local/schema/theme-2.json" })
     v20.typography = { sans: v20.typography.body.font, serif: v20.typography.heading.font, mono: v20.typography.mono, tracking: v20.typography.body.tracking }
     delete v20.sidebar
+    delete v20.tones
     for (const mode of ["light", "dark"]) for (const name of SIDEBAR_COLOR_TOKENS) delete v20.colors[mode][name]
     v20.colors.light.primary.$value = VALID
     const storage = memoryStorage({ [STORAGE_KEY]: JSON.stringify({ themes: { "legacy-v20": v20 }, activeId: "legacy-v20", bases: { "legacy-v20": "quiet-editorial" } }) })
@@ -757,6 +793,7 @@ describe("WSTP-06/07/09 Sidebar tokens in the Workbench", () => {
     if (!initialized.ok) throw new Error("expected edit")
     const v21 = structuredClone(initialized.theme) as Record<string, any>
     Object.assign(v21, { id: "legacy-v21", name: "Legacy V21", revision: 9, schemaVersion: "2.1", $schema: "https://personal-ui.local/schema/theme-2.json" })
+    delete v21.tones
     v21.typography = {
       sans: { $type: "fontFamily", $value: ["Manrope Variable", "Manrope", "ui-sans-serif", "system-ui", "sans-serif"] },
       serif: { $type: "fontFamily", $value: ["Lora Variable", "Lora", "ui-serif", "Georgia", "serif"] },
@@ -888,5 +925,88 @@ describe("WSTP-11/12/13 Sidebar geometry, typography rows, selector, tabs, and p
     expect(toolbar).toContain('checked={mode === "dark"}')
     expect(toolbar).toContain('thumbContent={mode === "dark" ? <Moon aria-hidden="true" data-icon="moon" className="size-2.5" /> : <Sun aria-hidden="true" data-icon="sun" className="size-2.5" />}')
     expect(toolbar).toContain('onCheckedChange={(checked) => { endGesture(); setMode(checked ? "dark" : "light") }}')
+  })
+})
+
+describe("identity tones in the Colors tab", () => {
+  const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8")
+  it("adds one Tones section directly after Charts, leaving the canonical colour groups unchanged", () => {
+    expect(EDITOR_COLOR_GROUPS.map((group) => group.title)).toEqual(["Primary", "Secondary", "Accent", "Base", "Card", "Popover", "Muted", "Destructive", "Border, Input & Ring", "Charts", "Tones", "Sidebar"])
+    expect(EDITOR_COLOR_GROUPS.filter((group) => group.id !== "tones")).toEqual(COLOR_GROUPS)
+    const tones = EDITOR_COLOR_GROUPS.find((group) => group.id === "tones")!
+    expect(tones.tokens).toEqual([...TONE_TOKENS])
+    expect(tones.tokens.map(colorTokenLabel)).toEqual(["Tone 1", "Tone 1 foreground", "Tone 2", "Tone 2 foreground", "Tone 3", "Tone 3 foreground", "Tone 4", "Tone 4 foreground", "Tone 5", "Tone 5 foreground", "Tone 6", "Tone 6 foreground"])
+    expect(app).toContain("{EDITOR_COLOR_GROUPS.map((group) => (")
+    expect(app).toContain("value={readEditorColor(current, mode, token)}")
+  })
+
+  it("shows every built-in's resolved tones, then edits one through setColor like any colour", () => {
+    // Every built-in stores a copy of Secuna's tones, apart from Pocketmarket's own Tone 1 pair.
+    const secuna = builtIns.find((theme) => theme.id === "secuna")!.tones!
+    for (const theme of builtIns) {
+      for (const mode of ["light", "dark"] as const) {
+        for (const token of TONE_TOKENS) {
+          const own = theme.id === "pocketmarket" && (token === "tone-1" || token === "tone-1-foreground")
+          expect(readEditorColor(theme, mode, token), `${theme.id} ${mode} ${token}`).toBe(theme.tones![mode][token].$value)
+          if (!own) expect(theme.tones![mode][token], `${theme.id} ${mode} ${token}`).toEqual(secuna[mode][token])
+        }
+      }
+    }
+    const edited = editTheme(defaultTheme, { op: "setColor", mode: "light", token: "tone-6", value: "#eeeeff" })
+    if (!edited.ok) throw new Error("edit")
+    expect(readEditorColor(edited.theme, "light", "tone-6")).toBe((normalizeColor("#eeeeff") as { ok: true; value: string }).value)
+    expect(readEditorColor(edited.theme, "dark", "tone-6")).toBe(secuna.dark["tone-6"].$value)
+    expect(readEditorColor(edited.theme, "light", "primary")).toBe(defaultTheme.colors.light.primary.$value)
+  })
+
+  it("saves and reloads an edited theme with its tones, and loads an earlier saved theme without tones unchanged", () => {
+    const storage = memoryStorage()
+    const custom = createCustomTheme(defaultTheme, "Tone Study", BUILT_IN_IDS)
+    if (!custom.ok) throw new Error("custom")
+    const edited = editTheme(custom.theme, { op: "setColor", mode: "dark", token: "tone-5", value: "#083a3d" })
+    if (!edited.ok) throw new Error("edit")
+    // A custom copy saved before the built-ins stored tones: it has none, so it keeps rendering the shared defaults.
+    const { tones: _copiedTones, ...untoned } = structuredClone(custom.theme)
+    const plain = { ...untoned, id: "plain-study", name: "Plain Study" }
+    let saved = saveTheme(storage, emptySaved(), edited.theme, BUILT_IN_IDS, "default")
+    if (!saved.ok) throw new Error("save")
+    saved = saveTheme(storage, saved.saved, plain, BUILT_IN_IDS, "default")
+    if (!saved.ok) throw new Error("save plain")
+    const reloaded = loadSaved(storage, BUILT_IN_IDS)
+    expect(reloaded.themes["tone-study"]).toEqual(edited.theme)
+    expect(reloaded.themes["tone-study"]!.tones).toEqual(edited.theme.tones)
+    expect(custom.theme.tones).toEqual(defaultTheme.tones)
+    expect(reloaded.themes["plain-study"]!.tones).toBeUndefined()
+    expect(JSON.parse(storage.data[STORAGE_KEY]!).themes["plain-study"]).not.toHaveProperty("tones")
+    for (const token of TONE_TOKENS) expect(readEditorColor(reloaded.themes["plain-study"]!, "dark", token)).toBe(TONE_DEFAULTS.dark[token])
+  })
+
+  it("loads a saved theme stored with the earlier colour-word tone names, keeping its edited values", () => {
+    const storage = memoryStorage()
+    const custom = createCustomTheme(defaultTheme, "Tone Study", BUILT_IN_IDS)
+    if (!custom.ok) throw new Error("custom")
+    const edited = editTheme(custom.theme, { op: "setColor", mode: "light", token: "tone-2-foreground", value: "#8a4a17" })
+    if (!edited.ok) throw new Error("edit")
+    const back = Object.fromEntries(Object.entries(LEGACY_TONE_TOKEN_RENAMES).map(([legacy, current]) => [current, legacy]))
+    const legacySet = (set: Record<string, unknown>) => Object.fromEntries(Object.entries(set).map(([key, value]) => [back[key]!, value]))
+    const stored = { ...structuredClone(edited.theme), tones: { light: legacySet(edited.theme.tones!.light), dark: legacySet(edited.theme.tones!.dark) } }
+    storage.setItem(STORAGE_KEY, JSON.stringify({ themes: { "tone-study": stored }, activeId: "tone-study", bases: { "tone-study": "default" } }))
+    const reloaded = loadSaved(storage, BUILT_IN_IDS)
+    expect(reloaded.activeId).toBe("tone-study")
+    expect(reloaded.themes["tone-study"]).toEqual(edited.theme)
+    expect(readEditorColor(reloaded.themes["tone-study"]!, "light", "tone-2-foreground")).toBe((normalizeColor("#8a4a17") as { ok: true; value: string }).value)
+  })
+
+  it("exports resolved tones in JSON and the --tone-* pairs with --color-tone-* utilities in CSS", () => {
+    expect(JSON.parse(exportThemeJson(defaultTheme).json).tones).toEqual(defaultTheme.tones)
+    const { css } = exportThemeCss(defaultTheme)
+    for (const token of TONE_TOKENS) {
+      expect(css).toContain(`  --${token}: ${defaultTheme.tones!.light[token].$value};`)
+      expect(css).toContain(`  --${token}: ${defaultTheme.tones!.dark[token].$value};`)
+      expect(css).toContain(`  --color-${token}: var(--${token});`)
+    }
+    // A theme that stores no tones exports the resolved shared defaults.
+    const { tones: _stored, ...untoned } = structuredClone(defaultTheme)
+    expect(JSON.parse(exportThemeJson(untoned).json).tones).toEqual(defaultToneSets())
   })
 })

@@ -1,0 +1,218 @@
+{
+  "kind": "personal-ui-tones-conversion-report",
+  "version": 1,
+  "source": {
+    "description": "The owner-approved reusable Figma Tones collection, supplied on 2026-10-23 as sRGB HEX after conversion, already using the background/foreground naming: tone-<name> is the soft background and tone-<name>-foreground the text or icon colour on it. These values are authoritative. The earlier OKLCH reference (secuna-frontend-experiment src/styles/semantic.css, where tone-<name>-soft was the background) was a starting point only and is neither committed nor read.",
+    "purpose": "Identity or category, primarily initials-based avatar fallbacks. Not status, severity or branding.",
+    "synchronization": "None. Figma and these defaults are kept in step by hand.",
+    "naming": "Ordinal, colour-agnostic names: the Figma rows Blue, Orange, Purple, Pink, Teal and Violet are tones 1 to 6 in that order (tone-1 / tone-1-foreground through tone-6 / tone-6-foreground). Stored themes using the earlier colour-word names are renamed on load with their values kept."
+  },
+  "precisionPolicy": {
+    "color": "Canonical OKLCH through packages/core/src/theme/color.ts normalizeColor (HEX -> sRGB -> OKLCH, 6 decimal places). Every sRGB HEX value lies inside the Display P3 gamut, so all 24 values are admitted unchanged; each normalized value is a fixed point of the normalizer and renders back to its source HEX."
+  },
+  "defaultsPolicy": "Shared: every theme without a stored tones field renders these values (TONE_DEFAULTS in packages/core/src/theme/schema.ts). The first tone edit stores the complete resolved set on that theme.",
+  "values": {
+    "tones.light.tone-1": {
+      "source": "#E4F2FF",
+      "normalized": "oklch(0.954575 0.023017 246.036983)"
+    },
+    "tones.light.tone-1-foreground": {
+      "source": "#316CA5",
+      "normalized": "oklch(0.519638 0.109374 250.062766)"
+    },
+    "tones.light.tone-2": {
+      "source": "#FEECE1",
+      "normalized": "oklch(0.954447 0.024541 53.693888)"
+    },
+    "tones.light.tone-2-foreground": {
+      "source": "#A95F23",
+      "normalized": "oklch(0.560618 0.119963 55.385707)"
+    },
+    "tones.light.tone-3": {
+      "source": "#F7EBFB",
+      "normalized": "oklch(0.954118 0.024725 317.720731)"
+    },
+    "tones.light.tone-3-foreground": {
+      "source": "#835392",
+      "normalized": "oklch(0.520469 0.110152 317.831829)"
+    },
+    "tones.light.tone-4": {
+      "source": "#FDEAF5",
+      "normalized": "oklch(0.95529 0.025058 341.826242)"
+    },
+    "tones.light.tone-4-foreground": {
+      "source": "#793E63",
+      "normalized": "oklch(0.450479 0.095224 343.246042)"
+    },
+    "tones.light.tone-5": {
+      "source": "#DEF6F7",
+      "normalized": "oklch(0.955967 0.025153 199.784145)"
+    },
+    "tones.light.tone-5-foreground": {
+      "source": "#007B82",
+      "normalized": "oklch(0.530537 0.090253 201.788765)"
+    },
+    "tones.light.tone-6": {
+      "source": "#EEEEFF",
+      "normalized": "oklch(0.954111 0.022738 285.960919)"
+    },
+    "tones.light.tone-6-foreground": {
+      "source": "#635EA5",
+      "normalized": "oklch(0.519222 0.110057 285.091506)"
+    },
+    "tones.dark.tone-1": {
+      "source": "#1E354B",
+      "normalized": "oklch(0.320862 0.049065 248.554392)"
+    },
+    "tones.dark.tone-1-foreground": {
+      "source": "#97C9FD",
+      "normalized": "oklch(0.819769 0.090567 249.952038)"
+    },
+    "tones.dark.tone-2": {
+      "source": "#462C19",
+      "normalized": "oklch(0.320198 0.04913 56.089672)"
+    },
+    "tones.dark.tone-2-foreground": {
+      "source": "#F2B58C",
+      "normalized": "oklch(0.819821 0.089667 55.006628)"
+    },
+    "tones.dark.tone-3": {
+      "source": "#3D2A43",
+      "normalized": "oklch(0.318188 0.050165 317.87645)"
+    },
+    "tones.dark.tone-3-foreground": {
+      "source": "#DDB2EA",
+      "normalized": "oklch(0.819902 0.089787 318.258574)"
+    },
+    "tones.dark.tone-4": {
+      "source": "#45283A",
+      "normalized": "oklch(0.320342 0.051431 342.552036)"
+    },
+    "tones.dark.tone-4-foreground": {
+      "source": "#CF97B8",
+      "normalized": "oklch(0.739886 0.079665 343.070017)"
+    },
+    "tones.dark.tone-5": {
+      "source": "#083A3D",
+      "normalized": "oklch(0.318937 0.0499 201.104966)"
+    },
+    "tones.dark.tone-5-foreground": {
+      "source": "#78D6DB",
+      "normalized": "oklch(0.820021 0.089715 200.032658)"
+    },
+    "tones.dark.tone-6": {
+      "source": "#302F4B",
+      "normalized": "oklch(0.319589 0.049439 284.86901)"
+    },
+    "tones.dark.tone-6-foreground": {
+      "source": "#BDBCFD",
+      "normalized": "oklch(0.81897 0.090969 284.911132)"
+    }
+  },
+  "contrast": {
+    "method": "WCAG 2.x relative luminance of the source sRGB HEX, foreground on its own background.",
+    "pairs": [
+      {
+        "mode": "light",
+        "pair": "tone-1-foreground on tone-1",
+        "hex": "#316ca5 on #e4f2ff",
+        "ratio": 4.83,
+        "meets4_5": true
+      },
+      {
+        "mode": "dark",
+        "pair": "tone-1-foreground on tone-1",
+        "hex": "#97c9fd on #1e354b",
+        "ratio": 7.26,
+        "meets4_5": true
+      },
+      {
+        "mode": "light",
+        "pair": "tone-2-foreground on tone-2",
+        "hex": "#a95f23 on #feece1",
+        "ratio": 4.21,
+        "meets4_5": false
+      },
+      {
+        "mode": "dark",
+        "pair": "tone-2-foreground on tone-2",
+        "hex": "#f2b58c on #462c19",
+        "ratio": 7.2,
+        "meets4_5": true
+      },
+      {
+        "mode": "light",
+        "pair": "tone-3-foreground on tone-3",
+        "hex": "#835392 on #f7ebfb",
+        "ratio": 5.04,
+        "meets4_5": true
+      },
+      {
+        "mode": "dark",
+        "pair": "tone-3-foreground on tone-3",
+        "hex": "#ddb2ea on #3d2a43",
+        "ratio": 7.22,
+        "meets4_5": true
+      },
+      {
+        "mode": "light",
+        "pair": "tone-4-foreground on tone-4",
+        "hex": "#793e63 on #fdeaf5",
+        "ratio": 6.81,
+        "meets4_5": true
+      },
+      {
+        "mode": "dark",
+        "pair": "tone-4-foreground on tone-4",
+        "hex": "#cf97b8 on #45283a",
+        "ratio": 5.42,
+        "meets4_5": true
+      },
+      {
+        "mode": "light",
+        "pair": "tone-5-foreground on tone-5",
+        "hex": "#007b82 on #def6f7",
+        "ratio": 4.48,
+        "meets4_5": false
+      },
+      {
+        "mode": "dark",
+        "pair": "tone-5-foreground on tone-5",
+        "hex": "#78d6db on #083a3d",
+        "ratio": 7.39,
+        "meets4_5": true
+      },
+      {
+        "mode": "light",
+        "pair": "tone-6-foreground on tone-6",
+        "hex": "#635ea5 on #eeeeff",
+        "ratio": 4.98,
+        "meets4_5": true
+      },
+      {
+        "mode": "dark",
+        "pair": "tone-6-foreground on tone-6",
+        "hex": "#bdbcfd on #302f4b",
+        "ratio": 7.21,
+        "meets4_5": true
+      }
+    ]
+  },
+  "contrastDebt": {
+    "method": "Contrast polishing is deferred by the owner. The supplied values are preserved; these pairs are below 4.5:1 for normal text and are recorded, not adjusted.",
+    "pairs": [
+      {
+        "mode": "light",
+        "pair": "tone-2-foreground on tone-2",
+        "hex": "#a95f23 on #feece1",
+        "ratio": 4.21
+      },
+      {
+        "mode": "light",
+        "pair": "tone-5-foreground on tone-5",
+        "hex": "#007b82 on #def6f7",
+        "ratio": 4.48
+      }
+    ]
+  }
+}

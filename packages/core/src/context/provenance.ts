@@ -20,19 +20,23 @@ const RAW_PROVENANCE_MANIFEST = {
   },
   "theme:default": {
     sourceId: "packages/core/src/theme/fixtures/default.json",
-    sha256: "d66849e6b7125f905c041b85f1713d16e5a8c90a34c452e59b32d657c34c5268",
+    sha256: "4734ea11430b446617aa767783a3ab8c6cfa5e3a3c3bde8a7376480ab8860ebf",
   },
   "theme:quiet-editorial": {
     sourceId: "packages/core/src/theme/fixtures/valid.json",
-    sha256: "67abd917fca5efb297b4368e109837e083970f1916c8c669ad5c12b4e4bdc8ff",
+    sha256: "b8cf4fb0eced86f5df10bce875e43989f06dd7aa26d2891a71eeea6e235dca7a",
   },
   "theme:amber-dusk": {
     sourceId: "packages/core/src/theme/fixtures/amber-dusk.json",
-    sha256: "1885fc3d4db271be1f72067b1f2afb5911a0fee696c7922f5b7138ad79096b63",
+    sha256: "6f68847c9410810983413c4dd72c484fcad3ec79bf95ed237e64d54cb8e08eee",
   },
   "theme:pocketmarket": {
     sourceId: "packages/core/src/theme/fixtures/pocketmarket.json",
-    sha256: "edd2e62ee9e794fd72e133e32413517da683dd34f8df6c721a8b12ca50f1d7cd",
+    sha256: "973c12335fb1de3b91ff19dc20b1aa1fd655a9fe74037880f1bbcde29acebd9d",
+  },
+  "theme:secuna": {
+    sourceId: "packages/core/src/theme/fixtures/secuna.json",
+    sha256: "1e6a1203a913fee00a5ab20e815e1721d5c780bfe5fa76e488468a265f913941",
   },
   "resource:button": {
     sourceId: "packages/core/src/contracts/data/button.ts",

@@ -30,7 +30,9 @@ const valid = (input: unknown): Theme => {
 }
 
 const MODES = ["light", "dark"] as const
-const base = valid(defaultFixture)
+/** Default without its v3-only `tones`, which the v2.x shapes built from it cannot carry (migration adds none). */
+const { tones: _defaultTones, ...defaultWithoutTones } = defaultFixture
+const base = valid(defaultWithoutTones)
 
 /**
  * The frozen v2.1 shape of a migrated-default theme: the inverse of the v2.1 -> v3 typography mapping (Heading font ->

@@ -32,6 +32,18 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+  --tone-1: oklch(0.932654 0.026597 246.350513);
+  --tone-1-foreground: oklch(0.434752 0.06068 247.78674);
+  --tone-2: oklch(0.920863 0.034545 350.016329);
+  --tone-2-foreground: oklch(0.450031 0.100009 355.025246);
+  --tone-3: oklch(0.919284 0.04008 114.874629);
+  --tone-3-foreground: oklch(0.429919 0.069868 118.409497);
+  --tone-4: oklch(0.920502 0.034643 300.295208);
+  --tone-4-foreground: oklch(0.439526 0.099892 299.691131);
+  --tone-5: oklch(0.920509 0.039358 71.017279);
+  --tone-5-foreground: oklch(0.43974 0.080099 70.873576);
+  --tone-6: oklch(0.919386 0.034445 196.567802);
+  --tone-6-foreground: oklch(0.429716 0.070065 200.290858);
   --font-heading: "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -91,6 +103,18 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+  --tone-1: oklch(0.28 0.026597 246.350513);
+  --tone-1-foreground: oklch(0.84 0.06068 247.78674);
+  --tone-2: oklch(0.28 0.034545 350.016329);
+  --tone-2-foreground: oklch(0.84 0.08 355.025246);
+  --tone-3: oklch(0.28 0.04008 114.874629);
+  --tone-3-foreground: oklch(0.84 0.069868 118.409497);
+  --tone-4: oklch(0.28 0.034643 300.295208);
+  --tone-4-foreground: oklch(0.84 0.08 299.691131);
+  --tone-5: oklch(0.28 0.039358 71.017279);
+  --tone-5-foreground: oklch(0.84 0.08 70.873576);
+  --tone-6: oklch(0.28 0.034445 196.567802);
+  --tone-6-foreground: oklch(0.84 0.070065 200.290858);
 }
 
 @theme inline {
@@ -126,6 +150,18 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-tone-1: var(--tone-1);
+  --color-tone-1-foreground: var(--tone-1-foreground);
+  --color-tone-2: var(--tone-2);
+  --color-tone-2-foreground: var(--tone-2-foreground);
+  --color-tone-3: var(--tone-3);
+  --color-tone-3-foreground: var(--tone-3-foreground);
+  --color-tone-4: var(--tone-4);
+  --color-tone-4-foreground: var(--tone-4-foreground);
+  --color-tone-5: var(--tone-5);
+  --color-tone-5-foreground: var(--tone-5-foreground);
+  --color-tone-6: var(--tone-6);
+  --color-tone-6-foreground: var(--tone-6-foreground);
   --radius-sm: var(--radius-scale-sm);
   --radius-md: var(--radius-scale-md);
   --radius-lg: var(--radius-scale-lg);

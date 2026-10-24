@@ -11,7 +11,7 @@ import type { MutationOperationCapability } from "./types"
  */
 export const VALUE_CONSTRAINT_DESCRIPTIONS: Readonly<Record<string, string>> = Object.freeze({
   setColor:
-    "HEX, rgb(a), hsl(a), or oklch colour inside the Display P3 gamut; stored as canonical oklch(L C H [/ A]); tokens include the eight dedicated sidebar colours (sidebar, sidebar-foreground, sidebar-primary, sidebar-primary-foreground, sidebar-accent, sidebar-accent-foreground, sidebar-border, sidebar-ring)",
+    "HEX, rgb(a), hsl(a), or oklch colour inside the Display P3 gamut; stored as canonical oklch(L C H [/ A]); tokens include the eight dedicated sidebar colours (sidebar, sidebar-foreground, sidebar-primary, sidebar-primary-foreground, sidebar-accent, sidebar-accent-foreground, sidebar-border, sidebar-ring) and the twelve identity tones tone-{1..6}[-foreground] (identity or category, never status); the first tone edit stores every tone from the shared defaults",
   setRadius: "non-negative rem/px/em dimension for radius.md",
   setDensity: "number from 0.5 to 2",
   setFontWeight: "target heading|body and an integer font weight from 100 to 900 in steps of 100",

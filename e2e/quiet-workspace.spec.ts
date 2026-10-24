@@ -304,7 +304,7 @@ for (const mode of ["light", "dark"] as const) {
       await trigger.press("ArrowDown")
       const list = page.getByRole("listbox")
       await expect(list).toBeVisible()
-      await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket"])
+      await expect(page.getByRole("group", { name: "Built-in", exact: true }).getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket", "Secuna"])
       const anchor = (await trigger.boundingBox())!
       const region = (await page.locator('[data-slot="sidebar-header"] [data-slot="sidebar-menu-item"]').boundingBox())!
       // PUI-113: the force-mounted Effects panel holds a second, closed in-place Select popup; measure the open one.
@@ -343,6 +343,8 @@ for (const mode of ["light", "dark"] as const) {
     await expect(page.getByRole("listbox")).toBeVisible()
     await expect(page.getByRole("option", { name: "Default" })).toBeFocused()
     await page.keyboard.press("End")
+    await expect(page.getByRole("option", { name: "Secuna" })).toBeFocused()
+    await page.keyboard.press("ArrowUp")
     await expect(page.getByRole("option", { name: "Pocketmarket" })).toBeFocused()
     await page.keyboard.press("ArrowUp")
     await expect(page.getByRole("option", { name: "Amber Dusk" })).toBeFocused()
@@ -391,8 +393,8 @@ for (const mode of ["light", "dark"] as const) {
     expect(restBg).not.toBe("")
     await trigger.click()
     const rows = page.getByRole("option")
-    await expect(rows).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket", "Swatch Check"])
-    for (let i = 0; i < 4; i++) {
+    await expect(rows).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket", "Secuna", "Swatch Check"])
+    for (let i = 0; i < 5; i++) {
       const row = rows.nth(i)
       const found = await swatches(row)
       expect(found.map(s => s.token)).toEqual(["primary", "accent", "secondary", "border"])
@@ -465,7 +467,7 @@ for (const mode of ["light", "dark"] as const) {
     await expect(page.getByRole("combobox", { name: "Active theme" })).toHaveText("Default")
     await expect(action).toHaveCount(0)
     await page.getByRole("combobox", { name: "Active theme" }).click()
-    await expect(page.getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket", "Keep Me"])
+    await expect(page.getByRole("option")).toHaveText(["Default", "Quiet Editorial", "Amber Dusk", "Pocketmarket", "Secuna", "Keep Me"])
     await page.keyboard.press("Escape")
   })
 

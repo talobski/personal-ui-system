@@ -21,6 +21,7 @@ describe("context list (ACR-02)", () => {
       { id: "default", name: "Default", revision: 1 },
       { id: "pocketmarket", name: "Pocketmarket", revision: 1 },
       { id: "quiet-editorial", name: "Quiet Editorial", revision: 1 },
+      { id: "secuna", name: "Secuna", revision: 1 },
     ])
 
     expect(result.resources).toEqual([

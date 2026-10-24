@@ -31,6 +31,7 @@ export default defineConfig({
     "amber-dusk-shell-refinement.spec.ts",
     "theme-code-header-shell-selection.spec.ts",
     "landing-workbench-routes.spec.ts",
+    "secuna-built-in.spec.ts",
   ],
   reporter: "list",
   use: { baseURL: `http://127.0.0.1:${PORT}`, browserName: "chromium" },

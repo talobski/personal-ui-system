@@ -309,6 +309,39 @@
     "note": "Both modes store a dedicated Sidebar set, rendered while useDedicatedTokens is on. Each mode follows the same pattern: sidebar-primary is primary, sidebar-border is border, sidebar-ring is input, and the Sidebar text is the foreground."
   },
   "uiEffects": "tactile at strength 50, from the promoted theme",
+  "tones": {
+    "source": "Tones 2 to 6 in both modes are an exact copy of the built-in Secuna tones (secuna.conversion.json tones), applied to every built-in on 2026-10-24; their contrast is recorded there. Tone 1 is Pocketmarket's own (2026-10-24): the owner-supplied Light pair, kept verbatim, and a Dark pair derived from it.",
+    "tone1Dark": "Secuna's Dark treatment applied to the owner's Light Tone 1: both Light hues kept exactly; the background at L 0.28 with the Light background chroma (0.0293), a subdued fill on Pocketmarket's warm dark neutrals like tones 2 to 6; the foreground at L 0.84 with chroma 0.078 rather than the usual cap of 0.08, because 0.078 is the largest chroma at that lightness and hue inside sRGB, so the pair renders the same on sRGB and Display P3 screens.",
+    "tone1": {
+      "light": {
+        "tone-1": "oklch(0.920394 0.0293 264.421309)",
+        "tone-1-foreground": "oklch(0.43922 0.08072 267.919727)"
+      },
+      "dark": {
+        "tone-1": "oklch(0.28 0.0293 264.421309)",
+        "tone-1-foreground": "oklch(0.84 0.078 267.919727)"
+      }
+    },
+    "contrast": {
+      "method": "WCAG 2.x relative luminance in sRGB, foreground on its own background.",
+      "pairs": [
+        {
+          "mode": "light",
+          "pair": "tone-1-foreground on tone-1",
+          "hex": "#3f507f on #dbe5f9",
+          "ratio": 6.22,
+          "meets4_5": true
+        },
+        {
+          "mode": "dark",
+          "pair": "tone-1-foreground on tone-1",
+          "hex": "#b5c9fe on #222938",
+          "ratio": 8.9,
+          "meets4_5": true
+        }
+      ]
+    }
+  },
   "darkRefinement": {
     "method": "Pattern parity with the promoted light mode, not numeric parity. The warm neutral surfaces, foregrounds, border, input, muted-foreground and destructive are kept. Every remaining token is re-derived from its light role, and each text pair clears 4.5:1 apart from the recorded destructive debt.",
     "rationale": {
