@@ -1,4 +1,3 @@
-import type { IncomingMessage, ServerResponse } from "node:http"
 import { fileURLToPath } from "node:url"
 
 import tailwindcss from "@tailwindcss/vite"
@@ -7,20 +6,17 @@ import { defineConfig } from "vite"
 import type { Plugin, ViteDevServer } from "vite"
 
 import type { DesignCommandServerEnv } from "./src/server/designCommandHandler.ts"
+import { createDesignCommandMiddleware, workbenchOrigins } from "./src/server/designCommandMiddleware"
 
 const uiSrc = fileURLToPath(new URL("../../packages/ui/src", import.meta.url))
-
-/** Mirrors `MAX_REQUEST_BODY_BYTES` in `./src/server/designCommandHandler.ts`. Duplicated, not imported, because
- * this file is evaluated by Vite's config loader (see the comment on `designCommandApiPlugin` below) and cannot
- * statically import a runtime value from that module. Bounds how much of a request body this middleware buffers
- * into memory before the handler's own (identical) size check would reject it anyway. */
-const MAX_REQUEST_BODY_BYTES = 8 * 1024
 
 /**
  * The localhost product API middleware. It runs only inside the Vite dev-server Node process — it is never part of
  * the client bundle — and reads `process.env` only at request time, never at config-eval time, so the credential
  * is never captured into a build artifact. It reads only `TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY`; see
- * `apps/workbench/src/server/designCommandHandler.ts` for the credential-isolation boundary itself.
+ * `apps/workbench/src/server/designCommandHandler.ts` for the credential-isolation boundary itself. The only trusted
+ * caller is the Workbench on this dev server's own loopback origin, derived from the address it is listening on, and
+ * the handler enforces that from the request's original headers.
  *
  * The handler module is loaded through Vite's own SSR module graph (`server.ssrLoadModule`), not a plain Node
  * `import`, because `vite.config.ts` itself is evaluated by Vite's config loader, which does not bundle across
@@ -31,35 +27,16 @@ function designCommandApiPlugin(): Plugin {
   return {
     name: "personal-ui-design-command-api",
     configureServer(server: ViteDevServer) {
-      server.middlewares.use("/api/design-command/evaluate", async (req: IncomingMessage, res: ServerResponse) => {
-        if (req.method !== "POST") {
-          res.statusCode = 405
-          res.end()
-          return
-        }
-        const chunks: Buffer[] = []
-        let total = 0
-        for await (const chunk of req) {
-          total += (chunk as Buffer).byteLength
-          if (total > MAX_REQUEST_BODY_BYTES) {
-            res.statusCode = 413
-            res.end(JSON.stringify({ outcome: { kind: "rejected", reason: { code: "design-command.request-too-large" } } }))
-            req.destroy()
-            return
-          }
-          chunks.push(chunk as Buffer)
-        }
-        const request = new Request(`http://${req.headers.host ?? "127.0.0.1"}/api/design-command/evaluate`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: Buffer.concat(chunks),
+      server.middlewares.use(
+        "/api/design-command/evaluate",
+        createDesignCommandMiddleware({
+          trustedOrigins: () => workbenchOrigins(server.resolvedUrls?.local ?? []),
+          handle: async (request, trustedOrigins) => {
+            const mod = await server.ssrLoadModule("/src/server/designCommandHandler.ts")
+            return mod.handleDesignCommandEvaluate(request, process.env as DesignCommandServerEnv, fetch, trustedOrigins)
+          },
         })
-        const mod = await server.ssrLoadModule("/src/server/designCommandHandler.ts")
-        const response: Response = await mod.handleDesignCommandEvaluate(request, process.env as DesignCommandServerEnv, fetch)
-        res.statusCode = response.status
-        res.setHeader("content-type", response.headers.get("content-type") ?? "application/json")
-        res.end(await response.text())
-      })
+      )
     },
   }
 }

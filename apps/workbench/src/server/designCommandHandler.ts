@@ -5,8 +5,9 @@ import { evaluateDesignCommand } from "@personal-ui/core/jev-design/evaluate"
 /**
  * The localhost product API: workbench browser -> this handler (server-side only) -> TypeSafe API. Only this
  * handler may read `TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY`; it never reads, aliases, or falls back to
- * `TYPESAFE_API_KEY`. It is a pure `(Request, env, fetch) -> Response` function so it is testable without a real HTTP
- * server or process.env; `vite.config.ts` adapts it into a dev-server middleware.
+ * `TYPESAFE_API_KEY`. It is a pure `(Request, env, fetch, trustedOrigins) -> Response` function so it is testable
+ * without a real HTTP server or process.env; `vite.config.ts` adapts it into a dev-server middleware
+ * (`./designCommandMiddleware.ts`) that passes the original request headers through.
  */
 export const PRODUCT_CREDENTIAL_ENV_VAR = "TYPESAFE_PERSONAL_UI_SYSTEM_API_KEY"
 export const DESIGN_COMMAND_ROUTE = "/api/design-command/evaluate"
@@ -26,13 +27,42 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 const rejected = (code: string, status = 200): Response => json({ outcome: { kind: "rejected", reason: { code } } as DesignCommandOutcome }, status)
 
 /**
- * Handles one `POST /api/design-command/evaluate` request. Reads only the product credential, and only from `env`
- * (never a real `process.env` lookup happens inside this pure function — the caller decides what `env` is). A
- * missing or empty credential returns a stable rejected outcome and makes zero fetches: `evaluateDesignCommand` is
- * never even called.
+ * Only the Workbench itself may spend the credential. Checked before the credential or the body is read, so another
+ * site can neither trigger an upstream call nor learn whether a credential is configured:
+ * - `Origin` is required and must be one of `trustedOrigins`. Browsers send it on every POST, so a request without
+ *   it did not come from the Workbench page.
+ * - `Sec-Fetch-Site` is optional, for browsers that send no fetch metadata, but when present it must be
+ *   `same-origin`; any other value conflicts with a trusted `Origin`.
+ * - The body must be declared `application/json`. That rules out the `text/plain` and form posts a page can send
+ *   cross-origin without a CORS preflight.
  */
-export async function handleDesignCommandEvaluate(request: Request, env: DesignCommandServerEnv, fetchImpl: typeof fetch): Promise<Response> {
+function rejectUntrustedRequest(request: Request, trustedOrigins: readonly string[]): Response | null {
+  const origin = request.headers.get("origin")
+  if (origin === null) return rejected("design-command.missing-origin", 403)
+  if (!trustedOrigins.includes(origin)) return rejected("design-command.untrusted-origin", 403)
+  const site = request.headers.get("sec-fetch-site")
+  if (site !== null && site !== "same-origin") return rejected("design-command.cross-site-request", 403)
+  const mediaType = request.headers.get("content-type")?.split(";")[0]!.trim().toLowerCase()
+  if (mediaType !== "application/json") return rejected("design-command.unsupported-media-type", 415)
+  return null
+}
+
+/**
+ * Handles one `POST /api/design-command/evaluate` request. Reads only the product credential, and only from `env`
+ * (never a real `process.env` lookup happens inside this pure function — the caller decides what `env` is). An
+ * untrusted request (see `rejectUntrustedRequest`) or a missing or empty credential returns a stable rejected outcome
+ * and makes zero fetches: `evaluateDesignCommand` is never even called.
+ */
+export async function handleDesignCommandEvaluate(
+  request: Request,
+  env: DesignCommandServerEnv,
+  fetchImpl: typeof fetch,
+  trustedOrigins: readonly string[]
+): Promise<Response> {
   if (request.method !== "POST") return json({ outcome: { kind: "rejected", reason: { code: "design-command.method-not-allowed" } } }, 405)
+
+  const untrusted = rejectUntrustedRequest(request, trustedOrigins)
+  if (untrusted) return untrusted
 
   const apiKey = env[PRODUCT_CREDENTIAL_ENV_VAR]
   if (typeof apiKey !== "string" || apiKey.trim().length === 0) return rejected("transport.missing-credential")

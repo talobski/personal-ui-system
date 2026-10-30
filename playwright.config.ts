@@ -42,7 +42,8 @@ export default defineConfig({
   webServer: {
     // serve's default clean-URL redirect (/iframe.html -> /iframe) drops the story query string;
     // the config path is resolved relative to the served directory.
-    command: `serve storybook-static --listen ${PORT} --no-clipboard --config ../e2e/serve.json`,
+    // Loopback only: the tests reach it at 127.0.0.1, and nothing else on the network needs to.
+    command: `serve storybook-static --listen tcp://127.0.0.1:${PORT} --no-clipboard --config ../e2e/serve.json`,
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: false,
     env: { NO_UPDATE_CHECK: "1" },
