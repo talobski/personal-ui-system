@@ -915,7 +915,7 @@ export function App({ routeThemeId = null }: { routeThemeId?: string | null }) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset className="quiet-preview">
-        <h1 className="sr-only">Personal UI Workbench</h1>
+        <h1 className="sr-only">UI Theme Workbench</h1>
         <div data-testid="workbench-toolbar" className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           {/* PUI-139: every icon-only header control carries a concise tooltip beside its own accessible name. */}
           <WorkbenchTooltip label="Toggle sidebar"><SidebarTrigger className="size-8 cursor-pointer" /></WorkbenchTooltip>

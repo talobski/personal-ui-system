@@ -38,7 +38,7 @@ test("Workspace settings composes Tabs, Card, Field controls, Switch, and Single
       const notificationsTab = page.getByRole("tab", { name: "Notifications" })
       const appearanceTab = page.getByRole("tab", { name: "Appearance" })
       await expect(generalTab).toHaveAttribute("aria-selected", "true")
-      await expect(page.getByLabel("Workspace name")).toHaveValue("Personal UI System")
+      await expect(page.getByLabel("Workspace name")).toHaveValue("UI Theme Workbench")
 
       // TabsList is a single non-wrapping row: at the narrowest supported viewport it must still stay within the
       // viewport's width rather than overflowing, since this small, short-labelled tab set is the documented limit.

@@ -24,7 +24,7 @@ describe("portable theme export", () => {
       const theme = rebrand(source, "acme-secret", "Acme Secret", 987654)
       const css = renderPortableThemeCss(theme)
       expect(css.startsWith(":root {\n")).toBe(true)
-      for (const leak of ["@personal-ui", "personal-ui", "renderShadcnTailwindCss", "acme-secret", "Acme Secret", "revision", "987654", "Do not edit"]) {
+      for (const leak of ["@personal-ui", "personal-ui", "UI Theme Workbench", "renderShadcnTailwindCss", "acme-secret", "Acme Secret", "revision", "987654", "Do not edit"]) {
         expect(css, leak).not.toContain(leak)
       }
       // Only the header differs from the internal render: the stylesheet itself is unchanged.

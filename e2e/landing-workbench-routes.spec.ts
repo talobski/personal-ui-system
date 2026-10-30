@@ -23,7 +23,7 @@ const pathname = (page: Page) => page.evaluate(() => location.pathname)
 /** The Workbench is coherent: chrome, toolbar and a ready preview that renders the expected theme. */
 async function expectWorkbench(page: Page, themeId: string) {
   // By element, not role: the open mobile sidebar sheet makes the page behind it inert to the accessibility tree.
-  await expect(page.locator("h1", { hasText: "Personal UI Workbench" })).toBeAttached()
+  await expect(page.locator("h1", { hasText: "UI Theme Workbench" })).toBeAttached()
   await expect(page.getByTestId("workbench-toolbar")).toBeVisible()
   await expect(activeTheme(page)).toHaveAttribute("data-theme-id", themeId)
   await expect(previewFrame(page).getByTestId("preview")).toHaveAttribute("data-ready", "true")
@@ -54,13 +54,41 @@ async function expectNoSeriousViolations(page: Page, label: string, testInfo: Te
 
 const noHorizontalOverflow = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
 
+/**
+ * The landing header row, measured from its own boxes: the brand link, the controls cluster (mode switch + CTA), the
+ * row's padding-box edges and both gaps. Page-level overflow alone cannot catch a cluster that spills into the row's
+ * side padding, so containment is checked against the padded edges directly.
+ */
+const landingHeaderGeometry = (page: Page) =>
+  page.getByTestId("landing-header-cta").evaluate((cta) => {
+    const cluster = cta.parentElement!
+    const row = cluster.parentElement!
+    const brand = row.firstElementChild!
+    const style = getComputedStyle(row)
+    const rowBox = row.getBoundingClientRect()
+    const brandBox = brand.getBoundingClientRect()
+    const clusterBox = cluster.getBoundingClientRect()
+    return {
+      paddingLeft: parseFloat(style.paddingLeft),
+      paddingRight: parseFloat(style.paddingRight),
+      rowGap: parseFloat(style.columnGap),
+      clusterGap: parseFloat(getComputedStyle(cluster).columnGap),
+      rowHeight: rowBox.height,
+      leftInset: brandBox.left - rowBox.left,
+      rightInset: rowBox.right - clusterBox.right,
+      brandToControls: clusterBox.left - brandBox.right,
+      brandHeight: brandBox.height,
+      markHeight: brand.querySelector('[aria-hidden="true"]')!.getBoundingClientRect().height,
+    }
+  })
+
 test.describe("LWR-01 landing page", () => {
   test("/ is a distinct, accessible landing page whose CTA opens /workbench in place, with back/forward", async ({ page }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "reduce" })
     await page.goto("/")
     const landing = page.getByTestId("landing")
     await expect(landing).toBeVisible()
-    await expect(page).toHaveTitle(/Personal UI/)
+    await expect(page).toHaveTitle(/^UI Theme Workbench · /)
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Shape a theme once. Every surface follows.")
     await expect(page.getByRole("banner")).toBeVisible()
     await expect(page.getByRole("main")).toBeVisible()
@@ -83,7 +111,7 @@ test.describe("LWR-01 landing page", () => {
     await expect(page).toHaveURL(/\/workbench$/)
     await expectWorkbench(page, "default")
     expect(await page.evaluate(() => history.length)).toBe(entries + 1)
-    await expect(page).toHaveTitle("Personal UI Workbench")
+    await expect(page).toHaveTitle("UI Theme Workbench")
     // Back returns to the landing page; forward reopens the editor from local state.
     await page.goBack()
     await expect(page).toHaveURL(/\/$/)
@@ -134,7 +162,7 @@ test.describe("LWR-01 landing page", () => {
     await page.getByRole("tab", { name: "CSS / Tailwind v4", exact: true }).click()
     const landingCss = await page.getByTestId("landing-code-css").evaluate((el) => el.textContent!)
     expect(landingPrompt).toContain(`\`\`\`css\n${landingCss}\`\`\``)
-    expect(landingPrompt).not.toMatch(/Amber Dusk|amber-dusk|Personal UI|personal-ui/)
+    expect(landingPrompt).not.toMatch(/Amber Dusk|amber-dusk|Personal UI|personal-ui|UI Theme Workbench/)
     expect(await storedBytes(page)).toBeNull()
     // Each built-in card links to its stable Workbench path.
     for (const [slug, id] of Object.entries(SLUGS)) await expect(page.getByTestId(`landing-open-${id}`)).toHaveAttribute("href", `/workbench/themes/${slug}`)
@@ -176,6 +204,36 @@ test.describe("LWR-01 landing page", () => {
     await expect(specimen).toHaveAttribute("inert", "")
     await expect(specimen.locator("[data-slot=card]").first()).toBeVisible()
     expect(await specimen.evaluate((el) => el.contains(document.activeElement))).toBe(false)
+  })
+
+  test("the header keeps the full brand on one line and its controls inside the padded edges, down to 320px", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name.includes("desktop"), "sets its own viewport widths; one project covers them all")
+    // Below 375px the row tightens to 16px padding, a 12px brand gap and an 8px switch-to-button gap; wider is unchanged.
+    const cases = [
+      { width: 320, padding: 16, rowGap: 12, clusterGap: 8, shortLabel: true },
+      { width: 375, padding: 20, rowGap: 16, clusterGap: 12, shortLabel: true },
+      { width: 390, padding: 20, rowGap: 16, clusterGap: 12, shortLabel: true },
+      { width: 1440, padding: 32, rowGap: 16, clusterGap: 12, shortLabel: false },
+    ]
+    await page.goto("/")
+    const cta = page.getByTestId("landing-header-cta")
+    for (const { width, padding, rowGap, clusterGap, shortLabel } of cases) {
+      await page.setViewportSize({ width, height: 800 })
+      const geometry = await landingHeaderGeometry(page)
+      const label = `${width}px: ${JSON.stringify(geometry)}`
+      expect([geometry.paddingLeft, geometry.paddingRight, geometry.rowGap, geometry.clusterGap], label).toEqual([padding, padding, rowGap, clusterGap])
+      expect(geometry.rowHeight, label).toBe(64)
+      // Both edges sit exactly on the padding: nothing spills into the side gutter.
+      expect(Math.abs(geometry.leftInset - padding), label).toBeLessThan(0.5)
+      expect(Math.abs(geometry.rightInset - padding), label).toBeLessThan(0.5)
+      expect(geometry.brandToControls, label).toBeGreaterThanOrEqual(rowGap - 0.5)
+      // One line: the brand is no taller than its colour mark.
+      expect(geometry.brandHeight, label).toBe(geometry.markHeight)
+      await expect(cta).toHaveAccessibleName("Open Workbench")
+      const suffixWidth = await cta.locator(".sr-only").evaluate((el) => el.getBoundingClientRect().width)
+      expect(suffixWidth <= 1, `${width}px: "Workbench" hidden=${suffixWidth <= 1}`).toBe(shortLabel)
+      expect(await noHorizontalOverflow(page), label).toBe(true)
+    }
   })
 })
 

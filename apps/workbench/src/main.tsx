@@ -18,10 +18,10 @@ const isPreview = initialRoute().kind === "preview"
 document.documentElement.classList.add("antialiased")
 
 const TITLES: Record<Route["kind"], string> = {
-  landing: "Personal UI — a personal design system on shadcn/ui",
-  workbench: "Personal UI Workbench",
-  preview: "Personal UI Workbench",
-  "not-found": "Page not found · Personal UI",
+  landing: "UI Theme Workbench · Create, preview, and export UI themes",
+  workbench: "UI Theme Workbench",
+  preview: "UI Theme Workbench",
+  "not-found": "Page not found · UI Theme Workbench",
 }
 
 /** The top-level document: one route at a time, switched by the History API without reloading. */

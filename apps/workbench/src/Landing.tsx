@@ -482,10 +482,10 @@ export function Landing() {
       </a>
 
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-5 sm:px-8">
-          <AppLink href={LANDING_PATH} className="flex items-center gap-2.5 rounded-md text-sm font-semibold tracking-tight outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-5 max-[375px]:gap-3 max-[375px]:px-4 sm:px-8">
+          <AppLink href={LANDING_PATH} className="flex shrink-0 items-center gap-2.5 rounded-md text-sm font-semibold tracking-tight whitespace-nowrap outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
             <Mark theme={theme} mode={mode} />
-            Personal UI
+            UI Theme Workbench
           </AppLink>
           <nav aria-label="Sections" className="ml-4 hidden items-center gap-1 lg:flex">
             {SECTIONS.map((section) => (
@@ -498,11 +498,14 @@ export function Landing() {
               </a>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3 max-[375px]:gap-2">
             <ModeSwitch mode={mode} onChange={setMode} />
             <Button asChild size="sm">
               <AppLink href={WORKBENCH_PATH} data-testid="landing-header-cta">
-                Open Workbench
+                {/* Below `sm` the visible label is "Open"; the rest stays in the accessible name, "Open Workbench". */}
+                <span>
+                  Open<span className="sr-only sm:not-sr-only"> Workbench</span>
+                </span>
               </AppLink>
             </Button>
           </div>
@@ -523,7 +526,7 @@ export function Landing() {
               </div>
               <div className="landing-rise landing-delay-1 grid gap-6 lg:grid-cols-[minmax(0,38rem)_auto] lg:items-end lg:justify-between">
                 <p className="text-lg leading-relaxed text-pretty text-muted-foreground">
-                  Personal UI keeps your colours, type, geometry and effects in one validated Theme v3 document. The Workbench edits it live against real components and app
+                  UI Theme Workbench keeps your colours, type, geometry and effects in one validated Theme v3 document. The Workbench edits it live against real components and app
                   shells, then hands it back as JSON or Tailwind CSS.
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
@@ -690,7 +693,7 @@ export function Landing() {
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-8 text-sm text-muted-foreground sm:px-8">
           <span className="flex items-center gap-2.5">
             <Mark theme={theme} mode={mode} />
-            Personal UI · built on shadcn/ui, Tailwind CSS v4 and React
+            UI Theme Workbench · built on shadcn/ui, Tailwind CSS v4 and React
           </span>
           <AppLink href={WORKBENCH_PATH} className="rounded-md font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50">
             Workbench

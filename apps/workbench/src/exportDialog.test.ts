@@ -129,7 +129,7 @@ describe("Agent Prompt export", () => {
       expect(prompt).toBe(exportThemeAgentPrompt(theme).prompt)
       // "default" is also Tailwind's own `--default-transition-duration`, so only the other ids are checked as words.
       if (theme.id !== "default") expect(prompt).not.toContain(theme.id)
-      for (const leak of ["Personal UI", "@personal-ui", "personal-ui", "Pocketmarket", "pocketmarket", "Secuna", theme.name, "client-copy", "Client Copy", "revision", "$schema", "schemaVersion", "renderShadcnTailwindCss", "shadcn", "Do not edit"]) {
+      for (const leak of ["Personal UI", "UI Theme Workbench", "@personal-ui", "personal-ui", "Pocketmarket", "pocketmarket", "Secuna", theme.name, "client-copy", "Client Copy", "revision", "$schema", "schemaVersion", "renderShadcnTailwindCss", "shadcn", "Do not edit"]) {
         expect(prompt, leak).not.toContain(leak)
       }
     }

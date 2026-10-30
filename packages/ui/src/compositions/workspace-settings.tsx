@@ -26,7 +26,7 @@ function GeneralPanel() {
           <Field>
             <FieldLabel htmlFor="workspace-name">Workspace name</FieldLabel>
             <FieldContent>
-              <Input id="workspace-name" defaultValue="Personal UI System" />
+              <Input id="workspace-name" defaultValue="UI Theme Workbench" />
             </FieldContent>
           </Field>
           <Field orientation="responsive">

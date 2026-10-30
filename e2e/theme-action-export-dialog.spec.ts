@@ -138,7 +138,7 @@ test.describe("TAED-01/02 deliberate Export and exact export identity (PUI-134)"
       const prompt = await previewText(page)
       expect(prompt.startsWith("Apply the following design theme to this project.")).toBe(true)
       expect(prompt).toContain(`\`\`\`css\n${css}\`\`\``)
-      expect(prompt).not.toMatch(/export-probe|Export Probe|Personal UI|personal-ui|revision|schemaVersion/i)
+      expect(prompt).not.toMatch(/export-probe|Export Probe|Personal UI|personal-ui|UI Theme Workbench|revision|schemaVersion/i)
       expect(await copySelected(page)).toBe(prompt)
       await axe(page, info, `export-dialog-prompt-${mode}`)
 
