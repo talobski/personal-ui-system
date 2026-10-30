@@ -1,6 +1,6 @@
 # `@personal-ui/core` public consumption guide
 
-`@personal-ui/core` is the public package for deterministic design-system retrieval, component-state validation, and non-committing theme proposals. Use its public barrel (`@personal-ui/core`) only; consumers do not need an internal module import or the workbench.
+`@personal-ui/core` is the workspace package for deterministic design-system retrieval, component-state validation, and non-committing theme proposals. It is part of UI Theme Workbench, private to this repository, and not published to npm. Use its public barrel (`@personal-ui/core`) only; consumers do not need an internal module import or the workbench.
 
 ## Retrieve the available context
 
@@ -14,8 +14,8 @@ node packages/core/src/context/bootstrap.mjs capabilities --version personal-ui-
 
 `list` discovers the closed theme and resource ids. `get` returns the selected theme and resource contract. `capabilities` describes the closed theme-token operation union; it does not add operations. In a package-manager workspace, the equivalent public script is `pnpm context -- <same arguments>`.
 
-Two built-in themes are served: `default` (the fresh-state theme) and `quiet-editorial`, both committed canonical v3
-fixtures (legacy v1/v2.0/v2.1 migration inputs live in `src/theme/fixtures/legacy/`). Every theme is canonical `personal-ui-theme` v3 (`schemaVersion: "3.0"`): colours live at
+Five built-in themes are served: `default` (the fresh-state theme), `quiet-editorial`, `amber-dusk`, `pocketmarket`,
+and `secuna`, all committed canonical v3 fixtures in `src/theme/fixtures/` (legacy v1/v2.0/v2.1 migration inputs live in `src/theme/fixtures/legacy/`). Every theme is canonical `personal-ui-theme` v3 (`schemaVersion: "3.0"`): colours live at
 `colors.{light,dark}.<token>` as canonical OKLCH; typography has two semantic roles, `heading` and `body`, each with a
 `font` stack, an integer `weight` (100 to 900 in steps of 100), and an em `tracking`, plus a `mono` font primitive for
 code (font size and line height stay component-owned); radius has `base`/`sm`/`md`/`lg`/`xl`, and shadows have eight
@@ -29,10 +29,18 @@ since v2.1 have eight dedicated Sidebar colours per mode (`sidebar`, `sidebar-fo
 `sidebar-primary`, `sidebar-primary-foreground`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-border`,
 `sidebar-ring`) and `sidebar.useDedicatedTokens`: off, the rendered `--sidebar*` variables alias `background`,
 `foreground`, `primary`, `primary-foreground`, `accent`, `accent-foreground`, `border`, and `ring`; on, they render the
-stored dedicated values. The twelve-operation union includes `setFontFamily` (`target`
-`heading | body | mono`), `setFontWeight` and `setTracking` (`target` `heading | body`), `setRadiusBase` (derives the
-radius scale), `setSpacingBase`, `setShadowProfile` (derives all shadow tiers), and `setSidebarTokensEnabled`;
-`setColor` accepts the same four colour families and the eight Sidebar colours.
+stored dedicated values. Two optional fields extend v3. `tones` holds six identity tone pairs per mode (`tone-1` to
+`tone-6`, each with a `tone-N-foreground`), which express identity or category, never status; a stored set is a
+complete override of all twelve tones in both modes, a theme without one renders the shared defaults, and every
+built-in stores its own set. The rendered CSS always emits the `--tone-*` variables and their Tailwind colours, so
+utilities such as `bg-tone-1` and `text-tone-1-foreground` exist in every theme. Tones saved under the earlier colour-word
+names (`tone-blue` and so on) are renamed on load. `uiEffects` stores an `effect` token (`off` or `tactile`) and an
+integer `strength` token from 0 to 100; absent means off. The thirteen-operation union includes `setFontFamily` (`target` `heading | body | mono`),
+`setFontWeight` and `setTracking` (`target` `heading | body`), `setRadiusBase` (derives the radius scale),
+`setSpacingBase`, `setShadowProfile` (derives all shadow tiers), `setSidebarTokensEnabled`, and `setUiEffects`
+(replaces the whole `uiEffects` value); `setColor` accepts the same four colour formats, the eight Sidebar colours,
+and the twelve tones (on a theme with no stored tones, the first tone edit stores all twelve, starting from the shared
+defaults). `capabilities` lists all thirteen with their value constraints.
 
 The catalog contains twenty-three resources. `slider` (single-thumb, forwards its name and value text to the Radix
 thumb) and `collapsible` (one named disclosure region) are components; retrieve either with
