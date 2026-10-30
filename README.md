@@ -31,8 +31,8 @@ It is a tool for my own use. The code is public so people can see how I work; it
 Requires Node.js 22 or newer and pnpm 12.5.1, as declared in `package.json`.
 
 ```sh
-git clone https://github.com/talobski/personal-ui-system.git
-cd personal-ui-system
+git clone https://github.com/talobski/ui-theme-workbench.git
+cd ui-theme-workbench
 pnpm install
 pnpm --filter @personal-ui/workbench dev
 ```
@@ -62,7 +62,7 @@ The Workbench browser suite runs against the production build, so build it first
 | `e2e` | Playwright browser checks |
 | `docs` | Design contracts, implementation notes and earlier research |
 
-The repository, package names and internal identifiers (`personal-ui-system`, `@personal-ui/*`, `personal-ui-theme`, `personal-ui-context/1`) predate the current name and are unchanged.
+Package names and internal identifiers (`personal-ui-system`, `@personal-ui/*`, `personal-ui-theme`, `personal-ui-context/1`) predate the current name and are unchanged.
 
 Built with TypeScript, React, Vite, Tailwind CSS v4 and shadcn-style components on Base UI and Radix primitives.
 
